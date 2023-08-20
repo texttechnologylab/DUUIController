@@ -1,0 +1,148 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyChainedComparisonsInspection" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <option name="ignoreConstantInTheMiddle" value="true" />
+    </inspection_tool>
+    <inspection_tool class="PyCompatibilityInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ourVersions">
+        <value>
+          <list size="0" />
+        </value>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <value>
+          <list size="1">
+            <item index="0" class="java.lang.String" itemvalue="PyPDF2" />
+          </list>
+        </value>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyPep8Inspection" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <option name="ignoredErrors">
+        <list>
+          <option value="E203" />
+          <option value="E231" />
+          <option value="E701" />
+          <option value="E127" />
+          <option value="E201" />
+          <option value="E722" />
+          <option value="E101" />
+          <option value="E128" />
+          <option value="E402" />
+          <option value="W605" />
+          <option value="W191" />
+          <option value="E131" />
+          <option value="E114" />
+          <option value="E125" />
+          <option value="E116" />
+          <option value="E221" />
+          <option value="E501" />
+          <option value="E251" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyPep8NamingInspection" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <option name="ignoredErrors">
+        <list>
+          <option value="N802" />
+          <option value="N806" />
+          <option value="N803" />
+          <option value="N813" />
+          <option value="N801" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyStubPackagesAdvertiser" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <list>
+          <option value="PyQt5" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyStubPackagesCompatibilityInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredStubPackages">
+        <list>
+          <option value="PyQt5-stubs" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredIdentifiers">
+        <list>
+          <option value="PyQt5.QtWidgets.clicked.connect" />
+          <option value="list.replace" />
+          <option value="PyQt5.QtCore.timeout.connect" />
+          <option value="list.__getitem__" />
+          <option value="PyQt5.QtWidgets.itemClicked.connect" />
+          <option value="PyQt5.QtWidgets.clicked.disconnect" />
+          <option value="PyQt5.QtWidgets.textChanged.connect" />
+          <option value="dict.__add__" />
+          <option value="PyQt5.QtWidgets.triggered.connect" />
+          <option value="PyQt5.QtWidgets.itemClicked.disconnect" />
+          <option value="sys._MEIPASS" />
+          <option value="custom_widgets.stateChanged.connect" />
+          <option value="pyPdf.PdfFileReader" />
+          <option value="pyPdf.PdfFileWriter" />
+          <option value="PyQt5.QtCore.pyqtSignal.emit" />
+          <option value="PyQt5.QtWidgets.valueChanged.connect" />
+          <option value="PyQt5.QtCore.pyqtSignal.connect" />
+          <option value="PyQt5.QtWidgets.currentTextChanged.connect" />
+          <option value="PyQt5.QtWidgets.leaveEvent.connect" />
+          <option value="PyQt5.QtWidgets.pressed.connect" />
+          <option value="PyQt5.QtChart.QChartView" />
+          <option value="PyQt5.QtChart.QBarSeries" />
+          <option value="PyQt5.QtChart.QBarSet" />
+          <option value="PyQt5.QtChart.QChart" />
+          <option value="PyQt5.QtChart.QHorizontalBarSeries" />
+          <option value="PyQt5.QtChart.QBarCategoryAxis" />
+          <option value="PyQt5.QtCore.dataChanged.emit" />
+          <option value="object.name" />
+          <option value="PyQt5.QtWidgets.changeEvent.connect" />
+          <option value="PyQt5.QtWidgets.returnPressed.connect" />
+          <option value="PyQt5.QtCore.finished.connect" />
+          <option value="cv2.imread" />
+          <option value="django_project.home.models.Post.objects" />
+          <option value="PySide6.QtCore.Signal.emit" />
+          <option value="PySide6.QtCore.Signal.connect" />
+          <option value="PySide6.QtWidgets.window.status_lbl" />
+          <option value="PySide6.QtWidgets.window.content_area" />
+          <option value="PySide6.QtWidgets.window.resize" />
+          <option value="PySide6.QtWidgets.window.side_bar" />
+          <option value="PySide6.QtWidgets.window.height" />
+          <option value="PySide6.QtWidgets.window.set_size" />
+          <option value="property.position" />
+          <option value="components.table.SQLTable.*" />
+          <option value="UI.UI_utils.Theme.icon_color" />
+          <option value="PySide6.QtCore.thread.start" />
+          <option value="PySide6.QtGui.triggered.connect" />
+          <option value="menus.ConstraintAction.triggered" />
+          <option value="lastgang.ui.left_menu.MenuButton.*" />
+          <option value="PySide6.QtCore.timeout.*" />
+          <option value="PySide6.QtWidgets.currentIndexChanged.*" />
+          <option value="ui.base_widgets.Button.*" />
+          <option value="ui.base_widgets.ComboBox.currentIndexChanged" />
+          <option value="ui.base_widgets.LineEdit.*" />
+          <option value="PySide6.QtWidgets.clicked.connect" />
+          <option value="float.textChanged" />
+          <option value="ui.window.SideButton.*" />
+          <option value="ui.widgets.base_widgets.ComboBox.*" />
+          <option value="ui.widgets.base_widgets.LineEdit.*" />
+          <option value="ui.widgets.base_widgets.CheckBox.*" />
+          <option value="ui.widgets.base_widgets.Button.*" />
+          <option value="float.setValidator" />
+          <option value="int.__getitem__" />
+          <option value="calendar.calendar.month_name" />
+          <option value="PySide6.QtCore.finished.connect" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="SpellCheckingInspection" enabled="false" level="TYPO" enabled_by_default="false">
+      <option name="processCode" value="true" />
+      <option name="processLiterals" value="true" />
+      <option name="processComments" value="true" />
+    </inspection_tool>
+  </profile>
+</component>
