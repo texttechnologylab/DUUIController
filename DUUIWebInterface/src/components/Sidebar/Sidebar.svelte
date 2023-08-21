@@ -2,8 +2,8 @@
 	import SidebarItem from './SidebarItem.svelte';
 </script>
 
-<aside class="sidebar">
-	<ul role="list" class="sidebar__list">
+<aside class="sidebar | fixed bg-blue-400 top-0 bottom-0">
+	<ul role="list" class="sidebar__list | flex justify-start flex-col min-h-screen [&>*:nth-child(5)]:mt-auto">
 		<SidebarItem text="Home" link="/" iconName="home-solid" />
 		<SidebarItem text="Analysis" link="/analysis" iconName="rocket-solid" />
 		<SidebarItem text="Status" link="/status" iconName="shield-check-solid" />
@@ -14,17 +14,5 @@
 </aside>
 
 <style>
-	.sidebar {
-		position: fixed;
-		background-color: #448cc1;
-		top: 0;
-		bottom: 0;
-	}
 
-	.sidebar__list {
-		display: flex;
-		justify-content: flex-start;
-		flex-direction: column;
-		min-height: 100vh;
-	}
 </style>

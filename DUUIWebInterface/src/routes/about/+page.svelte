@@ -1,26 +1,48 @@
+<script>
+	import { Icon } from 'flowbite-svelte-icons';
+</script>
+
 <svelte:head>
 	<title>About</title>
-	<meta name="description" content="About this app" />
+	<meta name="description" content="About DUUI" />
 </svelte:head>
 
-<div class="text-column">
-	<h1>About this app</h1>
-
-	<p>
-		This is a <a href="https://kit.svelte.dev">SvelteKit</a> app. You can make your own by typing the
-		following into your command line and following the prompts:
+<article class="about p-4 max-w-6xl mx-auto">
+	<h1 class="page-title text-center text-4xl mt-8 mb-16 text-gray-800">
+		DockerUnifiedUIMAInterface
+	</h1>
+	<p class="intro leading-8 text-lg text-gray-600 my-16">
+		Automatic analysis of large text corpora is a complex task. This complexity particularly
+		concerns the question of time efficiency. Furthermore, efficient, flexible, and extensible
+		textanalysis requires the continuous integration of every new text analysis tools. Since there
+		are currently, in the area of NLP and especially in the application context of UIMA, only very
+		few to no adequate frameworks for these purposes, which are not simultaneously outdated or can
+		no longer be used for security reasons, this work will present a new approach to fill this gap.
+		To this end, we present Docker Unified UIMA Interface (DUUI), a scalable, flexible, lightweight,
+		and featurerich framework for automated and distributed analysis of text corpora that leverages
+		experience in Big Data analytics and virtualization with Docker.
 	</p>
-
-	<pre>npm create svelte@latest</pre>
-
-	<p>
-		The page you're looking at is purely static HTML, with no client-side interactivity needed.
-		Because of that, we don't need to load any JavaScript. Try viewing the page's source, or opening
-		the devtools network panel and reloading.
-	</p>
-
-	<p>
-		The <a href="/sverdle">Sverdle</a> page illustrates SvelteKit's data loading and form handling. Try
-		using it with JavaScript disabled!
-	</p>
-</div>
+	<div class="wrapper grid grid-cols-2 gap-8">
+		<div class="column bg-blue-400 text-white p-8 rounded">
+			<div class="header flex justify-between items-center">
+				<h2 class="column-title font-bold text-3xl">DUUI App</h2>
+				<a class="hover:text-slate-700 transition-colors duration-300 ease-out" href="#">
+					<Icon class="w-8 h-8 " name="github-solid" />
+				</a>
+			</div>
+		</div>
+		<div class="column bg-blue-400 text-white p-8 rounded">
+			<div class="header flex justify-between items-center">
+				<h2 class="column-title font-bold text-3xl">DUUI Web</h2>
+				<a
+					class="hover:text-slate-700 transition-colors duration-300 ease-out"
+					href="https://github.com/texttechnologylab/DUUIController"
+					target="_blank"
+				>
+					<Icon class="w-8 h-8" name="github-solid" />
+				</a>
+			</div>
+		</div>
+	</div>
+	<div class="wrapper license" />
+</article>

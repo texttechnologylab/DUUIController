@@ -11,15 +11,3 @@
 	</main>
 </div>
 
-<style>
-	.app {
-		display: flex;
-		align-items: center;
-		min-height: 100vh;
-	}
-
-	main {
-		margin: 0 auto;
-		
-	}
-</style>
