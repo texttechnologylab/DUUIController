@@ -1,31 +1,23 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-
-	export let name: string = 'Component';
-	export let id: string;
-	export let driver: string = 'Driver';
-	export let description: string = 'Description';
-	let status: string = '';
-
-	onMount(() => {
-		async function getStatus() {
-			let response = await fetch('http://127.0.0.1:9090/status/' + id);
-			let json = await response.json();
-			status = json['message'];
-		}
-
-		getStatus();
-	});
+	export let component: DUUIPipelineComponent;
+	export let index: number;
 </script>
 
 <div class="component">
 	<div class="header">
-		<p class="pipeline__component-title">{name}</p>
-		<p class="pipeline__component-status">{status}</p>
+		<p class="pipeline__component-title">{component.displayName}</p>
+		<select class="text-md px-4 py-2 bg-slate-800 text-white">
+			<option value="docker">Docker</option>
+			<option value="swarm">Swarm</option>
+			<option value="remote">Remote</option>
+			<option value="uima">UIMA</option>
+		</select>
 	</div>
-	<p class="pipeline__component-id">{id}</p>
-	<p class="pipeline__component-driver">{driver}</p>
-	<p class="pipeline__component-driver">{description}</p>
+	{#if component.id !== null}
+		<p class="pipeline__component-id">{component.id}</p>
+	{/if}
+	<p class="pipeline__component-driver">{component.driver.displayName}</p>
+	<p class="pipeline__component-driver">{component.description}</p>
 </div>
 
 <style>

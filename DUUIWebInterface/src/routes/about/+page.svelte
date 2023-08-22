@@ -1,5 +1,5 @@
 <script>
-	import { Icon } from 'flowbite-svelte-icons';
+	import LinkIcon from '../../components/Button/LinkIcon.svelte';
 </script>
 
 <svelte:head>
@@ -23,24 +23,19 @@
 		experience in Big Data analytics and virtualization with Docker.
 	</p>
 	<div class="wrapper grid grid-cols-2 gap-8">
-		<div class="column bg-blue-400 text-white p-8 rounded">
+		<div class="column bg-slate-800 text-white p-8 rounded">
 			<div class="header flex justify-between items-center">
-				<h2 class="column-title font-bold text-3xl">DUUI App</h2>
-				<a class="hover:text-slate-700 transition-colors duration-300 ease-out" href="#">
-					<Icon class="w-8 h-8 " name="github-solid" />
-				</a>
+				<h2 class="column-title font-bold text-2xl">DUUI App</h2>
+				<LinkIcon iconName="github-solid" />
 			</div>
 		</div>
-		<div class="column bg-blue-400 text-white p-8 rounded">
+		<div class="column bg-slate-800 text-white p-8 rounded">
 			<div class="header flex justify-between items-center">
-				<h2 class="column-title font-bold text-3xl">DUUI Web</h2>
-				<a
-					class="hover:text-slate-700 transition-colors duration-300 ease-out"
+				<h2 class="column-title font-bold text-2xl">DUUI Web</h2>
+				<LinkIcon
 					href="https://github.com/texttechnologylab/DUUIController"
-					target="_blank"
-				>
-					<Icon class="w-8 h-8" name="github-solid" />
-				</a>
+					iconName="github-solid"
+				/>
 			</div>
 		</div>
 	</div>

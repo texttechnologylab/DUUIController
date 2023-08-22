@@ -7,7 +7,11 @@ const config = {
 			'display': ['Ubuntu'],
 			'body': ['"Ubuntu"']
 		},
-		extend: {}
+		extend: {
+			gridTemplateColumns: {
+				'pipelineItem': 'auto repeat(2, 1fr)'
+			}
+		}
 	},
 
 	plugins: []
