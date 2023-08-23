@@ -1,41 +1,112 @@
 <script lang="ts">
+	import { createEventDispatcher } from 'svelte';
+	let dispatch = createEventDispatcher();
+
+	import type { DUUIPipelineComponent } from '../../Interfaces/interfaces';
+	import { Icon } from 'flowbite-svelte-icons';
+	import Dialog from '../Dialog.svelte';
+
 	export let component: DUUIPipelineComponent;
-	export let index: number;
+	let driverType: string = component.driver.short;
+	let driverTypes: string[] = ['Docker', 'Remote', 'Swarm', 'UIMA'];
+
+	function deleteComponent() {
+		dispatch('delete', {
+			item: component
+		});
+	}
+	let dialog: HTMLDialogElement;
+
+	export let expanded: boolean = true;
+	$: component.driver.displayName = driverType;
 </script>
 
-<div class="component">
-	<div class="header">
-		<p class="pipeline__component-title">{component.displayName}</p>
-		<select class="text-md px-4 py-2 bg-slate-800 text-white">
-			<option value="docker">Docker</option>
-			<option value="swarm">Swarm</option>
-			<option value="remote">Remote</option>
-			<option value="uima">UIMA</option>
-		</select>
+<div class="component shadow-md flex flex-col min-w-[32rem] relative">
+	<div
+		class=" bg-slate-800 absolute rounded-md left-0 top-0 -translate-x-[120%] p-2"
+	>
+		{#if driverType === 'Docker'}
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				height="1em"
+				viewBox="0 0 640 512"
+				class="fill-white w-8 h-8"
+			>
+				<!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+				<path
+					d="M349.9 236.3h-66.1v-59.4h66.1v59.4zm0-204.3h-66.1v60.7h66.1V32zm78.2 144.8H362v59.4h66.1v-59.4zm-156.3-72.1h-66.1v60.1h66.1v-60.1zm78.1 0h-66.1v60.1h66.1v-60.1zm276.8 100c-14.4-9.7-47.6-13.2-73.1-8.4-3.3-24-16.7-44.9-41.1-63.7l-14-9.3-9.3 14c-18.4 27.8-23.4 73.6-3.7 103.8-8.7 4.7-25.8 11.1-48.4 10.7H2.4c-8.7 50.8 5.8 116.8 44 162.1 37.1 43.9 92.7 66.2 165.4 66.2 157.4 0 273.9-72.5 328.4-204.2 21.4.4 67.6.1 91.3-45.2 1.5-2.5 6.6-13.2 8.5-17.1l-13.3-8.9zm-511.1-27.9h-66v59.4h66.1v-59.4zm78.1 0h-66.1v59.4h66.1v-59.4zm78.1 0h-66.1v59.4h66.1v-59.4zm-78.1-72.1h-66.1v60.1h66.1v-60.1z"
+				/>
+			</svg>
+		{:else if driverType === 'Remote'}
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				height="1em"
+				viewBox="0 0 640 512"
+				class="fill-white w-8 h-8"
+				><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path
+					d="M54.2 202.9C123.2 136.7 216.8 96 320 96s196.8 40.7 265.8 106.9c12.8 12.2 33 11.8 45.2-.9s11.8-33-.9-45.2C549.7 79.5 440.4 32 320 32S90.3 79.5 9.8 156.7C-2.9 169-3.3 189.2 8.9 202s32.5 13.2 45.2 .9zM320 256c56.8 0 108.6 21.1 148.2 56c13.3 11.7 33.5 10.4 45.2-2.8s10.4-33.5-2.8-45.2C459.8 219.2 393 192 320 192s-139.8 27.2-190.5 72c-13.3 11.7-14.5 31.9-2.8 45.2s31.9 14.5 45.2 2.8c39.5-34.9 91.3-56 148.2-56zm64 160a64 64 0 1 0 -128 0 64 64 0 1 0 128 0z"
+				/></svg
+			>
+		{:else if driverType === 'Swarm'}
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				height="1em"
+				viewBox="0 0 512 512"
+				class="fill-white w-8 h-8"
+				><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path
+					d="M418.4 157.9c35.3-8.3 61.6-40 61.6-77.9c0-44.2-35.8-80-80-80c-43.4 0-78.7 34.5-80 77.5L136.2 151.1C121.7 136.8 101.9 128 80 128c-44.2 0-80 35.8-80 80s35.8 80 80 80c12.2 0 23.8-2.7 34.1-7.6L259.7 407.8c-2.4 7.6-3.7 15.8-3.7 24.2c0 44.2 35.8 80 80 80s80-35.8 80-80c0-27.7-14-52.1-35.4-66.4l37.8-207.7zM156.3 232.2c2.2-6.9 3.5-14.2 3.7-21.7l183.8-73.5c3.6 3.5 7.4 6.7 11.6 9.5L317.6 354.1c-5.5 1.3-10.8 3.1-15.8 5.5L156.3 232.2z"
+				/></svg
+			>
+		{:else if driverType === 'UIMA'}
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				height="1em"
+				viewBox="0 0 384 512"
+				class="fill-white w-8 h-8"
+				><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path
+					d="M277.74 312.9c9.8-6.7 23.4-12.5 23.4-12.5s-38.7 7-77.2 10.2c-47.1 3.9-97.7 4.7-123.1 1.3-60.1-8 33-30.1 33-30.1s-36.1-2.4-80.6 19c-52.5 25.4 130 37 224.5 12.1zm-85.4-32.1c-19-42.7-83.1-80.2 0-145.8C296 53.2 242.84 0 242.84 0c21.5 84.5-75.6 110.1-110.7 162.6-23.9 35.9 11.7 74.4 60.2 118.2zm114.6-176.2c.1 0-175.2 43.8-91.5 140.2 24.7 28.4-6.5 54-6.5 54s62.7-32.4 33.9-72.9c-26.9-37.8-47.5-56.6 64.1-121.3zm-6.1 270.5a12.19 12.19 0 0 1-2 2.6c128.3-33.7 81.1-118.9 19.8-97.3a17.33 17.33 0 0 0-8.2 6.3 70.45 70.45 0 0 1 11-3c31-6.5 75.5 41.5-20.6 91.4zM348 437.4s14.5 11.9-15.9 21.2c-57.9 17.5-240.8 22.8-291.6.7-18.3-7.9 16-19 26.8-21.3 11.2-2.4 17.7-2 17.7-2-20.3-14.3-131.3 28.1-56.4 40.2C232.84 509.4 401 461.3 348 437.4zM124.44 396c-78.7 22 47.9 67.4 148.1 24.5a185.89 185.89 0 0 1-28.2-13.8c-44.7 8.5-65.4 9.1-106 4.5-33.5-3.8-13.9-15.2-13.9-15.2zm179.8 97.2c-78.7 14.8-175.8 13.1-233.3 3.6 0-.1 11.8 9.7 72.4 13.6 92.2 5.9 233.8-3.3 237.1-46.9 0 0-6.4 16.5-76.2 29.7zM260.64 353c-59.2 11.4-93.5 11.1-136.8 6.6-33.5-3.5-11.6-19.7-11.6-19.7-86.8 28.8 48.2 61.4 169.5 25.9a60.37 60.37 0 0 1-21.1-12.8z"
+				/></svg
+			>
+		{/if}
 	</div>
-	{#if component.id !== null}
-		<p class="pipeline__component-id">{component.id}</p>
+	<button
+		on:click={() => dialog.showModal()}
+		class=" bg-red-500 absolute rounded-md right-0 top-0 translate-x-[120%] p-2
+		        hover:bg-red-700 transition-colors cursor-pointer"
+	>
+		<Icon name="trash-bin-outline" class="text-white h-8 w-8" />
+	</button>
+	<div class="header flex bg-slate-800 text-white items-center justify-between p-4 rounded-md">
+		<input
+			bind:value={component.displayName}
+			type="text"
+			placeholder="Name"
+			class="text-xl bg-slate-800 cursor-pointer focus-within:border-none outline-none"
+		/>
+		<button
+			class="p-2 hover:bg-white hover:text-slate-800 rounded-full cursor-pointer transition"
+			on:click={() => (expanded = !expanded)}
+		>
+			<Icon name={expanded ? 'angle-up-solid' : 'angle-down-solid'} class="w-6 h-6" />
+		</button>
+	</div>
+	{#if expanded}
+		<div class="component p-4 flex flex-col gap-1 justify-center">
+			<label for="driver ">Choose Driver</label>
+			<select
+				bind:value={driverType}
+				class="p-4 border-2 border-slate-800 bg-white cursor-pointer"
+				id="driver"
+			>
+				{#each driverTypes as dt}
+					<option value={dt}>{dt}</option>
+				{/each}
+			</select>
+			<slot />
+		</div>
 	{/if}
-	<p class="pipeline__component-driver">{component.driver.displayName}</p>
-	<p class="pipeline__component-driver">{component.description}</p>
 </div>
 
-<style>
-	.component {
-		padding: 1rem 2rem;
-		box-shadow: 0px 4px 12px 0px rgba(0, 0, 0, 0.25);
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 1rem;
-		border-radius: 0.25rem;
-	}
-	.header {
-		display: flex;
-		gap: 1rem;
-	}
-
-	.pipeline__component-status {
-		margin-left: auto;
-	}
-</style>
+<Dialog bind:dialog on:accept={deleteComponent}>
+	<p class="text-lg">Are you sure you want to delete {component.displayName}?</p>
+</Dialog>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Template } from '../../Interfaces/interfaces';
 	import TemplateElement from '../../components/TemplateElement.svelte';
 	
 
@@ -7,12 +8,6 @@
 		createdAt: new Date(),
 		timesUsed: 0,
 		components: [
-			{
-				displayName: 'LanguageDetection',
-				driver: new DUUIUIMADriver,
-				id: "A",
-				description: "B"
-			},
 
 		]
 	};

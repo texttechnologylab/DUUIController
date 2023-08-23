@@ -1,5 +1,5 @@
 <script>
-	import Pipeline from "../../../components/Pipeline/Pipeline.svelte";
+	import Pipeline from '../../../components/Pipeline/Pipeline.svelte';
 </script>
 
 <Pipeline />
