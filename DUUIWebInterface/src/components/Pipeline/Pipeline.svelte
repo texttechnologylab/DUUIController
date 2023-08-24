@@ -6,12 +6,9 @@
 		type DUUIPipeline,
 		DUUIUIMADriver,
 		DUUIRemoteDriver,
-
 		type DUUIPipelineComponent
-
 	} from '../../Interfaces/interfaces';
 	import { Icon } from 'flowbite-svelte-icons';
-
 
 	export let pipeline: DUUIPipeline = {
 		name: 'Example',
@@ -87,10 +84,22 @@
 	let save: boolean = true;
 	let pipelineName: string = '';
 
-	function deleteComponent(event: { detail: { item: any; }; }) {
-		pipeline.components = pipeline.components.filter((item, i, arr) => item !== event.detail.item)
+	function deleteComponent(event: { detail: { item: any } }) {
+		pipeline.components = pipeline.components.filter((item, i, arr) => item !== event.detail.item);
 	}
 
+	let dragIndex: number;
+	let dropIndex: number;
+
+	function drop(event: DragEvent) {
+		event.preventDefault();
+		const [item] = pipeline.components.splice(dragIndex, 1);
+		pipeline.components.splice(dropIndex, 0, item);
+		pipeline.components = pipeline.components;
+
+		dragIndex = -1;
+		dropIndex = -1;
+	}
 </script>
 
 <div class="wrapper | flex flex-col gap-8 my-16 max-w-lg m-auto">
@@ -98,11 +107,21 @@
 		<h2 class="text-center text-3xl pb-8">Add a Component to your Pipeline</h2>
 	{/if}
 
-	{#each pipeline.components as component}
-		<PipelineComponent {component} expanded={false} on:delete={deleteComponent}>
-			<p>Slot</p>
-		</PipelineComponent>
-	{/each}
+	<ul on:drop={(event) => drop(event)} ondragover="return false" class="flex flex-col gap-4 mt-4">
+		{#each pipeline.components as component, index}
+			<PipelineComponent
+				
+				on:dragenter={() => (dropIndex = index)}
+				on:dragstart={() => (dragIndex = index)}
+				{component}
+				expanded={false}
+				on:delete={deleteComponent}
+			>
+				<p>Slot</p>
+			</PipelineComponent>
+		{/each}
+	</ul>
+
 	<div class="flex items-center justify-center m-8">
 		<button
 			class="border-none bg-slate-800 hover:bg-slate-600 text-white rounded-full p-4"
@@ -142,4 +161,3 @@
 		</div>
 	{/if}
 </div>
-
