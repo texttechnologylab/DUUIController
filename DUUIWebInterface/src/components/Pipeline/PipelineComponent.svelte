@@ -21,8 +21,10 @@
 	$: component.driver.displayName = driverType;
 </script>
 
-<li draggable={true} >
-	<div class="component shadow-md flex flex-col min-w-[32rem] relative">
+<li draggable={true}>
+	<div
+		class="component shadow-md flex flex-col min-w-[32rem] relative border-[1px] border-slate-800"
+	>
 		<div class=" bg-slate-800 absolute rounded-md left-0 top-0 -translate-x-[120%] p-2">
 			{#if driverType === 'Docker'}
 				<svg
@@ -75,15 +77,19 @@
 		>
 			<Icon name="trash-bin-outline" class="text-white h-8 w-8" />
 		</button>
-		<div class="header flex bg-slate-800 text-white items-center justify-between p-4 rounded-md">
+		<div
+			class="header flex text-slate-800 items-center {expanded
+				? 'border-b-[1px]'
+				: ''} border-slate-800"
+		>
 			<input
 				bind:value={component.displayName}
 				type="text"
 				placeholder="Name"
-				class="text-xl bg-slate-800 cursor-pointer focus-within:border-none outline-none"
+				class="text-md cursor-pointer outline-none border-r-[1px] p-3 border-slate-800 grow px-4"
 			/>
 			<button
-				class="p-2 hover:bg-white hover:text-slate-800 rounded-full cursor-pointer transition"
+				class="hover:bg-slate-800 hover:text-white cursor-pointer transition duration-300 p-3 flex items-center justify-center"
 				on:click={() => (expanded = !expanded)}
 			>
 				<Icon name={expanded ? 'angle-up-solid' : 'angle-down-solid'} class="w-6 h-6" />
