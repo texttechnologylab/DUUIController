@@ -1,5 +1,5 @@
 <script>
-	import LinkIcon from '../../components/Button/LinkIcon.svelte';
+	import LinkIcon from '../../components/Buttons/IconButton.svelte';
 </script>
 
 <svelte:head>
@@ -23,13 +23,13 @@
 		experience in Big Data analytics and virtualization with Docker.
 	</p>
 	<div class="wrapper grid grid-cols-2 gap-8">
-		<div class="column bg-slate-800 text-white p-8 rounded">
+		<div class="border-2 text-slate-800 border-slate-800 p-8">
 			<div class="header flex justify-between items-center">
 				<h2 class="column-title font-bold text-2xl">DUUI App</h2>
 				<LinkIcon iconName="github-solid" />
 			</div>
 		</div>
-		<div class="column bg-slate-800 text-white p-8 rounded">
+		<div class="border-2 text-slate-800 border-slate-800 p-8">
 			<div class="header flex justify-between items-center">
 				<h2 class="column-title font-bold text-2xl">DUUI Web</h2>
 				<LinkIcon

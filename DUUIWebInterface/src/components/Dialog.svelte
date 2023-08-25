@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-	import Button from './Button/Button.svelte';
+	import Button from './Buttons/Button.svelte';
 	const dispatcher = createEventDispatcher();
 
 	export let dialog: HTMLDialogElement;

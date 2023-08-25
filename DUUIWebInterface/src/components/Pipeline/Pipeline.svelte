@@ -1,51 +1,45 @@
 <script lang="ts">
+	import type { DUUIPipeline } from '../../Interfaces/interfaces';
+	import DuuiRemoteComponent from './DUUIRemoteComponent.svelte';
 	import PipelineComponent from './PipelineComponent.svelte';
-	import {
-		DUUIDockerDriver,
-		DUUISwarmDriver,
-		type DUUIPipeline,
-		DUUIUIMADriver,
-		DUUIRemoteDriver,
-		type DUUIPipelineComponent
-	} from '../../Interfaces/interfaces';
 	import { Icon } from 'flowbite-svelte-icons';
 
-	export let pipeline: DUUIPipeline = {
-		name: 'Example',
+	let pipeline: DUUIPipeline = {
+		name: '',
 		components: [
 			{
 				displayName: 'LanguageDetection',
-				driver: new DUUIUIMADriver(),
+				driver: 'DUUIUIMADriver',
 				id: null
 			},
 			{
 				displayName: 'spaCy3',
-				driver: new DUUIRemoteDriver(),
+				driver: 'DUUIRemoteDriver',
 				id: null
 			},
 			{
 				displayName: 'GNfinder',
-				driver: new DUUIDockerDriver(),
+				driver: 'DUUIDockerDriver',
 				id: null
 			},
 			{
 				displayName: 'TaxonGazetter',
-				driver: new DUUIRemoteDriver(),
+				driver: 'DUUIRemoteDriver',
 				id: null
 			},
 			{
 				displayName: 'SentimentBart',
-				driver: new DUUIDockerDriver(),
+				driver: 'DUUIDockerDriver',
 				id: null
 			},
 			{
 				displayName: 'SRL',
-				driver: new DUUISwarmDriver(),
+				driver: 'DUUISwarmDriver',
 				id: null
 			},
 			{
 				displayName: 'XMI-Writer',
-				driver: new DUUIUIMADriver(),
+				driver: 'DUUIUIMADriver',
 				id: null
 			}
 		]
@@ -56,15 +50,14 @@
 			...pipeline.components,
 			{
 				displayName: 'Component ' + (pipeline.components.length + 1),
-				driver: new DUUIDockerDriver(),
+				driver: 'DUUIDockerDriver',
 				id: null
 			}
 		];
+		pipeline = pipeline;
 	};
 
 	async function build() {
-		console.log(pipeline);
-
 		return;
 
 		fetch('http://127.0.0.1:9090/build', {
@@ -102,25 +95,37 @@
 	}
 </script>
 
-<div class="wrapper | flex flex-col gap-8 my-16 max-w-lg m-auto">
+<!-- <input
+	bind:value={pipeline.name}
+	type="text"
+	placeholder="Pipeline Name"
+	class="text-4xl border-b-[1px] border-b-slate-800 font-bold outline-none p-4 min-w-[32rem] text-center my-8"
+/> -->
+
+<div class="wrapper | grid flex-col gap-8 my-16">
 	{#if pipeline.components.length === 0}
 		<h2 class="text-center text-3xl pb-8">Add a Component to your Pipeline</h2>
+	{:else}
+		<ul
+			on:drop={(event) => drop(event)}
+			ondragover="return false"
+			class="flex flex-col gap-12 p-8 py-8 m-auto min-w-[800px] shadow-md rounded-sm"
+		>
+			{#each pipeline.components as component, index}
+				<PipelineComponent
+					on:dragenter={() => (dropIndex = index)}
+					on:dragstart={() => (dragIndex = index)}
+					{component}
+					expanded={false}
+					on:delete={deleteComponent}
+				>
+					{#if component.driver === 'DUUIRemoteDriver'}
+						<DuuiRemoteComponent />
+					{/if}
+				</PipelineComponent>
+			{/each}
+		</ul>
 	{/if}
-
-	<ul on:drop={(event) => drop(event)} ondragover="return false" class="flex flex-col gap-4 mt-4">
-		{#each pipeline.components as component, index}
-			<PipelineComponent
-				
-				on:dragenter={() => (dropIndex = index)}
-				on:dragstart={() => (dragIndex = index)}
-				{component}
-				expanded={false}
-				on:delete={deleteComponent}
-			>
-				<p>Slot</p>
-			</PipelineComponent>
-		{/each}
-	</ul>
 
 	<div class="flex items-center justify-center m-8">
 		<button
@@ -131,25 +136,18 @@
 		</button>
 	</div>
 	{#if pipeline.components.length !== 0}
-		<div class="flex flex-col gap-6 shadow-2xl p-8">
-			<input
-				bind:value={pipeline.name}
-				type="text"
-				placeholder="Pipeline Name"
-				class="text-xl border-slate-800 border-[1px] cursor-pointer outline-none p-4"
-			/>
+		<div class="flex flex-col gap-8 items-center p-8">
 			<button
-				disabled={pipelineName === ''}
 				class="border-none bg-slate-800 enabled:hover:bg-slate-600 text-white
 					   rounded-full px-8 py-4 flex items-center justify-center gap-4
 					   disabled:opacity-50"
 				on:click={build}
 			>
-				<p>Build Pipeline</p>
-				<Icon name="upload-solid" class="w-6 h-6" />
+				<p>Finalize Pipeline</p>
+				<Icon name="upload-outline" class="w-6 h-6" />
 			</button>
 
-			<label for="savePipeline" class="flex gap-4 items-center justify-center">
+			<!-- <label for="savePipeline" class="flex gap-4 items-center justify-center">
 				<input
 					type="checkbox"
 					id="savePipeline"
@@ -157,7 +155,7 @@
 					bind:checked={save}
 				/>
 				Save Pipeline as Template?
-			</label>
+			</label> -->
 		</div>
 	{/if}
 </div>
