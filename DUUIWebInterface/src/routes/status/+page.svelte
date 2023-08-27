@@ -12,37 +12,37 @@
 		name: 'Example',
 		components: [
 			{
-				displayName: 'LanguageDetection',
+				name: 'LanguageDetection',
 				driver: new DUUIUIMADriver(),
 				id: null
 			},
 			{
-				displayName: 'spaCy3',
+				name: 'spaCy3',
 				driver: new DUUIRemoteDriver(),
 				id: null
 			},
 			{
-				displayName: 'GNfinder',
+				name: 'GNfinder',
 				driver: new DUUIDockerDriver(),
 				id: null
 			},
 			{
-				displayName: 'TaxonGazetter',
+				name: 'TaxonGazetter',
 				driver: new DUUIRemoteDriver(),
 				id: null
 			},
 			{
-				displayName: 'SentimentBart',
+				name: 'SentimentBart',
 				driver: new DUUIDockerDriver(),
 				id: null
 			},
 			{
-				displayName: 'SRL',
+				name: 'SRL',
 				driver: new DUUISwarmDriver(),
 				id: null
 			},
 			{
-				displayName: 'XMI-Writer',
+				name: 'XMI-Writer',
 				driver: new DUUIUIMADriver(),
 				id: null
 			}
@@ -74,7 +74,7 @@
 			on:dragenter={() => (dropIndex = index)}
 			on:dragstart={() => (dragIndex = index)}
 		>
-			{component.displayName}
+			{component.name}
 		</li>
 	{/each}
 </ul>

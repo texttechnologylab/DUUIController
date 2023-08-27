@@ -1,87 +1,124 @@
-import DUUIDockerService.DUUIDockerService;
-import DUUIPipeline.DUUIPipeline;
-import DUUIReponse.DUUIStandardResponse;
-import DUUIReponse.DUUIStatusResponse;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
-import org.apache.uima.cas.impl.XmiCasSerializer;
-import spark.Request;
-import spark.Response;
+import static spark.Spark.*;
 
-import java.io.OutputStream;
-import java.util.Random;
+import DUUIDockerService.DUUIDockerService;
+
+import DUUIStorageSQLite.DUUISQLiteConnection;
+
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
-import static spark.Spark.*;
+import org.json.JSONObject;
+import spark.Request;
+import spark.Response;
 
 public class DUUIRestService {
 
     private static HashMap<String, CompletableFuture<Void>> _threads = new HashMap<>();
 
-    public static Object build(Request request, Response response) throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        DUUIPipeline payload = mapper.readValue(request.body(), DUUIPipeline.class);
+    private static JSONObject parseBody(Request request) {
+        return new JSONObject(request.body());
+    }
 
-        OutputStream stream = response.raw().getOutputStream();
-        response.type("application/xml");
 
-        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-            try {
-                XmiCasSerializer.serialize(payload.construct().getCas(), stream);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
+    public static Object getPipelines(Request request, Response response) {
 
-        _threads.put(payload.getDisplayName(), future);
-
-        try {
-            return future.get();
-        } catch (InterruptedException | ExecutionException e) {
-            return "Canceled";
+        if (request.queryParams("limit") == null) {
+            return DUUISQLiteConnection.getPipelines();
         }
+
+        if (request.queryParams("offset") == null) {
+            return DUUISQLiteConnection.getPipelines(
+                    Integer.parseInt(request.queryParams("limit")));
+        }
+
+        return DUUISQLiteConnection.getPipelines(
+                Integer.parseInt(request.queryParams("limit")),
+                Integer.parseInt(request.queryParams("offset")));
+    }
+
+    public static Object getPipeline(Request request, Response response) {
+        if (request.queryParams("id") == null) {
+            return "No id provided.";
+        }
+
+        return DUUISQLiteConnection.getPipelineByID(request.queryParams("id"));
+    }
+
+    public static Object postPipeline(Request request, Response response) {
+        JSONObject requestJSON = parseBody(request);
+
+        if (!requestJSON.has("components")) {
+            return "Pipeline has no components. Canceled insertion.";
+        }
+
+        if (requestJSON.getJSONArray("components").isEmpty()) {
+            return "Pipeline has no components. Canceled insertion.";
+        }
+
+        if (requestJSON.has("name") && requestJSON.getString("name").isEmpty()) {
+            requestJSON.put("name", "Unnamed");
+        }
+
+        DUUISQLiteConnection.insertPipeline(requestJSON);
+        return "Inserted new Pipeline: " + requestJSON.getString("name");
+    }
+
+    public static Object putPipeline(Request request, Response response) {
+        JSONObject requestJSON = parseBody(request);
+
+        if (!requestJSON.has("id")) {
+            return "Cannot update pipeline without id.";
+        }
+
+        if (!requestJSON.has("name")) {
+            return "Empty name is not allowed";
+        }
+
+        if (!requestJSON.has("components")) {
+            return "Pipeline without components is not allowed";
+        }
+
+        System.out.println(requestJSON.getString("components").isEmpty());
+
+        return "NOT IMPLEMENTED";
     }
 
     public static void main(String[] args) {
-        final HashMap<Integer, String> statusMap = new HashMap<>();
-        Random random = new Random();
-        statusMap.put(1, "Waiting");
-        statusMap.put(2, "Done");
-        statusMap.put(3, "In Progress");
-        statusMap.put(4, "Canceled");
-
         port(9090);
 
         get("/", (request, response) -> "DUUI says hello");
+
+
+        get("/pipelines", "application/json", DUUIRestService::getPipelines);
+
+        get("/pipeline", "application/json", DUUIRestService::getPipeline);
+        post("/pipeline", "application/json", DUUIRestService::postPipeline);
+        put("/pipeline", "application/json", DUUIRestService::putPipeline);
+
+
         get("/docker", "application/json", DUUIDockerService::build);
-        get("/status/:id", (request, response) -> {
-            response.type("application/text");
-            int index = random.nextInt(0, 4);
-            return new Gson().toJson(new DUUIStandardResponse(
-                    new Gson().toJsonTree(new DUUIStatusResponse(statusMap.get(index)))
-            ));
-        });
 
-        post("/build", "application/json", DUUIRestService::build);
-        post("/cancel/:id", "application/json", (request, response) -> {
-            String id = request.params(":id");
-            CompletableFuture<Void> task = _threads.get(id);
 
-            if (task == null) {
-                response.status(404);
-                return "[ERROR]: No such Task";
-            }
+        post(
+                "/cancel/:id",
+                "application/json",
+                (request, response) -> {
+                    String id = request.params(":id");
+                    CompletableFuture<Void> task = _threads.get(id);
 
-            if (task.cancel(true)) {
-                _threads.remove(id);
-                response.status(200);
-                task.complete(null);
-                return "[OK]: Task has been canceled";
-            }
-            return "[ERROR]: Failed";
-        });
+                    if (task == null) {
+                        response.status(404);
+                        return "[ERROR]: No such Task";
+                    }
+
+                    if (task.cancel(true)) {
+                        _threads.remove(id);
+                        response.status(200);
+                        task.complete(null);
+                        return "[OK]: Task has been canceled";
+                    }
+                    return "[ERROR]: Failed";
+                }
+        );
     }
-
 }

@@ -1,16 +1,16 @@
 package DUUIPipeline;
 
 public class DUUIPipelinePart {
-    private String displayName;
+    private String name;
     private String driver;
 
 
     public String getDisplayName() {
-        return displayName;
+        return name;
     }
 
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
+    public void setDisplayName(String name) {
+        this.name = name;
     }
 
     public String getDriver() {

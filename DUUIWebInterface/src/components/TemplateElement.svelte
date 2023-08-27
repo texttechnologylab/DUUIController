@@ -36,7 +36,7 @@
 	}
 
 	async function cancelPipeline() {
-		fetch('http://127.0.0.1:9090/cancel/' + template.displayName, {
+		fetch('http://127.0.0.1:9090/cancel/' + template.name, {
 			method: 'POST'
 		})
 			.then((response) => response.text())
@@ -51,7 +51,7 @@
 
 <div class=" bg-slate-100 rounded-md max-w-lg overflow-hidden">
 	<h2 class="col-span-2 text-center text-white text-xl bg-slate-700 p-8">
-		{template.displayName}
+		{template.name}
 	</h2>
 	<div class="py-4 relative">
 		{#if pipelineView}
@@ -59,7 +59,7 @@
 				{#each template.components as component, index}
 					<p>{index + 1}</p>
 					<p>{component.driver}</p>
-					<p>{component.displayName}</p>
+					<p>{component.name}</p>
 				{/each}
 			</div>
 		{:else}

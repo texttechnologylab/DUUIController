@@ -1,43 +1,46 @@
 export interface DUUIDriver {
-	displayName: string;
+	name: string;
 	short: string;
 }
 
 export class DUUIRemoteDriver implements DUUIDriver {
-	displayName: string = 'DUUIRemoteDriver';
+	name: string = 'DUUIRemoteDriver';
 	short: string = 'Remote';
 }
 
 export class DUUIDockerDriver implements DUUIDriver {
-	displayName: string = 'DUUIDockerDriver';
+	name: string = 'DUUIDockerDriver';
 	short: string = 'Docker';
 }
 
 export class DUUISwarmDriver implements DUUIDriver {
-	displayName: string = 'DUUISwarmDriver';
+	name: string = 'DUUISwarmDriver';
 	short: string = 'Swarm';
 }
 
 export class DUUIUIMADriver implements DUUIDriver {
-	displayName: string = 'DUUIUIMADriver';
+	name: string = 'DUUIUIMADriver';
 	short: string = 'UIMA';
 	withDebug: boolean = false;
 }
 
 export interface DUUIPipelineComponent {
+	id: string;
+	name: string;
 	driver: string;
-	displayName: string;
-	id: string | null;
+	target?: string | undefined;
+
 }
 
 export interface Template {
-	displayName: string;
+	name: string;
 	timesUsed: number;
 	createdAt: Date;
 	components: DUUIPipelineComponent[];
 }
 
 export interface DUUIPipeline {
+	id: string
 	name: string;
 	components: DUUIPipelineComponent[];
 }

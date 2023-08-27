@@ -2,7 +2,7 @@
 	export let driver: string;
 </script>
 
-<div class="p-2 flex items-center justify-center border-r-[1px] border-r-slate-800">
+<div class="p-2 flex items-center justify-center">
 	{#if driver === 'DUUIDockerDriver'}
 		<svg
 			xmlns="http://www.w3.org/2000/svg"

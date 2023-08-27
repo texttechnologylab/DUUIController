@@ -18,17 +18,17 @@ import java.util.concurrent.CompletableFuture;
 import static org.apache.uima.fit.factory.AnalysisEngineFactory.createEngineDescription;
 
 public class DUUIPipeline {
-    private String displayName;
+    private String name;
     private String createdAt;
     private int timesUsed;
     private List<DUUIPipelinePart> components;
 
     public String getDisplayName() {
-        return displayName;
+        return name;
     }
 
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
+    public void setDisplayName(String name) {
+        this.name = name;
     }
 
     public String getCreatedAt() {
@@ -67,7 +67,7 @@ public class DUUIPipeline {
         JCas cas = JCasFactory.createJCas();
         cas.setDocumentText(FileUtils.getContentFromFile(new File("D:\\IdeaProjects\\DUUIRestService\\src\\main\\java\\testdata3.txt")));
         cas.setDocumentLanguage("de");
-        composer.run(cas, displayName);
+        composer.run(cas, name);
         composer.shutdown();
         JCasUtil.select(cas, Token.class).forEach(System.out::println);
         return cas;
