@@ -1,58 +1,40 @@
-import org.apache.commons.compress.compressors.CompressorException;
-import org.apache.uima.UIMAException;
+import static org.apache.uima.fit.factory.AnalysisEngineFactory.createEngineDescription;
+
+import de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token;
+import de.tudarmstadt.ukp.dkpro.core.tokit.BreakIteratorSegmenter;
 import org.apache.uima.fit.factory.JCasFactory;
+import org.apache.uima.fit.util.JCasUtil;
 import org.apache.uima.jcas.JCas;
 import org.dkpro.core.io.xmi.XmiWriter;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.DUUIComposer;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.DUUIDockerDriver;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.DUUIRemoteDriver;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.DUUISwarmDriver;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.DUUIUIMADriver;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.lua.DUUILuaContext;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.lua.DUUILuaSandbox;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.lua.LuaConsts;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.pipeline_storage.sqlite.DUUISqliteStorageBackend;
-import org.xml.sax.SAXException;
-
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.sql.SQLException;
-
-import static org.apache.uima.fit.factory.AnalysisEngineFactory.createEngineDescription;
 
 public class Main {
 
-    public static void main(String[] args) throws Exception {
-        int iWorkers = 2;
+  public static void main(String[] args) throws Exception {
+    JCas jc = JCasFactory.createJCas();
+    jc.setDocumentText("Test");
+    jc.setDocumentLanguage("de");
 
-        JCas jc = JCasFactory.createJCas();
-        DUUILuaContext context = new DUUILuaContext();
+    DUUIComposer composer = new DUUIComposer().withSkipVerification(true);
 
-        context.withSandbox(new DUUILuaSandbox()
-                .withAllowedJavaClass("java.lang.String")
-                .withAllowedJavaClass("java.nio.charset.StandardCharsets")
-                .withAllowedJavaClass("org.apache.uima.fit.util.JCasUtil")
-                .withAllowedJavaClass("Taxon"));
+    DUUIUIMADriver uima_driver = new DUUIUIMADriver().withDebug(false);
 
-        DUUISqliteStorageBackend sqlite = new DUUISqliteStorageBackend("loggingSQlite.db")
-                .withConnectionPoolSize(iWorkers);
+    composer.addDriver(uima_driver);
+    composer.add(
+      new DUUIUIMADriver.Component(
+        createEngineDescription(BreakIteratorSegmenter.class)
+      )
+    );
 
-        DUUIComposer composer = new DUUIComposer()
-                .withLuaContext(context)
-                .withWorkers(iWorkers)
-                .withStorageBackend(sqlite)
-                .withSkipVerification(true);
+    composer.run(jc, "Test");
 
-        DUUIDockerDriver docker_driver = new DUUIDockerDriver().withTimeout(10000);
-        DUUIRemoteDriver remote_driver = new DUUIRemoteDriver(10000);
-        DUUIUIMADriver uima_driver = new DUUIUIMADriver().withDebug(true);
-        DUUISwarmDriver swarm_driver = new DUUISwarmDriver();
-
-        composer.addDriver(docker_driver, remote_driver, uima_driver, swarm_driver);
-        composer.add(new DUUIDockerDriver.Component("gnfinder:latest").withScale(iWorkers).withImageFetching());
-        composer.add(new DUUIUIMADriver.Component(createEngineDescription(XmiWriter.class,
-                XmiWriter.PARAM_TARGET_LOCATION, "out")).withScale(iWorkers));
-
-        composer.run(jc, "Test");
-    }
+    JCasUtil
+      .select(jc, Token.class)
+      .forEach(token ->
+        System.out.println(
+          token.getText() + ", " + token.getBegin() + ", " + token.getEnd()
+        )
+      );
+  }
 }
