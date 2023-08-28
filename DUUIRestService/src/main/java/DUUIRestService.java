@@ -137,15 +137,22 @@ public class DUUIRestService {
     }
 
     JCas cas = JCasFactory.createJCas();
-    cas.setDocumentText(
-      "This text is in english."
-    );
+    cas.setDocumentText("This text is in english.");
     composer.run(cas, name);
     composer.shutdown();
 
     OutputStream xmiOutputStream = new ByteArrayOutputStream();
     XmiCasSerializer.serialize(cas.getCas(), xmiOutputStream);
     return xmiOutputStream.toString();
+  }
+
+  public static Object getPipelineStatus(Request request, Response response) {
+    String id = request.params(":id");
+    if (id == null) {
+      return "No pipeline id provided.";
+    }
+
+    return "";
   }
 
   public static void main(String[] args) {
@@ -213,5 +220,6 @@ public class DUUIRestService {
     );
 
     get("/run/:id", "application/json", DUUIRestService::runPipeline);
+    get("pipeline/status/:id", DUUIRestService::getPipelineStatus);
   }
 }

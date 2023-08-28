@@ -12,13 +12,11 @@ import org.apache.uima.jcas.JCas;
 import org.apache.uima.resource.ResourceInitializationException;
 import org.apache.uima.resource.metadata.TypeSystemDescription;
 import org.apache.uima.util.CasIOUtils;
-import org.dkpro.core.io.xmi.XmiWriter;
 import org.xml.sax.SAXException;
 
 public class LanguageDetectionFastText {
 
-  private static final String modelPath =
-    "C:/Users/CedricBorkowski/VS Code/Uni/BA/DUUIController/DUUIRestService/lid.176.ftz";
+  private static final String modelPath = "DUUIRestService\\src\\main\\java\\lid.176.ftz";
 
   public static void main(String[] args) throws Exception {
     int PORT = 8001;

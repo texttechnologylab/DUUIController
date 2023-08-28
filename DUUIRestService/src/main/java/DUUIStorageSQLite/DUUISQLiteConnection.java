@@ -234,7 +234,7 @@ public class DUUISQLiteConnection {
     JSONObject output = new JSONObject();
     output.put("pipelines", new JSONArray());
 
-    String sql = "SELECT id, name FROM pipelines";
+    String sql = "SELECT id, name, status FROM pipelines";
 
     try (
       Connection conn = DriverManager.getConnection(connectionString);
@@ -269,7 +269,7 @@ public class DUUISQLiteConnection {
     JSONObject output = new JSONObject();
     output.put("pipelines", new JSONArray());
 
-    String sql = "SELECT id, name FROM pipelines LIMIT ? OFFSET ?";
+    String sql = "SELECT id, name, status FROM pipelines LIMIT ? OFFSET ?";
 
     try (
       Connection conn = DriverManager.getConnection(connectionString);
@@ -300,7 +300,7 @@ public class DUUISQLiteConnection {
   }
 
   public static JSONObject getPipelineByID(String id) {
-    String sql = "SELECT id, name FROM pipelines WHERE id = ?";
+    String sql = "SELECT id, name, status FROM pipelines WHERE id = ?";
 
     JSONObject pipeline = new JSONObject();
 
@@ -348,7 +348,20 @@ public class DUUISQLiteConnection {
     }
   }
 
+  public static void addColumn() {
+    String sql = "ALTER TABLE pipelines ADD status TEXT";
+
+    try (
+      Connection conn = DriverManager.getConnection(connectionString);
+      Statement stmt = conn.createStatement()
+    ) {
+      stmt.execute(sql);
+    } catch (SQLException e) {
+      System.out.println(e.getMessage());
+    }
+  }
+
   public static void main(String[] args) {
-    System.out.println(getPipelines());
+    System.out.println(getPipelines(2));
   }
 }
