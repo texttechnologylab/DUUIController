@@ -6,11 +6,11 @@
 
 	import { dndzone } from 'svelte-dnd-action';
 	import { flip } from 'svelte/animate';
-	import { onMount } from 'svelte';
 	import { v4 as uuidv4 } from 'uuid';
 
-	let pipelineName: string = '';
-	let pipelineID: string = '';
+	export let pipelineName: string = '';
+	export let pipelineID: string = '';
+	export let inEditMode: boolean = false;
 
 	// onMount(() => {
 	// 	fetch(`http://127.0.0.1:9090/pipeline?id=${pipelineID}`, {
@@ -84,6 +84,27 @@
 			});
 	}
 
+	async function updatePipeline() {
+		const data = JSON.stringify({
+			id: pipelineID,
+			name: pipelineName,
+			components: $activePipelineStore
+		});
+
+		fetch('http://127.0.0.1:9090/pipeline', {
+			method: 'PUT',
+			mode: 'cors',
+			body: data
+		})
+			.then((response) => response.text())
+			.then((xml) => {
+				console.log(xml);
+			})
+			.catch((error) => {
+				console.error('Error:', error);
+			});
+	}
+
 	function handleDndConsider(event: CustomEvent<DndEvent<DUUIPipelineComponent>>) {
 		$activePipelineStore = event.detail.items;
 		$activePipelineStore = [...$activePipelineStore];
@@ -95,6 +116,10 @@
 	}
 
 	let flipDurationMs = 300;
+
+	const originalPipeline = inEditMode
+		? { name: pipelineName, id: pipelineID, components: $activePipelineStore }
+		: null;
 </script>
 
 <input
@@ -139,9 +164,9 @@
 				class="border-none bg-slate-800 enabled:hover:bg-slate-600 text-white
 					   rounded-full px-8 py-4 flex items-center justify-center gap-4
 					   disabled:opacity-50"
-				on:click={postPipeline}
+				on:click={updatePipeline}
 			>
-				<p>Finalize Pipeline</p>
+				<p>{inEditMode ? 'Save Changes' : 'Finalize Pipeline'}</p>
 				<Icon name="upload-outline" class="w-6 h-6" />
 			</button>
 

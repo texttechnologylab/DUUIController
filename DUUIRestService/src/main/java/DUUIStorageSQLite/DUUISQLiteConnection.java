@@ -1,6 +1,7 @@
 package DUUIStorageSQLite;
 
 import java.sql.*;
+import java.util.HashSet;
 import java.util.UUID;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -18,20 +19,29 @@ public class DUUISQLiteConnection {
       """
                         CREATE TABLE IF NOT EXISTS pipelines (
                         	id text PRIMARY KEY NOT NULL,
-                        	name text NOT NULL
+                        	name text NOT NULL,
+                          user_mail text NOT NULL,
+                          CONSTRAINT fk_user_id FOREIGN KEY (user_mail)
+                                REFERENCES users(mail)
                         );""";
 
     try (
       Connection conn = DriverManager.getConnection(connectionString);
       Statement stmt = conn.createStatement()
     ) {
-      conn.setAutoCommit(false);
-      // create a new table
       stmt.execute(sql);
-      conn.commit();
     } catch (SQLException e) {
       System.out.println(e.getMessage());
     }
+  }
+
+  public static void createUserDatabase() {
+    String sql =
+      """
+        CREATE TABLE IF NOT EXISTS users (
+            mail text PRIMARY KEY NOT NULL,
+            name text NOT NULL
+      );""";
   }
 
   public static void createComponentDatabase() {
@@ -50,9 +60,7 @@ public class DUUISQLiteConnection {
       Connection conn = DriverManager.getConnection(connectionString);
       Statement stmt = conn.createStatement()
     ) {
-      conn.setAutoCommit(false);
       stmt.execute(sql);
-      conn.commit();
     } catch (SQLException e) {
       System.out.println(e.getMessage());
     }
@@ -74,7 +82,6 @@ public class DUUISQLiteConnection {
       stmt.setString(5, pipelineID);
 
       stmt.executeUpdate();
-      conn.commit();
     } catch (SQLException e) {
       System.out.println(e.getMessage());
     }
@@ -144,6 +151,63 @@ public class DUUISQLiteConnection {
     return components;
   }
 
+  public static boolean updatePipeline(JSONObject data) {
+    String sql =
+      """
+                  UPDATE
+                    pipelines
+                  SET
+                   name = ?
+                  WHERE
+                   id = ?
+                 """;
+
+    try (
+      Connection conn = DriverManager.getConnection(connectionString);
+      PreparedStatement pstmt = conn.prepareStatement(sql)
+    ) {
+      pstmt.setString(1, data.getString("name"));
+      pstmt.setString(2, data.getString("id"));
+      pstmt.executeUpdate();
+    } catch (SQLException e) {
+      e.printStackTrace();
+      return false;
+    }
+
+    JSONArray originalComponents = getComponentsForPipeline(
+      data.getString("id")
+    );
+    JSONArray newComponents = data.getJSONArray("components");
+
+    originalComponents.forEach(component ->
+      deleteComponent((JSONObject) component)
+    );
+
+    newComponents.forEach(component ->
+      insertComponent((JSONObject) component, data.getString("id"))
+    );
+
+    return true;
+  }
+
+  public static void deleteComponent(JSONObject component) {
+    String sql =
+      """
+        DELETE FROM
+          components
+        WHERE id = ?
+        """;
+    try (
+      Connection conn = DriverManager.getConnection(connectionString);
+      PreparedStatement pstmt = conn.prepareStatement(sql)
+    ) {
+      pstmt.setString(1, component.getString("id"));
+      pstmt.executeUpdate();
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+  }
+
   public static void insertPipeline(JSONObject data) {
     createPipelineDatabase();
 
@@ -157,7 +221,6 @@ public class DUUISQLiteConnection {
       stmt.setString(1, uuid);
       stmt.setString(2, data.getString("name"));
       stmt.executeUpdate();
-      conn.commit();
     } catch (SQLException e) {
       System.out.println(e.getMessage());
     }

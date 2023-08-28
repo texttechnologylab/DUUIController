@@ -3,9 +3,10 @@
 	import type { DUUIPipeline } from '../../Interfaces/interfaces';
 	import DriverIcon from '../../components/DriverIcon.svelte';
 	import ToggleButton from '../../components/Buttons/ToggleButton.svelte';
+	import { Icon } from 'flowbite-svelte-icons';
+	import { editedPipeline } from '../../Interfaces/store';
 
 	let pipelines: DUUIPipeline[] = [];
-
 	onMount(() => {
 		fetch(`http://127.0.0.1:9090/pipelines`, {
 			method: 'GET',
@@ -16,7 +17,7 @@
 				pipelines = JSON.parse(data).pipelines;
 			})
 			.catch((error) => {
-				console.error('Error:', error);
+				console.log(error);
 			});
 	});
 
@@ -41,6 +42,13 @@
 						<p class="text-lg">{component.name}</p>
 					</div>
 				{/each}
+				<button
+					class="flex items-end grow justify-between p-4 pt-8 border-t-[1px] border-t-slate-800"
+					on:click={() => ($editedPipeline = pipeline)}
+				>
+					<a href="/analysis/edit" class="text-lg">Edit Pipeline</a>
+					<Icon name="angle-right-solid" class="w-6 h-6" />
+				</button>
 			{/if}
 		</div>
 	{/each}
