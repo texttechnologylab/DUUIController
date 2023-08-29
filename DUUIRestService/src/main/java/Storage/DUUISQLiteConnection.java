@@ -1,4 +1,4 @@
-package DUUIStorageSQLite;
+package Storage;
 
 import java.sql.*;
 import java.util.UUID;

@@ -1,8 +1,6 @@
 import static org.apache.uima.fit.factory.AnalysisEngineFactory.createEngineDescription;
 import static spark.Spark.*;
 
-import DUUIDockerService.DUUIDockerService;
-import DUUIStorageSQLite.DUUISQLiteConnection;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
@@ -15,6 +13,8 @@ import org.json.JSONObject;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.DUUIComposer;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.DUUIRemoteDriver;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.DUUIUIMADriver;
+
+import Storage.DUUISQLiteConnection;
 import spark.Request;
 import spark.Response;
 
@@ -194,8 +194,6 @@ public class DUUIRestService {
     put("/pipeline", "application/json", DUUIRestService::putPipeline);
 
     get("/pipelines", "application/json", DUUIRestService::getPipelines);
-
-    get("/docker", "application/json", DUUIDockerService::build);
 
     post(
       "/cancel/:id",
