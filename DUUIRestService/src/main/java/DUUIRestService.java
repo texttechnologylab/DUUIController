@@ -1,4 +1,5 @@
 import static org.apache.uima.fit.factory.AnalysisEngineFactory.createEngineDescription;
+import static org.junit.jupiter.api.DynamicTest.stream;
 import static spark.Spark.*;
 
 import Storage.DUUISQLiteConnection;
@@ -6,8 +7,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.net.UnknownHostException;
 import java.util.HashMap;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.function.BiConsumer;
+
 import org.apache.uima.cas.impl.XmiCasSerializer;
 import org.apache.uima.fit.factory.JCasFactory;
 import org.apache.uima.jcas.JCas;
@@ -19,22 +26,23 @@ import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.DUUIRemoteDriver;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.DUUISwarmDriver;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.DUUIUIMADriver;
 import org.xml.sax.SAXException;
-
 import spark.Request;
 import spark.Response;
 
 public class DUUIRestService {
 
-  private static HashMap<String, Tuple<CompletableFuture<Void>, DUUIComposer>> _threads = new HashMap<>();
+  private static HashMap<String, Tuple<CompletableFuture<Void>, DUUIComposer, Future<?>>> _threads = new HashMap<>();
 
-  private class Tuple<X, Y> {
+  private static class Tuple<X, Y, Z> {
 
-    public final X future;
+    public final X completable;
     public final Y composer;
+    public final Z future;
 
-    public Tuple(X future, Y composer) {
-      this.future = future;
+    public Tuple(X completable, Y composer, Z future) {
+      this.completable = completable;
       this.composer = composer;
+      this.future = future;
     }
   }
 
@@ -166,34 +174,43 @@ public class DUUIRestService {
     JCas cas = JCasFactory.createJCas();
     cas.setDocumentText("This text is in english.");
 
-    CompletableFuture<Void> thread = CompletableFuture.runAsync(() -> {
-      composer.run(cas, name);
-    });
+    OutputStream stream = response.raw().getOutputStream();
 
-    _threads.put(
-      id,
-      new Tuple<CompletableFuture<Void>, DUUIComposer>(thread, composer)
+    ExecutorService service = Executors.newFixedThreadPool(1);
+    CompletableFuture<Void> completable = new CompletableFuture<>();
+    Future<?> future = service.submit(
+      new Runnable() {
+        @Override
+        public void run() {
+          try {
+            composer.run(cas, name);
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+          try {
+            XmiCasSerializer.serialize(cas.getCas(), stream);
+          } catch (SAXException e) {
+            e.printStackTrace();
+          }
+          completable.complete(null);
+        }
+      }
     );
 
-    String result = null;
-    thread.thenRun(() -> {
-      try {
-        composer.shutdown();
-      } catch (UnknownHostException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
-      OutputStream xmiOutputStream = new ByteArrayOutputStream();
-      try {
-        XmiCasSerializer.serialize(cas.getCas(), xmiOutputStream);
-      } catch (SAXException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
-      result = xmiOutputStream.toString();
-    });
-
-    return result;
+    Tuple<CompletableFuture<Void>, DUUIComposer, Future<?>> tuple = new Tuple<>(
+      completable,
+      composer,
+      future
+    );
+    _threads.put(id, tuple);
+    try {
+      future.get();
+      return cas.getCas().toString();
+    } catch (CancellationException e) {
+      System.out.println("Shutdown now.");
+      composer.shutdown();
+      return "Canceled";
+    }
   }
 
   public static Object getPipelineStatus(Request request, Response response) {
@@ -250,23 +267,25 @@ public class DUUIRestService {
       "application/json",
       (request, response) -> {
         String id = request.params(":id");
-
-        CompletableFuture<Void> task = _threads.get(id).future;
+        CompletableFuture<Void> completable = _threads.get(id).completable;
         DUUIComposer composer = _threads.get(id).composer;
+        Future<?> future = _threads.get(id).future;
 
-        if (task == null) {
-          response.status(404);
-          return "[ERROR]: No such Task";
-        }
+        boolean cancelled = future.cancel(true);
 
-        if (task.cancel(true)) {
-          _threads.remove(id);
-          composer.shutdown();
+        _threads.remove(id);
+        composer.shutdown();
+
+        if (cancelled) completable.cancel(true); // may not have been cancelled if execution has already completed
+        if (completable.isCancelled()) {
+          return "[OK]: Task has been canceled.";
+        } else if (completable.isCompletedExceptionally()) {
+          response.status(400);
+          return "[ERROR]: Task has not been succeeded.";
+        } else {
           response.status(200);
-          task.complete(null);
-          return "[OK]: Task has been canceled";
+          return "[OK]: Task has been successfull.";
         }
-        return "[ERROR]: Failed";
       }
     );
 

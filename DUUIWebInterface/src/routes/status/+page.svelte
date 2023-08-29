@@ -35,6 +35,8 @@
 				$pipelineResults.set(pipeline.id, 'Canceled');
 				$pipelineResults = $pipelineResults
 				result = xml;
+				console.log(xml);
+				
 			})
 			.catch((error) => {
 				$pipelineResults.set(pipeline.id, 'Error');
