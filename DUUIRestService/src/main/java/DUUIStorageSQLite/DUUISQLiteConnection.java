@@ -1,7 +1,6 @@
 package DUUIStorageSQLite;
 
 import java.sql.*;
-import java.util.HashSet;
 import java.util.UUID;
 import org.json.JSONArray;
 import org.json.JSONObject;

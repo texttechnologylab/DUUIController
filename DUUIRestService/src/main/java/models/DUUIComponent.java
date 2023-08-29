@@ -1,31 +1,30 @@
 package models;
 
+import org.bson.Document;
+import org.bson.types.ObjectId;
+
 public class DUUIComponent {
 
-  private final String id;
+  private final ObjectId _id;
 
   private String name;
   private String driver;
   private String target;
 
-  private String pipelineID;
-
   public DUUIComponent(
-    String id,
+    ObjectId _id,
     String name,
     String driver,
-    String target,
-    String pipelineID
+    String target
   ) {
-    this.id = id;
+    this._id = _id;
     this.name = name;
     this.driver = driver;
     this.target = target;
-    this.pipelineID = pipelineID;
   }
 
-  public String getId() {
-    return this.id;
+  public ObjectId getId() {
+    return this._id;
   }
 
   public String getName() {
@@ -52,11 +51,11 @@ public class DUUIComponent {
     this.target = target;
   }
 
-  public String getPipelineID() {
-    return this.pipelineID;
-  }
-
-  public void setPipelineID(String pipelineID) {
-    this.pipelineID = pipelineID;
+  public Document toDocument() {
+    return new Document()
+      .append("_id", getId())
+      .append("name", getName())
+      .append("driver", getDriver())
+      .append("target", getTarget());
   }
 }

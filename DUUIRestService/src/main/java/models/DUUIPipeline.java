@@ -2,21 +2,23 @@ package models;
 
 import java.util.List;
 
+import org.bson.types.ObjectId;
+
 public class DUUIPipeline {
 
-  private final String id;
+  private final ObjectId _id;
   private String name;
 
   private List<DUUIComponent> components;
 
-  public DUUIPipeline(String id, String name, List<DUUIComponent> components) {
-    this.id = id;
+  public DUUIPipeline(ObjectId _id, String name, List<DUUIComponent> components) {
+    this._id = _id;
     this.name = name;
     this.components = components;
   }
 
-  public String getId() {
-    return this.id;
+  public ObjectId getId() {
+    return this._id;
   }
 
   public String getName() {
