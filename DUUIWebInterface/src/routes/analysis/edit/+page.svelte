@@ -1,6 +1,7 @@
 <script lang="ts">
+	import { activePipelineStore, editedPipeline, pipelineResults } from '../../../Interfaces/store';
 	import { onMount } from 'svelte';
-	import { activePipelineStore, editedPipeline } from '../../../Interfaces/store';
+
 	import Pipeline from '../../../components/Pipeline/Pipeline.svelte';
 	import { Icon } from 'flowbite-svelte-icons';
 
@@ -11,16 +12,19 @@
 	});
 
 	const runPipeline = () => {
+		$pipelineResults.set($editedPipeline.id, 'Running');
+
 		fetch('http://127.0.0.1:9090/run/' + $editedPipeline.id, {
 			method: 'GET',
 			mode: 'cors'
 		})
 			.then((response) => response.text())
 			.then((xml) => {
-				result = xml;
+				console.log(xml);
+				$pipelineResults.set($editedPipeline.id, 'Success');
 			})
 			.catch((error) => {
-				console.error('Error:', error);
+				$pipelineResults.set($editedPipeline.id, 'Error');
 			});
 	};
 

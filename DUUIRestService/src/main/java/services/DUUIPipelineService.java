@@ -3,6 +3,7 @@ package services;
 import static com.mongodb.client.model.Filters.eq;
 
 import com.mongodb.MongoException;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
@@ -54,6 +55,23 @@ public class DUUIPipelineService {
         System.err.println("Unable to insert due to an error: " + me);
       }
     }
+  }
+
+  public static List<Document> getPipelines() {
+    try (MongoClient mongoClient = MongoClients.create(getConnectionURI())) {
+      MongoDatabase database = mongoClient.getDatabase("Bachelor");
+      MongoCollection<Document> collection = database.getCollection(
+        "Pipelines"
+      );
+      try {
+        List<Document> documents = new ArrayList<>();
+        collection.find().into(documents);
+        return documents;
+      } catch (MongoException me) {
+        System.err.println("Unable to find due to an error: " + me);
+      }
+    }
+    return null;
   }
 
   public static Document getPipelineById(ObjectId objectId) {
@@ -150,10 +168,11 @@ public class DUUIPipelineService {
         "org.dkpro.core.io.xmi.XmiWriter"
       )
     );
-    DUUIPipeline p = new DUUIPipeline(id, "Test", components);
-    p.setName("New Name");
-    // addPipeline(p);
-    // Document pipeline = getPipelineById(new ObjectId("64edd4c6f922f76c74d59011"));
-    updatePipelineName(p);
+    // DUUIPipeline p = new DUUIPipeline(id, "Test", components);
+    // p.setName("New Name");
+    // // addPipeline(p);
+    // // Document pipeline = getPipelineById(new ObjectId("64edd4c6f922f76c74d59011"));
+    // updatePipelineName(p);
+    getPipelines().forEach(document -> System.out.println(document.toJson()));
   }
 }
