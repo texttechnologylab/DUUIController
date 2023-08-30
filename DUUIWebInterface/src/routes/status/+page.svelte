@@ -12,7 +12,11 @@
 		})
 			.then((response) => response.text())
 			.then((xml) => {
-				$pipelineResults.set(pipeline.id, 'Success');
+				if (xml == "Cancelled") {
+					$pipelineResults.set(pipeline.id, 'Cancelled');
+				} else {
+					$pipelineResults.set(pipeline.id, 'Success');
+				}
 				$pipelineResults = $pipelineResults
 				result = xml;
 			})
@@ -32,11 +36,11 @@
 		})
 			.then((response) => response.text())
 			.then((xml) => {
-				$pipelineResults.set(pipeline.id, 'Canceled');
+				$pipelineResults.set(pipeline.id, 'Cancelled');
 				$pipelineResults = $pipelineResults
-				result = xml;
-				console.log(xml);
+				console.log($pipelineResults);
 				
+				result = xml;
 			})
 			.catch((error) => {
 				$pipelineResults.set(pipeline.id, 'Error');
@@ -53,10 +57,10 @@
 				runPipeline(pipeline);
 				break;
 			case 'Success':
+				console.log(result);
 				break;
 			case 'Running':
 				cancelPipeline(pipeline);
-
 			default:
 				break;
 		}

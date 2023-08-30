@@ -3,18 +3,13 @@ import static org.junit.jupiter.api.DynamicTest.stream;
 import static spark.Spark.*;
 
 import Storage.DUUISQLiteConnection;
-import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
-import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.function.BiConsumer;
-
 import org.apache.uima.cas.impl.XmiCasSerializer;
 import org.apache.uima.fit.factory.JCasFactory;
 import org.apache.uima.jcas.JCas;
@@ -139,7 +134,7 @@ public class DUUIRestService {
     DUUIComposer composer = new DUUIComposer().withSkipVerification(true);
 
     DUUIUIMADriver uimaDriver = new DUUIUIMADriver();
-    DUUIRemoteDriver remoteDriver = new DUUIRemoteDriver(5000);
+    DUUIRemoteDriver remoteDriver = new DUUIRemoteDriver();
     DUUIDockerDriver dockerDriver = new DUUIDockerDriver(5000);
     DUUISwarmDriver swarmDriver = new DUUISwarmDriver(5000);
 
@@ -204,12 +199,16 @@ public class DUUIRestService {
     );
     _threads.put(id, tuple);
     try {
+      response.status(400);
       future.get();
+      composer.shutdown();
+      _threads.remove(id);
       return cas.getCas().toString();
     } catch (CancellationException e) {
       System.out.println("Shutdown now.");
       composer.shutdown();
-      return "Canceled";
+      response.status(200);
+      return "Cancelled";
     }
   }
 
