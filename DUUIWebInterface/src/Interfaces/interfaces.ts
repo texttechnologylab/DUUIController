@@ -28,8 +28,7 @@ export interface DUUIPipelineComponent {
 	id: string;
 	name: string;
 	driver: string;
-	target?: string | undefined;
-
+	target: string;
 }
 
 export interface Template {
@@ -40,7 +39,7 @@ export interface Template {
 }
 
 export interface DUUIPipeline {
-	id: string
+	id: string;
 	name: string;
 	components: DUUIPipelineComponent[];
 }

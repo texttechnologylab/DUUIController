@@ -1,6 +1,32 @@
 <script lang="ts">
 	import { pipelines, pipelineResults } from '../../Interfaces/store';
 	import type { DUUIPipeline } from '../../Interfaces/interfaces';
+	import { onMount } from 'svelte';
+
+	onMount(() => {
+		async function getPipelineStatus() {
+			$pipelines.forEach((pipeline) => {
+				fetch('http://127.0.0.1:9090/status/' + pipeline.id, {
+					method: 'GET',
+					mode: 'cors'
+				})
+					.then((response) => response.text())
+					.then((status) => {
+						$pipelineResults.set(pipeline.id, status);
+						$pipelineResults = $pipelineResults;
+					})
+					.catch((error) => {
+						$pipelineResults.set(pipeline.id, 'Error');
+						$pipelineResults = $pipelineResults;
+					});
+			});
+		}
+		const interval = setInterval(getPipelineStatus, 5000);
+
+		getPipelineStatus();
+
+		return () => clearInterval(interval);
+	});
 
 	const runPipeline = (pipeline: DUUIPipeline) => {
 		$pipelineResults.set(pipeline.id, 'Running');
@@ -12,17 +38,17 @@
 		})
 			.then((response) => response.text())
 			.then((xml) => {
-				if (xml == "Cancelled") {
+				if (xml == 'Cancelled') {
 					$pipelineResults.set(pipeline.id, 'Cancelled');
 				} else {
-					$pipelineResults.set(pipeline.id, 'Success');
+					$pipelineResults.set(pipeline.id, 'Running');
 				}
-				$pipelineResults = $pipelineResults
+				$pipelineResults = $pipelineResults;
 				result = xml;
 			})
 			.catch((error) => {
 				$pipelineResults.set(pipeline.id, 'Error');
-				$pipelineResults = $pipelineResults
+				$pipelineResults = $pipelineResults;
 			});
 	};
 
@@ -37,17 +63,16 @@
 			.then((response) => response.text())
 			.then((xml) => {
 				$pipelineResults.set(pipeline.id, 'Cancelled');
-				$pipelineResults = $pipelineResults
+				$pipelineResults = $pipelineResults;
 				console.log($pipelineResults);
-				
+
 				result = xml;
 			})
 			.catch((error) => {
 				$pipelineResults.set(pipeline.id, 'Error');
-				$pipelineResults = $pipelineResults
+				$pipelineResults = $pipelineResults;
 			});
 	};
-	
 
 	let result: string = '';
 

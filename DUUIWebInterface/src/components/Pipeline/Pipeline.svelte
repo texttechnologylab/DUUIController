@@ -164,7 +164,7 @@
 				class="border-none bg-slate-800 enabled:hover:bg-slate-600 text-white
 					   rounded-full px-8 py-4 flex items-center justify-center gap-4
 					   disabled:opacity-50"
-				on:click={updatePipeline}
+				on:click={postPipeline}
 			>
 				<p>{inEditMode ? 'Save Changes' : 'Finalize Pipeline'}</p>
 				<Icon name="upload-outline" class="w-6 h-6" />

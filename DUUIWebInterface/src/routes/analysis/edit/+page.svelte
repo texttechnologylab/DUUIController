@@ -29,6 +29,7 @@
 	};
 
 	let result: string = '';
+	
 </script>
 
 {#if editedPipeline !== null}

@@ -1,24 +1,45 @@
 package models;
 
+import java.util.HashMap;
 import java.util.List;
-
+import java.util.stream.Collectors;
 import org.bson.types.ObjectId;
+import org.json.JSONObject;
 
 public class DUUIPipeline {
 
-  private final ObjectId _id;
+  private final ObjectId id;
   private String name;
 
   private List<DUUIComponent> components;
 
-  public DUUIPipeline(ObjectId _id, String name, List<DUUIComponent> components) {
-    this._id = _id;
+  public DUUIPipeline(String id, String name, List<DUUIComponent> components) {
+    this.id = new ObjectId(id);
     this.name = name;
     this.components = components;
   }
 
+  public DUUIPipeline(JSONObject requestJSON) {
+    this.id = new ObjectId();
+    this.name = requestJSON.getString("name");
+    this.components =
+      requestJSON
+        .getJSONArray("components")
+        .toList()
+        .stream()
+        .map(component -> {
+          HashMap<String, String> comp = (HashMap<String, String>) component;
+          return new DUUIComponent(
+            comp.get("name"),
+            comp.get("driver"),
+            comp.get("target")
+          );
+        })
+        .collect(Collectors.toList());
+  }
+
   public ObjectId getId() {
-    return this._id;
+    return this.id;
   }
 
   public String getName() {

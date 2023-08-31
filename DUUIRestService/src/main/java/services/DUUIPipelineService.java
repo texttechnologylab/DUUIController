@@ -8,10 +8,14 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import models.DUUIComponent;
 import models.DUUIPipeline;
@@ -57,7 +61,7 @@ public class DUUIPipelineService {
     }
   }
 
-  public static List<Document> getPipelines() {
+  public static List<String> getPipelines() {
     try (MongoClient mongoClient = MongoClients.create(getConnectionURI())) {
       MongoDatabase database = mongoClient.getDatabase("Bachelor");
       MongoCollection<Document> collection = database.getCollection(
@@ -66,7 +70,11 @@ public class DUUIPipelineService {
       try {
         List<Document> documents = new ArrayList<>();
         collection.find().into(documents);
-        return documents;
+
+        return documents
+          .stream()
+          .map(doc -> doc.toJson())
+          .collect(Collectors.toList());
       } catch (MongoException me) {
         System.err.println("Unable to find due to an error: " + me);
       }
@@ -126,6 +134,44 @@ public class DUUIPipelineService {
     }
   }
 
+  public static void updatePipelineStatus(String id, String status) {
+    try (MongoClient mongoClient = MongoClients.create(getConnectionURI())) {
+      MongoDatabase database = mongoClient.getDatabase("Bachelor");
+      MongoCollection<Document> collection = database.getCollection(
+        "Pipelines"
+      );
+      try {
+        Bson update = Updates.combine(Updates.set("status", status));
+
+        Document filter = new Document().append("_id", new ObjectId(id));
+
+        UpdateOptions options = new UpdateOptions().upsert(true);
+        collection.updateOne(filter, update, options);
+      } catch (MongoException me) {}
+    }
+  }
+
+  public static String getPipelineStatus(String id) {
+    try (MongoClient mongoClient = MongoClients.create(getConnectionURI())) {
+      MongoDatabase database = mongoClient.getDatabase("Bachelor");
+      MongoCollection<Document> collection = database.getCollection(
+        "Pipelines"
+      );
+      try {
+        Bson filter = Filters.eq("_id", new ObjectId(id));
+        Bson projection = Projections.fields(
+          Projections.include("status"),
+          Projections.excludeId()
+        );
+        FindIterable<Document> docs = collection
+          .find(filter)
+          .projection(projection);
+        return (String) docs.first().get("status");
+      } catch (MongoException me) {}
+    }
+    return "Unknown";
+  }
+
   public static void deletePipeline(ObjectId id) {
     try (MongoClient mongoClient = MongoClients.create(getConnectionURI())) {
       MongoDatabase database = mongoClient.getDatabase("Bachelor");
@@ -141,12 +187,13 @@ public class DUUIPipelineService {
   }
 
   public static void main(String[] args) {
+    Logger logger = Logger.getLogger("org.mongodb.driver");
+    logger.setLevel(Level.SEVERE);
     ObjectId id = new ObjectId("64edd4c6f922f76c74d59011");
-
+    String _id = id.toString();
     List<DUUIComponent> components = new ArrayList<>();
     components.add(
       new DUUIComponent(
-        new ObjectId(),
         "LanguageDetectionFastText",
         "DUUIRemoteDriver",
         "http://127.0.0.1:8001"
@@ -154,7 +201,6 @@ public class DUUIPipelineService {
     );
     components.add(
       new DUUIComponent(
-        new ObjectId(),
         "BreakIteratorSegmenter",
         "DUUIUIMADriver",
         "de.tudarmstadt.ukp.dkpro.core.tokit.BreakIteratorSegmenter"
@@ -162,7 +208,6 @@ public class DUUIPipelineService {
     );
     components.add(
       new DUUIComponent(
-        new ObjectId(),
         "XMIWriter",
         "DUUIUIMADriver",
         "org.dkpro.core.io.xmi.XmiWriter"
@@ -173,6 +218,6 @@ public class DUUIPipelineService {
     // // addPipeline(p);
     // // Document pipeline = getPipelineById(new ObjectId("64edd4c6f922f76c74d59011"));
     // updatePipelineName(p);
-    getPipelines().forEach(document -> System.out.println(document.toJson()));
+    getPipelines().forEach(System.out::println);
   }
 }

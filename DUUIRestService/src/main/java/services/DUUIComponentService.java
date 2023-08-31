@@ -37,8 +37,7 @@ public class DUUIComponentService {
         "Pipelines"
       );
       try {
-        
-        Document newComponent = new Document("_id", component.getId())
+        Document newComponent = new Document()
           .append("name", component.getName())
           .append("driver", component.getDriver())
           .append("target", component.getTarget());
@@ -64,14 +63,12 @@ public class DUUIComponentService {
         "Pipelines"
       );
       try {
-
         Bson filter = Filters.eq("components._id", new ObjectId(component_id));
         collection.findOneAndDelete(filter);
 
         System.out.println(
           "Component with ID <" + component_id + "> has been deleted."
         );
-
       } catch (MongoException me) {
         System.err.println("Unable to insert due to an error: " + me);
       }
@@ -86,8 +83,7 @@ public class DUUIComponentService {
       );
       try {
         Bson filter = Filters.eq("components._id", new ObjectId(component_id));
-        collection.find(filter).forEach(System.out::println); 
-        
+        collection.find(filter).forEach(System.out::println);
       } catch (MongoException me) {
         System.err.println("Unable to insert due to an error: " + me);
       }

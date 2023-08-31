@@ -13,8 +13,7 @@
 		})
 			.then((response) => response.text())
 			.then((data) => {
-				$pipelines = JSON.parse(data).pipelines;
-				$pipelines.forEach((pipeline) => $pipelineResults.set(pipeline.id, "Idle"));
+				$pipelines = JSON.parse(data);
 			})
 			.catch((error) => {
 				console.log(error);

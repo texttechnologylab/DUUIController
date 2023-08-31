@@ -1,30 +1,24 @@
 package models;
 
 import org.bson.Document;
-import org.bson.types.ObjectId;
+import org.json.JSONObject;
 
 public class DUUIComponent {
-
-  private final ObjectId _id;
 
   private String name;
   private String driver;
   private String target;
 
-  public DUUIComponent(
-    ObjectId _id,
-    String name,
-    String driver,
-    String target
-  ) {
-    this._id = _id;
+  public DUUIComponent(String name, String driver, String target) {
     this.name = name;
     this.driver = driver;
     this.target = target;
   }
 
-  public ObjectId getId() {
-    return this._id;
+  public DUUIComponent(JSONObject component) {
+    this.name = component.getString("name");
+    this.driver = component.getString("driver");
+    this.target = component.getString("target");
   }
 
   public String getName() {
@@ -53,7 +47,6 @@ public class DUUIComponent {
 
   public Document toDocument() {
     return new Document()
-      .append("_id", getId())
       .append("name", getName())
       .append("driver", getDriver())
       .append("target", getTarget());

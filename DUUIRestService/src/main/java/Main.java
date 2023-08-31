@@ -1,51 +1,112 @@
-import static org.apache.uima.fit.factory.AnalysisEngineFactory.createEngineDescription;
+import static spark.Spark.*;
 
-import de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token;
-import de.tudarmstadt.ukp.dkpro.core.tokit.BreakIteratorSegmenter;
-import org.apache.uima.fit.factory.JCasFactory;
-import org.apache.uima.fit.util.JCasUtil;
-import org.apache.uima.jcas.JCas;
-import org.dkpro.core.io.xmi.XmiWriter;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.DUUIComposer;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.DUUIRemoteDriver;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.DUUIUIMADriver;
+import spark.Request;
+import spark.Response;
 
 public class Main {
 
-  public static void main(String[] args) throws Exception {
-    JCas jc = JCasFactory.createJCas();
-    jc.setDocumentText("Das ist ein Test");
+  private static Object getPipeline(Request request, Response response) {
+    return String.format(
+      "Here is pipeline with id <%s>",
+      request.params(":id")
+    );
+  }
 
-    DUUIComposer composer = new DUUIComposer().withSkipVerification(true);
+  private static Object getPipelines(Request request, Response response) {
+    return "Here are all pipelines";
+  }
 
-    DUUIUIMADriver uima_driver = new DUUIUIMADriver().withDebug(false);
-    DUUIRemoteDriver remoteDriver = new DUUIRemoteDriver(5000);
+  private static String getPipelineStatus(Request request, Response response) {
+    return String.format(
+      "Pipeline with id <%s> has status <%s>",
+      request.params(":id"),
+      "Idle"
+    );
+  }
 
-    composer.addDriver(remoteDriver);
-    composer.addDriver(uima_driver);
+  private static String addPipeline(Request request, Response response) {
+    return String.format("Added pipeline with id <%s>", request.params(":id"));
+  }
 
-    composer.add(new DUUIRemoteDriver.Component("http://127.0.0.1:8001"));
+  private static String getComponent(Request request, Response response) {
+    return String.format(
+      "Here is component with index <%s> of pipeline with id <%s>",
+      request.params(":index"),
+      request.params(":p_id")
+    );
+  }
 
-    composer.add(
-      new DUUIUIMADriver.Component(
-        createEngineDescription(BreakIteratorSegmenter.class)
-      )
+  private static String addComponent(Request request, Response response) {
+    return String.format(
+      "Added Component <%s> to pipeline with id <%s>",
+      request.body(),
+      request.params(":id")
+    );
+  }
+
+  private static String updatePipeline(Request request, Response response) {
+    return String.format("Updated pipeline <%s>", request.body());
+  }
+
+  private static String updatePipelineComponent(
+    Request request,
+    Response response
+  ) {
+    return String.format(
+      "Updated Component at index <%s> of pipeline with id <%s>",
+      request.params(":index"),
+      request.params(":id")
+    );
+  }
+
+  private static String setPipelineStatus(Request request, Response response) {
+    return String.format("Updated pipeline status to <%s>", request.body());
+  }
+
+  public static void main(String[] args) {
+    port(9090);
+
+    options(
+      "/*",
+      (request, response) -> {
+        String accessControlRequestHeaders = request.headers(
+          "Access-Control-Request-Headers"
+        );
+        if (accessControlRequestHeaders != null) {
+          response.header(
+            "Access-Control-Allow-Headers",
+            accessControlRequestHeaders
+          );
+        }
+
+        String accessControlRequestMethod = request.headers(
+          "Access-Control-Request-Method"
+        );
+        if (accessControlRequestMethod != null) {
+          response.header(
+            "Access-Control-Allow-Methods",
+            accessControlRequestMethod
+          );
+        }
+        return "OK";
+      }
     );
 
-    composer.add(
-      new DUUIUIMADriver.Component(
-        createEngineDescription(XmiWriter.class)
-      )
+    before((request, response) ->
+      response.header("Access-Control-Allow-Origin", "*")
     );
+    
+    get("/", (request, response) -> "DUUI says hello");
+    get("/pipeline/:id", Main::getPipeline);
+    get("/pipeline", Main::getPipelines);
+    get("pipeline/:p_id/component/:index", Main::getComponent);
+    get("pipeline/:id/status", Main::getPipelineStatus);
 
-    composer.run(jc, "Test");
+    post("/pipeline", Main::addPipeline);
+    post("/pipeline/:id/component", Main::addComponent);
 
-    JCasUtil
-      .select(jc, Token.class)
-      .forEach(token ->
-        System.out.println(
-          token.getText() + ", " + token.getBegin() + ", " + token.getEnd()
-        )
-      );
+    put("/pipeline", Main::updatePipeline);
+    put("/pipeline/:id/component/:index", Main::updatePipelineComponent);
+    put("/pipeline/:id/status", Main::setPipelineStatus);
   }
 }
