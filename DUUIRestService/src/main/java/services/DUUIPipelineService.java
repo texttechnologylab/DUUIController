@@ -1,223 +1,251 @@
-package services;
+// package services;
 
-import static com.mongodb.client.model.Filters.eq;
+// import static com.mongodb.client.model.Filters.eq;
 
-import com.mongodb.MongoException;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Projections;
-import com.mongodb.client.model.UpdateOptions;
-import com.mongodb.client.model.Updates;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import models.DUUIComponent;
-import models.DUUIPipeline;
-import org.bson.Document;
-import org.bson.conversions.Bson;
-import org.bson.types.ObjectId;
+// import Storage.DUUISQLiteConnection;
+// import com.mongodb.MongoException;
+// import com.mongodb.client.MongoClient;
+// import com.mongodb.client.MongoClients;
+// import com.mongodb.client.MongoCollection;
+// import com.mongodb.client.MongoDatabase;
+// import com.mongodb.client.model.Filters;
+// import com.mongodb.client.model.Projections;
+// import com.mongodb.client.model.UpdateOptions;
+// import com.mongodb.client.model.Updates;
+// import java.util.ArrayList;
+// import java.util.Date;
+// import java.util.List;
+// import java.util.logging.Level;
+// import java.util.logging.Logger;
+// import java.util.stream.Collectors;
+// import models.DUUIComponent;
+// import models.DUUIPipeline;
+// import org.bson.Document;
+// import org.bson.conversions.Bson;
+// import org.bson.types.ObjectId;
+// import org.json.JSONArray;
+// import org.json.JSONObject;
+// import spark.Request;
+// import spark.Response;
 
-public class DUUIPipelineService {
+// public class DUUIPipelineService {
 
-  private static final String user = System.getenv("mongo_user");
-  private static final String pass = System.getenv("mongo_pass");
+//   private static final String user = System.getenv("mongo_user");
+//   private static final String pass = System.getenv("mongo_pass");
 
-  private static String getConnectionURI() {
-    return "mongodb+srv://<user>:<password>@testcluster.727ylpr.mongodb.net/".replace(
-        "<user>",
-        user
-      )
-      .replace("<password>", pass);
-  }
+//   private static Bson IdAggregation = new Document(
+//     "_id",
+//     new Document("$toString", "$_id")
+//   );
 
-  public static void insertPipeline(DUUIPipeline pipeline) {
-    try (MongoClient mongoClient = MongoClients.create(getConnectionURI())) {
-      MongoDatabase database = mongoClient.getDatabase("Bachelor");
-      MongoCollection<Document> collection = database.getCollection(
-        "Pipelines"
-      );
-      try {
-        Document newPipeline = new Document()
-          .append("_id", pipeline.getId())
-          .append("name", pipeline.getName())
-          .append(
-            "components",
-            pipeline
-              .getComponents()
-              .stream()
-              .map(component -> component.toDocument())
-              .collect(Collectors.toList())
-          );
-        collection.insertOne(newPipeline);
-      } catch (MongoException me) {
-        System.err.println("Unable to insert due to an error: " + me);
-      }
-    }
-  }
+//   private static String getConnectionURI() {
+//     return "mongodb+srv://<user>:<password>@testcluster.727ylpr.mongodb.net/".replace(
+//         "<user>",
+//         user
+//       )
+//       .replace("<password>", pass);
+//   }
 
-  public static List<String> getPipelines() {
-    try (MongoClient mongoClient = MongoClients.create(getConnectionURI())) {
-      MongoDatabase database = mongoClient.getDatabase("Bachelor");
-      MongoCollection<Document> collection = database.getCollection(
-        "Pipelines"
-      );
-      try {
-        List<Document> documents = new ArrayList<>();
-        collection.find().into(documents);
+//   public static JSONObject getPipelineById(Request request, Response response) {
+//     String id = request.params(":id");
+//     if (id == null) {
+//       response.status(400);
+//       return new JSONObject().put("message", "Missing required field <id>.");
+//     }
 
-        return documents
-          .stream()
-          .map(doc -> doc.toJson())
-          .collect(Collectors.toList());
-      } catch (MongoException me) {
-        System.err.println("Unable to find due to an error: " + me);
-      }
-    }
-    return null;
-  }
+//     response.status(200);
+//     return DUUISQLiteConnection.getPipelineById(id);
+//   }
 
-  public static Document getPipelineById(ObjectId objectId) {
-    try (MongoClient mongoClient = MongoClients.create(getConnectionURI())) {
-      MongoDatabase database = mongoClient.getDatabase("Bachelor");
-      MongoCollection<Document> collection = database.getCollection(
-        "Pipelines"
-      );
-      try {
-        Document pipeline = collection.find(eq("_id", objectId)).first();
-        return pipeline;
-      } catch (MongoException me) {
-        System.err.println("Unable to find due to an error: " + me);
-      }
-    }
-    return null;
-  }
+//   public static String insertPipeline(DUUIPipeline pipeline) {
+//     DUUIMongoService service = new DUUIMongoService("Bachelor", "Pipelines");
+//     service.insertOne(
+//       new Document()
+//         .append("_id", pipeline.getId())
+//         .append("name", pipeline.getName())
+//         .append("lastUsed", "Never")
+//         .append("timesUsed", 0)
+//         .append(
+//           "components",
+//           pipeline
+//             .getComponents()
+//             .stream()
+//             .map(component -> component.toDocument())
+//             .collect(Collectors.toList())
+//         )
+//     );
+//     return pipeline.getId().toString();
+//   }
 
-  public static void updateTimesUsed(ObjectId id) {
-    try (MongoClient mongoClient = MongoClients.create(getConnectionURI())) {
-      MongoDatabase database = mongoClient.getDatabase("Bachelor");
-      MongoCollection<Document> collection = database.getCollection(
-        "Pipelines"
-      );
-      try {
-        Bson update = Updates.combine(
-          Updates.currentTimestamp("lastUsed"),
-          Updates.inc("timesUsed", 1)
-        );
-        Document filter = new Document().append("_id", id);
+//   public static JSONObject getPipelineById(String id) {
+//     DUUIMongoService service = new DUUIMongoService("Bachelor", "Pipelines")
+//       .withFilter(Filters.eq("_id", new ObjectId(id)));
 
-        UpdateOptions options = new UpdateOptions().upsert(true);
-        collection.updateOne(filter, update, options);
-      } catch (MongoException me) {}
-    }
-  }
+//     return new JSONObject(service.getOne().toJson());
+//   }
 
-  public static void updatePipelineName(DUUIPipeline pipeline) {
-    try (MongoClient mongoClient = MongoClients.create(getConnectionURI())) {
-      MongoDatabase database = mongoClient.getDatabase("Bachelor");
-      MongoCollection<Document> collection = database.getCollection(
-        "Pipelines"
-      );
-      try {
-        Bson update = Updates.combine(Updates.set("name", pipeline.getName()));
+//   public static JSONObject getPipelineStatus(
+//     Request request,
+//     Response response
+//   ) {
+//     String id = request.params(":id");
+//     if (id == null) {
+//       response.status(400);
+//       return new JSONObject().put("message", "Missing required field <id>.");
+//     }
 
-        Document filter = new Document().append("_id", pipeline.getId());
+//     response.status(200);
+//     JSONObject status = DUUISQLiteConnection.getPipelineStatus(id);
+//     if (status == null) {
+//       return new JSONObject().put("message", "Missing required field <id>.");
+//     }
 
-        UpdateOptions options = new UpdateOptions().upsert(true);
-        collection.updateOne(filter, update, options);
-      } catch (MongoException me) {}
-    }
-  }
+//     return status;
+    
+//     // DUUIMongoService service = new DUUIMongoService("Bachelor", "Pipelines")
+//     //   .withFilter(eq("_id", new ObjectId(id)))
+//     //   .withProjection(
+//     //     Projections.fields(
+//     //       Projections.include("status"),
+//     //       Projections.excludeId()
+//     //     )
+//     //   );
 
-  public static void updatePipelineStatus(String id, String status) {
-    try (MongoClient mongoClient = MongoClients.create(getConnectionURI())) {
-      MongoDatabase database = mongoClient.getDatabase("Bachelor");
-      MongoCollection<Document> collection = database.getCollection(
-        "Pipelines"
-      );
-      try {
-        Bson update = Updates.combine(Updates.set("status", status));
+//     // String status = service.getOne().getString("status");
 
-        Document filter = new Document().append("_id", new ObjectId(id));
+//     // if (status == null) {
+//     //   return "Unknown";
+//     // }
 
-        UpdateOptions options = new UpdateOptions().upsert(true);
-        collection.updateOne(filter, update, options);
-      } catch (MongoException me) {}
-    }
-  }
+//     // return status;
+//   }
 
-  public static String getPipelineStatus(String id) {
-    try (MongoClient mongoClient = MongoClients.create(getConnectionURI())) {
-      MongoDatabase database = mongoClient.getDatabase("Bachelor");
-      MongoCollection<Document> collection = database.getCollection(
-        "Pipelines"
-      );
-      try {
-        Bson filter = Filters.eq("_id", new ObjectId(id));
-        Bson projection = Projections.fields(
-          Projections.include("status"),
-          Projections.excludeId()
-        );
-        FindIterable<Document> docs = collection
-          .find(filter)
-          .projection(projection);
-        return (String) docs.first().get("status");
-      } catch (MongoException me) {}
-    }
-    return "Unknown";
-  }
+//   public static JSONArray getPipelines(Request request, Response response) {
+//     JSONArray pipelines = DUUISQLiteConnection.getPipelines();
+//     response.status(200);
 
-  public static void deletePipeline(ObjectId id) {
-    try (MongoClient mongoClient = MongoClients.create(getConnectionURI())) {
-      MongoDatabase database = mongoClient.getDatabase("Bachelor");
-      MongoCollection<Document> collection = database.getCollection(
-        "Pipelines"
-      );
-      try {
-        Bson query = eq("_id", id);
+//     if (pipelines == null) {
+//       return new JSONArray();
+//     }
+//     return pipelines;
+//     // DUUIMongoService service = new DUUIMongoService("Bachelor", "Pipelines");
+//     // List<Document> result = new ArrayList<>();
+//     // return service
+//     //   .getAll()
+//     //   .into(result)
+//     //   .stream()
+//     //   .map(document -> new JSONObject(document.toJson()))
+//     //   .collect(Collectors.toList());
+//   }
 
-        collection.findOneAndDelete(query);
-      } catch (MongoException me) {}
-    }
-  }
+//   public static void updateTimesUsed(String id) {
+//     try (MongoClient mongoClient = MongoClients.create(getConnectionURI())) {
+//       MongoDatabase database = mongoClient.getDatabase("Bachelor");
+//       MongoCollection<Document> collection = database.getCollection(
+//         "Pipelines"
+//       );
+//       try {
+//         Bson update = Updates.combine(
+//           Updates.set("lastUsed", new Date().toInstant().toEpochMilli()),
+//           Updates.inc("timesUsed", 1)
+//         );
+//         Document filter = new Document().append("_id", new ObjectId(id));
 
-  public static void main(String[] args) {
-    Logger logger = Logger.getLogger("org.mongodb.driver");
-    logger.setLevel(Level.SEVERE);
-    ObjectId id = new ObjectId("64edd4c6f922f76c74d59011");
-    String _id = id.toString();
-    List<DUUIComponent> components = new ArrayList<>();
-    components.add(
-      new DUUIComponent(
-        "LanguageDetectionFastText",
-        "DUUIRemoteDriver",
-        "http://127.0.0.1:8001"
-      )
-    );
-    components.add(
-      new DUUIComponent(
-        "BreakIteratorSegmenter",
-        "DUUIUIMADriver",
-        "de.tudarmstadt.ukp.dkpro.core.tokit.BreakIteratorSegmenter"
-      )
-    );
-    components.add(
-      new DUUIComponent(
-        "XMIWriter",
-        "DUUIUIMADriver",
-        "org.dkpro.core.io.xmi.XmiWriter"
-      )
-    );
-    // DUUIPipeline p = new DUUIPipeline(id, "Test", components);
-    // p.setName("New Name");
-    // // addPipeline(p);
-    // // Document pipeline = getPipelineById(new ObjectId("64edd4c6f922f76c74d59011"));
-    // updatePipelineName(p);
-    getPipelines().forEach(System.out::println);
-  }
-}
+//         UpdateOptions options = new UpdateOptions().upsert(true);
+//         collection.updateOne(filter, update, options);
+//       } catch (MongoException me) {}
+//     }
+//   }
+
+//   public static boolean updatePipeline(DUUIPipeline pipeline) {
+//     try (MongoClient mongoClient = MongoClients.create(getConnectionURI())) {
+//       MongoDatabase database = mongoClient.getDatabase("Bachelor");
+//       MongoCollection<Document> collection = database.getCollection(
+//         "Pipelines"
+//       );
+//       try {
+//         Bson update = Updates.combine(
+//           Updates.set("name", pipeline.getName()),
+//           Updates.set(
+//             "components",
+//             pipeline
+//               .getComponents()
+//               .stream()
+//               .map(component -> component.toDocument())
+//               .collect(Collectors.toList())
+//           )
+//         );
+
+//         Document filter = new Document().append("_id", pipeline.getId());
+
+//         UpdateOptions options = new UpdateOptions().upsert(true);
+//         collection.updateOne(filter, update, options);
+//         return true;
+//       } catch (MongoException me) {
+//         return false;
+//       }
+//     }
+//   }
+
+//   public static void updatePipelineStatus(String id, String status) {
+//     try (MongoClient mongoClient = MongoClients.create(getConnectionURI())) {
+//       MongoDatabase database = mongoClient.getDatabase("Bachelor");
+//       MongoCollection<Document> collection = database.getCollection(
+//         "Pipelines"
+//       );
+//       try {
+//         Bson update = Updates.combine(Updates.set("status", status));
+
+//         Document filter = new Document().append("_id", new ObjectId(id));
+
+//         UpdateOptions options = new UpdateOptions().upsert(true);
+//         collection.updateOne(filter, update, options);
+//       } catch (MongoException me) {}
+//     }
+//   }
+
+//   public static void deletePipeline(String id) {
+//     try (MongoClient mongoClient = MongoClients.create(getConnectionURI())) {
+//       MongoDatabase database = mongoClient.getDatabase("Bachelor");
+//       MongoCollection<Document> collection = database.getCollection(
+//         "Pipelines"
+//       );
+//       try {
+//         Bson query = eq("_id", new ObjectId(id));
+
+//         collection.findOneAndDelete(query);
+//       } catch (MongoException me) {}
+//     }
+//   }
+
+//   public static void main(String[] args) {
+//     Logger logger = Logger.getLogger("org.mongodb.driver");
+//     logger.setLevel(Level.SEVERE);
+//     List<DUUIComponent> components = new ArrayList<>();
+//     components.add(
+//       new DUUIComponent(
+//         "LanguageDetectionFastText",
+//         "DUUIRemoteDriver",
+//         "http://127.0.0.1:8001"
+//       )
+//     );
+//     components.add(
+//       new DUUIComponent(
+//         "BreakIteratorSegmenter",
+//         "DUUIUIMADriver",
+//         "de.tudarmstadt.ukp.dkpro.core.tokit.BreakIteratorSegmenter"
+//       )
+//     );
+//     components.add(
+//       new DUUIComponent(
+//         "XMIWriter",
+//         "DUUIUIMADriver",
+//         "org.dkpro.core.io.xmi.XmiWriter"
+//       )
+//     );
+
+//     updateTimesUsed("64f09376b7ff0557a37bb9ce");
+//     updateTimesUsed("64f0c7f61c3d7f0f686c283a");
+//     // System.out.println(getPipelineStatus("64f09376b7ff0557a37bb9ce"));
+//   }
+// }

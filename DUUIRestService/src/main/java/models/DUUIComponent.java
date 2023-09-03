@@ -1,54 +1,68 @@
-package models;
+// package models;
 
-import org.bson.Document;
-import org.json.JSONObject;
+// import java.util.UUID;
+// import org.bson.Document;
+// import org.json.JSONObject;
 
-public class DUUIComponent {
+// public class DUUIComponent {
 
-  private String name;
-  private String driver;
-  private String target;
+//   private final String id;
+//   private String name;
+//   private String driver;
+//   private String target;
+//   private final String pipeline_id;
 
-  public DUUIComponent(String name, String driver, String target) {
-    this.name = name;
-    this.driver = driver;
-    this.target = target;
-  }
+//   public DUUIComponent(
+//     String id,
+//     String name,
+//     String driver,
+//     String target,
+//     String pipeline_id
+//   ) {
+//     this.id = id;
+//     this.name = name;
+//     this.driver = driver;
+//     this.target = target;
+//     this.pipeline_id = pipeline_id;
+//   }
 
-  public DUUIComponent(JSONObject component) {
-    this.name = component.getString("name");
-    this.driver = component.getString("driver");
-    this.target = component.getString("target");
-  }
+//   public DUUIComponent(JSONObject component) {
+//     this.id = component.getString("id");
+//     this.name = component.getString("name");
+//     this.driver = component.getString("driver");
+//     this.target = component.getString("target");
+//     this.pipeline_id = component.getString("pipeline_id");
+//   }
 
-  public String getName() {
-    return this.name;
-  }
+//   public String getName() {
+//     return this.name;
+//   }
 
-  public void setName(String name) {
-    this.name = name;
-  }
+//   public void setName(String name) {
+//     this.name = name;
+//   }
 
-  public String getDriver() {
-    return this.driver;
-  }
+//   public String getDriver() {
+//     return this.driver;
+//   }
 
-  public void setDriver(String driver) {
-    this.driver = driver;
-  }
+//   public void setDriver(String driver) {
+//     this.driver = driver;
+//   }
 
-  public String getTarget() {
-    return this.target;
-  }
+//   public String getId() {
+//     return this.id;
+//   }
 
-  public void setTarget(String target) {
-    this.target = target;
-  }
+//   public String getPipeline_id() {
+//     return this.pipeline_id;
+//   }
 
-  public Document toDocument() {
-    return new Document()
-      .append("name", getName())
-      .append("driver", getDriver())
-      .append("target", getTarget());
-  }
-}
+//   public String getTarget() {
+//     return this.target;
+//   }
+
+//   public void setTarget(String target) {
+//     this.target = target;
+//   }
+// }
