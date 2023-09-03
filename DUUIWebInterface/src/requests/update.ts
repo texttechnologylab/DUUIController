@@ -1,12 +1,10 @@
 import type { DUUIPipeline } from '../Interfaces/interfaces';
 
-async function updatePipelineName(pipeline: DUUIPipeline) {
-	const data = JSON.stringify({ pipeline });
-
+export async function updatePipeline(pipeline: DUUIPipeline) {
 	fetch('http://127.0.0.1:9090/pipeline', {
 		method: 'PUT',
 		mode: 'cors',
-		body: data
+		body: JSON.stringify(pipeline)
 	})
 		.then((response) => {
 			return response.text();

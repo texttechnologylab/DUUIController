@@ -4,12 +4,12 @@ const config = {
 
 	theme: {
 		fontFamily: {
-			'display': ['Ubuntu'],
-			'body': ['"Ubuntu"']
+			heading: ['Open Sans'],
+			body: ['Ubuntu']
 		},
 		extend: {
 			gridTemplateColumns: {
-				'pipelineItem': 'auto repeat(2, 1fr)'
+				pipelineItem: 'auto repeat(2, 1fr)'
 			}
 		}
 	},

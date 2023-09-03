@@ -1,11 +1,14 @@
-import { server_address } from '.';
+import { server_address } from '../lib/api/config';
 import type { DUUIPipeline, DUUIPipelineComponent } from '../Interfaces/interfaces';
 
-async function addPipeline(pipeline: DUUIPipeline) {
-	fetch(server_address + '/pipeline/', {
+export async function insertPipeline(name: string, components: DUUIPipelineComponent[]) {
+	fetch(server_address + '/pipeline', {
 		method: 'POST',
 		mode: 'cors',
-		body: JSON.stringify(pipeline)
+		body: JSON.stringify({
+			name: name,
+			components: components
+		})
 	})
 		.then((response) => {
 			return response.text();
@@ -16,7 +19,7 @@ async function addPipeline(pipeline: DUUIPipeline) {
 		});
 }
 
-async function addComponent(pipelineId: string, component: DUUIPipelineComponent) {
+export async function insertComponent(pipelineId: string, component: DUUIPipelineComponent) {
 	fetch(server_address + '/pipeline/component/' + pipelineId, {
 		method: 'POST',
 		mode: 'cors',

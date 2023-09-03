@@ -7,6 +7,6 @@
 	$: target = href !== '#' ? '_blank' : '';
 </script>
 
-<a {href} class="hover:text-blue-400 transition-colors duration-300 ease-out" {target}>
+<a {href} class="transition-colors duration-300 ease-out" {target}>
 	<Icon class="w-8 h-8" name={iconName} />
 </a>

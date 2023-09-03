@@ -12,6 +12,8 @@
 	export let pipelineID: string = '';
 	export let inEditMode: boolean = false;
 
+	export let editable: boolean = true;
+
 	// onMount(() => {
 	// 	fetch(`http://127.0.0.1:9090/pipeline?id=${pipelineID}`, {
 	// 		method: 'GET',

@@ -8,15 +8,20 @@
 </script>
 
 <!-- svelte-ignore a11y-role-supports-aria-props -->
-<li class="navbar__item">
+<li class="list-none">
 	<a
 		{href}
-		class="navbar__item-link
-		 text-md font-body flex items-center justify-start gap-6 text-black p-4 px-6
-		 hover:bg-slate-500 aria-selected:bg-slate-500 transition-colors"
+		class="
+		text-md font-body
+		flex items-center justify-center gap-6
+		px-4 py-3
+		text-white
+	 	aria-selected:bg-blue-600 hover:bg-blue-600 transition-color duration-300
+		rounded-full
+		 "
 		aria-selected={$page.url.pathname === href ? 'true' : 'false'}
 	>
-		<Icon class="text-white w-5 h-5" name={iconName} />
-		<span class="text-white">{text}</span>
+		<Icon class=" min-w-[1.25rem] aspect-square" name={iconName} />
+		<span class="">{text}</span>
 	</a>
 </li>

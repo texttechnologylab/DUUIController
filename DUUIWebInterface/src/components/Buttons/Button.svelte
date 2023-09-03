@@ -16,7 +16,7 @@
 	<a
 		class="button font-bold border-none cursor-pointer no-underline
 			  text-white rounded-md flex gap-4 items-center py-3 px-4 transition-colors
-			bg-green-500 hover:bg-green-600"
+			bg-primary hover:bg-green-600"
 		href="#"
 		on:click
 	>

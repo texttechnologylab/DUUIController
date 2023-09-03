@@ -21,14 +21,14 @@
 			class="px-4 py-3 hover:bg-blue-600 transition-colors duration-300 rounded-full text-white font-bold bg-blue-500 mt-8"
 			type="submit"
 		>
-			Login
+			Register
 		</button>
 	</form>
 	<div class="flex flex-col gap-4 items-center">
 		<a href="/reset-password" class="underline text-blue-500">Forgot Password?</a>
 		<p>
-			Don't have an account?
-			<a href="/register" class="underline text-blue-500">Register</a>
+			Already have an account?
+			<a href="/login" class="underline text-blue-500">Login</a>
 		</p>
 	</div>
 </div>

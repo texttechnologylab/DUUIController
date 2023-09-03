@@ -1,12 +1,16 @@
 <script>
 	import '../app.postcss';
+	import '../app.css';
+	import Footer from '../components/Footer.svelte';
 	import Navbar from '../components/Navbar/Navbar.svelte';
-	import './styles.css';
+	import Toast from '../components/Toast.svelte';
 </script>
 
-<div class="app min-h-full">
-	<Navbar />
-	<main class="mx-auto max-w-7xl p-4 md:p-8">
+<Navbar />
+<div class="flex flex-col min-h-full">
+	<main>
 		<slot />
 	</main>
+	<Footer />
 </div>
+<Toast />
