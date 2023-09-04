@@ -9,8 +9,7 @@
 	export let hidden: boolean = false
 	export let withNavigation: boolean = false
 
-	const drawerStore = getDrawerStore();
-	
+	const drawerStore = getDrawerStore()
 </script>
 
 <aside
@@ -42,8 +41,19 @@
 						</a>
 					</li>
 					<li>
-						<a href="/login" class={classesActive('/login')} data-sveltekit-preload-data="hover"
+						<a
+							href="/authentication/login"
+							class={classesActive('/authentication/login')}
+							data-sveltekit-preload-data="hover"
 							><span class="flex-auto">Login</span>
+						</a>
+					</li>
+					<li>
+						<a
+							href="/authentication/register"
+							class={classesActive('/authentication/register')}
+							data-sveltekit-preload-data="hover"
+							><span class="flex-auto">Register</span>
 						</a>
 					</li>
 				</ul>

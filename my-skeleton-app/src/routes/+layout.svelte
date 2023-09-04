@@ -1,28 +1,33 @@
 <script lang="ts">
-	import '../app.postcss';
-	import Logo from '$lib/assets/Logo.png';
-	import { AppShell, AppBar, LightSwitch } from '@skeletonlabs/skeleton';
-	import { Drawer, getDrawerStore } from '@skeletonlabs/skeleton';
-	import type { DrawerSettings } from '@skeletonlabs/skeleton';
-	import Fa from 'svelte-fa';
-	import { faGlobe, faBars } from '@fortawesome/free-solid-svg-icons';
-	import { faGithub } from '@fortawesome/free-brands-svg-icons';
+	import '../app.postcss'
+	import Logo from '$lib/assets/Logo.png'
+	import { AppShell, AppBar, LightSwitch } from '@skeletonlabs/skeleton'
+	import { Drawer, getDrawerStore } from '@skeletonlabs/skeleton'
+	import type { DrawerSettings } from '@skeletonlabs/skeleton'
+	import Fa from 'svelte-fa'
+	import { faGlobe, faBars } from '@fortawesome/free-solid-svg-icons'
+	import { faGithub } from '@fortawesome/free-brands-svg-icons'
 
-	import { initializeStores } from '@skeletonlabs/skeleton';
-	import { onNavigate } from '$app/navigation';
-	import SidebarNav from '$lib/components/SidebarNav.svelte';
+	import { initializeStores } from '@skeletonlabs/skeleton'
+	import { onNavigate } from '$app/navigation'
+	import SidebarNav from '$lib/components/SidebarNav.svelte'
 
-	initializeStores();
-	const drawerStore = getDrawerStore();
+	initializeStores()
+	const drawerStore = getDrawerStore()
 
 	const openDocsMenu = () => {
-		const settings: DrawerSettings = { id: 'docs', width: 'max-w-fit' };
-		drawerStore.open(settings);
-	};
+		const settings: DrawerSettings = {
+			id: 'docs',
+			width: 'max-w-fit',
+			border: 'border-r-2 border-surface-400',
+			bgBackdrop: 'variant-glass-tertiary'
+		}
+		drawerStore.open(settings)
+	}
 
 	onNavigate(() => {
-		drawerStore.close();
-	});
+		drawerStore.close()
+	})
 </script>
 
 <Drawer>
@@ -45,30 +50,37 @@
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
 				<div class="hidden lg:flex items-center gap-4">
-					<a class="btn btn-sm variant-ghost-surface" href="/pipelines" rel="noreferrer">
+					<a class="btn btn-sm variant-filled-surface rounded-sm" href="/pipelines" rel="noreferrer">
 						Pipelines
 					</a>
-					<a class="btn btn-sm variant-ghost-surface" href="/login" rel="noreferrer"> Login </a>
+					<a class="btn btn-sm variant-filled-surface rounded-sm" href="/docs" rel="noreferrer">
+						Documentation
+					</a>
+					<a class="btn btn-sm variant-filled-surface rounded-sm" href="/authentication/login" rel="noreferrer">
+						Login
+					</a>
 				</div>
-				<LightSwitch />
+				<LightSwitch rounded="rounded-full" />
 			</svelte:fragment>
 		</AppBar>
 	</svelte:fragment>
 
 	<!-- Page Route Content -->
+
 	<slot />
+
 	<svelte:fragment slot="pageFooter">
 		<footer id="page-footer" class="flex-none">
 			<div
 				class="page-footer bg-surface-50 dark:bg-surface-900 border-t border-surface-500/10 text-xs md:text-base"
 			>
-				<div class="w-full max-w-7xl mx-auto p-4 py-16 md:py-24 space-y-10">
-					<section class="flex flex-col md:flex-row justify-center space-y-5 md:space-y-0">
-						<div
-							class="grid grid-cols-1 gap-2 place-content-center place-items-center md:place-items-start"
-						>
-							<img src={Logo} class="max-h-16" alt="" />
-							<p class="!text-sm opacity-80">Lightweight NLP Framework</p>
+				<div class="w-full max-w-7xl mx-auto space-y-10 py-8">
+					<section class="flex flex-col md:flex-row justify-center space-y-8">
+						<div class="grid grid-cols-1 gap-4 place-items-center">
+							<img src={Logo} class="max-h-14" alt="" />
+							<p class="!text-sm opacity-80">
+								<span class="text-primary-400 font-bold">DUUI</span> - Lightweight NLP Framework
+							</p>
 						</div>
 					</section>
 					<hr class="opacity-20" />
