@@ -1,31 +1,31 @@
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid'
 
 export interface DUUIPipelineComponent {
-	id: string;
-	name: string;
-	driver: string;
-	target: string;
-	pipeline_id: string;
+	id: string
+	name: string
+	driver: string
+	target: string
+	pipeline_id: string
 }
 
 export interface DUUIPipeline {
-	id: string;
-	name: string;
-	status: string;
-	components: DUUIPipelineComponent[];
+	id: string
+	name: string
+	status: string
+	components: DUUIPipelineComponent[]
 }
 
-export const DUUIRemoteDriver = 'DUUIRemoteDriver';
-export const DUUIDockerDriver = 'DUUIDockerDriver';
-export const DUUISwarmDriver = 'DUUISwarmDriver';
-export const DUUIUIMADriver = 'DUUIUIMADriver';
+export const DUUIRemoteDriver = 'DUUIRemoteDriver'
+export const DUUIDockerDriver = 'DUUIDockerDriver'
+export const DUUISwarmDriver = 'DUUISwarmDriver'
+export const DUUIUIMADriver = 'DUUIUIMADriver'
 
 export const DUUIDrivers: string[] = [
 	DUUIRemoteDriver,
 	DUUIDockerDriver,
 	DUUISwarmDriver,
 	DUUIUIMADriver
-];
+]
 
 export const dummyPipeline: DUUIPipeline = {
 	id: '1',
@@ -54,15 +54,16 @@ export const dummyPipeline: DUUIPipeline = {
 			pipeline_id: '1'
 		}
 	]
-};
+}
 
 export const blankPipeline = () =>
 	<DUUIPipeline>{
 		id: uuidv4(),
 		name: 'New Pipeline',
 		status: 'New',
-		components: []
-	};
+		components: [],
+		createdAt: new Date()
+	}
 
 export const blankComponent = (pipeline_id: string, name?: string) =>
 	<DUUIPipelineComponent>{
@@ -71,4 +72,4 @@ export const blankComponent = (pipeline_id: string, name?: string) =>
 		driver: DUUIDockerDriver,
 		target: '',
 		pipeline_id: pipeline_id
-	};
+	}

@@ -6,7 +6,6 @@ export const load: PageLoad = async ({ fetch, params }) => {
 			method: 'GET',
 			mode: 'cors'
 		})
-
 		return await result.json()
 	}
 

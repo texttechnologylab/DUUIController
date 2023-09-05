@@ -50,13 +50,13 @@
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
 				<div class="hidden lg:flex items-center gap-4">
-					<a class="btn btn-sm variant-filled-surface rounded-sm" href="/pipelines" rel="noreferrer">
+					<a class="btn btn-sm hover:variant-ghost-primary rounded-sm" href="/pipelines" rel="noreferrer">
 						Pipelines
 					</a>
-					<a class="btn btn-sm variant-filled-surface rounded-sm" href="/docs" rel="noreferrer">
+					<a class="btn btn-sm hover:variant-ghost-primary rounded-sm" href="/docs" rel="noreferrer">
 						Documentation
 					</a>
-					<a class="btn btn-sm variant-filled-surface rounded-sm" href="/authentication/login" rel="noreferrer">
+					<a class="btn btn-sm hover:variant-ghost-primary rounded-sm" href="/authentication/login" rel="noreferrer">
 						Login
 					</a>
 				</div>

@@ -45,6 +45,11 @@ public class Application {
     });
 
     get("/pipeline", DUUIPipelineController::findPipelineById);
+
+    post("/pipeline", DUUIPipelineController::insertPipeline);
+    delete("/pipeline", DUUIPipelineController::deletePipeline);
+    put("/pipeline", DUUIPipelineController::updatePipeline);
+
     get("/pipelines", DUUIPipelineController::findAllPipelines);
   }
 }

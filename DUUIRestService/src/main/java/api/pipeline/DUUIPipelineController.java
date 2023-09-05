@@ -4,13 +4,16 @@ import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import org.bson.Document;
 import org.bson.types.ObjectId;
+import org.eclipse.jetty.util.ajax.JSON;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import services.DUUIMongoService;
 import spark.Request;
@@ -45,7 +48,7 @@ public class DUUIPipelineController {
   }
 
   public static JSONObject deletePipeline(Request request, Response response) {
-    String id = request.params(":id");
+    String id = request.queryParams("id");
     if (id == null) {
       response.status(400);
       return new JSONObject().put("message", "Missing required parameter id.");
@@ -61,14 +64,9 @@ public class DUUIPipelineController {
     return new JSONObject().put("id", removedId);
   }
 
-  public static JSONArray findAllPipelines(
-    Request request,
-    Response response
-  ) {
+  public static JSONArray findAllPipelines(Request request, Response response) {
     String limitParameter = request.queryParams("limit");
     String offsetParameter = request.queryParams("offset");
-
-    System.out.println(limitParameter + ", " + offsetParameter);
 
     int limit = limitParameter == null ? 0 : Integer.parseInt(limitParameter);
     int offset = offsetParameter == null
@@ -94,6 +92,59 @@ public class DUUIPipelineController {
     });
 
     return pipelinesArray;
+  }
+
+  public static JSONObject insertPipeline(Request request, Response response) {
+    JSONObject requestPipeline = new JSONObject(request.body());
+    DUUIMongoService service = DUUIMongoService.PipelineService();
+    Document pipeline;
+
+    try {
+      pipeline =
+        new Document("name", requestPipeline.getString("name"))
+          .append("status", "New")
+          .append("createdAt", new Date())
+          .append("components", requestPipeline.getJSONArray("components"));
+    } catch (JSONException e) {
+      response.status(400);
+      return new JSONObject()
+        .put("message", "error")
+        .put("error", e.getMessage());
+    }
+
+    boolean success = service.insertOne(pipeline);
+
+    if (success) {
+      response.status(200);
+      return new JSONObject().put("message", "success");
+    }
+    response.status(400);
+    return new JSONObject().put("message", "error");
+  }
+
+  public static JSONObject updatePipeline(Request request, Response response) {
+    JSONObject resquestJSON = new JSONObject(request.body());
+    String id;
+    try {
+      id = resquestJSON.getString("id");
+    } catch (JSONException e) {
+      response.status(400);
+      return new JSONObject()
+        .put("message", "error")
+        .put("error", "Missing required field id");
+    }
+
+    if (id == null) {
+      response.status(400);
+      return new JSONObject().put("message", "Missing required parameter id.");
+    }
+
+    DUUIMongoService service = DUUIMongoService.PipelineService().withFilter(
+      Filters.eq("_id", new ObjectId(id))
+    );
+    service.updateOne(id, resquestJSON);
+
+    return new JSONObject("error", "not implemented");
   }
 
   public static void main(String[] args) {

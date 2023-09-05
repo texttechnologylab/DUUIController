@@ -7,14 +7,12 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Field;
-import com.mongodb.client.model.Projections;
 import java.util.Arrays;
-import java.util.List;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.json.JSONObject;
 
 public class DUUIMongoService {
 
@@ -133,5 +131,18 @@ public class DUUIMongoService {
 
   public DUUIMongoService find() {
     return null;
+  }
+
+  public boolean updateOne(String id, JSONObject data) {
+    try {
+      Document pipeline = Document.parse(data.toString());
+      pipeline.remove("id");
+      this.collection.findOneAndReplace(filter, pipeline);
+    } catch (MongoWriteException e) {
+      System.out.println("[Error]: Couldn't update document.");
+      return false;
+    }
+
+    return true;
   }
 }
