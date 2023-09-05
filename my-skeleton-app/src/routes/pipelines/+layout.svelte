@@ -1,3 +1,3 @@
-<div class="container h-full mx-auto flex justify-center items-center">
-    <slot/>
+<div class="p-4 space-y-4">
+	<slot />
 </div>
