@@ -40,30 +40,29 @@ export const dummyPipeline: DUUIPipeline = {
 			pipeline_id: '1'
 		},
 		{
-			id: '1',
+			id: '2',
 			name: 'BreakIteratorSegmenter',
 			driver: DUUIUIMADriver,
 			target: 'de.tudarmstadt.ukp.dkpro.core.tokit.BreakIteratorSegmenter',
 			pipeline_id: '1'
 		},
 		{
-			id: '1',
+			id: '3',
 			name: 'XMIWriter',
 			driver: DUUIUIMADriver,
 			target: 'org.dkpro.core.io.XMIWriter',
 			pipeline_id: '1'
 		}
 	]
-}
+};
 
 export const blankPipeline = () =>
 	<DUUIPipeline>{
 		id: uuidv4(),
 		name: 'New Pipeline',
 		status: 'New',
-		components: [],
-		createdAt: new Date()
-	}
+		components: []
+	};
 
 export const blankComponent = (pipeline_id: string, name?: string) =>
 	<DUUIPipelineComponent>{
@@ -72,4 +71,4 @@ export const blankComponent = (pipeline_id: string, name?: string) =>
 		driver: DUUIDockerDriver,
 		target: '',
 		pipeline_id: pipeline_id
-	}
+	};

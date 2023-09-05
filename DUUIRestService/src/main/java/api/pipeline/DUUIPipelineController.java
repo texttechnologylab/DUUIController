@@ -1,14 +1,10 @@
 package api.pipeline;
 
 import com.mongodb.client.AggregateIterable;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.eclipse.jetty.util.ajax.JSON;
@@ -30,7 +26,6 @@ public class DUUIPipelineController {
       response.status(400);
       return new JSONObject().put("message", "Missing required parameter id.");
     }
-
     DUUIMongoService mongoService = DUUIMongoService
       .PipelineService()
       .withFilter(Filters.eq("_id", new ObjectId(id)));

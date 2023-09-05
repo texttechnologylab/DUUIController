@@ -11,6 +11,7 @@
 	import { initializeStores } from '@skeletonlabs/skeleton'
 	import { onNavigate } from '$app/navigation'
 	import SidebarNav from '$lib/components/SidebarNav.svelte'
+	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom'
 
 	initializeStores()
 	const drawerStore = getDrawerStore()
@@ -28,6 +29,9 @@
 	onNavigate(() => {
 		drawerStore.close()
 	})
+
+	import { storePopup } from '@skeletonlabs/skeleton'
+	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow })
 </script>
 
 <Drawer>
@@ -50,13 +54,29 @@
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
 				<div class="hidden lg:flex items-center gap-4">
+<<<<<<< HEAD
 					<a class="btn btn-sm hover:variant-ghost-primary rounded-sm" href="/pipelines" rel="noreferrer">
+=======
+					<a
+						class="btn btn-sm variant-filled-surface rounded-sm"
+						href="/pipelines"
+						rel="noreferrer"
+					>
+>>>>>>> dev2
 						Pipelines
 					</a>
 					<a class="btn btn-sm hover:variant-ghost-primary rounded-sm" href="/docs" rel="noreferrer">
 						Documentation
 					</a>
+<<<<<<< HEAD
 					<a class="btn btn-sm hover:variant-ghost-primary rounded-sm" href="/authentication/login" rel="noreferrer">
+=======
+					<a
+						class="btn btn-sm variant-filled-surface rounded-sm"
+						href="/authentication/login"
+						rel="noreferrer"
+					>
+>>>>>>> dev2
 						Login
 					</a>
 				</div>

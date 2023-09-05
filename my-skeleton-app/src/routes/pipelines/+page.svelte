@@ -1,60 +1,57 @@
 <script lang="ts">
-	import { faPlus } from '@fortawesome/free-solid-svg-icons';
-	import {
-		Avatar,
-		ProgressBar,
-		Table,
-		tableMapperValues,
-		type TableSource
-	} from '@skeletonlabs/skeleton';
-	import Fa from 'svelte-fa';
+	import { goto } from '$app/navigation'
+	import type { DUUIPipeline } from '$lib/data.js'
+	import { currentPipelineStore } from '$lib/store.js'
+	import { slugify } from '$lib/utils.js'
+	import { faEdit, faPlus } from '@fortawesome/free-solid-svg-icons'
 
-	import { popup } from '@skeletonlabs/skeleton';
-	import type { PopupSettings } from '@skeletonlabs/skeleton';
 
-	// const sourceData = [
-	// 	{ position: 1, name: 'Hydrogen', weight: 1.0079, symbol: 'H' },
-	// 	{ position: 2, name: 'Helium', weight: 4.0026, symbol: 'He' },
-	// 	{ position: 3, name: 'Lithium', weight: 6.941, symbol: 'Li' },
-	// 	{ position: 4, name: 'Beryllium', weight: 9.0122, symbol: 'Be' },
-	// 	{ position: 5, name: 'Boron', weight: 10.811, symbol: 'B' }
-	// ];
+	import Fa from 'svelte-fa'
 
-	export let data;
+	export let data
 
-	let { pipelines } = data;
-	let tableData = pipelines.map((pipeline) => {
-		return {
-			...pipeline,
-			size: pipeline.components.length
-		};
-	});
+	let { pipelines } = data
 
-	let tableSimple: TableSource = {
-		// A list of heading labels.
-		head: ['Name', 'Status', 'Size'],
-		// The data visibly shown in your table body UI.
-		body: tableMapperValues(tableData, ['name', 'status', 'size']),
-		// Optional: The data returned when interactive is enabled and a row is clicked.
-		meta: tableMapperValues(tableData, ['name', 'status', 'size']),
-		// Optional: A list of footer labels.
-		foot: ['Total', '', `<code class="code">${pipelines.length} Pipelines</code>`]
-	};
-
-	function mySelectionHandler(e: CustomEvent<string[]>): void {
-		console.log(e.detail);
+	const onEditPipeline = (pipeline: DUUIPipeline) => {
+		$currentPipelineStore = pipeline
+		goto('/pipelines/' + pipeline.id)
 	}
+
+	
 </script>
 
+<div>
+	
 
-<div class="p-8 flex flex-col gap-4">
-	<div>
-		<a href="pipelines/new" class="btn variant-filled-primary">
-			<span>Create new</span>
-			<Fa icon={faPlus} />
-		</a>
-	</div>
-
-	<Table source={tableSimple} interactive={true} on:selected={mySelectionHandler} />
-	<ProgressBar />
+	<a href="pipelines/new" class="btn variant-filled-primary">
+		<span>Create new</span>
+		<Fa icon={faPlus} />
+	</a>
 </div>
+
+<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+	{#each pipelines as pipeline}
+		<div class="card p-4 flex items-start variant-outline-primary">
+			<div class="grow">
+				<p class="h4 font-bold">{pipeline.name}</p>
+
+				{#if pipeline.status === 'Error'}
+					<p class="text-error-400">{pipeline.status}</p>
+				{:else if pipeline.status === 'Cancelled'}
+					<p class="text-warning-400">{pipeline.status}</p>
+				{:else if pipeline.status === 'Completed'}
+					<p class="text-success-400">{pipeline.status}</p>
+				{:else}
+					<p>{pipeline.status}</p>
+				{/if}
+			</div>
+			<button class="btn-icon justify-self-end" on:click={() => onEditPipeline(pipeline)}>
+				<span>
+					<Fa size="lg" icon={faEdit} />
+				</span>
+			</button>
+		</div>
+	{/each}
+</div>
+
+<!-- <Table source={tableSimple} interactive={true} on:selected={mySelectionHandler} /> -->

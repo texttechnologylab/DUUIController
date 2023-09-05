@@ -1,15 +1,11 @@
 <script lang="ts">
 	import Example from '$lib/assets/Example.png'
 	import Fa from 'svelte-fa'
-	import {
-		faArrowTrendUp,
-		faCircleNodes,
-		faCopy,
-		faNewspaper,
-		faPlus,
-		faUsers
-	} from '@fortawesome/free-solid-svg-icons'
+	import { faArrowTrendUp, faCircleNodes, faCopy, faUsers } from '@fortawesome/free-solid-svg-icons'
 	import { faAmazon, faDropbox, faGoogleDrive } from '@fortawesome/free-brands-svg-icons'
+	import Card from '$lib/components/containers/Card.svelte'
+	import Feature from '$lib/components/containers/Feature.svelte'
+	import { popup, type PopupSettings } from '@skeletonlabs/skeleton'
 	const sections = [
 		{
 			title: 'Reproducible',
@@ -30,9 +26,25 @@
 			icon: faCircleNodes
 		}
 	]
+
+	const popupFeatured: PopupSettings = {
+		// Represents the type of event that opens/closed the popup
+		event: 'click',
+		// Matches the data-popup value on your popup element
+		target: 'popupFeatured',
+		// Defines which side of your trigger the popup will appear
+		placement: 'bottom'
+	}
+	
 </script>
 
 <div class="container h-full mx-auto flex justify-center items-center">
+	<button class="btn variant-filled" use:popup={popupFeatured}>Show Popup</button>
+
+	<div class="card p-4 w-72 shadow-xl" data-popup="popupFeatured">
+		<div><p>Demo Content</p></div>
+		<div class="arrow bg-surface-100-800-token" />
+	</div>
 	<div
 		class="space-y-16 lg:space-y-32 2xl:space-y-64 text-center flex flex-col items-center p-4 max-w-6xl"
 	>
@@ -51,32 +63,16 @@
 		</div>
 		<section class="grid grid-cols-1 lg:grid-cols-3 gap-4">
 			{#each sections as { title, content, icon }}
-				<div class="card variant-glass p-4 shadow-lg md:p-10 space-y-4 text-center">
-					<span class="btn-icon btn-icon-xl variant-glass-primary">
-						<Fa {icon} />
-					</span>
-					<h3 class="h3">{title}</h3>
-					<p>{content}</p>
-				</div>
+				<Card {title} {content} {icon} />
 			{/each}
 		</section>
-		<div class="grid lg:grid-cols-2 gap-4">
-			<section
-				class="flex flex-col justify-start items-start self-stretch gap-8 text-left p-4 variant-glass card"
-			>
-				<div class="flex flex-col items-start space-y-4">
-					<h3 class="h3">Automated NLP Routines</h3>
-					<p>Build and manage pipelines in the Browser.</p>
-				</div>
-				<img class="max-w-[300px] lg:max-w-lg" src={Example} alt="" />
-			</section>
-
-			<section class="flex flex-col self-stretch gap-8 text-left p-4 variant-glass card">
-				<div class="flex flex-col items-start self-start space-y-4">
-					<h3 class="h3">Integrated Storage</h3>
-					<p>DUUI provides a set of Storage Systems so your data is available and secure.</p>
-				</div>
-				<ul class="flex gap-4 p-2 justify-center">
+		<Feature title="Automated NLP Routines" content="Build and manage pipelines in the Browser." />
+		<Feature
+			title="Integrated Storage"
+			content="DUUI provides a set of Storage Systems so your data is available and secure."
+		>
+			<svelte:fragment slot="illustration">
+				<ul class="flex gap-4 p-4 justify-start">
 					<li class="flex flex-col gap-2 items-center">
 						<span><Fa size="2x" icon={faAmazon} /></span>
 						<span class="text-left">AmazonS3</span>
@@ -90,20 +86,14 @@
 						<span class="text-left">Google Drive</span>
 					</li>
 				</ul>
-			</section>
-		</div>
-		<section class="card variant-glass p-4 text-left self-stretch gap-4 flex flex-col">
-			<h3 class="h3">Headline placeholder</h3>
-			<p>
-				Lorem ipsum dolor sit amet consectetur adipisicing elit. Suscipit enim excepturi laboriosam,
-				numquam explicabo facilis error autem fugit est repellendus eius consequatur voluptatibus
-				architecto voluptatem quae repellat accusamus impedit dolores vitae dolor quis cum
-				molestias. Ullam excepturi cupiditate eos cumque ab, aliquam itaque impedit, expedita, dolor
-				asperiores incidunt possimus! Repellendus accusamus neque totam earum cum, quidem eum
-				reprehenderit voluptas blanditiis quaerat vel autem non dolores. Reprehenderit quia soluta
-				laudantium asperiores dicta blanditiis ea. Consequuntur vitae aliquid iure culpa repellendus
-				quos.
-			</p>
-		</section>
+			</svelte:fragment>
+		</Feature>
+		<Feature
+			title="Headline placeholder"
+			content={'Lorem ipsum dolor sit amet consectetur adipisicing elit. Suscipit enim excepturi laboriosam,' +
+				'numquam explicabo facilis error autem fugit est repellendus eius consequatur voluptatibus' +
+				'architecto voluptatem quae repellat accusamus impedit dolores vitae dolor quis cum' +
+				'quos.'}
+		/>
 	</div>
 </div>

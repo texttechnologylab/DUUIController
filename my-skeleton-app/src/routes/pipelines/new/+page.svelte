@@ -12,7 +12,7 @@
 			<input bind:value={name} class="input focus-within:outline-primary-400" type="text" />
 		</label>
 		<svelte:fragment slot="navigation">
-			<button class="btn variant-filled-error" on:abort={() => goto("/pipelines")} >Cancel</button>
+			<button class="btn variant-filled-error" on:click={() => goto("/pipelines")} >Cancel</button>
 		</svelte:fragment>
 	</Step>
 	<Step>
