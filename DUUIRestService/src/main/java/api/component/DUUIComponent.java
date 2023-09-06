@@ -1,5 +1,3 @@
 package api.component;
 
-public class DUUIComponent {
-    
-}
+public class DUUIComponent {}

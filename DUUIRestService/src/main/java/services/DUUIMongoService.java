@@ -9,9 +9,14 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Field;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 import org.json.JSONObject;
 
 public class DUUIMongoService {
@@ -38,6 +43,8 @@ public class DUUIMongoService {
     this.client = MongoClients.create(getConnectionURI());
     this.database = this.client.getDatabase(database);
     this.collection = this.database.getCollection(collection);
+    Logger logger = Logger.getLogger("org.mongodb.driver");
+    logger.setLevel(Level.SEVERE);
   }
 
   public static DUUIMongoService PipelineService() {
@@ -69,9 +76,21 @@ public class DUUIMongoService {
   }
 
   public Document findOne() {
+    if (this.projection != null) {
+      return this.collection.aggregate(
+          Arrays.asList(
+            Aggregates.match(this.filter),
+            Aggregates.project(this.projection),
+            Aggregates.addFields(
+              new Field<>("id", new Document("$toString", "$_id"))
+            )
+          )
+        )
+        .first();
+    }
     return this.collection.aggregate(
         Arrays.asList(
-          Aggregates.match((this.filter)),
+          Aggregates.match(this.filter),
           Aggregates.addFields(
             new Field<>("id", new Document("$toString", "$_id"))
           )
@@ -144,5 +163,12 @@ public class DUUIMongoService {
     }
 
     return true;
+  }
+
+  public void updatePipelineStatus(String id, String status) {
+    this.collection.findOneAndUpdate(
+        Filters.eq("_id", new ObjectId(id)),
+        Updates.set("status", status)
+      );
   }
 }

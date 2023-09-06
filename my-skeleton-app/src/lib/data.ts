@@ -54,7 +54,7 @@ export const dummyPipeline: DUUIPipeline = {
 			pipeline_id: '1'
 		}
 	]
-};
+}
 
 export const blankPipeline = () =>
 	<DUUIPipeline>{
@@ -62,13 +62,13 @@ export const blankPipeline = () =>
 		name: 'New Pipeline',
 		status: 'New',
 		components: []
-	};
+	}
 
-export const blankComponent = (pipeline_id: string, name?: string) =>
+export const blankComponent = (pipeline_id: string) =>
 	<DUUIPipelineComponent>{
 		id: uuidv4(),
-		name: typeof name === undefined ? 'New Component' : name,
+		name: 'New Component',
 		driver: DUUIDockerDriver,
 		target: '',
 		pipeline_id: pipeline_id
-	};
+	}

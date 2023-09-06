@@ -1,7 +1,14 @@
 <script lang="ts">
 	import '../app.postcss'
 	import Logo from '$lib/assets/Logo.png'
-	import { AppShell, AppBar, LightSwitch } from '@skeletonlabs/skeleton'
+	import {
+		AppShell,
+		AppBar,
+		LightSwitch,
+		popup,
+		ListBoxItem,
+		ListBox
+	} from '@skeletonlabs/skeleton'
 	import { Drawer, getDrawerStore } from '@skeletonlabs/skeleton'
 	import type { DrawerSettings } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
@@ -11,17 +18,23 @@
 	import { initializeStores } from '@skeletonlabs/skeleton'
 	import { onNavigate } from '$app/navigation'
 	import SidebarNav from '$lib/components/SidebarNav.svelte'
+	import { storePopup } from '@skeletonlabs/skeleton'
+
 	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom'
+	import ComponentDrawerEdit from '$lib/components/ComponentDrawerEdit.svelte'
+	import ComponentEditor from '$lib/components/ComponentEditor.svelte'
+	import { Modal } from '@skeletonlabs/skeleton'
 
 	initializeStores()
 	const drawerStore = getDrawerStore()
+	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow })
 
 	const openDocsMenu = () => {
 		const settings: DrawerSettings = {
 			id: 'docs',
 			width: 'max-w-fit',
 			border: 'border-r-2 border-surface-400',
-			bgBackdrop: 'variant-glass-tertiary'
+			bgBackdrop: 'variant-glass-surface'
 		}
 		drawerStore.open(settings)
 	}
@@ -29,14 +42,14 @@
 	onNavigate(() => {
 		drawerStore.close()
 	})
-
-	import { storePopup } from '@skeletonlabs/skeleton'
-	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow })
 </script>
 
+<Modal />
 <Drawer>
 	{#if $drawerStore.id === 'docs'}
 		<SidebarNav hidden={false} withNavigation={true} />
+	{:else if $drawerStore.id === 'component'}
+		<ComponentEditor component={$drawerStore.meta.component} />
 	{/if}
 </Drawer>
 <!-- App Shell -->
@@ -54,31 +67,25 @@
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
 				<div class="hidden lg:flex items-center gap-4">
-<<<<<<< HEAD
-					<a class="btn btn-sm hover:variant-ghost-primary rounded-sm" href="/pipelines" rel="noreferrer">
-=======
 					<a
-						class="btn btn-sm variant-filled-surface rounded-sm"
+						class="btn btn-sm hover:variant-ghost-primary rounded-sm"
 						href="/pipelines"
 						rel="noreferrer"
 					>
->>>>>>> dev2
 						Pipelines
 					</a>
-					<a class="btn btn-sm hover:variant-ghost-primary rounded-sm" href="/docs" rel="noreferrer">
-						Documentation
-					</a>
-<<<<<<< HEAD
-					<a class="btn btn-sm hover:variant-ghost-primary rounded-sm" href="/authentication/login" rel="noreferrer">
-=======
 					<a
-						class="btn btn-sm variant-filled-surface rounded-sm"
-						href="/authentication/login"
+						class="btn btn-sm hover:variant-ghost-primary rounded-sm"
+						href="/docs"
 						rel="noreferrer"
 					>
->>>>>>> dev2
-						Login
+						Documentation
 					</a>
+					<a
+						class="btn btn-sm hover:variant-ghost-primary rounded-sm"
+						href="/authentication/login"
+						rel="noreferrer">Login</a
+					>
 				</div>
 				<LightSwitch rounded="rounded-full" />
 			</svelte:fragment>

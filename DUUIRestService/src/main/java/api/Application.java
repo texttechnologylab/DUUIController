@@ -44,11 +44,15 @@ public class Application {
       response.header("Access-Control-Allow-Origin", "*");
     });
 
-    get("/pipeline", DUUIPipelineController::findPipelineById);
+    get("/pipeline/:id", DUUIPipelineController::findPipelineById);
 
     post("/pipeline", DUUIPipelineController::insertPipeline);
-    delete("/pipeline", DUUIPipelineController::deletePipeline);
-    put("/pipeline", DUUIPipelineController::updatePipeline);
+    delete("/pipeline/:id", DUUIPipelineController::deletePipeline);
+    put("/pipeline", "application/json", DUUIPipelineController::updatePipeline);
+
+    post("/pipeline/start/:id", DUUIPipelineController::startPipeline);
+    post("/pipeline/stop/:id", DUUIPipelineController::stopPipeline);
+    get("/pipeline/status/:id", DUUIPipelineController::getPipelineStatus);
 
     get("/pipelines", DUUIPipelineController::findAllPipelines);
   }

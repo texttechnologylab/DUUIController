@@ -16,10 +16,10 @@ import org.xml.sax.SAXException;
 
 public class LanguageDetectionFastText {
 
-  private static final String modelPath = "DUUIRestService\\src\\main\\java\\lid.176.ftz";
+  private static final String modelPath = "DUUIRestService\\lid.176.ftz";
 
   public static void main(String[] args) throws Exception {
-    int PORT = 8001;
+    int PORT = 8000;
     HttpServer server = HttpServer.create(
       new InetSocketAddress("127.0.0.1", PORT),
       0
