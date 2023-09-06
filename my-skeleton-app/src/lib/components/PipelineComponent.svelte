@@ -42,7 +42,7 @@
 	}
 </script>
 
-<li class="card flex flex-col gap-4 p-4 pointer-events-none">
+<li class="card shadow-lg flex flex-col gap-4 p-4 pointer-events-none">
 	<div class="flex grid-cols-2 gap-4 items-center">
 		<DriverIcon driver={component.driver} />
 		<p class="h4 grow">{component.name}</p>

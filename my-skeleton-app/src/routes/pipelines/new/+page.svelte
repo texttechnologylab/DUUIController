@@ -40,8 +40,8 @@
 		})
 
 		const status = await result.json()
-		console.log(status);
-		
+		console.log(status)
+
 		if (status.message === 'success') {
 			goto('/pipelines/' + status.id)
 		}
@@ -50,45 +50,47 @@
 	let flipDurationMs = 300
 </script>
 
-<Stepper on:complete={finalizePipeline}>
-	<Step locked={pipeline.name === ''}>
-		<svelte:fragment slot="header">Choose a name</svelte:fragment>
-		<label class="label">
-			<span>Name</span>
-			<input
-				bind:value={pipeline.name}
-				class="input focus-within:outline-primary-400"
-				type="text"
-			/>
-		</label>
-		<svelte:fragment slot="navigation">
-			<button class="btn variant-filled-error" on:click={() => goto('/pipelines')}>Cancel</button>
-		</svelte:fragment>
-	</Step>
-	<Step locked={pipeline.components.length === 0}>
-		<svelte:fragment slot="header">Create Components</svelte:fragment>
-		<div class="container h-full flex-col items-center mx-auto flex gap-4 py-8">
-			<ul
-				use:dndzone={{ items: pipeline.components, dropTargetStyle: {} }}
-				on:consider={(event) => handleDndConsider(event)}
-				on:finalize={(event) => handleDndFinalize(event)}
-				class="grid gap-4 self-stretch"
-			>
-				{#each pipeline.components as component (component.id)}
-					<div animate:flip={{ duration: flipDurationMs }}>
-						<PipelineComponent
-							editMode={true}
-							{component}
-							on:deletion={deleteComponent}
-							on:remove={deleteComponent}
-						/>
-					</div>
-				{/each}
-			</ul>
-			<button class="btn-icon variant-filled-primary" on:click={addComponent}
-				><Fa icon={faAdd} /></button
-			>
-		</div>
-	</Step>
-	<!-- ... -->
-</Stepper>
+<div class="container h-full mx-auto flex justify-center">
+	<Stepper on:complete={finalizePipeline}>
+		<Step locked={pipeline.name === ''}>
+			<svelte:fragment slot="header">Choose a name for your Pipeline</svelte:fragment>
+			<label class="label">
+				<span>Name</span>
+				<input
+					bind:value={pipeline.name}
+					class="input focus-within:outline-primary-400"
+					type="text"
+				/>
+			</label>
+			<svelte:fragment slot="navigation">
+				<button class="btn variant-filled-error" on:click={() => goto('/pipelines')}>Cancel</button>
+			</svelte:fragment>
+		</Step>
+		<Step locked={pipeline.components.length === 0}>
+			<svelte:fragment slot="header">Create Components</svelte:fragment>
+			<div class="container h-full flex-col items-center mx-auto flex gap-4 py-8">
+				<ul
+					use:dndzone={{ items: pipeline.components, dropTargetStyle: {} }}
+					on:consider={(event) => handleDndConsider(event)}
+					on:finalize={(event) => handleDndFinalize(event)}
+					class="grid gap-4 self-stretch"
+				>
+					{#each pipeline.components as component (component.id)}
+						<div animate:flip={{ duration: flipDurationMs }}>
+							<PipelineComponent
+								editMode={true}
+								{component}
+								on:deletion={deleteComponent}
+								on:remove={deleteComponent}
+							/>
+						</div>
+					{/each}
+				</ul>
+				<button class="btn-icon variant-filled-primary" on:click={addComponent}>
+					<Fa icon={faAdd} />
+				</button>
+			</div>
+		</Step>
+		<!-- ... -->
+	</Stepper>
+</div>

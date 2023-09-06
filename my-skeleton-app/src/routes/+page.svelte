@@ -1,7 +1,7 @@
 <script lang="ts">
-	import Pipeline from '$lib/assets/Pipeline.png'
+	import Logo from '$lib/assets/Logo.png'
 	import Fa from 'svelte-fa'
-	import { faArrowTrendUp, faCircleNodes, faCopy, faUsers } from '@fortawesome/free-solid-svg-icons'
+	import { fa8, faArrowTrendUp, faCancel, faCircleNodes, faComputer, faCopy, faRocket, faTextSlash, faUsers } from '@fortawesome/free-solid-svg-icons'
 	import { faAmazon, faDropbox, faGoogleDrive } from '@fortawesome/free-brands-svg-icons'
 	import Card from '$lib/components/containers/Card.svelte'
 	import Feature from '$lib/components/containers/Feature.svelte'
@@ -52,16 +52,18 @@
 		<div class="space-y-8 self-stretch">
 			<Feature title="Automated NLP Routines" content="Build and manage pipelines in the Browser.">
 				<svelte:fragment slot="illustration">
-					<img src={Pipeline} alt="" />
-				</svelte:fragment></Feature
-			>
+					<img class="max-h-16" src={Logo} alt="">
+				</svelte:fragment>
+			</Feature>
 			<Feature
 				reverse={true}
 				title="Integrated Storage"
 				content="DUUI provides a set of Storage Systems so your data is available and secure."
 			>
 				<svelte:fragment slot="illustration">
-					<ul class="grid grid-cols-3 items-center gap-4 p-4 justify-center text-left">
+					<ul
+						class="grid grid-cols-3 items-center gap-4 p-4 justify-center text-left"
+					>
 						<li class="flex flex-col gap-2 justify-center items-center">
 							<span><Fa size="2x" icon={faAmazon} /></span>
 							<span class="text-sm">AmazonS3</span>

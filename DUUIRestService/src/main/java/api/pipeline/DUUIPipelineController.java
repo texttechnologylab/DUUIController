@@ -64,7 +64,7 @@ public class DUUIPipelineController {
   }
 
   public static JSONObject deletePipeline(Request request, Response response) {
-    String id = request.queryParams("id");
+    String id = request.params(":id");
     if (id == null) {
       response.status(400);
       return new JSONObject().put("message", "Missing required parameter id.");
@@ -168,7 +168,7 @@ public class DUUIPipelineController {
       .withFilter(Filters.eq("_id", new ObjectId(id)));
     service.updateOne(id, resquestJSON);
 
-    return new JSONObject("error", "not implemented");
+    return new JSONObject().put("message", "success");
   }
 
   public static JSONObject startPipeline(Request request, Response response) {
@@ -244,12 +244,13 @@ public class DUUIPipelineController {
         | URISyntaxException e
       ) {
         response.status(400);
-        return new JSONObject(
-          "error",
-          "Failed to instantiate component <" +
-          componentObject.getString("name") +
-          ">."
-        );
+        return new JSONObject()
+          .put(
+            "error",
+            "Failed to instantiate component <" +
+            componentObject.getString("name") +
+            ">."
+          );
       }
     }
 
@@ -259,7 +260,7 @@ public class DUUIPipelineController {
       cas.setDocumentText("Das ist ein Testsatz.");
     } catch (UIMAException e) {
       response.status(400);
-      return new JSONObject("error", "Cas could not be instantiated.");
+      return new JSONObject().put("error", "Cas could not be instantiated.");
     }
 
     Date now = new Date();
@@ -268,11 +269,13 @@ public class DUUIPipelineController {
         composer.run(cas, pipeline.getString("name") + "_" + now.toString());
       } catch (InterruptedException e) {
         response.status(400);
-        return new JSONObject("message", "Pipeline has been canceled.")
+        return new JSONObject()
+          .put("message", "Pipeline has been canceled.")
           .put("error", e.getMessage());
       } catch (Exception e) {
         response.status(400);
-        return new JSONObject("message", "Failed to start pipeline.")
+        return new JSONObject()
+          .put("message", "Failed to start pipeline.")
           .put("error", e.getMessage());
       }
 
@@ -310,7 +313,8 @@ public class DUUIPipelineController {
         composer.shutdown();
       } catch (UnknownHostException e1) {}
       service.updatePipelineStatus(id, "Error");
-      return new JSONObject("message", "Pipeline failed.")
+      return new JSONObject()
+        .put("message", "Pipeline failed.")
         .put("error", e.getMessage());
     }
   }
@@ -321,7 +325,7 @@ public class DUUIPipelineController {
       response.status(400);
       return new MissingRequiredFieldResponse("id");
     }
-    
+
     DUUIMongoService service = DUUIMongoService
       .PipelineService()
       .withFilter(Filters.eq("_id", new ObjectId(id)));
@@ -348,14 +352,5 @@ public class DUUIPipelineController {
     Document pipeline = service.findOne();
     response.status(200);
     return new JSONObject().put("id", id).put("status", pipeline.get("status"));
-  }
-
-  public static void main(String[] args) {
-    Logger logger = Logger.getLogger("org.mongodb.driver");
-    logger.setLevel(Level.SEVERE);
-    DUUIMongoService service = DUUIMongoService
-      .PipelineService()
-      .withFilter(Filters.eq("_id", new ObjectId("64f09376b7ff0557a37bb9ce")));
-    System.out.println(service.findOne());
   }
 }

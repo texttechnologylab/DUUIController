@@ -1,21 +1,14 @@
 <script lang="ts">
-	import { goto } from '$app/navigation'
 	import type { DUUIPipeline } from '$lib/data.js'
-	import { currentPipelineStore } from '$lib/store.js'
-	import { slugify } from '$lib/utils.js'
+	import { faEdit, faFilter, faPlus, faRemove } from '@fortawesome/free-solid-svg-icons'
 	import {
-		faEdit,
-		faFilter,
-		faPlus,
-		faSort,
-		faSortAlphaDesc,
-		faSortAlphaDownAlt,
-		faSortAmountDown,
-		faSortAmountDownAlt,
-		faSortNumericAsc,
-		faSortUp
-	} from '@fortawesome/free-solid-svg-icons'
-	import { ListBox, ListBoxItem, popup, type PopupSettings } from '@skeletonlabs/skeleton'
+		ListBox,
+		ListBoxItem,
+		popup,
+		type ModalSettings,
+		type PopupSettings,
+		getModalStore
+	} from '@skeletonlabs/skeleton'
 
 	import Fa from 'svelte-fa'
 
@@ -35,6 +28,8 @@
 
 	let pipelinesFiltered = pipelines
 
+	
+
 	$: {
 		if (filters.length === 0) {
 			pipelinesFiltered = pipelines
@@ -44,7 +39,7 @@
 	}
 </script>
 
-<div class="card shadow-xl p-4 rounded-md" data-popup="filterPopup">
+<div class="card shadow-xl p-4 rounded-md z-10" data-popup="filterPopup">
 	<ListBox multiple={true} active="variant-filled-primary" rounded="rounded-md">
 		<ListBoxItem bind:group={filters} name="medium" value="New">New</ListBoxItem>
 		<ListBoxItem bind:group={filters} name="medium" value="Running">Running</ListBoxItem>
@@ -68,10 +63,9 @@
 
 	<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 		{#each pipelinesFiltered as pipeline}
-			<div class="card p-4 flex items-start variant-outline-primary">
-				<div class="grow">
-					<p class="h4 font-bold">{pipeline.name}</p>
-
+			<div class="card p-4 flex items-start variant-outline-primary relative">
+				<div class="grid gap-4 grow items-center">
+					<p class="h4">{pipeline.name}</p>
 					{#if pipeline.status === 'Error'}
 						<p class="text-error-400">{pipeline.status}</p>
 					{:else if pipeline.status === 'Cancelled'}
@@ -79,10 +73,11 @@
 					{:else if pipeline.status === 'Completed'}
 						<p class="text-success-400">{pipeline.status}</p>
 					{:else}
-						<p>{pipeline.status}</p>
+						<p class="">{pipeline.status}</p>
 					{/if}
 				</div>
-				<a class="btn-icon justify-self-end" href="/pipelines/{pipeline.id}">
+
+				<a class="btn-icon justify-self-end variant-glass-primary" href="/pipelines/{pipeline.id}">
 					<span>
 						<Fa size="lg" icon={faEdit} />
 					</span>

@@ -10,7 +10,7 @@
 		ListBox
 	} from '@skeletonlabs/skeleton'
 	import { Drawer, getDrawerStore } from '@skeletonlabs/skeleton'
-	import type { DrawerSettings } from '@skeletonlabs/skeleton'
+	import { Toast, type DrawerSettings } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
 	import { faGlobe, faBars } from '@fortawesome/free-solid-svg-icons'
 	import { faGithub } from '@fortawesome/free-brands-svg-icons'
@@ -45,6 +45,7 @@
 </script>
 
 <Modal />
+<Toast />
 <Drawer>
 	{#if $drawerStore.id === 'docs'}
 		<SidebarNav hidden={false} withNavigation={true} />
