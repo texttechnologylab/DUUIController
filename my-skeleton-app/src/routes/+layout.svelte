@@ -84,7 +84,7 @@
 					</a>
 					<a
 						class="btn btn-sm hover:variant-ghost-primary rounded-sm"
-						href="/authentication/login"
+						href="/user/login"
 						rel="noreferrer">Login</a
 					>
 				</div>

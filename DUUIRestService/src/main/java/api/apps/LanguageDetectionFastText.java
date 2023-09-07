@@ -1,3 +1,4 @@
+package api.apps;
 import com.github.jfasttext.JFastText;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;

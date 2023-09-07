@@ -33,7 +33,7 @@
 	}
 
 	async function finalizePipeline() {
-		const result = await fetch('http://192.168.2.122:2605/pipeline', {
+		const result = await fetch('http://127.0.0.1:2605/pipeline', {
 			method: 'POST',
 			mode: 'cors',
 			body: JSON.stringify(pipeline)

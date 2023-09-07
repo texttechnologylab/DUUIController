@@ -47,7 +47,7 @@
 			}
 		)
 
-		fetch('http://192.168.2.122:2605/pipeline', {
+		fetch('http://127.0.0.1:2605/pipeline', {
 			method: 'PUT',
 			mode: 'cors',
 			body: JSON.stringify(pipeline)
@@ -60,7 +60,7 @@
 
 	onMount(() => {
 		async function checkStatus() {
-			const response = await fetch('http://192.168.2.122:2605/pipeline/status/' + pipeline.id, {
+			const response = await fetch('http://127.0.0.1:2605/pipeline/status/' + pipeline.id, {
 				method: 'GET',
 				mode: 'cors'
 			})
@@ -80,7 +80,7 @@
 	})
 
 	async function updatePipeline() {
-		const response = await fetch('http://192.168.2.122:2605/pipeline', {
+		const response = await fetch('http://127.0.0.1:2605/pipeline', {
 			method: 'PUT',
 			mode: 'cors',
 			body: JSON.stringify(pipeline)
@@ -101,7 +101,7 @@
 		waiting = true
 		cancelled = false
 
-		await fetch('http://192.168.2.122:2605/pipeline', {
+		await fetch('http://127.0.0.1:2605/pipeline', {
 			method: 'PUT',
 			mode: 'cors',
 			body: JSON.stringify(pipeline)
@@ -109,7 +109,7 @@
 
 		pipeline.status = 'Running'
 
-		const response = await fetch('http://192.168.2.122:2605/pipeline/start/' + pipeline.id, {
+		const response = await fetch('http://127.0.0.1:2605/pipeline/start/' + pipeline.id, {
 			method: 'POST',
 			mode: 'cors'
 		})
@@ -119,7 +119,7 @@
 	}
 
 	function cancelPipeline() {
-		fetch('http://192.168.2.122:2605/pipeline/stop/' + pipeline.id, {
+		fetch('http://127.0.0.1:2605/pipeline/stop/' + pipeline.id, {
 			method: 'POST',
 			mode: 'cors'
 		})

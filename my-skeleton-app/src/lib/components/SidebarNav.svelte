@@ -42,16 +42,16 @@
 					</li>
 					<li>
 						<a
-							href="/authentication/login"
-							class={classesActive('/authentication/login')}
+							href="/user/login"
+							class={classesActive('/user/login')}
 							data-sveltekit-preload-data="hover"
 							><span class="flex-auto">Login</span>
 						</a>
 					</li>
 					<li>
 						<a
-							href="/authentication/register"
-							class={classesActive('/authentication/register')}
+							href="/user/register"
+							class={classesActive('/user/register')}
 							data-sveltekit-preload-data="hover"
 							><span class="flex-auto">Register</span>
 						</a>

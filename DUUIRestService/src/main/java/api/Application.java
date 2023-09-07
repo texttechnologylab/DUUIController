@@ -3,14 +3,9 @@ package api;
 import static spark.Spark.*;
 
 import api.pipeline.DUUIPipelineController;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 public class Application {
 
   public static void main(String[] args) {
-    Logger logger = Logger.getLogger("org.mongodb.driver");
-    logger.setLevel(Level.SEVERE);
 
     port(2605);
 
