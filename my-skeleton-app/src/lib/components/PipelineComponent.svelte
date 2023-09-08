@@ -71,7 +71,13 @@
 				</select>
 			</label>
 			<label class="label">
-				<span>Target</span>
+				{#if component.driver === 'DUUIRemoteDriver'}
+					<span>Target</span>
+				{:else if component.driver === 'DUUIUIMADriver'}
+					<span>Class Path</span>
+				{:else}
+					<span>Image Name</span>
+				{/if}
 				<input class="input" type="text" placeholder="Name" bind:value={component.target} />
 			</label>
 

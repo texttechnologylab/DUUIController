@@ -1,6 +1,5 @@
 package api.apps;
 
-import com.github.jfasttext.JFastText;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -21,7 +20,6 @@ import org.apache.uima.jcas.JCas;
 import org.apache.uima.resource.ResourceInitializationException;
 import org.apache.uima.resource.metadata.TypeSystemDescription;
 import org.apache.uima.util.CasIOUtils;
-import org.dkpro.core.io.xmi.XmiWriter;
 import org.xml.sax.SAXException;
 
 public class StanfordNLP {
@@ -43,9 +41,6 @@ public class StanfordNLP {
     server.setExecutor(null); // creates a default executor
     server.start();
     System.out.println("Remote Server started at " + server.getAddress());
-
-
-  
   }
 
   static class ProcessHandler implements HttpHandler {
@@ -77,15 +72,16 @@ public class StanfordNLP {
 
         Token annotation;
         for (CoreLabel token : document.tokens()) {
-          annotation = new Token(jc, token.beginPosition(), token.endPosition());
+          annotation =
+                  new Token(jc, token.beginPosition(), token.endPosition());
           annotation.setText(token.word());
           POS pos = new POS(jc, 0, 0);
           pos.setPosValue(token.tag());
           annotation.setPos(pos);
           NamedEntity entity = new NamedEntity(
-            jc,
-            token.beginPosition(),
-            token.endPosition()
+                  jc,
+                  token.beginPosition(),
+                  token.endPosition()
           );
           entity.setValue(token.ner());
           annotation.addToIndexes(jc);

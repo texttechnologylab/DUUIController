@@ -17,7 +17,7 @@ import org.xml.sax.SAXException;
 
 public class LanguageDetectionFastText {
 
-  private static final String modelPath = "DUUIRestService\\lid.176.ftz";
+  private static final String modelPath = "D:\\Uni Informatik B.sc\\Bachelor\\DUUIController\\DUUIRestService\\src\\main\\resources\\lid.176.ftz";
 
   public static void main(String[] args) throws Exception {
     int PORT = 8000;

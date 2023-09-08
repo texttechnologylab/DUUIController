@@ -1,16 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import PipelineComponent from '$lib/components/PipelineComponent.svelte'
-	import Card from '$lib/components/containers/Card.svelte'
 	import { blankComponent, type DUUIPipelineComponent } from '$lib/data'
-	import {
-		faAdd,
-		faArrowLeft,
-		faCancel,
-		faCog,
-		faRemove,
-		faRocket
-	} from '@fortawesome/free-solid-svg-icons'
+	import { faAdd, faArrowLeft, faCancel, faCog, faRocket } from '@fortawesome/free-solid-svg-icons'
 	import { ProgressRadial, type ModalSettings, getModalStore } from '@skeletonlabs/skeleton'
 	import { onMount } from 'svelte'
 	import { dndzone, type DndEvent } from 'svelte-dnd-action'
@@ -20,6 +12,8 @@
 	export let data
 
 	let { pipeline } = data
+
+	let documentText: string = 'This is a test sentence. My name is Cedric Borkowski.'
 
 	import { Toast, getToastStore } from '@skeletonlabs/skeleton'
 	import type { ToastSettings, ToastStore } from '@skeletonlabs/skeleton'
@@ -57,6 +51,7 @@
 	let waiting: boolean = pipeline.status === 'Running'
 	let cancelled: boolean = pipeline.status === 'Cancelled'
 	let result: string = ''
+	let annotations: Map<string, number> = new Map()
 
 	onMount(() => {
 		async function checkStatus() {
@@ -108,13 +103,24 @@
 		})
 
 		pipeline.status = 'Running'
+		annotations.clear()
 
-		const response = await fetch('http://127.0.0.1:2605/pipeline/start/' + pipeline.id, {
+		const jresult = await fetch('http://127.0.0.1:2605/pipeline/start/' + pipeline.id, {
 			method: 'POST',
-			mode: 'cors'
+			mode: 'cors',
+			body: JSON.stringify({
+				doc: documentText
+			})
 		})
 
-		result = await response.text()
+		const j = await jresult.json()
+		annotations.clear()
+		for (let annotation in j) {
+			annotations.set(annotation, j[annotation])
+		}
+
+		annotations = annotations
+
 		waiting = false
 	}
 
@@ -166,10 +172,22 @@
 			}
 		})
 	}
+
+	const getResult = async () => {
+		const temp = await fetch('http://127.0.0.1:2605/pipelines/' + pipeline.id + '/result', {
+			method: 'GET',
+			mode: 'cors'
+		})
+		const r = await temp.json()
+		if (r) {
+			result = r
+		}
+		console.log(result)
+	}
 </script>
 
 <div class="container h-full flex-col mx-auto flex gap-4">
-	<button on:click={() => goto("/pipelines")} class="btn-icon shadow-lg variant-glass-primary"
+	<button on:click={() => goto('/pipelines')} class="btn-icon shadow-lg variant-glass-primary"
 		><Fa size="lg" icon={faArrowLeft} /></button
 	>
 	<div class="grow self-stretch">
@@ -191,7 +209,7 @@
 		{/if}
 	</div>
 	<div class="grid lg:grid-cols-2 lg:gap-8">
-		<div class="space-y-4">
+		<div class="space-y-8">
 			<p class="h3 hidden lg:block">Components</p>
 			<ul
 				use:dndzone={{ items: pipeline.components, dropTargetStyle: {} }}
@@ -209,9 +227,18 @@
 					</div>
 				{/each}
 			</ul>
-			<div class="flex items-center justify-center w-full gap-4 mt-8">
+			<div class="flex justify-center">
+				<button class="btn-icon variant-filled-primary" on:click={addComponent}>
+					<Fa icon={faAdd} />
+				</button>
+			</div>
+		</div>
+		<div class="space-y-8 lg:flex-col hidden lg:flex">
+			<p class="h3 hidden lg:block">Pipeline</p>
+			<div class="card space-y-4 p-4 flex flex-col justify-start items-start">
+				<p class="h4 hidden lg:block">Activity</p>
 				{#if waiting}
-					<div class="flex items-center flex-col gap-4">
+					<div class="flex items-center gap-4">
 						<ProgressRadial stroke={120} width="w-16" meter="stroke-primary-400" />
 						<button class="btn variant-ghost-error" on:click={cancelPipeline}>
 							<span><Fa icon={faCancel} /></span>
@@ -219,49 +246,61 @@
 						</button>
 					</div>
 				{:else}
-					<div class="flex flex-col gap-8 justify-center items-center">
-						<button class="btn-icon variant-filled-primary" on:click={addComponent}>
-							<Fa icon={faAdd} />
-						</button>
+					<div class="flex gap-8 justify-center items-center">
 						<button class="btn variant-filled-primary" on:click={runPipeline}>
 							<span><Fa icon={faRocket} /></span>
 							<span>Start Pipeline</span>
 						</button>
-						{#if !waiting && result !== '' && !cancelled}
-							<button class="btn variant-ringed-primary" on:click={() => console.log(result)}
-								>Get result</button
-							>
+						{#if !waiting && !cancelled}
+							<button class="btn variant-ringed-primary" on:click={getResult}>Get result</button>
 						{/if}
 					</div>
 				{/if}
 			</div>
-		</div>
-		<div class="space-y-4 lg:flex-col hidden lg:flex">
-			<p class="h3 hidden lg:block">Settings</p>
-			<form action="" class="card shadow-lg flex flex-col gap-4 p-4">
+			{#if annotations.size > 0}
+				<div class="card space-y-4 p-4">
+					<p class="h4 hidden lg:block">Annotations</p>
+					{#each annotations.entries() as [key, value]}
+						<p>{key.split('.').at(-1)}: {value}</p>
+					{/each}
+				</div>
+			{/if}
+
+			<div class="card space-y-4 p-4">
+				<p class="h4 hidden lg:block">Settings</p>
 				<label class="label">
-					<span>Name</span>
+					<span>Document Text</span>
 					<input
-						bind:value={pipeline.name}
+						bind:value={documentText}
 						class="input focus-within:outline-primary-400"
 						type="text"
 					/>
 				</label>
-				<div class="grid self-end grid-cols-2 gap-5">
-					<button
-						class="btn variant-filled-success rounded-sm shadow-lg self-end"
-						on:click={updatePipeline}
-					>
-						<span>Save Changes</span>
-					</button>
-					<button
-						class="btn variant-filled-error rounded-sm shadow-lg self-end"
-						on:click={onMaybeDeletePipeline}
-					>
-						<span>Delete</span>
-					</button>
-				</div>
-			</form>
+				<form action="" class=" flex flex-col gap-4">
+					<label class="label">
+						<span>Name</span>
+						<input
+							bind:value={pipeline.name}
+							class="input focus-within:outline-primary-400"
+							type="text"
+						/>
+					</label>
+					<div class="grid self-end grid-cols-2 gap-5">
+						<button
+							class="btn variant-filled-success rounded-sm shadow-lg self-end"
+							on:click={updatePipeline}
+						>
+							<span>Save Changes</span>
+						</button>
+						<button
+							class="btn variant-filled-error rounded-sm shadow-lg self-end"
+							on:click={onMaybeDeletePipeline}
+						>
+							<span>Delete</span>
+						</button>
+					</div>
+				</form>
+			</div>
 		</div>
 	</div>
 </div>

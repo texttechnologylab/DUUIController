@@ -1,134 +1,53 @@
-// import static spark.Spark.*;
+import de.tudarmstadt.ukp.dkpro.core.api.lexmorph.type.pos.POS;
+import de.tudarmstadt.ukp.dkpro.core.api.ner.type.NamedEntity;
+import de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Lemma;
+import de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token;
+import org.apache.uima.fit.factory.JCasFactory;
+import org.apache.uima.fit.util.JCasUtil;
+import org.apache.uima.jcas.JCas;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.DUUIComposer;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.DUUIDockerDriver;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.DUUIRemoteDriver;
 
-// import java.util.concurrent.atomic.AtomicInteger;
-// import java.util.logging.Level;
-// import java.util.logging.Logger;
-// import models.DUUIPipeline;
-// import org.json.JSONObject;
-
-// import Storage.DUUISQLiteConnection;
-// // import services.DUUIPipelineService;
-// import spark.Request;
-// import spark.Response;
-
-// public class Main {
-
-//   private static AtomicInteger activeRequests = new AtomicInteger(0);
+import java.util.List;
 
 
+public class Main {
+    public static void main(String[] args) throws Exception {
+        DUUIComposer composer = new DUUIComposer().withSkipVerification(true);
+        composer.addDriver(new DUUIDockerDriver());
+        composer.add(
+                new DUUIDockerDriver.Component(
+                        "docker.texttechnologylab.org/textimager-duui-spacy-single-de_core_news_sm:latest").withImageFetching()
+        );
 
-//   private static String getPipelineStatus(Request request, Response response) {
-//     return String.format(
-//       "Pipeline with id <%s> has status <%s>",
-//       request.params(":id"),
-//       "Idle"
-//     );
-//   }
+        JCas cas = JCasFactory.createJCas();
+        cas.setDocumentLanguage("de");
+        cas.setDocumentText("Das ist ein Testsatz.");
+        composer.run(cas, "Test");
 
-//   private static String addPipeline(Request request, Response response) {
-//     DUUIPipelineService.insertPipeline(
-//       new DUUIPipeline(new JSONObject(request.body()))
-//     );
-//     return String.format("Added pipeline with id.");
-//   }
+        composer.shutdown();
+//        composer.addDriver(new DUUIRemoteDriver());
+//        composer.add(new DUUIRemoteDriver.Component("http://127.0.0.1:9001"));
+//        composer.add(new DUUIRemoteDriver.Component("http://127.0.0.1:9002"));
+//        composer.add(new DUUIRemoteDriver.Component("http://127.0.0.1:9003"));
+//        composer.add(new DUUIRemoteDriver.Component("http://127.0.0.1:9004"));
+//
 
-//   private static String getComponent(Request request, Response response) {
-//     return String.format(
-//       "Here is component with index <%s> of pipeline with id <%s>",
-//       request.params(":index"),
-//       request.params(":p_id")
-//     );
-//   }
+//
+//        composer.run(cas, "Test");
+//
+//        for (Token token : JCasUtil.select(cas, Token.class)) {
+//            POS pos = JCasUtil.selectSingleAt(cas, POS.class, token.getBegin(), token.getEnd());
+//            Lemma lemma = JCasUtil.selectSingleAt(cas, Lemma.class, token.getBegin(), token.getEnd());
+//            NamedEntity ner = JCasUtil.selectSingleAt(cas, NamedEntity.class, token.getBegin(), token.getEnd());
+//
+//            System.out.print("Text: " + token.getCoveredText() + ", ");
+//            System.out.print("PoS: " + pos.getPosValue() + ", ");
+//            System.out.print("Lemma: " + lemma.getValue() + ", ");
+//            System.out.print("NER: " + ner.getValue());
+//            System.out.println();
+//        }
 
-//   private static String addComponent(Request request, Response response) {
-//     return String.format(
-//       "Added Component <%s> to pipeline with id <%s>",
-//       request.body(),
-//       request.params(":id")
-//     );
-//   }
-
-//   private static String updatePipeline(Request request, Response response) {
-//     if (
-//       DUUIPipelineService.updatePipeline(
-//         new DUUIPipeline(new JSONObject(request.body()))
-//       )
-//     ) {
-//       return String.format("Updated pipeline <%s>", request.body());
-//     }
-
-//     return "[Error]: Cannot update pipeline.";
-//   }
-
-//   private static String setPipelineStatus(Request request, Response response) {
-//     return String.format("Updated pipeline status to <%s>", request.body());
-//   }
-
-//   private static Object deletePipeline(Request request, Response response) {
-//     DUUIPipelineService.deletePipeline(request.params(":id"));
-//     return "Deleted";
-//   }
-
-//   public static void main(String[] args) {
-//     Logger logger = Logger.getLogger("org.mongodb.driver");
-//     logger.setLevel(Level.SEVERE);
-
-//     port(2605);
-
-//     options(
-//       "/*",
-//       (request, response) -> {
-//         String accessControlRequestHeaders = request.headers(
-//           "Access-Control-Request-Headers"
-//         );
-//         if (accessControlRequestHeaders != null) {
-//           response.header(
-//             "Access-Control-Allow-Headers",
-//             accessControlRequestHeaders
-//           );
-//         }
-
-//         String accessControlRequestMethod = request.headers(
-//           "Access-Control-Request-Method"
-//         );
-//         if (accessControlRequestMethod != null) {
-//           response.header(
-//             "Access-Control-Allow-Methods",
-//             accessControlRequestMethod
-//           );
-//         }
-//         return "OK";
-//       }
-//     );
-
-//     before((request, response) -> {
-//       activeRequests.incrementAndGet();
-//       response.header("Access-Control-Allow-Origin", "*");
-//     });
-
-//     after((request, response) -> {
-//       activeRequests.decrementAndGet();
-//     });
-
-//     get("/", (request, response) -> "DUUI says hello");
-//     get("/pipeline/:id", DUUIPipelineService::getPipelineById);
-//     get("/pipeline", DUUIPipelineService::getPipelines);
-//     get("pipeline/:p_id/component/:index", Main::getComponent);
-//     get("pipeline/:id/status", DUUIPipelineService::getPipelineStatus);
-
-//     post("/pipeline", Main::addPipeline);
-//     post("/pipeline/:id/component", Main::addComponent);
-
-//     put("/pipeline", Main::updatePipeline);
-//     put("/pipeline/:id/status", Main::setPipelineStatus);
-
-//     delete("/pipeline/:id", Main::deletePipeline);
-
-//     get(
-//       "/metrics",
-//       (req, res) -> {
-//         return "demo_api_http_requests_in_progress " + activeRequests.get();
-//       }
-//     );
-//   }
-// }
+    }
+}
