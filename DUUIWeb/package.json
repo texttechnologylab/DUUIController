@@ -1,5 +1,5 @@
 {
-  "name": "my-skeleton-app",
+  "name": "duui-web",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -27,6 +27,7 @@
     "postcss": "8.4.29",
     "prettier": "^2.8.0",
     "prettier-plugin-svelte": "^2.10.1",
+    "prisma": "^5.2.0",
     "svelte": "^4.0.5",
     "svelte-check": "^3.4.3",
     "svelte-dnd-action": "^0.9.28",
