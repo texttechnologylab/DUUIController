@@ -8,18 +8,28 @@ import org.apache.uima.jcas.JCas;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.DUUIComposer;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.DUUIDockerDriver;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.DUUIRemoteDriver;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.lua.DUUILuaContext;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.lua.LuaConsts;
 
+import java.io.InputStream;
+import java.util.Arrays;
 import java.util.List;
 
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        DUUIComposer composer = new DUUIComposer().withSkipVerification(true);
+
+
+        DUUILuaContext context = new DUUILuaContext()
+                .withGlobalLibrary("json", DUUIComposer.class.getResourceAsStream("lua_stdlib/json.lua"));
+        DUUIComposer composer = new DUUIComposer().withLuaContext(context).withSkipVerification(true);
         composer.addDriver(new DUUIDockerDriver());
         composer.add(
                 new DUUIDockerDriver.Component(
-                        "docker.texttechnologylab.org/textimager-duui-spacy-single-de_core_news_sm:latest").withImageFetching()
+                        "docker.texttechnologylab.org/gnfinder:latest").withImageFetching()
         );
+
+        // textimager-duui-spacy-single-de_core_news_sm
 
         JCas cas = JCasFactory.createJCas();
         cas.setDocumentLanguage("de");
