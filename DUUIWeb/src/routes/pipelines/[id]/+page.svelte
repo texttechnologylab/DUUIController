@@ -96,20 +96,21 @@
 		waiting = true
 		cancelled = false
 
-		await fetch('http://127.0.0.1:2605/pipeline', {
-			method: 'PUT',
-			mode: 'cors',
-			body: JSON.stringify(pipeline)
-		})
+		// await fetch('http://127.0.0.1:2605/pipelines/' + pipeline.id, {
+		// 	method: 'PUT',
+		// 	mode: 'cors',
+		// 	body: JSON.stringify(pipeline)
+		// })
 
 		pipeline.status = 'Running'
 		annotations.clear()
 
-		const jresult = await fetch('http://127.0.0.1:2605/pipeline/start/' + pipeline.id, {
+		const jresult = await fetch('http://127.0.0.1:2605/processes/start', {
 			method: 'POST',
 			mode: 'cors',
 			body: JSON.stringify({
-				doc: documentText
+				...pipeline,
+				document: documentText
 			})
 		})
 
@@ -125,9 +126,10 @@
 	}
 
 	function cancelPipeline() {
-		fetch('http://127.0.0.1:2605/pipeline/stop/' + pipeline.id, {
+		fetch('http://127.0.0.1:2605/processes/stop', {
 			method: 'POST',
-			mode: 'cors'
+			mode: 'cors',
+			body: JSON.stringify({id: pipeline.id})
 		})
 
 		pipeline.status = 'Cancelled'

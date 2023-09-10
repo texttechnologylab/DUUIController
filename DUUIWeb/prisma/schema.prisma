@@ -9,3 +9,27 @@ datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
+
+model Pipeline {
+  id        String      @id @default(uuid())
+  name      String
+  createdAt DateTime    @default(now())
+  createdBy User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int?
+  Component Component[]
+}
+
+model Component {
+  description String   @id @unique
+  name        String
+  createdAt   DateTime @default(now())
+  pipeline    Pipeline @relation(fields: [pipelineId], references: [id])
+  pipelineId  String
+}
+
+model User {
+  id       Int        @id @default(autoincrement())
+  email    String     @unique
+  name     String?
+  Pipeline Pipeline[]
+}
