@@ -1,0 +1,56 @@
+model Pipeline {
+    _id: ObjectId,
+    name: String,
+    createdAt: Date,
+    components: Component[]
+}
+
+model Component {
+    name: String,
+    options: Object
+}
+
+model Process {
+    _id: ObjectId,
+    pipeline: Pipeline,  Reference _id
+    status: String,
+    options: Object
+}
+
+
+Pipeline {
+    _id: ObjectId('64fc52af57ebbb07a02820ee'),
+    name: 'Example',
+    createdAt: '2023-09-05T13:21:08.529+00:00',
+    components: [
+        Component {
+            name: 'Tokenizer',
+            options: {
+                driver: 'org.texttechnologylab.DockerUnifiedUIMAInterface.driver.DUUIUIMADriver',
+                parameters: {
+                    websocket: false
+                }
+            }
+        },
+        Component {
+            name: 'HeidelTime',
+            options: {
+                driver: 'org.texttechnologylab.DockerUnifiedUIMAInterface.driver.DUUIDockerDriver',
+                dockerImageName: 'docker.texttechnologylab.org/heideltime_ext:0.2',
+                withGPU: 'true',
+                parameters: {
+                    websocket: false
+                }
+            }
+        }
+    ]
+}
+
+Process {
+    _id: ObjectId('64fc52af57ebaa07a02820ee'),
+    pipeline: ObjectId('64fc52af57ebbb07a02820ee'),
+    status: 'Build',
+    options: {
+        input
+    }
+}
