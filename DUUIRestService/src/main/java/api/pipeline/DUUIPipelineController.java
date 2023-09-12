@@ -1,5 +1,6 @@
 package api.pipeline;
 
+import static api.Application.queryIntElseDefault;
 import static api.services.DUUIMongoService.mapDateToString;
 import static api.services.DUUIMongoService.mapObjectIdToString;
 
@@ -40,25 +41,7 @@ import spark.Response;
 
 public class DUUIPipelineController {
 
-  private static String queryStringElseDefault(
-    Request request,
-    String field,
-    String fallback
-  ) {
-    return request.queryParams(field) == null
-      ? fallback
-      : request.queryParams(field);
-  }
 
-  private static int queryIntElseDefault(
-    Request request,
-    String field,
-    int fallback
-  ) {
-    return request.queryParams(field) == null
-      ? fallback
-      : Integer.parseInt(request.queryParams(field));
-  }
 
   public static String insertOne(Request request, Response response) {
     String id = request.params(":id");
@@ -417,7 +400,7 @@ public class DUUIPipelineController {
       return null;
     });
 
-    DUUIMongoService runService = DUUIMongoService.ActivityService();
+    DUUIMongoService runService = DUUIMongoService.ProcessService();
     Document run = new Document("pipelineId", id)
       .append("startedAt", new Date())
       .append("status", "Running")

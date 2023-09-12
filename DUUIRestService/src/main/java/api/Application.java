@@ -4,6 +4,7 @@ import static spark.Spark.*;
 
 import api.pipeline.DUUIPipelineController;
 import api.process.DUUIProcessController;
+import spark.Request;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -28,6 +29,26 @@ public class Application {
      *  POST   /processes/stop/:id        - Stop a process given its id
      *
      * */
+
+    public static String queryStringElseDefault(
+            Request request,
+            String field,
+            String fallback
+    ) {
+        return request.queryParams(field) == null
+                ? fallback
+                : request.queryParams(field);
+    }
+
+    public static int queryIntElseDefault(
+            Request request,
+            String field,
+            int fallback
+    ) {
+        return request.queryParams(field) == null
+                ? fallback
+                : Integer.parseInt(request.queryParams(field));
+    }
 
 
     public static void main(String[] args) {
@@ -65,26 +86,21 @@ public class Application {
             response.header("Access-Control-Allow-Origin", "*");
         });
 
-        afterAfter((request, response) -> {
+        after((request, response) -> {
             numRequests.decrementAndGet();
         });
             
-        get("/pipelines/:id",                                       DUUIPipelineController::findOne);
-        get("/pipelines",                                           DUUIPipelineController::findMany);
-        post("/pipelines", "application/json",           DUUIPipelineController::insertOne);
-        put("/pipelines/:id", "application/json",        DUUIPipelineController::updateOne);
-        delete("/pipelines/:id",                                    DUUIPipelineController::deleteOne);
+        get("/pipelines/:id",                        DUUIPipelineController::findOne);
+        get("/pipelines",                            DUUIPipelineController::findMany);
+        post("/pipelines", "application/json",       DUUIPipelineController::insertOne);
+        put("/pipelines/:id", "application/json",    DUUIPipelineController::updateOne);
+        delete("/pipelines/:id",                     DUUIPipelineController::deleteOne);
 
 
-        post("/processes/start", "application/json",     DUUIProcessController::startProcess);
-        post("/processes/stop", "application/json",      DUUIProcessController::stopProcess);
-
-        post("/pipeline/start/:id", DUUIPipelineController::startPipeline);
-        post("/pipeline/stop/:id", DUUIPipelineController::stopPipeline);
-        get("/pipeline/status/:id", DUUIPipelineController::getPipelineStatus);
-
-//        get("/pipelines", DUUIPipelineController::findAllPipelines);
-        get("/pipelines/:id/result", DUUIPipelineController::getResult);
+        get("/processes/:id",                            DUUIProcessController::findOne);
+        get("/processes",                                DUUIProcessController::findMany);
+        post("/processes/start/:id", "application/json", DUUIProcessController::startProcess);
+        post("/processes/stop/:id", "application/json",  DUUIProcessController::stopProcess);
 
         get("/metrics", (request, response) -> "http_requests_in_progress " + numRequests.get());
     }

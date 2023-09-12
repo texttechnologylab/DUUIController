@@ -1,5 +1,6 @@
 package api.services;
 
+import api.process.DUUIProcessController;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
@@ -43,7 +44,6 @@ public class DUUIMongoService {
 
   private Bson filter = null;
   private Bson projection = null;
-
   private static String getConnectionURI() {
     return "mongodb+srv://<user>:<password>@testcluster.727ylpr.mongodb.net/".replace(
         "<user>",
@@ -64,8 +64,8 @@ public class DUUIMongoService {
     return new DUUIMongoService("Bachelor", "Pipelines");
   }
 
-  public static DUUIMongoService ActivityService() {
-    return new DUUIMongoService("Bachelor", "Activity");
+  public static DUUIMongoService ProcessService() {
+    return new DUUIMongoService("Bachelor", "processes");
   }
 
   public DUUIMongoService withFilter(Bson filter) {
@@ -221,5 +221,10 @@ public class DUUIMongoService {
           )
         )
       );
+  }
+
+  public DUUIMongoService withIdFilter(String id) {
+    this.filter = Filters.eq(new ObjectId(id));
+    return this;
   }
 }
