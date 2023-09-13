@@ -1,27 +1,11 @@
-import de.tudarmstadt.ukp.dkpro.core.api.lexmorph.type.pos.POS;
-import de.tudarmstadt.ukp.dkpro.core.api.ner.type.NamedEntity;
-import de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Lemma;
-import de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token;
 import de.tudarmstadt.ukp.dkpro.core.tokit.BreakIteratorSegmenter;
-import org.apache.uima.collection.CollectionReader;
 import org.apache.uima.fit.factory.AnalysisEngineFactory;
-import org.apache.uima.fit.factory.JCasFactory;
-import org.apache.uima.fit.util.JCasUtil;
-import org.apache.uima.jcas.JCas;
 import org.dkpro.core.io.xmi.XmiWriter;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.DUUIComposer;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.DUUIDockerDriver;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.DUUIRemoteDriver;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.DUUIUIMADriver;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.io.AsyncCollectionReader;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.io.TTLabXmiWriter;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.lua.DUUILuaContext;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.lua.LuaConsts;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.pipeline_storage.mongodb.DUUIMongoStorageBackend;
-
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
 
 import static org.apache.uima.fit.factory.AnalysisEngineFactory.createEngineDescription;
 
@@ -33,7 +17,7 @@ public class Main {
         DUUILuaContext context = new DUUILuaContext()
                 .withGlobalLibrary("json", DUUIComposer.class.getResourceAsStream("lua_stdlib/json.lua"));
         DUUIComposer composer = new DUUIComposer().withLuaContext(context).withSkipVerification(true).withStorageBackend(
-                new DUUIMongoStorageBackend("mongodb+srv://cborkowski:cedi2000fussball@testcluster.727ylpr.mongodb.net/")
+                new DUUIMongoStorageBackend("mongodb+srv://<pass>:<user>@testcluster.727ylpr.mongodb.net/")
         ).withWorkers(5);
         composer.addDriver(new DUUIUIMADriver());
         composer.add(
