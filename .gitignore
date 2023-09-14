@@ -30,3 +30,4 @@ venv
 .vscode/*
 
 __pycache__
+DUUIRestService/src/test/java/TestDUUI.java

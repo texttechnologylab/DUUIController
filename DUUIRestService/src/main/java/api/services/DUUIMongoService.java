@@ -16,7 +16,7 @@ public class DUUIMongoService {
     document.put("id", id);
   }
 
-  private static String getConnectionURI() {
+  public static String getConnectionURI() {
     return "mongodb+srv://<user>:<password>@testcluster.727ylpr.mongodb.net/".replace(
         "<user>",
         user
