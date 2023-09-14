@@ -3,8 +3,10 @@ import { v4 as uuidv4 } from 'uuid'
 export interface DUUIPipelineComponent {
 	id: string // relevant for DND
 	name: string
+	category: string
 	driver: string
 	target: string
+	description: string
 	options: Map<string, string> // Advanced Settings
 }
 
@@ -49,22 +51,28 @@ export const dummyPipeline: DUUIPipeline = {
 		{
 			id: '1',
 			name: 'Language Detection',
+			category: 'Language',
 			driver: DUUIRemoteDriver,
 			target: 'http://127.0.0.1:8000',
+			description: '',
 			options: new Map<string, string>()
 		},
 		{
 			id: '2',
 			name: 'BreakIteratorSegmenter',
+			category: 'Language',
 			driver: DUUIUIMADriver,
 			target: 'de.tudarmstadt.ukp.dkpro.core.tokit.BreakIteratorSegmenter',
+			description: '',
 			options: new Map<string, string>()
 		},
 		{
 			id: '3',
 			name: 'XMIWriter',
+			category: 'Language',
 			driver: DUUIUIMADriver,
 			target: 'org.dkpro.core.io.XMIWriter',
+			description: '',
 			options: new Map<string, string>()
 		}
 	]
@@ -82,7 +90,9 @@ export const blankComponent = (id: string) =>
 	<DUUIPipelineComponent>{
 		id: id,
 		name: 'New Component',
+		category: '',
 		driver: DUUIDockerDriver,
 		target: '',
+		description: '',
 		options: new Map<string, string>()
 	}

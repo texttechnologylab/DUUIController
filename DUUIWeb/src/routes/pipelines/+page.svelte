@@ -52,7 +52,7 @@
 				<Fa icon={faSearch} />
 			</button>
 			{#if searchOpen}
-				<input class="input" type="text" bind:value={searchText} />
+				<input class="input" type="text" placeholder="search..." bind:value={searchText} />
 			{/if}
 		</div>
 	</div>
