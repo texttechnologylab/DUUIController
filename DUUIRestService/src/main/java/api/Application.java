@@ -2,6 +2,7 @@ package api;
 
 import static spark.Spark.*;
 
+import api.component.DUUIComponentController;
 import api.pipeline.DUUIPipelineController;
 import api.process.DUUIProcessController;
 import java.util.HashMap;
@@ -15,22 +16,35 @@ public class Application {
   public static Map<String, AtomicInteger> metrics = new HashMap<>();
 
   /*
-   *  End points
    *
-   *  GET    /pipelines/:id             - Retrieve a pipeline by its id
-   *  GET    /pipelines/:user-id        - Retrieve all pipelines for a user
+   *  GET    /pipelines/:id           - Retrieve a pipeline
+   *  GET    /pipelines/:id/processes - Retrieve all processes for a pipeline
+   *  GET    /pipelines               - Retrieve all pipelines                | ?: limit & offset
    *
-   *  POST   /pipelines
-   *  PUT    /pipelines/:id             - Update a pipeline by its id, accepts json
-   *  DELETE /pipelines/:id             - Delete a pipeline by its id
+   *  POST   /pipelines               - Create a pipeline                     | accepts json
+   *  PUT    /pipelines/:id           - Update a pipeline                     | accepts json
+   *  DELETE /pipelines/:id           - Delete a pipeline
+   * 
+   * 
+   *  GET    /components/:id          - Retrieve a component
+   *  GET    /components              - Retrieve all components               | ?: limit & offset
    *
-   *  GET    /processes/:id/status      - Retrieve the status of a process by its id
-   *  GET    /processes/:pipline-id     - Retrieve all processes for a pipeline-id
+   *  POST   /components              - Create a component                    | accepts json
+   *  PUT    /components/:id          - Update a component                    | accepts json
+   *  DELETE /components/:id          - Delete a component
    *
-   *  POST   /processes/start           - Start a process, accepts settings in the body
-   *  POST   /processes/stop/:id        - Stop a process given its id
+   * 
+   *  GET    /processes/:id           - Retrieve all processes for a pipeline
+   *  GET    /processes/:id/status    - Retrieve the status of a process
+   *  GET    /processes/:id/progress  - Retrieve the progress of a process
+   *
+   *  POST   /processes               - Create a process                      | accepts json
+   *  PUT    /processes/:id           - Cancel a process
+   *
+   *  GET    /metrics                 - Retrieve metrics for the api
    *
    * */
+
 
   public static String queryStringElseDefault(
     Request request,
@@ -100,20 +114,27 @@ public class Application {
       }
     });
 
-    get("/pipelines/:id", DUUIPipelineController::findOne);
-    get("/pipelines", DUUIPipelineController::findMany);
-    post("/pipelines", DUUIPipelineController::insertOne);
-    put("/pipelines/:id", DUUIPipelineController::replaceOne);
-    delete("/pipelines/:id", DUUIPipelineController::deleteOne);
+    get("/pipelines/:id",          DUUIPipelineController::findOne);
+    get("/pipelines",              DUUIPipelineController::findMany);
+    post("/pipelines",             DUUIPipelineController::insertOne);
+    put("/pipelines/:id",          DUUIPipelineController::replaceOne);
+    delete("/pipelines/:id",       DUUIPipelineController::deleteOne);
 
-    get("/processes/:id", DUUIProcessController::findOne);
+    get("/components/:id",         DUUIComponentController::findOne);
+    get("/components",             DUUIComponentController::findMany);
+    post("/components",            DUUIComponentController::insertOne);
+    put("/components/:id",         DUUIComponentController::replaceOne);
+    delete("/components/:id",      DUUIComponentController::deleteOne);
+
+    get("/processes/:id",          DUUIProcessController::findOne);
     get("pipelines/:id/processes", DUUIProcessController::findMany);
-
-    post("/processes", DUUIProcessController::startProcess);
-    put("/processes/:id", DUUIProcessController::stopProcess);
-
-    get("/processes/:id/status", DUUIProcessController::getStatus);
+    get("/processes/:id/status",   DUUIProcessController::getStatus);
     get("/processes/:id/progress", DUUIProcessController::getProgress);
+
+    post("/processes",             DUUIProcessController::startProcess);
+    put("/processes/:id",          DUUIProcessController::stopProcess);
+
+   
 
     get(
       "/metrics",
