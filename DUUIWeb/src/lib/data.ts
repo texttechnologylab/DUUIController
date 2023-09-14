@@ -1,18 +1,26 @@
 import { v4 as uuidv4 } from 'uuid'
 
 export interface DUUIPipelineComponent {
-	id: string
+	id: string // relevant for DND
 	name: string
 	driver: string
 	target: string
-	pipeline_id: string
+	options: Map<string, string> // Advanced Settings
 }
 
 export interface DUUIPipeline {
 	id: string
 	name: string
-	status: string
+	isNew: boolean
 	components: DUUIPipelineComponent[]
+}
+
+export interface DUUIProcess {
+	id: string
+	status: DUUIStatus
+	progress: number
+	pipeline_id: string
+	options: Map<string, string>
 }
 
 export const DUUIRemoteDriver = 'DUUIRemoteDriver'
@@ -27,31 +35,37 @@ export const DUUIDrivers: string[] = [
 	DUUIUIMADriver
 ]
 
+export enum DUUIStatus {
+	Completed = 'Completed',
+	Failed = 'Failed',
+	Running = 'Running'
+}
+
 export const dummyPipeline: DUUIPipeline = {
 	id: '1',
 	name: 'Example',
-	status: 'Inactive',
+	isNew: true,
 	components: [
 		{
 			id: '1',
 			name: 'Language Detection',
 			driver: DUUIRemoteDriver,
 			target: 'http://127.0.0.1:8000',
-			pipeline_id: '1'
+			options: new Map<string, string>()
 		},
 		{
 			id: '2',
 			name: 'BreakIteratorSegmenter',
 			driver: DUUIUIMADriver,
 			target: 'de.tudarmstadt.ukp.dkpro.core.tokit.BreakIteratorSegmenter',
-			pipeline_id: '1'
+			options: new Map<string, string>()
 		},
 		{
 			id: '3',
 			name: 'XMIWriter',
 			driver: DUUIUIMADriver,
 			target: 'org.dkpro.core.io.XMIWriter',
-			pipeline_id: '1'
+			options: new Map<string, string>()
 		}
 	]
 }
@@ -60,15 +74,15 @@ export const blankPipeline = () =>
 	<DUUIPipeline>{
 		id: uuidv4(),
 		name: 'New Pipeline',
-		status: 'New',
+		isNew: true,
 		components: []
 	}
 
-export const blankComponent = (pipeline_id: string) =>
+export const blankComponent = (id: string) =>
 	<DUUIPipelineComponent>{
-		id: uuidv4(),
+		id: id,
 		name: 'New Component',
 		driver: DUUIDockerDriver,
 		target: '',
-		pipeline_id: pipeline_id
+		options: new Map<string, string>()
 	}

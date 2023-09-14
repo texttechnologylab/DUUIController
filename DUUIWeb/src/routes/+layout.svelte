@@ -5,9 +5,6 @@
 		AppShell,
 		AppBar,
 		LightSwitch,
-		popup,
-		ListBoxItem,
-		ListBox
 	} from '@skeletonlabs/skeleton'
 	import { Drawer, getDrawerStore } from '@skeletonlabs/skeleton'
 	import { Toast, type DrawerSettings } from '@skeletonlabs/skeleton'
@@ -21,7 +18,6 @@
 	import { storePopup } from '@skeletonlabs/skeleton'
 
 	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom'
-	import ComponentDrawerEdit from '$lib/components/ComponentDrawerEdit.svelte'
 	import ComponentEditor from '$lib/components/ComponentEditor.svelte'
 	import { Modal } from '@skeletonlabs/skeleton'
 

@@ -1,9 +1,9 @@
 <script lang="ts">
 	import DriverIcon from './DriverIcon.svelte'
-	import { DUUIDrivers, type DUUIPipelineComponent } from '$lib/data'
+	import { DUUIDrivers, DUUIStatus, type DUUIPipelineComponent } from '$lib/data'
 	import { createEventDispatcher } from 'svelte'
 	import Fa from 'svelte-fa'
-	import { faEdit } from '@fortawesome/free-solid-svg-icons'
+	import { faCheck, faEdit, faRefresh, faX } from '@fortawesome/free-solid-svg-icons'
 	import { getModalStore, type ModalSettings } from '@skeletonlabs/skeleton'
 	const dispatcher = createEventDispatcher()
 
@@ -12,10 +12,7 @@
 	const modalStore = getModalStore()
 
 	export let editMode: boolean = false
-
-	const onEditComponent = () => {
-		editMode = !editMode
-	}
+	let status: DUUIStatus = DUUIStatus.Running
 
 	let onRemove = () => {
 		dispatcher('remove', {
@@ -40,22 +37,34 @@
 			}
 		})
 	}
+
+	function toggleAdvancedSettings(
+		event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }
+	) {
+		throw new Error('Function not implemented.')
+	}
 </script>
 
 <li class="card shadow-lg flex flex-col gap-4 p-4 pointer-events-none">
 	<div class="flex grid-cols-2 gap-4 items-center">
+		{#if status === DUUIStatus.Completed}
+			<Fa icon={faCheck} size="lg" />
+		{:else if status === DUUIStatus.Running}
+			<Fa icon={faRefresh} size="lg" class="animate-spin "/>
+		{:else if status === DUUIStatus.Failed}
+			<Fa icon={faX} size="lg" />
+		{/if}
 		<DriverIcon driver={component.driver} />
 		<p class="h4 grow">{component.name}</p>
 		<button
 			class="btn-icon pointer-events-auto variant-glass-primary"
-			on:click={() => onEditComponent()}
+			on:click={() => (editMode = !editMode)}
 		>
 			<span>
 				<Fa size="md" icon={faEdit} />
 			</span>
 		</button>
 	</div>
-	<p class="hidden md:block self-stretch">{component.target}</p>
 	{#if editMode}
 		<form class="space-y-4 pointer-events-auto">
 			<label class="label">
@@ -81,7 +90,13 @@
 				<input class="input" type="text" placeholder="Name" bind:value={component.target} />
 			</label>
 
-			<div class="flex justify-end">
+			<div class="flex justify-between gap-4">
+				<button
+					class="btn variant-filled-primary rounded-sm shadow-lg"
+					on:click={toggleAdvancedSettings}
+				>
+					Advanced Settings
+				</button>
 				<button class="btn variant-filled-error rounded-sm shadow-lg" on:click={onMaybeDelete}>
 					Delete
 				</button>

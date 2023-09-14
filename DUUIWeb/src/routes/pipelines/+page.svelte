@@ -1,80 +1,68 @@
 <script lang="ts">
-	import type { DUUIPipeline } from '$lib/data.js'
-	import { faEdit, faFilter, faPlus, faRemove } from '@fortawesome/free-solid-svg-icons'
+	import { componentsStore } from '$lib/store.js'
 	import {
-		ListBox,
-		ListBoxItem,
-		popup,
-		type ModalSettings,
-		type PopupSettings,
-		getModalStore
-	} from '@skeletonlabs/skeleton'
+		faBell,
+		faEdit,
+		faFilter,
+		faFolderPlus,
+		faNewspaper,
+		faPlus,
+		faRemove,
+		faSearch
+	} from '@fortawesome/free-solid-svg-icons'
 
 	import Fa from 'svelte-fa'
 
 	export let data
 
 	let { pipelines } = data
-	let filters: string[] = []
 
-	const filterPopup: PopupSettings = {
-		event: 'focus-click',
-		target: 'filterPopup',
-		placement: 'bottom-start',
-		middleware: {
-			offset: 8
-		}
-	}
+	pipelines.forEach(({ components }) => {
+		components.forEach((component) => {
+			$componentsStore = [...$componentsStore, component]
+		})
+	})
 
-	let pipelinesFiltered = pipelines
-
-	
+	let searchText: string = ''
+	let searchOpen: boolean = false
+	let filteredPipelines = pipelines
 
 	$: {
-		if (filters.length === 0) {
-			pipelinesFiltered = pipelines
+		if (searchText === '') {
+			filteredPipelines = pipelines
 		} else {
-			pipelinesFiltered = pipelines.filter((p) => filters.includes(p.status))
+			filteredPipelines = pipelines.filter((pipeline) => {
+				if (pipeline.name.toLowerCase().includes(searchText.toLowerCase())) {
+					return pipeline
+				}
+			})
+			console.log(filteredPipelines)
 		}
 	}
 </script>
 
-<div class="card shadow-xl p-4 rounded-md z-10" data-popup="filterPopup">
-	<ListBox multiple={true} active="variant-filled-primary" rounded="rounded-md">
-		<ListBoxItem bind:group={filters} name="medium" value="New">New</ListBoxItem>
-		<ListBoxItem bind:group={filters} name="medium" value="Running">Running</ListBoxItem>
-		<ListBoxItem bind:group={filters} name="medium" value="Completed">Completed</ListBoxItem>
-		<ListBoxItem bind:group={filters} name="medium" value="Cancelled">Cancelled</ListBoxItem>
-		<ListBoxItem bind:group={filters} name="medium" value="Error">Error</ListBoxItem>
-	</ListBox>
-</div>
-
-<div class="container h-full mx-auto flex flex-col space-y-4 my-16">
+<div class="container h-full mx-auto flex flex-col space-y-4 md:space-y-8 my-16">
 	<div class="flex gap-4">
-		<a href="pipelines/new" class="btn variant-filled-primary">
+		<a href="pipelines/new" class="btn variant-filled-primary shadow-lg">
 			<span>Create</span>
 			<Fa icon={faPlus} />
 		</a>
-		<button class="btn variant-filled-primary flex items-center" use:popup={filterPopup}>
-			<span> Filter </span>
-			<span><Fa icon={faFilter} /></span>
-		</button>
+		<div class="flex items-center justify-start card rounded-sm shadow-lg">
+			<button class="btn-icon variant-filled-primary p-4 rounded-sm" on:click={() => (searchOpen = !searchOpen)}>
+				<Fa icon={faSearch} />
+			</button>
+			{#if searchOpen}
+				<input class="input" type="text" bind:value={searchText} />
+			{/if}
+		</div>
 	</div>
 
-	<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-		{#each pipelinesFiltered as pipeline}
+	<div class="grid gap-4 md:gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 relative">
+		{#each filteredPipelines as pipeline}
 			<div class="card p-4 flex items-start variant-outline-primary relative">
 				<div class="grid gap-4 grow items-center">
 					<p class="h4">{pipeline.name}</p>
-					{#if pipeline.status === 'Error'}
-						<p class="text-error-400">{pipeline.status}</p>
-					{:else if pipeline.status === 'Cancelled'}
-						<p class="text-warning-400">{pipeline.status}</p>
-					{:else if pipeline.status === 'Completed'}
-						<p class="text-success-400">{pipeline.status}</p>
-					{:else}
-						<p class="">{pipeline.status}</p>
-					{/if}
+					<p>{pipeline.components.length} Component(s)</p>
 				</div>
 
 				<a class="btn-icon justify-self-end variant-glass-primary" href="/pipelines/{pipeline.id}">

@@ -1,4 +1,4 @@
-import type { PageServerLoad } from './$types'
+import type { Actions, PageServerLoad } from './$types'
 
 export const load: PageServerLoad = async ({ params }) => {
 	const loadPipeline = async () => {
@@ -13,3 +13,11 @@ export const load: PageServerLoad = async ({ params }) => {
 		pipeline: loadPipeline()
 	}
 }
+
+export const actions: Actions = {
+	default: async ({ request }) => {
+		const formData = await request.formData();
+		console.log(formData);
+		
+	}
+};

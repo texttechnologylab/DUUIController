@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
+	import ComponentBuilder from '$lib/components/ComponentBuilder.svelte'
 	import PipelineComponent from '$lib/components/PipelineComponent.svelte'
 	import { blankComponent, blankPipeline, type DUUIPipelineComponent } from '$lib/data'
 	import { faAdd } from '@fortawesome/free-solid-svg-icons'
@@ -21,7 +22,7 @@
 	}
 
 	function addComponent() {
-		pipeline.components = [...pipeline.components, blankComponent(pipeline.id)]
+		pipeline.components = [...pipeline.components, blankComponent(pipeline.components.length + 1 + "")]
 	}
 
 	function deleteComponent(event: CustomEvent<any>): void {
@@ -33,7 +34,9 @@
 	}
 
 	async function finalizePipeline() {
-		const result = await fetch('http://127.0.0.1:2605/pipeline', {
+		console.log(JSON.stringify(pipeline));
+		
+		const result = await fetch('http://127.0.0.1:2605/pipelines', {
 			method: 'POST',
 			mode: 'cors',
 			body: JSON.stringify(pipeline)
@@ -48,6 +51,8 @@
 	}
 
 	let flipDurationMs = 300
+
+
 </script>
 
 <div class="container h-full mx-auto flex justify-center">
@@ -77,10 +82,8 @@
 				>
 					{#each pipeline.components as component (component.id)}
 						<div animate:flip={{ duration: flipDurationMs }}>
-							<PipelineComponent
-								editMode={true}
+							<ComponentBuilder
 								{component}
-								on:deletion={deleteComponent}
 								on:remove={deleteComponent}
 							/>
 						</div>

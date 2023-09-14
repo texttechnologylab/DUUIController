@@ -9,14 +9,21 @@
 	import Fa from 'svelte-fa'
 	import { flip } from 'svelte/animate'
 
-	export let data
+	import { getToastStore } from '@skeletonlabs/skeleton'
+	import type { ToastSettings } from '@skeletonlabs/skeleton'
+	import type { PageServerData } from './$types'
 
+
+	export let data: PageServerData
 	let { pipeline } = data
 
+	let waiting: boolean = pipeline.status === 'Running'
+	let cancelled: boolean = pipeline.status === 'Cancelled'
+	let result: string = ''
+	let annotations: Map<string, number> = new Map()
 	let documentText: string = 'This is a test sentence. My name is Cedric Borkowski.'
 
-	import { Toast, getToastStore } from '@skeletonlabs/skeleton'
-	import type { ToastSettings, ToastStore } from '@skeletonlabs/skeleton'
+	let flipDurationMs = 300
 
 	function handleDndConsider(event: CustomEvent<DndEvent<DUUIPipelineComponent>>) {
 		pipeline.components = event.detail.items
@@ -28,7 +35,28 @@
 		pipeline.components = [...pipeline.components]
 	}
 
-	let flipDurationMs = 300
+	// onMount(() => {
+	// 	async function checkStatus() {
+	// 		const response = await fetch('http://127.0.0.1:2605/pipelines/status/' + pipeline.id, {
+	// 			method: 'GET',
+	// 			mode: 'cors'
+	// 		})
+
+	// 		const temp = await response.json()
+	// 		waiting = temp.status === 'Running'
+	// 		cancelled = temp.status === 'Cancelled'
+	// 		if (!waiting) {
+	// 			clearInterval(interval)
+	// 		}
+	// 	}
+
+	// 	const interval = setInterval(checkStatus, 2000)
+	// 	checkStatus()
+
+	// 	return () => clearInterval(interval)
+	// })
+	
+
 
 	pipeline.components.forEach((component: DUUIPipelineComponent) => {
 		component.id = pipeline.components.indexOf(component)
@@ -41,41 +69,16 @@
 			}
 		)
 
-		fetch('http://127.0.0.1:2605/pipeline', {
+		fetch('http://127.0.0.1:2605/pipelines', {
 			method: 'PUT',
 			mode: 'cors',
 			body: JSON.stringify(pipeline)
 		})
 	}
-
-	let waiting: boolean = pipeline.status === 'Running'
-	let cancelled: boolean = pipeline.status === 'Cancelled'
-	let result: string = ''
-	let annotations: Map<string, number> = new Map()
-
-	onMount(() => {
-		async function checkStatus() {
-			const response = await fetch('http://127.0.0.1:2605/pipeline/status/' + pipeline.id, {
-				method: 'GET',
-				mode: 'cors'
-			})
-
-			const temp = await response.json()
-			waiting = temp.status === 'Running'
-			cancelled = temp.status === 'Cancelled'
-			if (!waiting) {
-				clearInterval(interval)
-			}
-		}
-
-		const interval = setInterval(checkStatus, 2000)
-		checkStatus()
-
-		return () => clearInterval(interval)
-	})
+	
 
 	async function updatePipeline() {
-		const response = await fetch('http://127.0.0.1:2605/pipeline', {
+		const response = await fetch('http://127.0.0.1:2605/pipelines', {
 			method: 'PUT',
 			mode: 'cors',
 			body: JSON.stringify(pipeline)
@@ -146,7 +149,7 @@
 	}
 
 	function addComponent() {
-		pipeline.components = [...pipeline.components, blankComponent(pipeline.id)]
+		pipeline.components = [...pipeline.components, blankComponent(pipeline.components.length + 1 + "")]
 	}
 
 	const modalStore = getModalStore()
