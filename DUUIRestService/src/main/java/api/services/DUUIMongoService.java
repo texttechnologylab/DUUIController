@@ -10,14 +10,6 @@ public class DUUIMongoService {
   private static final String user = System.getenv("mongo_user");
   private static final String pass = System.getenv("mongo_pass");
 
-  public static void mapDateToString(Document document, String fieldName) {
-    String date = String.valueOf(
-      document.getDate(fieldName).toInstant().toEpochMilli()
-    );
-    document.remove(fieldName);
-    document.put(fieldName, date);
-  }
-
   public static void mapObjectIdToString(Document document) {
     String id = document.getObjectId("_id").toString();
     document.remove("_id");

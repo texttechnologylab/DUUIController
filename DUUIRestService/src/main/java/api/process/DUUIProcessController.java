@@ -12,7 +12,6 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Updates;
-
 import java.util.*;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -64,6 +63,15 @@ public class DUUIProcessController {
       .getDatabase("duui")
       .getCollection("processes")
       .insertOne(process);
+
+    DUUIMongoService
+      .getInstance()
+      .getDatabase("duui")
+      .getCollection("pipelines")
+      .updateOne(
+        Filters.eq(new ObjectId(pipelineId)),
+        Updates.set("isNew", false)
+      );
 
     String id = process.getObjectId("_id").toString();
     runningProcesses.put(id, new DUUIProcess(id, null, null));
@@ -239,7 +247,6 @@ public class DUUIProcessController {
         Updates.set("progress", progress)
       );
   }
-  
   //   public static String startProcess(Request request, Response response)
   //     throws UIMAException, URISyntaxException, IOException, InterruptedException, ExecutionException {
   //     Application.metrics.get("active_processes").incrementAndGet();
@@ -373,7 +380,6 @@ public class DUUIProcessController {
   //    return new Document("id", uuid).toJson();
   //   }
 
-  
   // public static String startPipeline(Request request, Response response) {
   //   String id = request.params(":id");
   //   if (id == null) {

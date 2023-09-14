@@ -119,7 +119,7 @@ public class DUUIPipelineController {
       .getInstance()
       .getDatabase("duui")
       .getCollection("pipelines")
-      .replaceOne(Filters.eq(id), updatedPipeline);
+      .replaceOne(Filters.eq(new ObjectId(id)), updatedPipeline);
 
     response.status(200);
     return new Document("id", id).toJson();
@@ -136,7 +136,7 @@ public class DUUIPipelineController {
       .getInstance()
       .getDatabase("duui")
       .getCollection("pipelines")
-      .deleteOne(Filters.eq(id));
+      .deleteOne(Filters.eq(new ObjectId(id)));
 
     response.status(200);
     return new Document("message", "Pipeline deleted.").toJson();
