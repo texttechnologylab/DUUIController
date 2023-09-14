@@ -12,8 +12,6 @@ import spark.Request;
 
 public class Application {
 
-  private static final AtomicInteger numRequests = new AtomicInteger(0);
-
   public static Map<String, AtomicInteger> metrics = new HashMap<>();
 
   /*
@@ -58,10 +56,10 @@ public class Application {
     port(2605);
 
     metrics.put("http_requests_in_progress", new AtomicInteger(0));
-    metrics.put("active_processes",          new AtomicInteger(0));
-    metrics.put("cancelled_processes",        new AtomicInteger(0));
-    metrics.put("failed_processes",          new AtomicInteger(0));
-    metrics.put("completed_processes",       new AtomicInteger(0));
+    metrics.put("active_processes", new AtomicInteger(0));
+    metrics.put("cancelled_processes", new AtomicInteger(0));
+    metrics.put("failed_processes", new AtomicInteger(0));
+    metrics.put("completed_processes", new AtomicInteger(0));
 
     options(
       "/*",
@@ -113,7 +111,7 @@ public class Application {
 
     post("/processes", DUUIProcessController::startProcess);
     put("/processes/:id", DUUIProcessController::stopProcess);
-    
+
     get("/processes/:id/status", DUUIProcessController::getStatus);
     get("/processes/:id/progress", DUUIProcessController::getProgress);
 
