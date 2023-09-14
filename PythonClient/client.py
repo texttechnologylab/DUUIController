@@ -17,6 +17,14 @@ if __name__ == "__main__":
             "options": {},
         },
         {
+            "name": "spaCy",
+            "category": "Annotation",
+            "driver": "DUUIDockerDriver",
+            "target": "docker.texttechnologylab.org/textimager-duui-spacy-single-de_core_news_sm:latest",
+            "description": "Annotate a document using spaCy.",
+            "options": {},
+        },
+        {
             "name": "BreakIteratorSegmenter",
             "category": "Tokenizer",
             "driver": "DUUIUIMADriver",
@@ -58,7 +66,7 @@ if __name__ == "__main__":
         },
     ]
 
-    # for component in components:
+    # for component in components[1:2]:
     #     response = create_component(
     #         component["name"],
     #         component["category"],
@@ -68,7 +76,5 @@ if __name__ == "__main__":
     #         component["options"] if component["options"] else None,
     #     )
 
-    component_templates = load_components()
-    pipeline = load_pipeline("6502e188990a3c5015fef74f")
-    print(json.dumps(pipeline, indent=2))
-    start_process(pipeline["id"])
+    id = "65030e56200b892ea7805da6"
+    print(start_process(id, options={"document": "Das ist ein Testsatz vom 14. September 2023."}))
