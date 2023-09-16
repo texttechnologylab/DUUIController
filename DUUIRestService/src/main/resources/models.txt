@@ -1,0 +1,40 @@
+Pipeline
+{
+    _id: ObjectId,
+    name: String,
+    createdAt: Long,
+    isNew: Boolean
+    components: Component[]
+}
+
+Component
+{
+    name: String,
+    category: String,
+    description: String,
+    settings: {
+        driver: String,
+        target: String,
+        options: Map<String, String>
+    }
+}
+
+Process
+{
+    _id: ObjectId,
+    status: String,
+    progress: Integer,
+    startedAt: Long,
+    input: {
+        dataLoader: String,
+        path: String
+    },
+    output: {
+        dataLoader: String,
+        path: String
+    },
+    document?: String       | Only if input is not from a file / DataLoader
+    pipeline_id: ObjectId
+}
+
+
