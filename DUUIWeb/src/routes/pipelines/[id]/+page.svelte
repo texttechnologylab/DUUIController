@@ -16,17 +16,24 @@
 
 	import { getToastStore } from '@skeletonlabs/skeleton'
 	import type { ToastSettings } from '@skeletonlabs/skeleton'
-	import type { PageServerData } from './$types'
+	import type { ActionData, PageServerData } from './$types'
 
 	export let data: PageServerData
-	let { pipeline } = data
+	let { pipeline, processes } = data
 
 	let building: boolean = false
 	let exception: string
-	let cancelled: boolean = pipeline.status === 'Cancelled'
 	let result: string = ''
 	let annotations: Map<string, number> = new Map()
 	let documentText: string = 'This is a test sentence. My name is Cedric Borkowski.'
+
+	let status: string = DUUIStatus.Unknown
+	let progress: number = 0
+	let process_id: string
+
+	export let form: ActionData
+
+	// let runningProcesses: number = processes.filter((process) => process.status === DUUIStatus.Running).length;
 
 	let flipDurationMs = 300
 
@@ -40,9 +47,6 @@
 		pipeline.components = [...pipeline.components]
 	}
 
-	let status: string = DUUIStatus.Unknown
-	let progress: number = 0
-	let process_id: string
 	onMount(() => {
 		async function checkStatus() {
 			if (process_id === undefined || status === DUUIStatus.Completed) {
@@ -58,7 +62,6 @@
 			status = process.status
 			progress = process.progress
 			building = process.status === DUUIStatus.Setup
-			cancelled = process.status === DUUIStatus.Cancelled
 
 			if (process.status === DUUIStatus.Completed || process.status === DUUIStatus.Cancelled) {
 				clearInterval(interval)
@@ -132,7 +135,6 @@
 			getToastStore().trigger(t)
 		} else {
 			process_id = j.id
-			cancelled = false
 		}
 	}
 
@@ -162,8 +164,6 @@
 			mode: 'cors'
 		})
 
-		cancelled = true
-
 		const t: ToastSettings = {
 			message: 'Pipeline has been cancelled',
 			timeout: 4000,
@@ -173,15 +173,12 @@
 	}
 
 	function addComponent() {
-		pipeline.components = [
-			...pipeline.components,
-			blankComponent(pipeline.components.length + 1 + '')
-		]
+		pipeline.components = [...pipeline.components, blankComponent(pipeline.components.length + 1)]
 	}
 
 	const modalStore = getModalStore()
 
-	const onMaybeDeletePipeline = () => {
+	const onMaybeDeletePipeline = (e: SubmitEvent) => {
 		new Promise<boolean>((resolve) => {
 			const modal: ModalSettings = {
 				type: 'confirm',
@@ -192,15 +189,34 @@
 				}
 			}
 			modalStore.trigger(modal)
-		}).then(async (r: any) => {
-			if (r) {
-				const response = await fetch('http://192.168.2.122:2605/pipeline/' + pipeline.id, {
-					method: 'DELETE',
-					mode: 'cors'
+		}).then(async (accepted: boolean) => {
+			if (accepted) {
+				const data = new FormData(e.target as HTMLFormElement)
+
+				const response = await fetch((e.target as HTMLFormElement).action, {
+					method: 'POST',
+					body: data,
+					headers: {
+						'x-sveltekit-action': 'true'
+					}
 				})
 
-				const success = await response.json()
-				goto('/pipelines')
+				if (response.ok) {
+					goto('/pipelines')
+					const t: ToastSettings = {
+						message: 'Pipeline successfully deleted.',
+						timeout: 4000,
+						background: 'variant-filled-success'
+					}
+					getToastStore().trigger(t)
+				} else {
+					const t: ToastSettings = {
+						message: 'Pipeline could not be deleted.',
+						timeout: 4000,
+						background: 'variant-filled-warning'
+					}
+					getToastStore().trigger(t)
+				}
 			}
 		})
 	}
@@ -219,21 +235,79 @@
 </script>
 
 <div class="container h-full flex-col mx-auto flex gap-4">
-	<div class="grow self-stretch">
+	<!-- HEADER -->
+	<header class="grow self-stretch">
 		<div class="flex items-center space-x-2 my-8">
 			<button on:click={() => goto('/pipelines')} class="btn-icon shadow-lg variant-glass-primary"
 				><Fa size="lg" icon={faArrowLeft} /></button
 			>
-			<h2 class="h2 font-bold grow text-center">
+			<h1 class="h2 font-bold grow text-center">
 				{pipeline.name} - Status: {status.toUpperCase()}
-			</h2>
+			</h1>
 			<button class="btn-icon shadow-lg variant-glass-primary lg:hidden">
 				<Fa size="lg" icon={faCog} />
 			</button>
 		</div>
-	</div>
+	</header>
+
+	<!-- Settings & Recent processes -->
+
 	<div class="grid lg:grid-cols-2 lg:gap-8">
-		<div class="space-y-8">
+		<!-- Settings -->
+		<div class="space-y-4">
+			<h2 class="h3 hidden lg:block px-4">Settings</h2>
+			<div class="card space-y-4 p-4">
+				<form
+					class=" flex gap-4 items-end"
+					method="POST"
+					on:submit|preventDefault={onMaybeDeletePipeline}
+				>
+					<label class="label grow">
+						<span>Name</span>
+						<input
+							bind:value={pipeline.name}
+							class="input focus-within:outline-primary-400"
+							type="text"
+						/>
+					</label>
+					<button class="btn variant-filled-error rounded-sm shadow-lg" type="submit">
+						<span>Delete</span>
+					</button>
+				</form>
+				<div>
+					{#if building || status === DUUIStatus.Running}
+						<div class="flex items-center gap-4">
+							<ProgressRadial stroke={120} width="w-16" meter="stroke-primary-400" />
+							<button class="btn variant-ghost-error" on:click={cancelPipeline}>
+								<span><Fa icon={faCancel} /></span>
+								<span>Cancel Pipeline</span>
+							</button>
+						</div>
+					{:else}
+						<div class="flex gap-8 justify-center items-center">
+							<button class="btn variant-filled-primary" on:click={runPipeline}>
+								<span><Fa icon={faRocket} /></span>
+								<span>Start Pipeline</span>
+							</button>
+							<!-- {#if !building && !cancelled}
+								<button class="btn variant-ringed-primary" on:click={getResult}>Get result</button>
+							{/if} -->
+						</div>
+					{/if}
+				</div>
+			</div>
+
+			<!-- {#if annotations.size > 0}
+				<div class="card space-y-4 p-4">
+					<p class="h4 hidden lg:block">Annotations</p>
+					{#each annotations.entries() as [key, value]}
+						<p>{key.split('.').at(-1)}: {value}</p>
+					{/each}
+				</div>
+			{/if} -->
+		</div>
+
+		<div class="space-y-4">
 			<p class="h3 hidden lg:block">Components</p>
 			<ul
 				use:dndzone={{ items: pipeline.components, dropTargetStyle: {} }}
@@ -257,75 +331,6 @@
 				<button class="btn-icon variant-filled-primary" on:click={addComponent}>
 					<Fa icon={faAdd} />
 				</button>
-			</div>
-		</div>
-		<div class="space-y-8 lg:flex-col hidden lg:flex">
-			<p class="h3 hidden lg:block">Pipeline</p>
-			<div class="card space-y-4 p-4 flex flex-col justify-start items-start">
-				<p class="h4 hidden lg:block">Activity</p>
-				{#if building || status === DUUIStatus.Running}
-					<div class="flex items-center gap-4">
-						<ProgressRadial stroke={120} width="w-16" meter="stroke-primary-400" />
-						<button class="btn variant-ghost-error" on:click={cancelPipeline}>
-							<span><Fa icon={faCancel} /></span>
-							<span>Cancel Pipeline</span>
-						</button>
-					</div>
-				{:else}
-					<div class="flex gap-8 justify-center items-center">
-						<button class="btn variant-filled-primary" on:click={runPipeline}>
-							<span><Fa icon={faRocket} /></span>
-							<span>Start Pipeline</span>
-						</button>
-						<!-- {#if !building && !cancelled}
-							<button class="btn variant-ringed-primary" on:click={getResult}>Get result</button>
-						{/if} -->
-					</div>
-				{/if}
-			</div>
-			{#if annotations.size > 0}
-				<div class="card space-y-4 p-4">
-					<p class="h4 hidden lg:block">Annotations</p>
-					{#each annotations.entries() as [key, value]}
-						<p>{key.split('.').at(-1)}: {value}</p>
-					{/each}
-				</div>
-			{/if}
-
-			<div class="card space-y-4 p-4">
-				<p class="h4 hidden lg:block">Settings</p>
-				<label class="label">
-					<span>Document Text</span>
-					<input
-						bind:value={documentText}
-						class="input focus-within:outline-primary-400"
-						type="text"
-					/>
-				</label>
-				<form action="" class=" flex flex-col gap-4">
-					<label class="label">
-						<span>Name</span>
-						<input
-							bind:value={pipeline.name}
-							class="input focus-within:outline-primary-400"
-							type="text"
-						/>
-					</label>
-					<div class="grid self-end grid-cols-2 gap-5">
-						<button
-							class="btn variant-filled-success rounded-sm shadow-lg self-end"
-							on:click={updatePipeline}
-						>
-							<span>Save Changes</span>
-						</button>
-						<button
-							class="btn variant-filled-error rounded-sm shadow-lg self-end"
-							on:click={onMaybeDeletePipeline}
-						>
-							<span>Delete</span>
-						</button>
-					</div>
-				</form>
 			</div>
 		</div>
 	</div>

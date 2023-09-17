@@ -12,7 +12,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 	})
 
 	const user = await userResponse.json()
-	console.log(user);
 	
 	if (Object.keys(user).length !== 0) {
 		event.locals.user = {

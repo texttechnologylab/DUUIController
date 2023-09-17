@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 
 export interface DUUIPipelineComponent {
-	id: string // relevant for DND
+	id: number // relevant for DND
 	name: string
 	category: string
 	driver: string
@@ -52,7 +52,7 @@ export const dummyPipeline: DUUIPipeline = {
 	isNew: true,
 	components: [
 		{
-			id: '1',
+			id: 1,
 			name: 'Language Detection',
 			category: 'Language',
 			driver: DUUIRemoteDriver,
@@ -61,7 +61,7 @@ export const dummyPipeline: DUUIPipeline = {
 			options: new Map<string, string>()
 		},
 		{
-			id: '2',
+			id: 2,
 			name: 'BreakIteratorSegmenter',
 			category: 'Language',
 			driver: DUUIUIMADriver,
@@ -70,7 +70,7 @@ export const dummyPipeline: DUUIPipeline = {
 			options: new Map<string, string>()
 		},
 		{
-			id: '3',
+			id: 3,
 			name: 'XMIWriter',
 			category: 'Language',
 			driver: DUUIUIMADriver,
@@ -89,7 +89,7 @@ export const blankPipeline = () =>
 		components: []
 	}
 
-export const blankComponent = (id: string) =>
+export const blankComponent = (id: number) =>
 	<DUUIPipelineComponent>{
 		id: id,
 		name: 'New Component',
