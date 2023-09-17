@@ -48,6 +48,7 @@ public class DUUIProcessController {
                 .find(Filters.eq(new ObjectId(pipelineId)))
                 .first();
 
+
         if (pipeline == null) {
             return new NotFoundResponse(
                     "No pipeline with id <" +
@@ -82,6 +83,7 @@ public class DUUIProcessController {
         String id = process.getObjectId("_id").toString();
         runningProcesses.put(id, new DUUIProcess(id, pipeline, options));
         try {
+            mapObjectIdToString(process);
             runningProcesses.get(id).start();
             return process.toJson();
         } catch (IllegalArgumentException e) {

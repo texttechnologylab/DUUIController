@@ -74,6 +74,13 @@ public class DUUIPipelineController {
   }
 
   public static String findMany(Request request, Response response) {
+    String userId = request.params(":user_id");
+    if (userId == null) {
+      response.status(400);
+      return new MissingRequiredFieldResponse("user_id").toJson();
+    }
+
+    
     int limit = queryIntElseDefault(request, "limit", 0);
     int offset = queryIntElseDefault(request, "offset", 0);
 
@@ -81,8 +88,9 @@ public class DUUIPipelineController {
       .getInstance()
       .getDatabase("duui")
       .getCollection("pipelines")
-      .find();
+      .find(Filters.eq("user_id", new ObjectId(userId)));
 
+      
     if (limit != 0) {
       pipelines.limit(limit);
     }
@@ -141,5 +149,4 @@ public class DUUIPipelineController {
     response.status(200);
     return new Document("message", "Pipeline deleted.").toJson();
   }
-
 }
