@@ -11,8 +11,12 @@
 	import { faCaretDown, faCaretUp } from '@fortawesome/free-solid-svg-icons'
 	import DockerSettings from './Settings/DockerSettings.svelte'
 	import RemoteSettings from './Settings/RemoteSettings.svelte'
+	import { error } from '@sveltejs/kit'
+	import Dropdown from './Dropdown.svelte'
 
 	export let component: DUUIPipelineComponent
+	export let exception: string
+
 	let expanded: boolean = false
 </script>
 

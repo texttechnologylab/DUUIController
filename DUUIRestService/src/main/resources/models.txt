@@ -33,7 +33,9 @@ Process
         dataLoader: String,
         path: String
     },
-    document?: String       | Only if input is not from a file / DataLoader
+    options: {
+        document: String | Only if input is not from a file / DataLoader
+    }
     pipeline_id: ObjectId
 }
 

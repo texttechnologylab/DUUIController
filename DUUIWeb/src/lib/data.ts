@@ -38,9 +38,12 @@ export const DUUIDrivers: string[] = [
 ]
 
 export enum DUUIStatus {
-	Completed = 'Completed',
-	Failed = 'Failed',
-	Running = 'Running'
+	Setup = 'setup',
+	Completed = 'completed',
+	Failed = 'failed',
+	Running = 'running',
+	Cancelled = 'cancelled',
+	Unknown = 'unknown'
 }
 
 export const dummyPipeline: DUUIPipeline = {

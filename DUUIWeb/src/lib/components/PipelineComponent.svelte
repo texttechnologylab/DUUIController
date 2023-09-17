@@ -12,7 +12,8 @@
 	const modalStore = getModalStore()
 
 	export let editMode: boolean = false
-	let status: DUUIStatus = DUUIStatus.Running
+	export let completed: boolean = false
+	export let active: boolean = false
 
 	let onRemove = () => {
 		dispatcher('remove', {
@@ -47,12 +48,10 @@
 
 <li class="card shadow-lg flex flex-col gap-4 p-4 pointer-events-none">
 	<div class="flex grid-cols-2 gap-4 items-center">
-		{#if status === DUUIStatus.Completed}
+		{#if completed}
 			<Fa icon={faCheck} size="lg" />
-		{:else if status === DUUIStatus.Running}
-			<Fa icon={faRefresh} size="lg" class="animate-spin "/>
-		{:else if status === DUUIStatus.Failed}
-			<Fa icon={faX} size="lg" />
+		{:else if active}
+			<Fa icon={faRefresh} size="lg" class="animate-spin " />
 		{/if}
 		<DriverIcon driver={component.driver} />
 		<p class="h4 grow">{component.name}</p>

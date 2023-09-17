@@ -41,6 +41,9 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Pipelines</title>
+</svelte:head>
 <div class="container h-full mx-auto flex flex-col space-y-4 md:space-y-8 my-16">
 	<div class="flex gap-4">
 		<a href="pipelines/new" class="btn variant-filled-primary shadow-lg">
@@ -48,7 +51,10 @@
 			<Fa icon={faPlus} />
 		</a>
 		<div class="flex items-center justify-start card rounded-sm shadow-lg">
-			<button class="btn-icon variant-filled-primary p-4 rounded-sm" on:click={() => (searchOpen = !searchOpen)}>
+			<button
+				class="btn-icon variant-filled-primary p-4 rounded-sm"
+				on:click={() => (searchOpen = !searchOpen)}
+			>
 				<Fa icon={faSearch} />
 			</button>
 			{#if searchOpen}
