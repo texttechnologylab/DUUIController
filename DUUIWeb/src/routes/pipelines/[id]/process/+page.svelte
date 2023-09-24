@@ -17,6 +17,7 @@
 	let inputSource: DUUIDocumentSource = DUUIDocumentSource.Dropbox
 	let inputPath: string = '/sample'
 	let inputText: string = ''
+	let fileExtension: string = '.gz'
 
 	let outputType: DUUIDocumentOutput = DUUIDocumentOutput.Dropbox
 	let outputPath: string = '/duui-web-app-output'
@@ -51,7 +52,8 @@
 				input: {
 					source: inputSource,
 					path: inputPath,
-					text: inputText
+					text: inputText,
+					extension: fileExtension
 				},
 				output: {
 					type: outputType,
@@ -94,8 +96,8 @@
 >
 	<Step locked={inputText === DUUIDocumentSource.Text && !inputText}>
 		<svelte:fragment slot="header">Select an Input method</svelte:fragment>
-		<div class="card p-4 space-y-8 rounded-md">
-			<form class="space-y-4">
+		<div class="space-y-4 rounded-md flex justify-center">
+			<div class="card p-4 grid gap-4">
 				<label class="label space-y-2">
 					<span>Source</span>
 					<select class="select border-2" bind:value={inputSource}>
@@ -151,8 +153,16 @@
 						<span>{inputSource === DUUIDocumentSource.S3 ? 'Bucket Name' : 'Path to folder'}</span>
 						<input class="input border-2" type="text" bind:value={inputPath} />
 					</label>
+					<label class="label space-y-2">
+						<span>File extension</span>
+						<select class="select border-2 input" bind:value={fileExtension}>
+							{#each ['.txt', '.gz', '.xmi'] as extension}
+								<option value={extension}>{extension}</option>
+							{/each}
+						</select>
+					</label>
 				{/if}
-			</form>
+			</div>
 		</div>
 	</Step>
 	<Step>
