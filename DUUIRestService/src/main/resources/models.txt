@@ -2,6 +2,7 @@ Pipeline
 {
     _id: ObjectId,
     name: String,
+    description: String,
     createdAt: Long,
     isNew: Boolean
     components: Component[]
@@ -9,33 +10,32 @@ Pipeline
 
 Component
 {
-    name: String,
-    category: String,
-    description: String,
+    name:        String
+    category:    String
+    description: String
     settings: {
-        driver: String,
-        target: String,
+        driver:  String
+        target:  String
         options: Map<String, String>
     }
 }
 
 Process
 {
-    _id: ObjectId,
-    status: String,
-    progress: Integer,
-    startedAt: Long,
+    _id:        ObjectId
+    status:     String
+    progress:   Integer
+    startedAt:  Long
+    finishedAt: Long
     input: {
-        dataLoader: String,
-        path: String
+        source: String         | DropBox, Folder, PlainText
+        path:   String         | DropBox Folder, Local Folder, TextField
+        text:   String         | DropBox Folder, Local Folder, TextField
     },
     output: {
-        dataLoader: String,
+        type: String
         path: String
     },
-    options: {
-        document: String | Only if input is not from a file / DataLoader
-    }
     pipeline_id: ObjectId
 }
 
