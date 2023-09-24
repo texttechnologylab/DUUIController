@@ -19,6 +19,29 @@ import spark.Response;
 
 public class DUUIUserController {
 
+  public static String findOneById(Request request, Response response) {
+    String email = request.params(":email");
+    if (email == null) {
+      response.status(400);
+      return new MissingRequiredFieldResponse("email").toJson();
+    }
+
+    Document user = DUUIMongoService
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("users")
+            .find(Filters.eq("email", email))
+            .first();
+
+    if (user == null) {
+      response.status(404);
+      return new Document().toJson();
+    }
+
+    mapObjectIdToString(user);
+    response.status(200);
+    return user.toJson();
+  }
   public static String findOneByEmail(Request request, Response response) {
     String email = request.params(":email");
     if (email == null) {
