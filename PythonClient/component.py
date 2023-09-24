@@ -17,20 +17,20 @@ def update_component(id: str, new_component: dict) -> str:
     return response.text
 
 
-def create_component(name: str, category: str, driver: str, target: str, description: str, options: Mapping = None) -> dict:
-    if driver not in ("DUUIRemoteDriver", "DUUIDockerDriver", "DUUISwarmDriver", "DUUIUIMADriver"):
-        return f"Invalid driver <{driver}>."
+def create_component(name: str, category: str, description: str, settings: Mapping = None) -> dict:
+    if settings["driver"] not in ("DUUIRemoteDriver", "DUUIDockerDriver", "DUUISwarmDriver", "DUUIUIMADriver"):
+        return f"Invalid driver <{settings.driver}>."
 
     if name == "":
         return "Name cannot be empty."
     if category == "":
         return "Category cannot be empty."
-    if target == "":
+    if settings["target"] == "":
         return "Target cannot be empty."
 
     response = requests.post(
         "http://127.0.0.1:2605/components",
-        data=json.dumps({"name": name, "category": category, "driver": driver, "target": target, "description": description, "options": options}),
+        data=json.dumps({"name": name, "category": category, "settings": settings, "description": description}),
     )
     return response.json()
 
