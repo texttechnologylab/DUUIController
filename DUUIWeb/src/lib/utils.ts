@@ -1,4 +1,3 @@
-import type { RequestEvent } from '@sveltejs/kit'
 import type { DUUIProcess } from './data'
 
 export const slugify = (text: string) =>
@@ -39,4 +38,25 @@ export const handleLoginRedirect = (
 	message: string = 'You must be logged in to access this ressource.'
 ) => {
 	return `/user/login?redirectTo=${url.pathname + url.search}&message=${message}`
+}
+
+export const formatFileSize = (bytes: number, decimals: number = 0) => {
+	if (!bytes) {
+		return '0 B'
+	}
+
+	const factor = 1024
+	const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
+	const size = Math.floor(Math.log(bytes) / Math.log(factor))
+
+	return `${parseFloat((bytes / Math.pow(factor, size)).toFixed(decimals))} ${sizes[size]}`
+}
+
+export const cutText = (text: string, maxSize: number = 50) => {
+	let newText: string = text.slice(0, 50)
+	if (newText !== text) {
+		return newText + '...'
+	}
+
+	return newText
 }

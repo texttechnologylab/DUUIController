@@ -1,11 +1,15 @@
 package api;
 
+import static org.apache.uima.fit.factory.AnalysisEngineFactory.createEngineDescription;
 import static spark.Spark.*;
 
+import api.Responses.MissingRequiredFieldResponse;
 import api.component.DUUIComponentController;
+import api.io.FileReader;
 import api.pipeline.DUUIPipelineController;
 import api.process.DUUIProcessController;
 import api.services.DUUIMongoService;
+import api.services.DUUIRequestValidator;
 import api.users.DUUIUserController;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Aggregates;
@@ -14,11 +18,10 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
 import com.sun.management.OperatingSystemMXBean;
 
+import java.io.*;
 import java.lang.management.ManagementFactory;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -26,8 +29,17 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 
+import de.tudarmstadt.ukp.dkpro.core.tokit.BreakIteratorSegmenter;
 import org.bson.Document;
 import org.bson.types.ObjectId;
+import org.dkpro.core.io.xmi.XmiWriter;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.DUUIComposer;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.DUUIDropboxDataReader;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.DUUIExternalFile;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.DUUIUIMADriver;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.io.AsyncCollectionReader;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.lua.DUUILuaContext;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.pipeline_storage.mongodb.DUUIMongoStorageBackend;
 import spark.Request;
 
 import javax.servlet.MultipartConfigElement;
@@ -216,15 +228,38 @@ public class Application {
         }));
 
         post("/processes/dropbox", "application/json", ((request, response) -> {
+            request.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement("/temp"));
 
             String session = request.headers("session");
-            System.out.println(session);
             if (session == null) {
                 response.status(401);
                 return "Invalid session";
             }
 
-            Document process = Document.parse(request.body());
+            Document process = null;
+            for (Part part : request.raw().getParts()) {
+                if (Objects.equals(part.getContentType(), "files")) {
+                    System.out.println(part.getSubmittedFileName());
+                    System.out.println(part.getSize());
+                } else {
+                    InputStream inputStream = part.getInputStream();
+                    StringBuilder stringBuilder = new StringBuilder();
+                    try (Reader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+                        int c;
+                        while ((c = reader.read()) != -1) {
+                            stringBuilder.append((char) c);
+                        }
+                    }
+                    if (Objects.equals(part.getName(), "process")) {
+                        process = Document.parse(String.valueOf(stringBuilder));
+                    }
+                }
+            }
+
+            if (process == null) {
+                response.status(400);
+                return new MissingRequiredFieldResponse("process").toJson();
+            }
 
             String pipeline_id = process.getString("pipeline_id");
             if (pipeline_id.isEmpty()) {
@@ -232,28 +267,14 @@ public class Application {
                 return "Missing pipeline_id";
             }
 
-            Document pipeline = DUUIMongoService
-                .getInstance()
-                .getDatabase("duui")
-                .getCollection("pipelines")
-                .find(Filters.eq(new ObjectId(pipeline_id)))
-                .first();
+            Document pipeline = DUUIPipelineController.getPipelineById(new ObjectId(pipeline_id));
 
             if (pipeline == null) {
                 response.status(404);
                 return "No pipeline found for id <" + pipeline_id + ">";
             }
 
-
-            Document user = DUUIMongoService
-                .getInstance()
-                .getDatabase("duui")
-                .getCollection("users")
-                .find(Filters.eq(pipeline.getObjectId("user_id")))
-                .projection(Projections.include("userAuthToken"))
-                .first();
-
-            if (user == null || !user.getString("userAuthToken").equals(session)) {
+            if (!DUUIUserController.validateSession(pipeline.getObjectId("user_id"), session)) {
                 response.status(401);
                 return "Invalid session";
             }
@@ -263,50 +284,79 @@ public class Application {
 
             if (input == null) {
                 response.status(400);
-                return "Missing input";
+                return new MissingRequiredFieldResponse("input").toJson();
             }
 
             if (output == null) {
                 response.status(400);
-                return "Missing output";
+                return new MissingRequiredFieldResponse("output").toJson();
             }
 
             String inputSource = input.getString("source");
             String inputPath = input.getString("path");
             String inputText = input.getString("text");
-
-            if (inputSource == null || inputSource.isEmpty()) {
-                response.status(400);
-                return "input.source cannot be empty.";
-            }
-
-            if (Objects.equals(inputSource, "None") && inputText.isEmpty()) {
-                response.status(400);
-                return "input.text cannot be empty when input.source is None.";
-            }
-
-            if (!inputSource.equals("None") && (inputPath == null || inputPath.isEmpty())) {
-                response.status(400);
-                return "input.path cannot be empty when input.source is not None.";
-            }
-
             String outputType = output.getString("type");
             String outputPath = output.getString("path");
 
-            if (outputType == null || outputType.isEmpty()) {
+            String error = DUUIRequestValidator.validateIO(inputSource, inputPath, inputText, outputType, outputPath);
+            if (!error.isEmpty()) {
                 response.status(400);
-                return "output.type cannot be empty.";
+                return new MissingRequiredFieldResponse(error).toJson();
             }
 
-            if (!outputType.equals("None") && outputPath == null || outputPath.isEmpty()) {
-                response.status(400);
-                return "output.path cannot be empty when output.type is not None.";
-            }
-
-            if (inputSource.equals("None")) {
+            if (inputSource.equals("Dropbox")) {
                 response.status(200);
-                return "Starting composer in single document mode with: <" + inputText + ">" +
+
+                DUUIDropboxDataReader dataReader = new DUUIDropboxDataReader("Cedric Test App");
+
+                DUUIComposer composer =
+                    new DUUIComposer()
+                        .withSkipVerification(true)
+                        .withStorageBackend(
+                            new DUUIMongoStorageBackend(DUUIMongoService.getConnectionURI())
+                        )
+                        .withWorkers(Math.min(dataReader.listFiles(inputPath).size(), 10))
+                        .withLuaContext(new DUUILuaContext().withJsonLibrary());
+
+
+                AsyncCollectionReader reader = new AsyncCollectionReader.Builder()
+                    .withDataReader(dataReader)
+                    .withSourceDirectory(inputPath)
+                    .withFileExtension(".gz")
+                    .build();
+
+                composer.addDriver(new DUUIUIMADriver());
+
+                composer.add(new DUUIUIMADriver.Component(
+                    createEngineDescription(BreakIteratorSegmenter.class)
+                ));
+
+                DUUIUIMADriver.Component component = new DUUIUIMADriver.Component(
+                    createEngineDescription(
+                        XmiWriter.class,
+                        XmiWriter.PARAM_TARGET_LOCATION, inputPath,
+                        XmiWriter.PARAM_PRETTY_PRINT, true,
+                        XmiWriter.PARAM_OVERWRITE, true,
+                        XmiWriter.PARAM_VERSION, "1.1",
+                        XmiWriter.PARAM_COMPRESSION, "GZIP"
+                    ));
+
+                composer.add(component);
+                composer.run(reader, "dropbox-test");
+
+                List<DUUIExternalFile> files = FileReader.getFiles(inputPath);
+
+                dataReader.writeFiles(
+                    files,
+                    files.stream().map(DUUIExternalFile::getName).collect(Collectors.toList()),
+                    outputPath
+                );
+
+                return "Starting composer in multi document mode with input source: <" + inputSource + ":" + inputPath + ">" +
                     " Writing to: <" + outputType + ":" + outputPath + ">";
+
+//                return "Starting composer in single document mode with: <" + inputText + ">" +
+//                    " Writing to: <" + outputType + ":" + outputPath + ">";
             } else {
                 response.status(200);
                 return "Starting composer in multi document mode with input source: <" + inputSource + ":" + inputPath + ">" +
@@ -318,13 +368,12 @@ public class Application {
             "/metrics",
             (request, response) -> {
                 response.type("text/plain");
-                String defaultMetricsString = metrics
+
+                return metrics
                     .entrySet()
                     .stream()
                     .map(entry -> entry.getKey() + " " + entry.getValue())
                     .collect(Collectors.joining("\n"));
-
-                return defaultMetricsString;
             }
         );
 

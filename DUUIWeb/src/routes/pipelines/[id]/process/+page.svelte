@@ -1,28 +1,30 @@
 <script lang="ts">
+	import { page } from '$app/stores'
 	import {
 		DUUIDocumentOutput,
 		DUUIDocumentSource,
-		DUUIDocumentSourcesList,
-		type DUUIPipeline
+		DUUIInputSourcesList,
+		DUUIOutputSourcesList
 	} from '$lib/data'
-	import { faX } from '@fortawesome/free-solid-svg-icons'
+	import { cutText, formatFileSize } from '$lib/utils'
+	import { faSortNumericAsc, faSortNumericDesc, faX } from '@fortawesome/free-solid-svg-icons'
+	import { Step, Stepper } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
 
-	export let pipeline: DUUIPipeline
+	export let data
+	let { session } = data
 
-	let inputSource: DUUIDocumentSource = DUUIDocumentSource.Folder
-	let inputPath: string = ''
-	let files: FileList
+	let inputSource: DUUIDocumentSource = DUUIDocumentSource.Dropbox
+	let inputPath: string = '/sample'
 	let inputText: string = ''
 
-	let outputType: DUUIDocumentOutput = DUUIDocumentOutput.None
-	let outputPath: string = ''
+	let outputType: DUUIDocumentOutput = DUUIDocumentOutput.Dropbox
+	let outputPath: string = '/duui-web-app-output'
 
-	$: if (files) {
-		for (const file of files) {
-			console.log(`${file.name}: ${file.size} bytes`)
-		}
-	}
+	let files: FileList
+	let sortedFiles: File[] = []
+
+	let sortOrder: number = 1
 
 	function removeFileFromFileList(index: number) {
 		const dt = new DataTransfer()
@@ -34,66 +36,144 @@
 
 		files = dt.files // Assign the updates list
 	}
+
+	async function submitProcess() {
+		let data = new FormData()
+		if (inputSource === DUUIDocumentSource.Files && files) {
+			let _files = sortedFiles.length > 0 ? sortedFiles : [...files]
+			_files.forEach((file) => data.append('files', file))
+		}
+
+		data.append(
+			'process',
+			JSON.stringify({
+				pipeline_id: $page.url.pathname.split('/')[2],
+				input: {
+					source: inputSource,
+					path: inputPath,
+					text: inputText
+				},
+				output: {
+					type: outputType,
+					path: outputPath
+				}
+			})
+		)
+
+		let response = await fetch('http://127.0.0.1:2605/processes/dropbox', {
+			method: 'POST',
+			mode: 'cors',
+			headers: {
+				session: session || ''
+			},
+			body: data
+		})
+
+		let responseText = await response.text()
+		console.log(responseText)
+	}
+
+	function sortFiles() {
+		if (!files) {
+			return
+		}
+		sortedFiles = [...files]
+
+		let ascending = sortOrder === 1 ? -1 : 1
+		sortedFiles.sort((a, b) => (a.size > b.size ? ascending : -ascending))
+		sortOrder = sortOrder === 1 ? -1 : 1
+	}
 </script>
 
 <h1 class="h2 text-center mx-auto my-8">New Process</h1>
-<div class="mx-auto container grid grid-cols-2 gap-8 items-start">
-	<div class="card p-4 space-y-8 rounded-md">
-		<h2 class="h3">Input</h2>
-		<form class="space-y-4">
-			<label class="label space-y-2">
-				<span>Source</span>
-				<select class="select" bind:value={inputSource}>
-					{#each DUUIDocumentSourcesList as source}
-						<option value={source}>{source}</option>
-					{/each}
-				</select>
-			</label>
-			{#if inputSource === DUUIDocumentSource.None}
+<Stepper
+	on:complete={submitProcess}
+	class="max-w-7xl mx-auto"
+	active="rounded-full variant-filled px-4"
+	badge="rounded-full variant-filled-primary"
+>
+	<Step locked={inputText === DUUIDocumentSource.Text && !inputText}>
+		<svelte:fragment slot="header">Select an Input method</svelte:fragment>
+		<div class="card p-4 space-y-8 rounded-md">
+			<form class="space-y-4">
 				<label class="label space-y-2">
-					<span>Document Text</span>
-					<textarea
-						class="textarea"
-						rows="12"
-						placeholder="Enter the document text"
-						bind:value={inputText}
-					/>
+					<span>Source</span>
+					<select class="select border-2" bind:value={inputSource}>
+						{#each DUUIInputSourcesList as source}
+							<option value={source}>{source}</option>
+						{/each}
+					</select>
 				</label>
-			{:else if inputSource === DUUIDocumentSource.Folder}
-				<label class="label space-y-2">
-					<span>Select files</span>
-					<input
-						class="input rounded-md text-transparent"
-						type="file"
-						bind:files
-						multiple
-						placeholder="Enter the document text"
-					/>
-				</label>
-				{#if files}
-					{#each [...files] as file, index}
-						<div class="flex justify-between items-center">
-							<p>{file.name}</p>
-							<button class="btn-icon rounded-md variant-filled-error" on:click={() => removeFileFromFileList(index)}>
-								<Fa icon={faX} />
-							</button>
+				{#if inputSource === DUUIDocumentSource.Files}
+					<div class="flex items-end gap-4 justify-start">
+						<label class="label space-y-2">
+							<span>Select files</span>
+							<input
+								class="input border-2 text-transparent grow"
+								type="file"
+								bind:files
+								multiple
+								placeholder="Enter the document text"
+								accept="text/plain, application/gzip, application/xml"
+							/>
+						</label>
+						<button class="btn variant-filled-primary" on:click={sortFiles}>
+							<span>Sort by size</span>
+							<Fa icon={sortOrder === 1 ? faSortNumericAsc : faSortNumericDesc} />
+						</button>
+					</div>
+					{#if files}
+						<div class="space-y-2">
+							<p>{files.length} Files</p>
+							{#each sortedFiles.length > 0 ? sortedFiles : [...files] as file, index}
+								<div class="flex justify-between items-center variant-soft-surface gap-2 p-2 px-4">
+									<p>{cutText(file.name, 60)}</p>
+									<p class="ml-auto">{formatFileSize(file.size)}</p>
+									<button on:click={() => removeFileFromFileList(index)}>
+										<Fa icon={faX} />
+									</button>
+								</div>
+							{/each}
 						</div>
-					{/each}
+					{/if}
+				{:else if inputSource === DUUIDocumentSource.Text}
+					<label class="label space-y-2">
+						<span>Document Text</span>
+						<textarea
+							class="textarea border-2"
+							rows="12"
+							placeholder="Enter the document text"
+							bind:value={inputText}
+						/>
+					</label>
+				{:else}
+					<label class="label space-y-2">
+						<span>{inputSource === DUUIDocumentSource.S3 ? 'Bucket Name' : 'Path to folder'}</span>
+						<input class="input border-2" type="text" bind:value={inputPath} />
+					</label>
 				{/if}
-			{/if}
-		</form>
-	</div>
-	<div class="card p-4 space-y-8 rounded-md">
-		<h2 class="h3">Output</h2>
-		<form action="" class="space-y-4">
-			<label class="label space-y-2">
-				<span>Type</span>
-				<select class="select" bind:value={outputType}>
-					{#each DUUIDocumentSourcesList.slice(1) as source}
-						<option value={source}>{source}</option>
-					{/each}
-				</select>
-			</label>
-		</form>
-	</div>
-</div>
+			</form>
+		</div>
+	</Step>
+	<Step>
+		<svelte:fragment slot="header">Select an Output method</svelte:fragment>
+		<div class="card p-4 space-y-8 rounded-md">
+			<form action="" class="space-y-4">
+				<label class="label space-y-2">
+					<span>Type</span>
+					<select class="select border-2" bind:value={outputType}>
+						{#each DUUIOutputSourcesList.slice(1) as source}
+							<option value={source}>{source}</option>
+						{/each}
+					</select>
+				</label>
+				{#if outputPath !== DUUIDocumentOutput.None}
+					<label class="label space-y-2">
+						<span>{inputSource === DUUIDocumentSource.S3 ? 'Bucket Name' : 'Path to folder'}</span>
+						<input class="input border-2" type="text" bind:value={outputPath} />
+					</label>
+				{/if}
+			</form>
+		</div>
+	</Step>
+</Stepper>

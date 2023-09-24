@@ -43,7 +43,7 @@ public class DUUIPipelineController {
             .getInstance()
             .getDatabase("duui")
             .getCollection("users")
-            .find(Filters.eq("userAuthToken", session))
+            .find(Filters.eq("session", session))
             .projection(Projections.include("_id"))
             .first();
 
@@ -103,7 +103,7 @@ public class DUUIPipelineController {
                 .toJson();
         }
 
-        if (!user.getString("userAuthToken").equals(request.headers("session"))) {
+        if (!user.getString("session").equals(request.headers("session"))) {
             response.status(401);
             return new Document("message", "Unauthorized").toJson();
         }
@@ -174,7 +174,7 @@ public class DUUIPipelineController {
             return new Document("message", "Unauthorized").toJson();
         }
 
-        if (!user.getString("userAuthToken").equals(request.headers("session"))) {
+        if (!user.getString("session").equals(request.headers("session"))) {
             response.status(401);
             return new Document("message", "Unauthorized").toJson();
         }
@@ -206,4 +206,14 @@ public class DUUIPipelineController {
         response.status(200);
         return new Document("message", "Pipeline deleted.").toJson();
     }
+
+    public static Document getPipelineById(ObjectId id) {
+        return DUUIMongoService
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("pipelines")
+            .find(Filters.eq(id))
+            .first();
+    }
+
 }

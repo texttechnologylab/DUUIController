@@ -44,20 +44,19 @@ export const actions: Actions = {
 			mode: 'cors',
 			body: JSON.stringify({
 				email: email.toString(),
-				userAuthToken: crypto.randomUUID()
+				session: crypto.randomUUID()
 			})
 		})
 
-		const userToken = await userUpdate.json()
+		const session = await userUpdate.json()
 
-		cookies.set('session', userToken.userAuthToken, {
+		cookies.set('session', session.session, {
 			path: '/',
 			httpOnly: true,
 			sameSite: 'strict',
 			secure: process.env.NODE_ENV === 'production',
 			maxAge: 60 * 60 * 24 * 30
 		})
-		
 		throw redirect(302, '/pipelines')
 	},
 

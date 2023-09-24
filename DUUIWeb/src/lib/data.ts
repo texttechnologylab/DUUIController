@@ -53,38 +53,50 @@ export const DUUIDrivers: string[] = [
 ]
 
 export enum DUUIStatus {
-	Setup = 'setup',
+	Cancelled = 'cancelled',
 	Completed = 'completed',
 	Failed = 'failed',
 	Running = 'running',
-	Cancelled = 'cancelled',
+	Setup = 'setup',
 	Unknown = 'unknown'
 }
 
 export enum DUUIDocumentSource {
 	Dropbox = 'Dropbox',
 	Hessenbox = 'Hessenbox',
-	Files = 'Local Files',
-	S3 = "S3",
-	None = 'None'
+	Files = 'Files',
+	S3 = 'S3',
+	Text = 'Text'
 }
 
-export const DUUIDocumentSourcesList = [
-	DUUIDocumentSource.None,
+export const DUUIInputSourcesList = [
+	DUUIDocumentSource.Text,
 	DUUIDocumentSource.Files,
 	DUUIDocumentSource.Dropbox,
-	DUUIDocumentSource.S3,
+	DUUIDocumentSource.S3
 ]
 
-export enum DUUIDocumentOutput{
+export enum DUUIDocumentOutput {
+	CSV = 'CSV',
 	Dropbox = 'Dropbox',
+	Files = 'Files',
 	Hessenbox = 'Hessenbox',
-	Files = 'Local Files',
-	S3 = "S3",
-	None = 'None',
 	Json = 'Json',
-	CSV = 'CSV'
+	None = 'None',
+	S3 = 'S3',
+	Text = 'Text'
 }
+
+export const DUUIOutputSourcesList = [
+	DUUIDocumentOutput.CSV,
+	DUUIDocumentOutput.Dropbox,
+	DUUIDocumentOutput.Files,
+	DUUIDocumentOutput.Hessenbox,
+	DUUIDocumentOutput.Json,
+	DUUIDocumentOutput.None,
+	DUUIDocumentOutput.S3,
+	DUUIDocumentOutput.Text
+]
 
 export const blankPipeline = () =>
 	<DUUIPipeline>{
@@ -117,7 +129,7 @@ export const blankProcess = (pipeline_id: string) =>
 		startedAt: undefined,
 		finishedAt: undefined,
 		input: {
-			source: DUUIDocumentSource.None,
+			source: DUUIDocumentSource.Text,
 			path: '',
 			text: ''
 		},

@@ -48,7 +48,7 @@ export const actions: Actions = {
 			body: JSON.stringify({
 				email: email,
 				password: encryptedPassword,
-				userAuthToken: crypto.randomUUID(),
+				session: crypto.randomUUID(),
 				role: 'user'
 			})
 		})
