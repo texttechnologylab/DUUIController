@@ -40,6 +40,27 @@ public class DUUIProcessController {
         Document body = (Document) validator.getValue1();
         String pipelineId = body.getString("pipeline_id");
         Document options = body.get("options", Document.class);
+        Document input = body.get("input", Document.class);
+        Document output = body.get("output", Document.class);
+
+        String inputSource = input.getString("source");
+        if (inputSource == null) {
+            return new MissingRequiredFieldResponse("input: source").toJson();
+        }
+
+        String inputPath = input.getString("path");
+        String inputText = input.getString("text");
+
+        if (inputPath == null && inputText == null) {
+            return new MissingRequiredFieldResponse("input: path or input: text").toJson();
+        }
+
+        String outputType = output.getString("type");
+        String outputPath = output.getString("path");
+
+        if (outputType == null) {
+            return new MissingRequiredFieldResponse("output: type").toJson();
+        }
 
         Document pipeline = DUUIMongoService
                 .getInstance()
@@ -47,7 +68,6 @@ public class DUUIProcessController {
                 .getCollection("pipelines")
                 .find(Filters.eq(new ObjectId(pipelineId)))
                 .first();
-
 
         if (pipeline == null) {
             return new NotFoundResponse(
@@ -59,10 +79,13 @@ public class DUUIProcessController {
         }
 
         Document process = new Document("status", "setup")
-                .append("pipeline_id", pipelineId)
                 .append("progress", 0)
                 .append("startedAt", new Date().toInstant().toEpochMilli())
-                .append("options", options);
+                .append("finishedAt", null)
+                .append("input", new Document("source", inputSource).append("path", inputPath).append("text", inputText))
+                .append("output", new Document("target", outputType).append("path", outputPath))
+                .append("options", options)
+                .append("pipeline_id", pipelineId);
 
         DUUIMongoService
                 .getInstance()
@@ -81,7 +104,7 @@ public class DUUIProcessController {
 
 
         String id = process.getObjectId("_id").toString();
-        runningProcesses.put(id, new DUUIProcess(id, pipeline, options));
+        runningProcesses.put(id, new DUUIProcess(id, pipeline, process));
         try {
             mapObjectIdToString(process);
             runningProcesses.get(id).start();
@@ -260,6 +283,15 @@ public class DUUIProcessController {
                         Updates.set("progress", progress)
                 );
     }
+
+    public static void setFinishTime(String id, long finishTime) {
+        DUUIMongoService
+                .getInstance()
+                .getDatabase("duui")
+                .getCollection("processes")
+                .updateOne(Filters.eq(new ObjectId(id)), Updates.set("finishedAt", finishTime));
+    }
+
     //   public static String startProcess(Request request, Response response)
     //     throws UIMAException, URISyntaxException, IOException, InterruptedException, ExecutionException {
     //     Application.metrics.get("active_processes").incrementAndGet();

@@ -8,11 +8,14 @@ import com.dropbox.core.v2.files.ListFolderResult;
 import com.dropbox.core.v2.files.Metadata;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class DUUIDropboxService {
 
-    private static final String ACCESS_TOKEN = System.getenv("dropbox_token");
+    private static final String ACCESS_TOKEN = System.getenv("dbx_personal_access_token");
+    private static final String REFRESH_TOKEN = System.getenv("dbx_personal_refresh_token");
     private final DbxRequestConfig config;
     private final DbxClientV2 client;
 
@@ -26,11 +29,13 @@ public class DUUIDropboxService {
         client = new DbxClientV2(config, userAccessToken);
     }
 
-    public void listFiles(String dbxFolder) throws DbxException {
+    public List<Metadata> listFiles(String dbxFolder) throws DbxException {
         ListFolderResult result = client.files().listFolder(dbxFolder);
+        List<Metadata> files = new ArrayList<>();
         while (true) {
             for (Metadata metadata : result.getEntries()) {
-                System.out.println(metadata.getPathLower());
+                files.add(metadata);
+                System.out.println(metadata);
             }
 
             if (!result.getHasMore()) {
@@ -39,6 +44,7 @@ public class DUUIDropboxService {
 
             result = client.files().listFolderContinue(result.getCursor());
         }
+        return files;
     }
 
     public FileMetadata uploadFile(FileInputStream inputStream, String dbxDestinationPath) {
@@ -94,6 +100,7 @@ public class DUUIDropboxService {
         DbxPKCEWebAuth pkceWebAuth = new DbxPKCEWebAuth(config, new DbxAppInfo(appKey));
         DbxWebAuth.Request webAuthRequest = DbxWebAuth.newRequestBuilder()
                 .withNoRedirect()
+                .withTokenAccessType(TokenAccessType.OFFLINE)
                 .build();
 
         String authorizeUrl = pkceWebAuth.authorize(webAuthRequest);
@@ -107,7 +114,10 @@ public class DUUIDropboxService {
         try {
             // You must use the same DbxPKCEWebAuth to generate authorizationUrl and to handle code
             // exchange.
-            return pkceWebAuth.finishFromCode(code);
+            DbxAuthFinish finish = pkceWebAuth.finishFromCode(code);
+            System.out.println(finish.getAccessToken());
+            System.out.println(finish.getRefreshToken());
+            return finish;
         } catch (DbxException ex) {
             System.err.println("Error in DbxWebAuth.authorize: " + ex.getMessage());
             System.exit(1);
@@ -130,9 +140,12 @@ public class DUUIDropboxService {
 
 
     public static void main(String[] args) throws DbxException, IOException {
+        DUUIDropboxService service = new DUUIDropboxService();
+        service.authorize(System.getenv("dbx_app_key"));
 
-        DUUIDropboxService service = new DUUIDropboxService("Cedric Test App");
-        System.out.println(service.authorize(System.getenv("dbx_app_key")).getAccessToken());
+
+//
+//        service.listFiles("/sample");
 //        downloadFiles("/sample_splitted", "C:\\Users\\Cedric\\OneDrive\\Desktop\\out.zip");
 //        listFiles("/sample");
 //        uploadFiles("D:\\Uni Informatik B.sc\\Bachelor\\DockerUnifiedUIMAInterface-Fork\\src\\main\\resources\\sample_splitted", "/sample_splitted");

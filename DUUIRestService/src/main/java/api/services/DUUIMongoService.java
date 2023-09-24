@@ -16,6 +16,12 @@ public class DUUIMongoService {
     document.put("id", id);
   }
 
+  public static void mapObjectIdToString(Document document, String field, String newName) {
+    String id = document.getObjectId(field).toString();
+    document.remove(field);
+    document.put(newName, id);
+  }
+
   public static String getConnectionURI() {
     return "mongodb+srv://<user>:<password>@testcluster.727ylpr.mongodb.net/".replace(
         "<user>",
