@@ -17,6 +17,8 @@
 	export let data
 
 	let { user } = data
+	let message: string
+	$: message = $page.url.searchParams.get('message') ?? ''
 </script>
 
 <svelte:head>
@@ -24,6 +26,12 @@
 </svelte:head>
 
 <div class="shadow-lg p-16 rounded-md card variant-form-material space-y-8">
+	{#if message}
+		<p class="variant-filled-error p-4 rounded-md shadow-lg">{message}</p>
+	{/if}
+	{#if form?.error}
+		<p class="variant-filled-error p-4 rounded-md shadow-lg">{form.error}</p>
+	{/if}
 	<h2 class="h2">{user ? 'You are already logged in' : 'Login'}</h2>
 	{#if user}
 		<div class="flex justify-between gap-4">
@@ -44,22 +52,10 @@
 		</div>
 	{:else}
 		<form method="POST" action="?/login" class="space-y-8">
-			{#if form?.error}
-				<div class="text-white variant-ghost-error flex">
-					<div class="self-stretch px-4 grid">
-						<Fa size="lg" icon={faTriangleExclamation} class="self-center" />
-					</div>
-					<div class="flex flex-col p-4">
-						<strong class="text-2xl">Error</strong>
-						<p>{form.error}</p>
-					</div>
-				</div>
-			{/if}
-
 			<label class="label">
 				<span>E-Mail</span>
 				<input
-					class="input focus-within:outline-primary-400"
+					class="input border-2 focus-within:outline-primary-400"
 					type="text"
 					name="email"
 					value={email}
@@ -69,7 +65,7 @@
 			<label class="label">
 				<span>Password</span>
 				<input
-					class="input focus-within:outline-primary-400"
+					class="input border-2 focus-within:outline-primary-400"
 					type="password"
 					name="password"
 					required

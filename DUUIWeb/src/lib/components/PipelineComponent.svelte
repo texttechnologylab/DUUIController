@@ -53,7 +53,7 @@
 		{:else if active}
 			<Fa icon={faRefresh} size="lg" class="animate-spin " />
 		{/if}
-		<DriverIcon driver={component.driver} />
+		<DriverIcon driver={component.settings.driver} />
 		<p class="h4 grow">{component.name}</p>
 		<button
 			class="btn-icon pointer-events-auto variant-glass-primary"
@@ -68,25 +68,25 @@
 		<form class="space-y-4 pointer-events-auto">
 			<label class="label">
 				<span>Name</span>
-				<input class="input" type="text" placeholder="Name" bind:value={component.name} />
+				<input class="border-2 input" type="text" placeholder="Name" bind:value={component.name} />
 			</label>
 			<label class="label">
 				<span>Driver</span>
-				<select class="select" bind:value={component.driver}>
+				<select class="border-2 select input" bind:value={component.settings.driver}>
 					{#each DUUIDrivers as driver}
 						<option value={driver}>{driver}</option>
 					{/each}
 				</select>
 			</label>
 			<label class="label">
-				{#if component.driver === 'DUUIRemoteDriver'}
+				{#if component.settings.driver === 'DUUIRemoteDriver'}
 					<span>Target</span>
-				{:else if component.driver === 'DUUIUIMADriver'}
+				{:else if component.settings.driver === 'DUUIUIMADriver'}
 					<span>Class Path</span>
 				{:else}
 					<span>Image Name</span>
 				{/if}
-				<input class="input" type="text" placeholder="Name" bind:value={component.target} />
+				<input class="border-2 input" type="text" placeholder="Name" bind:value={component.settings.target} />
 			</label>
 
 			<div class="flex justify-between gap-4">

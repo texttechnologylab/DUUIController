@@ -1,11 +1,14 @@
 import type { DUUIPipeline, DUUIProcess } from '$lib/data'
 import type { Actions, PageServerLoad } from './$types'
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, cookies }) => {
 	const loadPipeline = async (): Promise<DUUIPipeline> => {
 		const result = await fetch('http://127.0.0.1:2605/pipelines/' + params.id, {
 			method: 'GET',
-			mode: 'cors'
+			mode: 'cors',
+			headers: {
+				session: cookies.get('session')
+			}
 		})
 		return await result.json()
 	}
@@ -13,7 +16,10 @@ export const load: PageServerLoad = async ({ params }) => {
 	const loadProcesses = async (): Promise<{ processes: DUUIProcess[] }> => {
 		const result = await fetch('http://127.0.0.1:2605/pipelines/' + params.id + '/processes', {
 			method: 'GET',
-			mode: 'cors'
+			mode: 'cors',
+			headers: {
+				session: cookies.get('session')
+			}
 		})
 		return await result.json()
 	}
@@ -25,14 +31,17 @@ export const load: PageServerLoad = async ({ params }) => {
 }
 
 export const actions: Actions = {
-	default: async ({ params }) => {
+	default: async ({ params, cookies }) => {
 		let id: string = params.id
 
 		const response = await fetch('http://192.168.2.122:2605/pipelines/' + id, {
-					method: 'DELETE',
-					mode: 'cors'
-				})
+			method: 'DELETE',
+			mode: 'cors',
+			headers: {
+				session: cookies.get('session')
+			}
+		})
 
-    	return response.ok
+		return response.ok
 	}
 }

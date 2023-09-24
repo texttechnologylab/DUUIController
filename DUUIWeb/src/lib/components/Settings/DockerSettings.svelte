@@ -5,8 +5,10 @@
 	import Fa from 'svelte-fa'
 
 	export let component: DUUIPipelineComponent;
+	
 	let useGPU: boolean = false
 	let dockerImageFetching: boolean = false
+	
 </script>
 
 <div class="grid grid-cols-1 card p-4 gap-4 pointer-events-auto">

@@ -5,21 +5,27 @@ export const handle: Handle = async ({ event, resolve }) => {
 	if (!session) {
 		return await resolve(event)
 	}
+	
+	let userResponse
 
-	const userResponse = await fetch('http://127.0.0.1:2605/users/auth/' + session, {
-		method: 'GET',
-		mode: 'cors'
-	})
+	try {
+		userResponse = await fetch('http://127.0.0.1:2605/users/auth/' + session, {
+			method: 'GET',
+			mode: 'cors'
+		})
+	} catch (e) {
+		return await resolve(event)
+	}
 
 	const user = await userResponse.json()
-	
+
 	if (Object.keys(user).length !== 0) {
 		event.locals.user = {
 			id: user.id,
 			email: user.email,
-			role: user.role,
+			role: user.role
 		}
 	}
-    
+
 	return await resolve(event)
 }

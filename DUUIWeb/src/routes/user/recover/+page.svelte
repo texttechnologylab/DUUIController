@@ -10,7 +10,7 @@
 	<form method="POST" class="space-y-8">
 		<label class="label">
 			<span>E-Mail</span>
-			<input class="input focus-within:outline-primary-400" type="text" name="email" />
+			<input class="input border-2 focus-within:outline-primary-400" type="text" name="email" />
 		</label>
 		<button type="submit" class="btn variant-filled-primary">Request new password</button>
 	</form>

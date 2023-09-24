@@ -1,7 +1,6 @@
 <script lang="ts">
 	export let title: string
 	export let content: string
-	export let reverse: boolean = false
 </script>
 
 <section class="p-4 text-center md:p-8 space-y-4 card variant-glass-surface shadow-lg">

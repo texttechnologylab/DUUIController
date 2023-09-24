@@ -1,67 +1,117 @@
 <script lang="ts">
-	import {
-		DUUIDockerDriver,
-		DUUIDrivers,
-		DUUISwarmDriver,
-		type DUUIPipelineComponent,
-		DUUIRemoteDriver
-	} from '$lib/data'
+	import { DUUIDockerDriver, DUUIDrivers, DUUIRemoteDriver, DUUISwarmDriver } from '$lib/data'
 	import DriverIcon from './DriverIcon.svelte'
 	import Fa from 'svelte-fa'
-	import { faCaretDown, faCaretUp } from '@fortawesome/free-solid-svg-icons'
+	import { faChevronDown } from '@fortawesome/free-solid-svg-icons'
+	import { createEventDispatcher } from 'svelte'
+	import { componentStore } from '../../routes/pipelines/new/store'
+	import { ListBox, ListBoxItem, popup, type PopupSettings } from '@skeletonlabs/skeleton'
+	import { driverTargetMap } from '../../routes/pipelines/new/toast'
 	import DockerSettings from './Settings/DockerSettings.svelte'
 	import RemoteSettings from './Settings/RemoteSettings.svelte'
-	import { error } from '@sveltejs/kit'
-	import Dropdown from './Dropdown.svelte'
 
-	export let component: DUUIPipelineComponent
-	export let exception: string
+	const dispatcher = createEventDispatcher()
 
-	let expanded: boolean = false
+	export let deleteButton: boolean = false
+
+	let onRemove = () => {
+		dispatcher('remove', {
+			id: $componentStore.id
+		})
+	}
+
+	const popupCombobox: PopupSettings = {
+		event: 'focus-click',
+		target: 'popupCombobox',
+		placement: 'bottom-start',
+		middleware: {
+			offset: 8
+		},
+		closeQuery: '.listbox-item'
+	}
 </script>
 
-<div class="card shadow-lg flex flex-col gap-4 p-4 pointer-events-auto">
+<div class="bg-surface-700 shadow-lg z-100" data-popup="popupCombobox">
+	<ListBox active="variant-filled-primary">
+		{#each DUUIDrivers as driver}
+			<ListBoxItem bind:group={$componentStore.settings.driver} name="medium" value={driver}>
+				{driver}
+			</ListBoxItem>
+		{/each}
+	</ListBox>
+</div>
+
+<div class="variant-soft-surface shadow-lg flex flex-col gap-4 p-4 pointer-events-auto">
 	<header class="flex justify-start gap-4 items-center">
-		<DriverIcon driver={component.driver} />
-		<p class="h4">{component.name}</p>
+		<DriverIcon driver={$componentStore.settings.driver} />
+		<p class="h4">{$componentStore.name}</p>
+		{#if deleteButton}
+			<button class="btn variant-filled-error rounded-sm shadow-lg ml-auto" on:click={onRemove}>
+				Delete
+			</button>
+		{/if}
 	</header>
 	<div class="grid grid-cols-2 gap-4">
 		<label class="label">
-			<span>Name</span>
-			<input class="input" type="text" placeholder="Name" bind:value={component.name} />
+			<span>Name*</span>
+			<input
+				class="input border-2"
+				type="text"
+				placeholder="Name"
+				bind:value={$componentStore.name}
+			/>
 		</label>
-		<label class="label">
+		<label class="flex flex-col space-y-1">
 			<span>Driver</span>
-			<select class="select" bind:value={component.driver}>
-				{#each DUUIDrivers as driver}
-					<option value={driver}>{driver}</option>
-				{/each}
-			</select>
+			<button
+				class="flex grow bg-surface-700 justify-between items-center px-4 border-2 input"
+				use:popup={popupCombobox}
+			>
+				<span class="capitalize">{$componentStore.settings.driver}</span>
+				<Fa icon={faChevronDown} />
+			</button>
 		</label>
 		<label class="label col-span-2">
-			{#if component.driver === 'DUUIRemoteDriver'}
-				<span>Target</span>
-			{:else if component.driver === 'DUUIUIMADriver'}
-				<span>Class Path</span>
-			{:else}
-				<span>Image Name</span>
-			{/if}
-			<input class="input" type="text" placeholder="Name" bind:value={component.target} />
+			<span>{driverTargetMap.get($componentStore.settings.driver)}*</span>
+			<input
+				class="input border-2"
+				type="text"
+				placeholder="Name"
+				bind:value={$componentStore.settings.target}
+			/>
+		</label>
+		<label class="label ">
+			<span>Category</span>
+			<input
+				class="input border-2"
+				type="text"
+				placeholder="Category"
+				bind:value={$componentStore.category}
+			/>
+		</label>
+		<label class="label col-span-2">
+			<span>Description</span>
+			<textarea
+				class="textarea border-2"
+				placeholder="Name"
+				bind:value={$componentStore.description}
+			/>
 		</label>
 	</div>
-
-	{#if expanded}
-		<h3>Advanced Settings</h3>
-		{#if component.driver === DUUIDockerDriver || component.driver === DUUISwarmDriver}
-			<DockerSettings {component} />
-		{:else if component.driver === DUUIRemoteDriver}
-			<RemoteSettings {component} />
-		{/if}
+	<h3>Advanced Settings</h3>
+	{#if $componentStore.settings.driver === DUUIDockerDriver || $componentStore.settings.driver === DUUISwarmDriver}
+		<DockerSettings {$componentStore} />
+	{:else if $componentStore.settings.driver === DUUIRemoteDriver}
+		<RemoteSettings {$componentStore} />
 	{/if}
-	<button
+	<!-- 
+	{#if expanded}
+		
+	{/if} -->
+	<!-- <button
 		class="btn-icon variant-soft-surface self-center pointer-events-auto"
 		on:click={() => (expanded = !expanded)}
 	>
 		<Fa icon={expanded ? faCaretUp : faCaretDown} />
-	</button>
+	</button> -->
 </div>

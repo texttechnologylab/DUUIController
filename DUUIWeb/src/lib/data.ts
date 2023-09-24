@@ -1,28 +1,43 @@
 import { v4 as uuidv4 } from 'uuid'
 
-export interface DUUIPipelineComponent {
-	id: number // relevant for DND
-	name: string
-	category: string
-	driver: string
-	target: string
-	description: string
-	options: Map<string, string> // Advanced Settings
-}
-
 export interface DUUIPipeline {
 	id: string
 	name: string
+	description: string
+	createdAt: number
 	isNew: boolean
 	components: DUUIPipelineComponent[]
+}
+
+export interface DUUIPipelineComponent {
+	id: number // Only relevant for DND in WebApp
+	name: string
+	category: string
+	description: string
+	settings: {
+		driver: string
+		target: string
+		options: Map<string, string> // Advanced Settings
+	}
 }
 
 export interface DUUIProcess {
 	id: string
 	status: DUUIStatus
 	progress: number
-	pipeline_id: string
+	startedAt?: number
+	finishedAt?: number
+	input: {
+		source: DUUIDocumentSource
+		path?: string
+		text?: string
+	}
+	output: {
+		type: DUUIDocumentOutput
+		path: string
+	}
 	options: Map<string, string>
+	pipeline_id: string
 }
 
 export const DUUIRemoteDriver = 'DUUIRemoteDriver'
@@ -46,45 +61,37 @@ export enum DUUIStatus {
 	Unknown = 'unknown'
 }
 
-export const dummyPipeline: DUUIPipeline = {
-	id: '1',
-	name: 'Example',
-	isNew: true,
-	components: [
-		{
-			id: 1,
-			name: 'Language Detection',
-			category: 'Language',
-			driver: DUUIRemoteDriver,
-			target: 'http://127.0.0.1:8000',
-			description: '',
-			options: new Map<string, string>()
-		},
-		{
-			id: 2,
-			name: 'BreakIteratorSegmenter',
-			category: 'Language',
-			driver: DUUIUIMADriver,
-			target: 'de.tudarmstadt.ukp.dkpro.core.tokit.BreakIteratorSegmenter',
-			description: '',
-			options: new Map<string, string>()
-		},
-		{
-			id: 3,
-			name: 'XMIWriter',
-			category: 'Language',
-			driver: DUUIUIMADriver,
-			target: 'org.dkpro.core.io.XMIWriter',
-			description: '',
-			options: new Map<string, string>()
-		}
-	]
+export enum DUUIDocumentSource {
+	Dropbox = 'Dropbox',
+	Hessenbox = 'Hessenbox',
+	Files = 'Local Files',
+	S3 = "S3",
+	None = 'None'
+}
+
+export const DUUIDocumentSourcesList = [
+	DUUIDocumentSource.None,
+	DUUIDocumentSource.Files,
+	DUUIDocumentSource.Dropbox,
+	DUUIDocumentSource.S3,
+]
+
+export enum DUUIDocumentOutput{
+	Dropbox = 'Dropbox',
+	Hessenbox = 'Hessenbox',
+	Files = 'Local Files',
+	S3 = "S3",
+	None = 'None',
+	Json = 'Json',
+	CSV = 'CSV'
 }
 
 export const blankPipeline = () =>
 	<DUUIPipeline>{
 		id: uuidv4(),
 		name: 'New Pipeline',
+		description: '',
+		createdAt: Date.now(),
 		isNew: true,
 		components: []
 	}
@@ -94,8 +101,30 @@ export const blankComponent = (id: number) =>
 		id: id,
 		name: 'New Component',
 		category: '',
-		driver: DUUIDockerDriver,
-		target: '',
-		description: '',
-		options: new Map<string, string>()
+		description: 'My new Component for...',
+		settings: {
+			driver: DUUIDockerDriver,
+			target: '',
+			options: new Map<string, string>()
+		}
+	}
+
+export const blankProcess = (pipeline_id: string) =>
+	<DUUIProcess>{
+		id: uuidv4(),
+		status: DUUIStatus.Setup,
+		progress: 0,
+		startedAt: undefined,
+		finishedAt: undefined,
+		input: {
+			source: DUUIDocumentSource.None,
+			path: '',
+			text: ''
+		},
+		output: {
+			type: DUUIDocumentOutput.None,
+			path: ''
+		},
+		options: new Map<string, string>(),
+		pipeline_id: pipeline_id
 	}

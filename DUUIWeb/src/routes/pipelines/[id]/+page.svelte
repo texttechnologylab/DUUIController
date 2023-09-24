@@ -5,31 +5,52 @@
 		blankComponent,
 		DUUIStatus,
 		type DUUIPipelineComponent,
-		type DUUIProcess
+		DUUIDocumentSource,
+		DUUIDocumentOutput
 	} from '$lib/data'
 	import { faAdd, faArrowLeft, faCancel, faCog, faRocket } from '@fortawesome/free-solid-svg-icons'
-	import { ProgressRadial, type ModalSettings, getModalStore } from '@skeletonlabs/skeleton'
+	import {
+		ProgressRadial,
+		type ModalSettings,
+		getModalStore,
+		tableMapperValues,
+		Table
+	} from '@skeletonlabs/skeleton'
 	import { onMount } from 'svelte'
 	import { dndzone, type DndEvent } from 'svelte-dnd-action'
 	import Fa from 'svelte-fa'
 	import { flip } from 'svelte/animate'
 
 	import { getToastStore } from '@skeletonlabs/skeleton'
-	import type { ToastSettings } from '@skeletonlabs/skeleton'
+	import type { TableSource, ToastSettings } from '@skeletonlabs/skeleton'
 	import type { ActionData, PageServerData } from './$types'
+	import { getDuration, toDateTimeString, toTitleCase } from '$lib/utils'
 
 	export let data: PageServerData
 	let { pipeline, processes } = data
 
 	let building: boolean = false
 	let exception: string
-	let result: string = ''
-	let annotations: Map<string, number> = new Map()
-	let documentText: string = 'This is a test sentence. My name is Cedric Borkowski.'
 
 	let status: string = DUUIStatus.Unknown
 	let progress: number = 0
 	let process_id: string
+	let tableSource = processes.map((process, index, array) => {
+		return {
+			positon: index,
+			status: toTitleCase(process.status),
+			progress: (process.progress / pipeline.components.length) * 100 + ' %',
+			startedAt: process.startedAt ? toDateTimeString(new Date(process.startedAt)) : '',
+			duration: getDuration(process),
+			process: process
+		}
+	})
+
+	let tableData: TableSource = {
+		head: ['Status', 'Progress', 'Start Time', 'Duration'],
+		body: tableMapperValues(tableSource, ['status', 'progress', 'startedAt', 'duration']),
+		meta: tableMapperValues(tableSource, ['process'])
+	}
 
 	export let form: ActionData
 
@@ -63,8 +84,25 @@
 			progress = process.progress
 			building = process.status === DUUIStatus.Setup
 
-			if (process.status === DUUIStatus.Completed || process.status === DUUIStatus.Cancelled) {
+			if (process.status !== DUUIStatus.Running || process.status !== DUUIStatus.Setup) {
 				clearInterval(interval)
+				processes = [...processes, process]
+				tableSource = processes.map((process, index, array) => {
+					return {
+						positon: index,
+						status: toTitleCase(process.status),
+						progress: (process.progress / pipeline.components.length) * 100 + ' %',
+						startedAt: process.startedAt ? toDateTimeString(new Date(process.startedAt)) : '',
+						duration: getDuration(process),
+						process: process
+					}
+				})
+				tableSource = tableSource
+				tableData = {
+					head: ['Status', 'Progress', 'Start Time', 'Duration'],
+					body: tableMapperValues(tableSource, ['status', 'progress', 'startedAt', 'duration']),
+					meta: tableMapperValues(tableSource, ['process'])
+				}
 			}
 		}
 
@@ -118,9 +156,15 @@
 			mode: 'cors',
 			body: JSON.stringify({
 				pipeline_id: pipeline.id,
-				options: {
-					document: documentText
-				}
+				input: {
+					source: DUUIDocumentSource.None,
+					text: 'Das ist ein Testsatz'
+				},
+				output: {
+					type: DUUIDocumentOutput.None,
+					path: ''
+				},
+				options: {}
 			})
 		})
 
@@ -178,7 +222,25 @@
 
 	const modalStore = getModalStore()
 
-	const onMaybeDeletePipeline = (e: SubmitEvent) => {
+	const onMaybeDeletePipeline = async (e: SubmitEvent) => {
+		let button = e.submitter as HTMLButtonElement
+
+		if (!button) {
+			return
+		}
+
+		if (button.id === 'update') {
+			await fetch('/pipelines/api/update', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(pipeline)
+			})
+			console.log(button)
+			return
+		}
+
 		new Promise<boolean>((resolve) => {
 			const modal: ModalSettings = {
 				type: 'confirm',
@@ -220,18 +282,6 @@
 			}
 		})
 	}
-
-	const getResult = async () => {
-		const temp = await fetch('http://127.0.0.1:2605/pipelines/' + pipeline.id + '/result', {
-			method: 'GET',
-			mode: 'cors'
-		})
-		const r = await temp.json()
-		if (r) {
-			result = r
-		}
-		console.log(result)
-	}
 </script>
 
 <div class="container h-full flex-col mx-auto flex gap-4">
@@ -242,7 +292,7 @@
 				><Fa size="lg" icon={faArrowLeft} /></button
 			>
 			<h1 class="h2 font-bold grow text-center">
-				{pipeline.name} - Status: {status.toUpperCase()}
+				{pipeline.name}
 			</h1>
 			<button class="btn-icon shadow-lg variant-glass-primary lg:hidden">
 				<Fa size="lg" icon={faCog} />
@@ -258,45 +308,72 @@
 			<h2 class="h3 hidden lg:block px-4">Settings</h2>
 			<div class="card space-y-4 p-4">
 				<form
-					class=" flex gap-4 items-end"
+					class="flex flex-col gap-4"
 					method="POST"
 					on:submit|preventDefault={onMaybeDeletePipeline}
 				>
-					<label class="label grow">
+					<label class="label grow col-span-2">
 						<span>Name</span>
 						<input
 							bind:value={pipeline.name}
-							class="input focus-within:outline-primary-400"
+							class="border-2 input focus-within:outline-primary-400"
 							type="text"
 						/>
 					</label>
-					<button class="btn variant-filled-error rounded-sm shadow-lg" type="submit">
-						<span>Delete</span>
-					</button>
+
+					<label class="label grow col-span-2">
+						<span>Description</span>
+
+						<textarea
+							class="textarea resize-none border-2 input"
+							rows="4"
+							placeholder="Enter a description..."
+							bind:value={pipeline.description}
+						/>
+					</label>
+
+					<div class="flex justify-between">
+						<button
+							class="btn variant-filled-primary rounded-sm shadow-lg"
+							type="submit"
+							id="update"
+						>
+							<span>Update</span>
+						</button>
+						<button
+							class="btn variant-filled-error rounded-sm shadow-lg ml-auto"
+							type="submit"
+							id="delete"
+						>
+							<span>Delete</span>
+						</button>
+					</div>
 				</form>
-				<div>
-					{#if building || status === DUUIStatus.Running}
-						<div class="flex items-center gap-4">
-							<ProgressRadial stroke={120} width="w-16" meter="stroke-primary-400" />
-							<button class="btn variant-ghost-error" on:click={cancelPipeline}>
-								<span><Fa icon={faCancel} /></span>
-								<span>Cancel Pipeline</span>
-							</button>
-						</div>
-					{:else}
-						<div class="flex gap-8 justify-center items-center">
-							<button class="btn variant-filled-primary" on:click={runPipeline}>
-								<span><Fa icon={faRocket} /></span>
-								<span>Start Pipeline</span>
-							</button>
-							<!-- {#if !building && !cancelled}
-								<button class="btn variant-ringed-primary" on:click={getResult}>Get result</button>
-							{/if} -->
-						</div>
-					{/if}
-				</div>
 			</div>
 
+			<h2 class="h3 hidden lg:block px-4">Recent Processes</h2>
+			<button
+				class="btn variant-filled-primary ml-auto"
+				on:click={() => goto('/pipelines/' + pipeline.id + '/process')}
+			>
+				<span><Fa icon={faRocket} /></span>
+				<span>Setup new Process</span>
+			</button>
+			<Table source={tableData} interactive on:selected={(e) => console.log(e.detail)} />
+			<div>
+				{#if building || status === DUUIStatus.Running}
+					<form
+						class="flex items-center gap-4"
+						on:submit|preventDefault={() => console.log('Cancel')}
+					>
+						<ProgressRadial stroke={120} width="w-16" meter="stroke-primary-400" />
+						<button class="btn variant-ghost-error" on:click={cancelPipeline}>
+							<span><Fa icon={faCancel} /></span>
+							<span>Cancel Pipeline</span>
+						</button>
+					</form>
+				{/if}
+			</div>
 			<!-- {#if annotations.size > 0}
 				<div class="card space-y-4 p-4">
 					<p class="h4 hidden lg:block">Annotations</p>
@@ -327,11 +404,6 @@
 					</div>
 				{/each}
 			</ul>
-			<div class="flex justify-center">
-				<button class="btn-icon variant-filled-primary" on:click={addComponent}>
-					<Fa icon={faAdd} />
-				</button>
-			</div>
 		</div>
 	</div>
 </div>

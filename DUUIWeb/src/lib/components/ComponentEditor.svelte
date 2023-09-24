@@ -39,7 +39,7 @@
 	</label>
 	<label class="label">
 		<span>Driver</span>
-		<select class="select" bind:value={component.driver}>
+		<select class="select" bind:value={component.settings.driver}>
 			{#each DUUIDrivers as driver}
 				<option value={driver}>{driver}</option>
 			{/each}
@@ -47,7 +47,7 @@
 	</label>
 	<label class="label">
 		<span>Target</span>
-		<input class="input" type="text" placeholder="Name" bind:value={component.target} />
+		<input class="input" type="text" placeholder="Name" bind:value={component.settings.target} />
 	</label>
 
 	<div class="grid grid-cols-2 gap-4">

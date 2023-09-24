@@ -2,35 +2,25 @@
 	import { goto } from '$app/navigation'
 	import ComponentBuilder from '$lib/components/ComponentBuilder.svelte'
 	import DriverIcon from '$lib/components/DriverIcon.svelte'
-	import PipelineComponent from '$lib/components/PipelineComponent.svelte'
-	import {
-		blankComponent,
-		blankPipeline,
-		DUUIDrivers,
-		DUUIRemoteDriver,
-		type DUUIPipelineComponent,
-		DUUIUIMADriver
-	} from '$lib/data'
-	import {
-		faAdd,
-		faArrowRight,
-		faArrowRightLong,
-		faEdit,
-		faFilter
-	} from '@fortawesome/free-solid-svg-icons'
-	import { getToastStore, Step, Stepper } from '@skeletonlabs/skeleton'
+	import { blankComponent, blankPipeline, type DUUIPipelineComponent } from '$lib/data'
+	import { faArrowRight, faBookOpen, faEdit, faPlus } from '@fortawesome/free-solid-svg-icons'
+	import { getModalStore, getToastStore, Step, Stepper } from '@skeletonlabs/skeleton'
 	import { dndzone, type DndEvent } from 'svelte-dnd-action'
 	import Fa from 'svelte-fa'
 	import { flip } from 'svelte/animate'
 
-	import { popup } from '@skeletonlabs/skeleton'
-	import type { PopupSettings, ToastSettings } from '@skeletonlabs/skeleton'
-	import ComponentEditor from '$lib/components/ComponentEditor.svelte'
+	import type { ModalComponent, ModalSettings, ToastSettings } from '@skeletonlabs/skeleton'
+	import { componentStore } from './store.js'
+	import { invalidNameToast, invalidTargetToast } from './toast.js'
+	import TemplateModal from './TemplateModal.svelte'
 
 	export let data
 	let { templates } = data
 
 	let pipeline = blankPipeline()
+	let editing: boolean = false
+	let missing: boolean = false
+	let createForm: HTMLFormElement
 
 	function handleDndConsider(event: CustomEvent<DndEvent<DUUIPipelineComponent>>) {
 		pipeline.components = event.detail.items
@@ -42,36 +32,59 @@
 		pipeline.components = [...pipeline.components]
 	}
 
-	function addComponent() {
-		editedComponent = blankComponent(pipeline.components.length + 1 + '')
+	function editNewComponent() {
+		$componentStore = blankComponent(pipeline.components.length + 1)
+		editing = true
 	}
 
-	let exception: string = ''
+	function editComponent(id: number) {
+		$componentStore = { ...pipeline.components[id] }
+		editing = true
+	}
+
+	function updateComponent() {
+		if ($componentStore.id === -1) {
+			return
+		}
+
+		pipeline.components.forEach((c) => {
+			if (c.id === $componentStore.id) {
+				c.name = $componentStore.name
+				c.category = $componentStore.category
+				c.description = $componentStore.description
+				c.settings.driver = $componentStore.settings.driver
+				c.settings.target = $componentStore.settings.target
+			}
+		})
+		pipeline.components = pipeline.components
+	}
 
 	function saveComponent() {
-		if (editedComponent === undefined) {
+		if ($componentStore.id === -1) {
 			return
 		}
 
-		if (!editedComponent.target) {
-			const t: ToastSettings = {
-				message:
-					(editedComponent.driver === DUUIRemoteDriver
-						? 'Target'
-						: editedComponent.driver === DUUIUIMADriver
-						? 'Class Path'
-						: 'Image Name') + ' cannot be empty!',
-				timeout: 4000,
-				background: 'variant-filled-error'
-			}
-			exception = 'target'
-			getToastStore().trigger(t)
+		if (!$componentStore.name) {
+			invalidNameToast()
+			missing = true
+		}
+
+		if (!$componentStore.settings.target) {
+			invalidTargetToast($componentStore.settings.driver)
+			missing = true
+		}
+
+		if (missing) {
 			return
 		}
 
-		pipeline.components = [...pipeline.components, editedComponent]
+		if (pipeline.components.map((c) => c.id).includes($componentStore.id)) {
+			updateComponent()
+		} else {
+			pipeline.components = [...pipeline.components, { ...$componentStore }]
+		}
 
-		editedComponent = undefined
+		editing = false
 	}
 
 	function deleteComponent(event: CustomEvent<any>): void {
@@ -80,69 +93,67 @@
 				if (component.id !== event.detail.id) return component
 			}
 		)
+
+		editing = false
 	}
 
 	async function finalizePipeline() {
-		console.log(JSON.stringify(pipeline))
-
-		const result = await fetch('http://127.0.0.1:2605/pipelines', {
+		await fetch('/pipelines/api/create', {
 			method: 'POST',
-			mode: 'cors',
+			headers: {
+				'Content-Type': 'application/json'
+			},
 			body: JSON.stringify(pipeline)
 		})
-
-		const status = await result.json()
-		console.log(status)
-
-		if (status.message === 'success') {
-			goto('/pipelines/' + status.id)
-		}
+		goto('/pipelines')
 	}
 
 	let flipDurationMs = 300
 
-	let searchText: string = ''
-	let searchOpen: boolean = false
-	let filteredTemplates = templates
-	let editedComponent: DUUIPipelineComponent | undefined
+	const modalComponent: ModalComponent = {
+		ref: TemplateModal,
+		props: { components: templates }
+	}
 
-	$: {
-		if (searchText === '') {
-			filteredTemplates = templates
-		} else {
-			filteredTemplates = templates.filter((template) => {
-				if (template.name.toLowerCase().includes(searchText.toLowerCase())) {
-					return template
+	const modalStore = getModalStore()
+	function showTemplateModal() {
+		new Promise<DUUIPipelineComponent[]>((resolve) => {
+			const modal: ModalSettings = {
+				type: 'component',
+				component: modalComponent,
+				response: (components: DUUIPipelineComponent[]) => {
+					resolve(components)
 				}
+			}
+			modalStore.trigger(modal)
+		}).then((response: DUUIPipelineComponent[]) => {
+			if (!response) {
+				return
+			}
+			response.forEach((component) => {
+				const comp = { ...component }
+				comp.id = pipeline.components.length + 1
+				pipeline.components = [...pipeline.components, comp]
 			})
-		}
+		})
 	}
 </script>
 
 <div class="container h-full mx-auto">
-	<Stepper on:complete={finalizePipeline} class="max-w-7xl mx-auto">
-		<!-- <Step locked={pipeline.name === ''}>
-			<svelte:fragment slot="header">Choose a name for your Pipeline</svelte:fragment>
-			<label class="label">
-				<span>Name</span>
-				<input
-					bind:value={pipeline.name}
-					class="input focus-within:outline-primary-400"
-					type="text"
-				/>
-			</label>
-			<svelte:fragment slot="navigation">
-				<button class="btn variant-filled-error" on:click={() => goto('/pipelines')}>Cancel</button>
-			</svelte:fragment>
-		</Step> -->
-
+	<Stepper
+		on:complete={finalizePipeline}
+		class="max-w-7xl mx-auto"
+		active="rounded-full variant-filled px-4"
+		badge="rounded-full variant-filled-primary"
+	>
 		<Step locked={pipeline.components.length === 0}>
-			<svelte:fragment slot="header">{pipeline.name}</svelte:fragment>
-			<div class="grid grid-cols-3 gap-16">
+			<svelte:fragment slot="header">Build Components</svelte:fragment>
+			<div class="grid grid-cols-3 gap-4">
+				<!-- Component List -->
 				<aside class="variant-soft-surface p-4 space-y-4 self-start">
 					{#if pipeline.components.length === 0}
 						<div class="p-4 space-y-4 flex flex-col items-center justify-center">
-							<p>Start by adding a new Component</p>
+							<p class="h5">Start by adding a new Component</p>
 							<Fa size="3x" icon={faArrowRight} />
 						</div>
 					{:else}
@@ -157,70 +168,82 @@
 									class="flex items-center justify-start gap-4 card p-4"
 									animate:flip={{ duration: flipDurationMs }}
 								>
-									<DriverIcon driver={component.driver} />
+									<DriverIcon driver={component.settings.driver} />
 									<p>{component.name}</p>
-									{#if editedComponent?.id !== component.id}
-										<button
-											class="btn-icon pointer-events-auto variant-glass-primary ml-auto"
-											on:click={() => (editedComponent = component)}
-										>
-											<span>
-												<Fa size="md" icon={faEdit} />
-											</span>
-										</button>
-									{/if}
+									<button
+										class="btn-icon pointer-events-auto ml-auto"
+										on:click={() => {
+											if (editing && $componentStore.id === component.id) {
+												editing = false
+											} else {
+												editing = true
+												$componentStore = { ...component }
+											}
+										}}
+									>
+										<span>
+											<Fa size="lg" icon={faEdit} />
+										</span>
+									</button>
 								</div>
 							{/each}
 						</ul>
 					{/if}
 				</aside>
-				<div class="container h-full flex-col flex gap-4 col-span-2">
-					{#if editedComponent}
+
+				<!-- Component Editor -->
+				<div class="container h-full flex-col flex gap-4 col-span-2 justify-center">
+					{#if editing}
 						<ComponentBuilder
-							component={editedComponent}
-							{exception}
 							on:remove={deleteComponent}
-							on:save={saveComponent}
+							deleteButton={pipeline.components.map((c) => c.id).includes($componentStore.id)}
 						/>
 					{/if}
-					<!-- <ul
-						use:dndzone={{ items: pipeline.components, dropTargetStyle: {} }}
-						on:consider={(event) => handleDndConsider(event)}
-						on:finalize={(event) => handleDndFinalize(event)}
-						class="grid gap-4 self-stretch"
-					>
-						{#each pipeline.components as component (component.id)}
-							<div animate:flip={{ duration: flipDurationMs }}>
-								<ComponentBuilder {component} on:remove={deleteComponent} />
-							</div>
-						{/each}
-					</ul> -->
-					<div class="mx-auto">
-						{#if !editedComponent}
-							<button class="btn variant-ghost-primary" on:click={addComponent}>
+					{#if !editing}
+						<div class="mx-auto grid grid-cols-2 gap-4">
+							<button class="btn variant-filled-primary" on:click={editNewComponent}>
 								<span>New Component</span>
+								<Fa icon={faPlus} />
 							</button>
-						{/if}
-						{#if editedComponent}
-							<div class="mx-auto space-x-4 grid grid-cols-2">
-								<button class="btn variant-ghost-success" on:click={saveComponent}>
-									<span>Save Component</span>
-								</button>
-								<button
-									class="btn variant-ghost-error"
-									on:click={() => {
-										editedComponent = undefined
-										exception = ''
-									}}
-								>
-									<span>Cancel</span>
-								</button>
-							</div>
-						{/if}
-					</div>
+							<button class="btn variant-ghost-primary" on:click={showTemplateModal}>
+								<span>Choose template</span>
+								<Fa icon={faBookOpen} />
+							</button>
+						</div>
+					{:else}
+						<div class="mr-auto grid grid-cols-2 gap-4">
+							<button
+								class="btn variant-filled-success rounded-sm shadow-lg"
+								on:click={saveComponent}
+							>
+								<span>Save</span>
+							</button>
+							<button
+								class="btn variant-filled-error rounded-sm shadow-lg"
+								on:click={() => (editing = false)}
+							>
+								<span>Cancel</span>
+							</button>
+						</div>
+					{/if}
 				</div>
 			</div>
+			<svelte:fragment slot="navigation">
+				<button class="btn variant-filled-error" on:click={() => goto('/pipelines')}>Cancel</button>
+			</svelte:fragment>
 		</Step>
-		<!-- ... -->
+		<!-- Pipeline specific settings -->
+		<Step>
+			<svelte:fragment slot="header">Choose a name for your Pipeline</svelte:fragment>
+			<label class="label">
+				<span>Name</span>
+				<input
+					bind:value={pipeline.name}
+					class="input focus-within:outline-primary-400"
+					type="text"
+				/>
+			</label>
+		</Step>
+		<form bind:this={createForm} action="?/create" />
 	</Stepper>
 </div>

@@ -6,13 +6,10 @@ export const load: PageServerLoad = async ({ locals }) => {
 	return {
 		user: locals.user
 	}
-	if (locals.user) {
-		throw redirect(302, '/user/logout')
-	}
 }
 
 export const actions: Actions = {
-	async login({ cookies, request }) {
+	async login({ cookies, request, url }) {
 		const data = await request.formData()
 		const email = data.get('email')
 		const password = data.get('password')
@@ -22,7 +19,7 @@ export const actions: Actions = {
 				error: 'Invalid credentials.'
 			})
 		}
-
+		
 		const response = await fetch('http://127.0.0.1:2605/users/' + email, {
 			method: 'GET',
 			mode: 'cors'
@@ -60,6 +57,7 @@ export const actions: Actions = {
 			secure: process.env.NODE_ENV === 'production',
 			maxAge: 60 * 60 * 24 * 30
 		})
+		
 		throw redirect(302, '/pipelines')
 	},
 

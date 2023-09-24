@@ -1,5 +1,5 @@
 import type { DUUIPipelineComponent } from '$lib/data'
-import type { PageServerLoad } from './$types'
+import type { Actions, PageServerLoad } from './$types'
 
 export const load: PageServerLoad = async () => {
 	const loadComponentTemplates = async (): Promise<{ components: DUUIPipelineComponent[] }> => {
@@ -14,3 +14,4 @@ export const load: PageServerLoad = async () => {
 		templates: (await loadComponentTemplates()).components
 	}
 }
+

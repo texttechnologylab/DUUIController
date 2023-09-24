@@ -1,11 +1,7 @@
 <script lang="ts">
 	import '../app.postcss'
 	import Logo from '$lib/assets/Logo.png'
-	import {
-		AppShell,
-		AppBar,
-		LightSwitch,
-	} from '@skeletonlabs/skeleton'
+	import { AppShell, AppBar, LightSwitch } from '@skeletonlabs/skeleton'
 	import { Drawer, getDrawerStore } from '@skeletonlabs/skeleton'
 	import { Toast, type DrawerSettings } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
@@ -22,7 +18,9 @@
 	import { Modal } from '@skeletonlabs/skeleton'
 
 	initializeStores()
+
 	const drawerStore = getDrawerStore()
+	
 	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow })
 
 	const openDocsMenu = () => {
@@ -38,6 +36,8 @@
 	onNavigate(() => {
 		drawerStore.close()
 	})
+
+	export let data
 </script>
 
 <Modal />
@@ -81,7 +81,7 @@
 					<a
 						class="btn btn-sm hover:variant-ghost-primary rounded-sm"
 						href="/user/login"
-						rel="noreferrer">Login</a
+						rel="noreferrer">{data.user ? 'Logout' : 'Login'}</a
 					>
 				</div>
 				<LightSwitch rounded="rounded-full" />
