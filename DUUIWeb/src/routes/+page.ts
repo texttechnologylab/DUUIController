@@ -1,7 +1,7 @@
 import { faCopy, faUsers, faCircleNodes } from '@fortawesome/free-solid-svg-icons'
 import type { PageLoad } from './$types'
 
-export const load: PageLoad = async () => {
+export const load: PageLoad = () => {
 	return {
 		sections: [
 			{

@@ -12,7 +12,6 @@ import api.process.DUUIProcessController;
 import api.services.DUUIMongoService;
 import api.services.DUUIRequestValidator;
 import api.users.DUUIUserController;
-import com.mongodb.client.FindIterable;
 import com.sun.management.OperatingSystemMXBean;
 
 import java.io.*;
@@ -28,11 +27,13 @@ import java.util.stream.Collectors;
 
 import de.tudarmstadt.ukp.dkpro.core.tokit.BreakIteratorSegmenter;
 import org.bson.Document;
-import org.bson.types.ObjectId;
+import org.bson.json.JsonWriterSettings;
 import org.dkpro.core.io.xmi.XmiWriter;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.DUUIComposer;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.DUUIDropboxDataReader;
+
 import static org.texttechnologylab.DockerUnifiedUIMAInterface.io.AsyncCollectionReader.getFilesInDirectoryRecursive;
+
 import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.DUUIInputStream;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.DUUIUIMADriver;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.io.AsyncCollectionReader;
@@ -187,41 +188,57 @@ public class Application {
         }
 
 
-        get("/pipelines/:id",          DUUIPipelineController::findOne);
+        get("/pipelines/:id", DUUIPipelineController::findOneById);
         get("/pipelines/all/:user_id", DUUIPipelineController::findMany);
-        post("/pipelines",             DUUIPipelineController::insertOne);
-        put("/pipelines/:id",          DUUIPipelineController::replaceOne);
-        delete("/pipelines/:id",       DUUIPipelineController::deleteOne);
+        post("/pipelines", DUUIPipelineController::insertOne);
+        put("/pipelines/:id", DUUIPipelineController::replaceOne);
+        delete("/pipelines/:id", DUUIPipelineController::deleteOne);
 
-        get("/components/:id",         DUUIComponentController::findOne);
-        get("/components",             DUUIComponentController::findMany);
-        post("/components",            DUUIComponentController::insertOne);
-        put("/components/:id",         DUUIComponentController::replaceOne);
-        delete("/components/:id",      DUUIComponentController::deleteOne);
+        get("/components/:id", DUUIComponentController::findOne);
+        get("/components", DUUIComponentController::findMany);
+        post("/components", DUUIComponentController::insertOne);
+        put("/components/:id", DUUIComponentController::replaceOne);
+        delete("/components/:id", DUUIComponentController::deleteOne);
 
-        get("/processes/:id",          DUUIProcessController::findOne);
+        get("/processes/:id", DUUIProcessController::findOne);
         get("pipelines/:id/processes", DUUIProcessController::findMany);
-        get("/processes/:id/status",   DUUIProcessController::getStatus);
+        get("/processes/:id/status", DUUIProcessController::getStatus);
         get("/processes/:id/progress", DUUIProcessController::getProgress);
 
-        post("/processes",             DUUIProcessController::startProcess);
-        put("/processes/:id",          DUUIProcessController::stopProcess);
+        post("/processes", DUUIProcessController::startProcess);
+        put("/processes/:id", DUUIProcessController::stopProcess);
 
-        get("/users/:email",           DUUIUserController::findOneByEmail);
-        get("/users/auth/:token",      DUUIUserController::findOneByToken);
-        get("/users",                  DUUIUserController::findMany);
-        put("/users",                  DUUIUserController::updateOne);
-        post("/users",                 DUUIUserController::insertOne);
-        delete("/users/:id",           DUUIUserController::deleteOne);
+        get("/users/:email", DUUIUserController::findOneByEmail);
+        get("/users/auth/:token", DUUIUserController::findOneBySession);
+        put("/users", DUUIUserController::updateSession);
+        put("/users/email/:id", DUUIUserController::updateEmail);
+        post("/users", DUUIUserController::insertOne);
+        post("/users/recover-password", DUUIUserController::recoverPassword);
+        put("/users/reset-password", DUUIUserController::resetPassword);
+        delete("/users/:id", DUUIUserController::deleteOne);
 
-        post("/files", "multipart/form-data", ((request, response) -> {
+        post("/files/:folder", "multipart/form-data", ((request, response) -> {
             request.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement("/temp"));
+            String folder = request.params(":folder");
+            List<DUUIInputStream> streams = new ArrayList<>();
+
+            String path = "/temp/" + folder;
+
             for (Part part : request.raw().getParts()) {
-                System.out.println(part.getSubmittedFileName());
-                System.out.println(part.getSize());
-                System.out.println(part.getInputStream());
+                if (part.getSubmittedFileName() != null) {
+                    streams.add(new DUUIInputStream(
+                        part.getSubmittedFileName(),
+                        path,
+                        part.getSize(),
+                        new ByteArrayInputStream(part.getInputStream().readAllBytes())
+                    ));
+                }
             }
-            return "Danke";
+
+            DUUIDropboxDataReader dataReader = new DUUIDropboxDataReader("Cedric Test App");
+            dataReader.writeFiles(streams, path);
+
+            return new Document("path", path);
         }));
 
         post("/processes/dropbox", "application/json", ((request, response) -> {
@@ -271,7 +288,7 @@ public class Application {
                 return "No pipeline found for id <" + pipeline_id + ">";
             }
 
-            if (!DUUIUserController.validateSession(pipeline.getObjectId("user_id"), session)) {
+            if (!DUUIUserController.validateSession("user_id", session)) {
                 response.status(401);
                 return "Invalid session";
             }

@@ -2,10 +2,11 @@ import type { Handle } from '@sveltejs/kit'
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const session = event.cookies.get('session')
+
 	if (!session) {
 		return await resolve(event)
 	}
-	
+
 	let userResponse
 
 	try {
@@ -18,8 +19,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	const user = await userResponse.json()
-
-	if (Object.keys(user).length !== 0) {
+	if (userResponse.status === 200) {
 		event.locals.user = {
 			id: user.id,
 			email: user.email,

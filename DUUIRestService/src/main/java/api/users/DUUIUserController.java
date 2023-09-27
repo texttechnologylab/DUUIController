@@ -1,19 +1,20 @@
 package api.users;
 
-import static api.Application.queryIntElseDefault;
 import static api.services.DUUIMongoService.mapObjectIdToString;
+import static api.validation.UserValidator.*;
+import static api.validation.Validator.*;
 
 import api.responses.MissingRequiredFieldResponse;
 import api.services.DUUIMongoService;
-import com.mongodb.client.FindIterable;
+import api.validation.Role;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Updates;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+import java.util.UUID;
 
+import kotlin.NotImplementedError;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import spark.Request;
@@ -21,51 +22,72 @@ import spark.Response;
 
 public class DUUIUserController {
 
+    public static Document getDropboxCredentials(Document user) {
+        return DUUIMongoService
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("users")
+            .find(Filters.eq(user.getObjectId("_id")))
+            .projection(Projections.include("dbx_refresh_token", "dbx_access_token"))
+            .first();
+    }
+
+    public static Document getUserById(ObjectId id) {
+        return DUUIMongoService
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("users")
+            .find(Filters.eq(id))
+            .projection(Projections.include("_id", "role", "session"))
+            .first();
+    }
+
     public static Document getUserById(String id) {
         return DUUIMongoService
-                .getInstance()
-                .getDatabase("duui")
-                .getCollection("users")
-                .find(Filters.eq(new ObjectId(id)))
-                .first();
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("users")
+            .find(Filters.eq(new ObjectId(id)))
+            .projection(Projections.include("_id", "role", "session"))
+            .first();
     }
 
     public static Document getUserByEmail(String email) {
         return DUUIMongoService
-                .getInstance()
-                .getDatabase("duui")
-                .getCollection("users")
-                .find(Filters.eq("email", email))
-                .first();
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("users")
+            .find(Filters.eq("email", email))
+            .projection(Projections.include("_id", "role", "session"))
+            .first();
     }
 
     public static Document getUserBySession(String session) {
         return DUUIMongoService
-                .getInstance()
-                .getDatabase("duui")
-                .getCollection("users")
-                .find(Filters.eq("session", session))
-                .first();
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("users")
+            .find(Filters.eq("session", session))
+            .projection(Projections.include("_id", "role", "session"))
+            .first();
+    }
+
+    public static Document getUserByResetToken(String token) {
+        return DUUIMongoService
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("users")
+            .find(Filters.eq("password_reset_token", token))
+            .projection(Projections.include("_id", "email", "reset_token_expiration"))
+            .first();
     }
 
     public static String findOneById(Request request, Response response) {
-        String email = request.params(":email");
-        if (email == null) {
-            response.status(400);
-            return new MissingRequiredFieldResponse("email").toJson();
-        }
+        String session = request.headers("session");
+        if (!isAuthorized(session, Role.ADMIN)) return unauthorized(response);
 
-        Document user = DUUIMongoService
-                .getInstance()
-                .getDatabase("duui")
-                .getCollection("users")
-                .find(Filters.eq("email", email))
-                .first();
-
-        if (user == null) {
-            response.status(404);
-            return new Document().toJson();
-        }
+        Document user = getUserById(request.params(":id"));
+        if (user == null) return userNotFound(response);
 
         mapObjectIdToString(user);
         response.status(200);
@@ -73,191 +95,179 @@ public class DUUIUserController {
     }
 
     public static String findOneByEmail(Request request, Response response) {
-        String email = request.params(":email");
-        if (email == null) {
-            response.status(400);
-            return new MissingRequiredFieldResponse("email").toJson();
-        }
+        String session = request.headers("session");
+        if (!isAuthorized(session, Role.USER)) return unauthorized(response);
 
-        Document user = DUUIMongoService
-                .getInstance()
-                .getDatabase("duui")
-                .getCollection("users")
-                .find(Filters.eq("email", email))
-                .first();
-
-        if (user == null) {
-            response.status(404);
-            return new Document().toJson();
-        }
+        Document user = getUserByEmail(request.params(":email"));
+        if (user == null) return userNotFound(response);
 
         mapObjectIdToString(user);
         response.status(200);
         return user.toJson();
     }
 
-    public static String findOneByToken(Request request, Response response) {
-        String token = request.params(":token");
-        if (token == null) {
-            response.status(400);
-            return new MissingRequiredFieldResponse("token").toJson();
-        }
+    public static String findOneBySession(Request request, Response response) {
+        String session = request.headers("session");
+        if (!isAuthorized(session, Role.USER)) return unauthorized(response);
 
-        Document user = DUUIMongoService
-                .getInstance()
-                .getDatabase("duui")
-                .getCollection("users")
-                .find(Filters.eq("session", token))
-                .projection(Projections.include("email", "session", "role"))
-                .first();
+        Document user = getUserBySession(session);
+        if (user == null) return userNotFound(response);
 
-        if (user == null) {
-            response.status(404);
-            return new Document().toJson();
-        }
         mapObjectIdToString(user);
         response.status(200);
         return user.toJson();
-    }
-
-    public static String findMany(Request request, Response response) {
-        int limit = queryIntElseDefault(request, "limit", 0);
-        int offset = queryIntElseDefault(request, "offset", 0);
-
-        FindIterable<Document> users = DUUIMongoService
-                .getInstance()
-                .getDatabase("duui")
-                .getCollection("users")
-                .find();
-
-        if (limit != 0) {
-            users.limit(limit);
-        }
-
-        if (offset != 0) {
-            users.skip(offset);
-        }
-
-        List<Document> documents = new ArrayList<>();
-        users.into(documents);
-
-        documents.forEach(
-                (document -> {
-                    mapObjectIdToString(document);
-                }));
-
-        response.status(200);
-        return new Document("users", documents).toJson();
     }
 
     public static String insertOne(Request request, Response response) {
-        Document newUser = Document.parse(request.body());
+        Document body = Document.parse(request.body());
 
-        String email = newUser.getString("email");
-        if (email == null) {
-            response.status(400);
-            return new MissingRequiredFieldResponse("email").toJson();
-        }
+        String session = request.headers("session");
+        if (!isAuthorized(session, Role.USER)) return unauthorized(response);
 
-        String session = newUser.getString("session");
-        if (session == null) {
-            response.status(400);
-            return new MissingRequiredFieldResponse("session").toJson();
-        }
+        String email = body.getString("email");
+        if (email.isEmpty()) return missingField(response, "email");
 
-        String role = newUser.getString("role");
-        if (role == null) {
-            response.status(400);
-            return new MissingRequiredFieldResponse("role").toJson();
-        }
+        String password = body.getString("password");
+        if (password.isEmpty()) return missingField(response, "password");
 
-        String password = newUser.getString("password");
-        if (password == null) {
-            response.status(400);
-            return new MissingRequiredFieldResponse("password").toJson();
-        }
+        Document user = getUserByEmail(email);
+        if (user == null) return userNotFound(response);
 
-        Document user = new Document();
+        String role = body.getString("role");
 
-        user.put("email", email);
-        user.put("password", password);
-        user.put("createdAt", new Date().toInstant().toEpochMilli());
-        user.put("session", session);
-        user.put("role", role);
+        Document newUser = new Document("email", email)
+            .append("password", password)
+            .append("createdAt", new Date().toInstant().toEpochMilli())
+            .append("session", session)
+            .append("role", role.isEmpty() ? "user" : role);
+
+
+        DUUIMongoService
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("users")
+            .insertOne(newUser);
 
         response.status(200);
-        DUUIMongoService
-                .getInstance()
-                .getDatabase("duui")
-                .getCollection("users")
-                .insertOne(user);
-
-        return new Document("id", user.getObjectId("_id").toString()).toJson();
+        return getUserByEmail(email).toJson();
     }
 
     public static String deleteOne(Request request, Response response) {
-        String id = request.params(":id");
-        if (id == null) {
-            response.status(400);
-            return new MissingRequiredFieldResponse("id").toJson();
-        }
+        String session = request.headers("session");
+        if (!isAuthorized(session, Role.SYSTEM)) return unauthorized(response);
 
         DUUIMongoService
-                .getInstance()
-                .getDatabase("duui")
-                .getCollection("users")
-                .deleteOne(Filters.eq(new ObjectId(id)));
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("users")
+            .deleteOne(Filters.eq(new ObjectId(request.params(":id"))));
 
-        response.status(200);
-        return new Document("message", "User deleted.").toJson();
+        response.status(201);
+        return new Document("message", "Successfully deleted").toJson();
     }
 
-    public static String updateOne(Request request, Response response) {
-        Document newUser = Document.parse(request.body());
+    public static String updateEmail(Request request, Response response) {
+        String session = request.headers("session");
+        if (!isAuthorized(session, Role.SYSTEM)) return unauthorized(response);
 
-        String email = newUser.getString("email");
-        if (email == null) {
-            response.status(400);
-            return new MissingRequiredFieldResponse("email").toJson();
-        }
+        Document body = Document.parse(request.body());
 
-        String session = newUser.getString("session");
-        if (session == null) {
-            response.status(400);
-            return new MissingRequiredFieldResponse("session").toJson();
-        }
+        String email = body.getString("email");
+        if (email.isEmpty()) return missingField(response, "email");
 
-        response.status(200);
         DUUIMongoService
-                .getInstance()
-                .getDatabase("duui")
-                .getCollection("users")
-                .findOneAndUpdate(
-                        Filters.eq("email", email),
-                        Updates.set("session", session));
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("users")
+            .findOneAndUpdate(
+                Filters.eq("_id", new ObjectId(request.params(":id"))),
+                Updates.set("email", email));
 
-        return new Document("session", session).toJson();
+        return updateSuccess(response, "email");
     }
 
-    public static Document getUserById(ObjectId id) {
-        return DUUIMongoService
-                .getInstance()
-                .getDatabase("duui")
-                .getCollection("users")
-                .find(Filters.eq(id))
-                .first();
+    public static String updateSession(Request request, Response response) {
+        Document body = Document.parse(request.body());
+
+        String email = body.getString("email");
+        if (email.isEmpty()) return missingField(response, "email");
+
+        String session = body.getString("session");
+        if (session.isEmpty()) return missingField(response, "session");
+
+        DUUIMongoService
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("users")
+            .findOneAndUpdate(
+                Filters.eq("email", email),
+                Updates.set("session", session));
+
+        return updateSuccess(response, "session");
     }
 
-    public static boolean validateSession(ObjectId userId, String session) {
+    public static String recoverPassword(Request request, Response response) {
+        String session = request.headers("session");
+        if (!isAuthorized(session, Role.SYSTEM)) return unauthorized(response);
 
-        Document user = DUUIMongoService
-                .getInstance()
-                .getDatabase("duui")
-                .getCollection("users")
-                .find(Filters.eq(userId))
-                .projection(Projections.include("session"))
-                .first();
+        Document body = Document.parse(request.body());
+        String email = body.getString("email");
+        if (email.isEmpty()) return missingField(response, "email");
 
+        String passwordResetToken = UUID.randomUUID().toString();
+        long expiresAt = System.currentTimeMillis() + 60 * 30 * 1000; // 30 Minutes
+
+        DUUIMongoService
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("users")
+            .findOneAndUpdate(Filters.eq("email", email),
+                Updates.combine(
+                    Updates.set("password_reset_token", passwordResetToken),
+                    Updates.set("reset_token_expiration", expiresAt)));
+
+        sendPasswordResetEmail(email, passwordResetToken);
+        response.status(200);
+        return new Document("message", "Email has been sent.").toJson();
+    }
+
+    private static void sendPasswordResetEmail(String email, String passwordResetToken) {
+        throw new NotImplementedError(); // TODO
+    }
+
+    public static String resetPassword(Request request, Response response) {
+        Document body = Document.parse(request.body());
+
+        String password = body.getString("password");
+        if (password.isEmpty()) return missingField(response, password);
+
+        String token = body.getString("password_reset_token");
+        if (token.isEmpty()) return unauthorized(response);
+
+        Document user = getUserByResetToken(token);
+        if (user.isEmpty()) return userNotFound(response);
+
+        long expiresAt = user.getLong("reset_token_expiration");
+        if (expiresAt > System.currentTimeMillis()) return expired(response);
+
+        DUUIMongoService
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("users")
+            .findOneAndUpdate(
+                Filters.eq(user.getObjectId("_id")),
+                Updates.combine(
+                    Updates.set("password", password),
+                    Updates.set("password_reset_token", null),
+                    Updates.set("reset_token_expiration", null)
+                ));
+
+        return new Document("message", "Password has been updated")
+            .append("email", user.getString("email")).toJson();
+    }
+
+    public static boolean validateSession(String id, String session) {
+        Document user = getUserById(id);
         return user != null && user.getString("session").equals(session);
     }
 }

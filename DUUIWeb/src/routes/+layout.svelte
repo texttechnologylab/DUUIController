@@ -20,7 +20,7 @@
 	initializeStores()
 
 	const drawerStore = getDrawerStore()
-	
+
 	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow })
 
 	const openDocsMenu = () => {

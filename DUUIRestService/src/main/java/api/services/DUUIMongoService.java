@@ -25,12 +25,12 @@ public class DUUIMongoService {
   public static String getConnectionURI() {
     return "mongodb+srv://<user>:<password>@testcluster.727ylpr.mongodb.net/".replace(
         "<user>",
-        user
-      )
-      .replace("<password>", pass);
+        user)
+        .replace("<password>", pass);
   }
 
-  private DUUIMongoService() {}
+  private DUUIMongoService() {
+  }
 
   public static MongoClient getInstance() {
     if (mongoClient == null) {
