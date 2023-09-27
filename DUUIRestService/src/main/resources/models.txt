@@ -28,13 +28,15 @@ Process
     startedAt:  Long
     finishedAt: Long
     input: {
-        source: String         | DropBox, Folder, PlainText
-        path:   String         | DropBox Folder, Local Folder, TextField
-        text:   String         | DropBox Folder, Local Folder, TextField
+        source:    String         | DropBox Folder, S3 Bucket, Local Files, TextField
+        path:      String
+        text:      String
+        extension: String
     },
     output: {
-        type: String
-        path: String
+        type:        String
+        path:        String
+        compression: String
     },
     pipeline_id: ObjectId
 }

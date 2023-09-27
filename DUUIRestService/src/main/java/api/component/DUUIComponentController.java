@@ -3,9 +3,9 @@ package api.component;
 import static api.Application.queryIntElseDefault;
 import static api.services.DUUIMongoService.mapObjectIdToString;
 
-import api.Responses.DuplicateKeyResponse;
-import api.Responses.MissingRequiredFieldResponse;
-import api.Responses.NotFoundResponse;
+import api.responses.DuplicateKeyResponse;
+import api.responses.MissingRequiredFieldResponse;
+import api.responses.NotFoundResponse;
 import api.services.DUUIMongoService;
 
 import com.mongodb.MongoWriteException;

@@ -1,4 +1,4 @@
-package api.Responses;
+package api.responses;
 
 public class NotFoundResponse extends StandardResponse {
 

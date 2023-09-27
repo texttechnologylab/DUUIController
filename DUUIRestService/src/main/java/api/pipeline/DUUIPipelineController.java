@@ -3,73 +3,38 @@ package api.pipeline;
 import static api.Application.queryIntElseDefault;
 import static api.services.DUUIMongoService.mapObjectIdToString;
 
-import api.Responses.MissingRequiredFieldResponse;
-import api.Responses.NotFoundResponse;
+import api.responses.MissingRequiredFieldResponse;
 import api.services.DUUIMongoService;
 import api.users.DUUIUserController;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
-
 import java.util.*;
-
-import com.mongodb.client.model.Projections;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import spark.Request;
 import spark.Response;
 
-import javax.print.Doc;
-
 public class DUUIPipelineController {
 
-    public static String insertOne(Request request, Response response) {
-        Document newPipeline = Document.parse(request.body());
+    public static Document getPipelineById(String pipeline_id) {
+        return DUUIMongoService
+                .getInstance()
+                .getDatabase("duui")
+                .getCollection("pipelines")
+                .find(Filters.eq(new ObjectId(pipeline_id)))
+                .first();
+    }
 
-        String name = newPipeline.getString("name");
-        if (name == null) {
-            response.status(400);
-            return new MissingRequiredFieldResponse("name").toJson();
-        }
-
-        Object components = newPipeline.get("components");
-        if (components == null) {
-            response.status(400);
-            return new MissingRequiredFieldResponse("components").toJson();
-        }
-
-        String session = request.headers("session");
-
-        Document user = DUUIMongoService
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("users")
-            .find(Filters.eq("session", session))
-            .projection(Projections.include("_id"))
-            .first();
-
-        if (user == null) {
-            response.status(403);
-            return new Document("message", "Unauthorized").toJson();
-        }
-        Document pipeline = new Document();
-
-        pipeline.put("name", name);
-        pipeline.put("components", components);
-        pipeline.put("createdAt", new Date().toInstant().toEpochMilli());
-        pipeline.put("isNew", true);
-        pipeline.put("user_id", user.getObjectId("_id"));
-
-        response.status(200);
-        DUUIMongoService
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("pipelines")
-            .insertOne(pipeline);
-
-        return new Document("id", pipeline.getObjectId("_id").toString()).toJson();
+    public static FindIterable<Document> getPipelinesByUser(Document user) {
+        return DUUIMongoService
+                .getInstance()
+                .getDatabase("duui")
+                .getCollection("pipelines")
+                .find(Filters.eq("user_id", user.getObjectId("_id")));
     }
 
     public static String findOne(Request request, Response response) {
+        String session = request.headers("session");
 
         String id = request.params(":id");
         if (id == null) {
@@ -77,35 +42,13 @@ public class DUUIPipelineController {
             return new MissingRequiredFieldResponse("id").toJson();
         }
 
-        Document pipeline = DUUIMongoService
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("pipelines")
-            .find(Filters.eq(new ObjectId(id)))
-            .first();
+        Document pipeline = getPipelineById(id);
 
-        if (pipeline == null) {
-            response.status(404);
-            return new NotFoundResponse("No pipeline found for id <" + id + ">")
-                .toJson();
-        }
-
-        Document user = DUUIMongoService
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("users")
-            .find(Filters.eq(pipeline.get("user_id", ObjectId.class)))
-            .first();
-
-        if (user == null) {
-            response.status(404);
-            return new NotFoundResponse("No pipeline found for id <" + id + ">")
-                .toJson();
-        }
-
-        if (!user.getString("session").equals(request.headers("session"))) {
+        if (!DUUIUserController.validateSession(
+                pipeline.getObjectId("user_id"),
+                session)) {
             response.status(401);
-            return new Document("message", "Unauthorized").toJson();
+            return "Invalid session";
         }
 
         mapObjectIdToString(pipeline);
@@ -114,22 +57,22 @@ public class DUUIPipelineController {
     }
 
     public static String findMany(Request request, Response response) {
-        String userId = request.params(":user_id");
-        if (userId == null) {
-            response.status(400);
-            return new MissingRequiredFieldResponse("user_id").toJson();
-        }
+        String session = request.headers("session");
+        Document user = DUUIUserController.getUserBySession(session);
 
+        if (!DUUIUserController.validateSession(user.getObjectId("_id"), session)) {
+            response.status(401);
+            return "Invalid session";
+        }
 
         int limit = queryIntElseDefault(request, "limit", 0);
         int offset = queryIntElseDefault(request, "offset", 0);
 
         FindIterable<Document> pipelines = DUUIMongoService
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("pipelines")
-            .find(Filters.eq("user_id", new ObjectId(userId)));
-
+                .getInstance()
+                .getDatabase("duui")
+                .getCollection("pipelines")
+                .find(Filters.eq("user_id", user.getObjectId("_id")));
 
         if (limit != 0) {
             pipelines.limit(limit);
@@ -142,14 +85,56 @@ public class DUUIPipelineController {
         List<Document> documents = new ArrayList<>();
         pipelines.into(documents);
 
-        documents.forEach(
-            (
-                DUUIMongoService::mapObjectIdToString
-            )
-        );
+        documents.forEach((DUUIMongoService::mapObjectIdToString));
 
         response.status(200);
         return new Document("pipelines", documents).toJson();
+    }
+
+    public static String insertOne(Request request, Response response) {
+        Document body = Document.parse(request.body());
+
+        String name = body.getString("name");
+        if (name.isEmpty()) {
+            response.status(400);
+            return new MissingRequiredFieldResponse("name").toJson();
+        }
+
+        Document components = body.get("components", Document.class);
+        if (components.isEmpty()) {
+            response.status(400);
+            return new MissingRequiredFieldResponse("components").toJson();
+        }
+
+        String session = request.headers("session");
+        if (session.isEmpty()) {
+            response.status(401);
+            return new Document("message", "Missing authorization header.").toJson();
+        }
+
+        Document user = DUUIUserController.getUserBySession(session);
+        if (user.isEmpty()) {
+            response.status(401);
+            return new Document("message", "Unauthorized").toJson();
+        }
+
+        Document pipeline = new Document();
+
+        pipeline.put("name", name);
+        pipeline.put("description", body.getString("description"));
+        pipeline.put("createdAt", new Date().toInstant().toEpochMilli());
+        pipeline.put("isNew", true);
+        pipeline.put("components", components);
+        pipeline.put("user_id", user.getObjectId("_id"));
+
+        DUUIMongoService
+                .getInstance()
+                .getDatabase("duui")
+                .getCollection("pipelines")
+                .insertOne(pipeline);
+
+        response.status(201);
+        return pipeline.toJson();
     }
 
     public static String replaceOne(Request request, Response response) {
@@ -162,58 +147,57 @@ public class DUUIPipelineController {
         Document updatedPipeline = Document.parse(request.body());
         updatedPipeline.remove("id");
 
-        Document user = DUUIMongoService
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("users")
-            .find(Filters.eq("_id", updatedPipeline.getObjectId("user_id")))
-            .first();
+        String session = request.headers("session");
 
-        if (user == null) {
+        if (!DUUIUserController.validateSession(
+                updatedPipeline.getObjectId("user_id"),
+                session)) {
             response.status(401);
-            return new Document("message", "Unauthorized").toJson();
+            return "Invalid session";
         }
-
-        if (!user.getString("session").equals(request.headers("session"))) {
-            response.status(401);
-            return new Document("message", "Unauthorized").toJson();
-        }
-
 
         DUUIMongoService
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("pipelines")
-            .replaceOne(Filters.eq(new ObjectId(id)), updatedPipeline);
+                .getInstance()
+                .getDatabase("duui")
+                .getCollection("pipelines")
+                .replaceOne(Filters.eq(new ObjectId(id)), updatedPipeline);
 
         response.status(200);
         return new Document("id", id).toJson();
     }
 
     public static String deleteOne(Request request, Response response) {
+        String session = request.headers("session");
+        if (session.isEmpty()) {
+            response.status(401);
+            return new Document("message", "Missing authorization header.").toJson();
+        }
+
         String id = request.params(":id");
         if (id == null) {
             response.status(400);
             return new MissingRequiredFieldResponse("id").toJson();
         }
 
+        Document pipeline = getPipelineById(id);
+        Document user = DUUIUserController.getUserBySession(session);
+        if (!pipeline.getObjectId("user_id").equals(user.getObjectId("_id"))) {
+            response.status(401);
+            return new Document("message", "Unauthorized").toJson();
+        }
+
         DUUIMongoService
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("pipelines")
-            .deleteOne(Filters.eq(new ObjectId(id)));
+                .getInstance()
+                .getDatabase("duui")
+                .getCollection("pipelines")
+                .deleteOne(Filters.eq(new ObjectId(id)));
 
-        response.status(200);
-        return new Document("message", "Pipeline deleted.").toJson();
+        response.status(204);
+        return new Document().toJson();
     }
 
-    public static Document getPipelineById(ObjectId id) {
-        return DUUIMongoService
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("pipelines")
-            .find(Filters.eq(id))
-            .first();
+    public static void main(String[] args) {
+        Document user = DUUIUserController.getUserByEmail("cedric@borkoland.de");
+        getPipelinesByUser(user).forEach(System.out::println);
     }
-
 }

@@ -31,10 +31,12 @@ export interface DUUIProcess {
 		source: DUUIDocumentSource
 		path?: string
 		text?: string
+		extension: string
 	}
 	output: {
 		type: DUUIDocumentOutput
 		path: string
+		compression: string
 	}
 	options: Map<string, string>
 	pipeline_id: string
@@ -131,11 +133,13 @@ export const blankProcess = (pipeline_id: string) =>
 		input: {
 			source: DUUIDocumentSource.Text,
 			path: '',
-			text: ''
+			text: '',
+			extension: ''
 		},
 		output: {
 			type: DUUIDocumentOutput.None,
-			path: ''
+			path: '',
+			compression: ''
 		},
 		options: new Map<string, string>(),
 		pipeline_id: pipeline_id

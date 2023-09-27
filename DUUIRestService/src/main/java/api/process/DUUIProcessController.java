@@ -4,8 +4,8 @@ import static api.Application.queryIntElseDefault;
 import static api.services.DUUIMongoService.mapObjectIdToString;
 
 import api.Application;
-import api.Responses.MissingRequiredFieldResponse;
-import api.Responses.NotFoundResponse;
+import api.responses.MissingRequiredFieldResponse;
+import api.responses.NotFoundResponse;
 import api.services.DUUIMongoService;
 import api.services.DUUIRequestValidator;
 import com.mongodb.client.FindIterable;

@@ -3,7 +3,7 @@ package api.users;
 import static api.Application.queryIntElseDefault;
 import static api.services.DUUIMongoService.mapObjectIdToString;
 
-import api.Responses.MissingRequiredFieldResponse;
+import api.responses.MissingRequiredFieldResponse;
 import api.services.DUUIMongoService;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
@@ -14,13 +14,39 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.bouncycastle.cert.ocsp.Req;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import spark.Request;
 import spark.Response;
 
 public class DUUIUserController {
+
+    public static Document getUserById(String id) {
+        return DUUIMongoService
+                .getInstance()
+                .getDatabase("duui")
+                .getCollection("users")
+                .find(Filters.eq(new ObjectId(id)))
+                .first();
+    }
+
+    public static Document getUserByEmail(String email) {
+        return DUUIMongoService
+                .getInstance()
+                .getDatabase("duui")
+                .getCollection("users")
+                .find(Filters.eq("email", email))
+                .first();
+    }
+
+    public static Document getUserBySession(String session) {
+        return DUUIMongoService
+                .getInstance()
+                .getDatabase("duui")
+                .getCollection("users")
+                .find(Filters.eq("session", session))
+                .first();
+    }
 
     public static String findOneById(Request request, Response response) {
         String email = request.params(":email");
@@ -30,11 +56,11 @@ public class DUUIUserController {
         }
 
         Document user = DUUIMongoService
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("users")
-            .find(Filters.eq("email", email))
-            .first();
+                .getInstance()
+                .getDatabase("duui")
+                .getCollection("users")
+                .find(Filters.eq("email", email))
+                .first();
 
         if (user == null) {
             response.status(404);
@@ -54,11 +80,11 @@ public class DUUIUserController {
         }
 
         Document user = DUUIMongoService
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("users")
-            .find(Filters.eq("email", email))
-            .first();
+                .getInstance()
+                .getDatabase("duui")
+                .getCollection("users")
+                .find(Filters.eq("email", email))
+                .first();
 
         if (user == null) {
             response.status(404);
@@ -78,12 +104,12 @@ public class DUUIUserController {
         }
 
         Document user = DUUIMongoService
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("users")
-            .find(Filters.eq("session", token))
-            .projection(Projections.include("email", "session", "role"))
-            .first();
+                .getInstance()
+                .getDatabase("duui")
+                .getCollection("users")
+                .find(Filters.eq("session", token))
+                .projection(Projections.include("email", "session", "role"))
+                .first();
 
         if (user == null) {
             response.status(404);
@@ -99,10 +125,10 @@ public class DUUIUserController {
         int offset = queryIntElseDefault(request, "offset", 0);
 
         FindIterable<Document> users = DUUIMongoService
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("users")
-            .find();
+                .getInstance()
+                .getDatabase("duui")
+                .getCollection("users")
+                .find();
 
         if (limit != 0) {
             users.limit(limit);
@@ -116,12 +142,9 @@ public class DUUIUserController {
         users.into(documents);
 
         documents.forEach(
-            (
-                document -> {
+                (document -> {
                     mapObjectIdToString(document);
-                }
-            )
-        );
+                }));
 
         response.status(200);
         return new Document("users", documents).toJson();
@@ -164,10 +187,10 @@ public class DUUIUserController {
 
         response.status(200);
         DUUIMongoService
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("users")
-            .insertOne(user);
+                .getInstance()
+                .getDatabase("duui")
+                .getCollection("users")
+                .insertOne(user);
 
         return new Document("id", user.getObjectId("_id").toString()).toJson();
     }
@@ -180,10 +203,10 @@ public class DUUIUserController {
         }
 
         DUUIMongoService
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("users")
-            .deleteOne(Filters.eq(new ObjectId(id)));
+                .getInstance()
+                .getDatabase("duui")
+                .getCollection("users")
+                .deleteOne(Filters.eq(new ObjectId(id)));
 
         response.status(200);
         return new Document("message", "User deleted.").toJson();
@@ -206,34 +229,34 @@ public class DUUIUserController {
 
         response.status(200);
         DUUIMongoService
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("users")
-            .findOneAndUpdate(
-                Filters.eq("email", email),
-                Updates.set("session", session)
-            );
+                .getInstance()
+                .getDatabase("duui")
+                .getCollection("users")
+                .findOneAndUpdate(
+                        Filters.eq("email", email),
+                        Updates.set("session", session));
 
         return new Document("session", session).toJson();
     }
 
     public static Document getUserById(ObjectId id) {
         return DUUIMongoService
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("users")
-            .find(Filters.eq(id))
-            .first();
+                .getInstance()
+                .getDatabase("duui")
+                .getCollection("users")
+                .find(Filters.eq(id))
+                .first();
     }
 
     public static boolean validateSession(ObjectId userId, String session) {
+
         Document user = DUUIMongoService
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("users")
-            .find(Filters.eq(userId))
-            .projection(Projections.include("session"))
-            .first();
+                .getInstance()
+                .getDatabase("duui")
+                .getCollection("users")
+                .find(Filters.eq(userId))
+                .projection(Projections.include("session"))
+                .first();
 
         return user != null && user.getString("session").equals(session);
     }
