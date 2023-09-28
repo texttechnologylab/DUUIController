@@ -181,7 +181,7 @@ public class DUUIProcess extends Thread {
                 DUUIUIMADriver.Component component = new DUUIUIMADriver.Component(
                     AnalysisEngineFactory.createEngineDescription(
                         XmiWriter.class,
-                        XmiWriter.PARAM_TARGET_LOCATION, outputPath,
+                        XmiWriter.PARAM_TARGET_LOCATION, "tmp/duui/" + outputPath,
                         XmiWriter.PARAM_PRETTY_PRINT, true,
                         XmiWriter.PARAM_OVERWRITE, true,
                         XmiWriter.PARAM_VERSION, "1.1",
@@ -215,7 +215,8 @@ public class DUUIProcess extends Thread {
                 String outputExtension = output.getString("extension");
 
                 if (dataReader != null && outputType.equals(inputSource)) {
-                    List<DUUIInputStream> streams = getFilesInDirectoryRecursive(outputPath);
+                    DUUIProcessController.setStatus(id, "output");
+                    List<DUUIInputStream> streams = getFilesInDirectoryRecursive("tmp/duui/" + outputPath);
                     dataReader.writeFiles(streams, outputPath);
                 }
             }
@@ -228,6 +229,7 @@ public class DUUIProcess extends Thread {
             Application.metrics.get("failed_processes").incrementAndGet();
 
         } finally {
+            DUUIProcessController.setFinishTime(id, new Date().toInstant().toEpochMilli());
             Application.metrics.get("active_processes").decrementAndGet();
             progressTracker.cancel(true);
         }

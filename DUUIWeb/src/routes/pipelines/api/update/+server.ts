@@ -5,7 +5,7 @@ export async function POST({ request, cookies }) {
 		mode: 'cors',
 		body: JSON.stringify(data),
 		headers: {
-			session: cookies.get('session')
+			session: cookies.get('session') || ''
 		}
 	})
 

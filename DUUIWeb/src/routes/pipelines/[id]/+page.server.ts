@@ -7,26 +7,29 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 			method: 'GET',
 			mode: 'cors',
 			headers: {
-				session: cookies.get('session')
+				session: cookies.get('session') || ''
 			}
 		})
 		return await result.json()
 	}
 
-	const loadProcesses = async (): Promise<{ processes: DUUIProcess[] }> => {
-		const result = await fetch('http://127.0.0.1:2605/pipelines/' + params.id + '/processes', {
-			method: 'GET',
-			mode: 'cors',
-			headers: {
-				session: cookies.get('session')
+	const loadProcesses = async (): Promise<DUUIProcess[]> => {
+		const result = await fetch(
+			'http://127.0.0.1:2605/pipelines/' + params.id + '/processes?limit=10',
+			{
+				method: 'GET',
+				mode: 'cors',
+				headers: {
+					session: cookies.get('session') || ''
+				}
 			}
-		})
-		return await result.json()
+		)
+		return (await result.json()).processes
 	}
 
 	return {
 		pipeline: loadPipeline(),
-		processes: (await loadProcesses()).processes
+		processes: loadProcesses()
 	}
 }
 
@@ -38,7 +41,7 @@ export const actions: Actions = {
 			method: 'DELETE',
 			mode: 'cors',
 			headers: {
-				session: cookies.get('session')
+				session: cookies.get('session') || ''
 			}
 		})
 

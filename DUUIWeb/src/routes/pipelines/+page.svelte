@@ -1,15 +1,6 @@
 <script lang="ts">
 	import { componentsStore } from '$lib/store.js'
-	import {
-		faBell,
-		faEdit,
-		faFilter,
-		faFolderPlus,
-		faNewspaper,
-		faPlus,
-		faRemove,
-		faSearch
-	} from '@fortawesome/free-solid-svg-icons'
+	import { faEdit, faPlus, faSearch } from '@fortawesome/free-solid-svg-icons'
 
 	import Fa from 'svelte-fa'
 

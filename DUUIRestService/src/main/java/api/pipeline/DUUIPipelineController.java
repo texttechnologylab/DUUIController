@@ -96,7 +96,7 @@ public class DUUIPipelineController {
             return new MissingRequiredFieldResponse("name").toJson();
         }
 
-        Document components = body.get("components", Document.class);
+        List<Document> components = body.get("components", ArrayList.class);
         if (components.isEmpty()) {
             response.status(400);
             return new MissingRequiredFieldResponse("components").toJson();

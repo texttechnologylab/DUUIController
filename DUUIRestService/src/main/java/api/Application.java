@@ -209,7 +209,7 @@ public class Application {
         put("/processes/:id", DUUIProcessController::stopProcess);
 
         get("/users/:email", DUUIUserController::findOneByEmail);
-        get("/users/auth/:token", DUUIUserController::findOneBySession);
+        get("/users/auth/:session", DUUIUserController::findOneBySession);
         put("/users", DUUIUserController::updateSession);
         put("/users/email/:id", DUUIUserController::updateEmail);
         post("/users", DUUIUserController::insertOne);

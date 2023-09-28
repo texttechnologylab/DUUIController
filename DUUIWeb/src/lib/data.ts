@@ -55,11 +55,12 @@ export const DUUIDrivers: string[] = [
 ]
 
 export enum DUUIStatus {
+	Setup = 'setup',
+	Running = 'running',
+	Output = "output",
+	Failed = 'failed',
 	Cancelled = 'cancelled',
 	Completed = 'completed',
-	Failed = 'failed',
-	Running = 'running',
-	Setup = 'setup',
 	Unknown = 'unknown'
 }
 
@@ -113,9 +114,9 @@ export const blankPipeline = () =>
 export const blankComponent = (id: number) =>
 	<DUUIPipelineComponent>{
 		id: id,
-		name: 'New Component',
+		name: '',
 		category: '',
-		description: 'My new Component for...',
+		description: '',
 		settings: {
 			driver: DUUIDockerDriver,
 			target: '',

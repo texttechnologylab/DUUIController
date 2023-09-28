@@ -1,22 +1,14 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import PipelineComponent from '$lib/components/PipelineComponent.svelte'
+	import { blankComponent, DUUIStatus, type DUUIPipelineComponent } from '$lib/data'
+	import { faArrowLeft, faCog, faRocket } from '@fortawesome/free-solid-svg-icons'
 	import {
-		blankComponent,
-		DUUIStatus,
-		type DUUIPipelineComponent,
-		DUUIDocumentSource,
-		DUUIDocumentOutput
-	} from '$lib/data'
-	import { faAdd, faArrowLeft, faCancel, faCog, faRocket } from '@fortawesome/free-solid-svg-icons'
-	import {
-		ProgressRadial,
 		type ModalSettings,
 		getModalStore,
 		tableMapperValues,
 		Table
 	} from '@skeletonlabs/skeleton'
-	import { onMount } from 'svelte'
 	import { dndzone, type DndEvent } from 'svelte-dnd-action'
 	import Fa from 'svelte-fa'
 	import { flip } from 'svelte/animate'
@@ -29,26 +21,31 @@
 	export let data: PageServerData
 	let { pipeline, processes } = data
 
-	let building: boolean = false
-	let exception: string
-
 	let status: string = DUUIStatus.Unknown
 	let progress: number = 0
-	let process_id: string
-	let tableSource = processes.map((process, index, array) => {
+	let tableSource = processes.map((process, index, _) => {
 		return {
 			positon: index,
 			status: toTitleCase(process.status),
 			progress: (process.progress / pipeline.components.length) * 100 + ' %',
 			startedAt: process.startedAt ? toDateTimeString(new Date(process.startedAt)) : '',
-			duration: getDuration(process),
+			duration: getDuration(process) + 's',
+			input: toTitleCase(process.input.source),
+			output: toTitleCase(process.output.type),
 			process: process
 		}
 	})
 
 	let tableData: TableSource = {
-		head: ['Status', 'Progress', 'Start Time', 'Duration'],
-		body: tableMapperValues(tableSource, ['status', 'progress', 'startedAt', 'duration']),
+		head: ['Status', 'Start Time', 'Duration', 'Data source', 'Data output', 'Progress'],
+		body: tableMapperValues(tableSource, [
+			'status',
+			'startedAt',
+			'duration',
+			'input',
+			'output',
+			'progress'
+		]),
 		meta: tableMapperValues(tableSource, ['process'])
 	}
 
@@ -57,6 +54,7 @@
 	// let runningProcesses: number = processes.filter((process) => process.status === DUUIStatus.Running).length;
 
 	let flipDurationMs = 300
+	const toastStore = getToastStore();
 
 	function handleDndConsider(event: CustomEvent<DndEvent<DUUIPipelineComponent>>) {
 		pipeline.components = event.detail.items
@@ -68,152 +66,34 @@
 		pipeline.components = [...pipeline.components]
 	}
 
-	onMount(() => {
-		async function checkStatus() {
-			if (process_id === undefined || status === DUUIStatus.Completed) {
-				return
-			}
-
-			const response = await fetch('http://127.0.0.1:2605/processes/' + process_id, {
-				method: 'GET',
-				mode: 'cors'
-			})
-
-			const process = await response.json()
-			status = process.status
-			progress = process.progress
-			building = process.status === DUUIStatus.Setup
-
-			if (process.status !== DUUIStatus.Running || process.status !== DUUIStatus.Setup) {
-				clearInterval(interval)
-				processes = [...processes, process]
-				tableSource = processes.map((process, index, array) => {
-					return {
-						positon: index,
-						status: toTitleCase(process.status),
-						progress: (process.progress / pipeline.components.length) * 100 + ' %',
-						startedAt: process.startedAt ? toDateTimeString(new Date(process.startedAt)) : '',
-						duration: getDuration(process),
-						process: process
-					}
-				})
-				tableSource = tableSource
-				tableData = {
-					head: ['Status', 'Progress', 'Start Time', 'Duration'],
-					body: tableMapperValues(tableSource, ['status', 'progress', 'startedAt', 'duration']),
-					meta: tableMapperValues(tableSource, ['process'])
-				}
-			}
-		}
-
-		const interval = setInterval(checkStatus, 2000)
-		checkStatus()
-
-		return () => clearInterval(interval)
-	})
-
 	pipeline.components.forEach((component: DUUIPipelineComponent) => {
 		component.id = pipeline.components.indexOf(component)
 	})
 
-	function deleteComponent(event: CustomEvent<any>): void {
+	async function deleteComponent(event: CustomEvent<any>): Promise<void> {
 		pipeline.components = pipeline.components.filter(
 			(component: DUUIPipelineComponent, index: number, array: DUUIPipelineComponent[]) => {
 				if (component.id !== event.detail.id) return component
 			}
 		)
 
-		fetch('http://127.0.0.1:2605/pipelines', {
-			method: 'PUT',
-			mode: 'cors',
-			body: JSON.stringify(pipeline)
-		})
-	}
-
-	async function updatePipeline() {
-		const response = await fetch('http://127.0.0.1:2605/pipelines', {
-			method: 'PUT',
-			mode: 'cors',
-			body: JSON.stringify(pipeline)
-		})
-
-		const message = await response.json()
-		if (message.message === 'success') {
-			const t: ToastSettings = {
-				message: 'Changes saved successfully',
-				timeout: 4000,
-				background: 'variant-filled-surface'
-			}
-			getToastStore().trigger(t)
-		}
-	}
-
-	async function runPipeline() {
-		building = true
-
-		const jresult = await fetch('http://127.0.0.1:2605/processes', {
+		let response = await fetch('/pipelines/api/update', {
 			method: 'POST',
-			mode: 'cors',
-			body: JSON.stringify({
-				pipeline_id: pipeline.id,
-				input: {
-					source: DUUIDocumentSource.None,
-					text: 'Das ist ein Testsatz'
-				},
-				output: {
-					type: DUUIDocumentOutput.None,
-					path: ''
-				},
-				options: {}
-			})
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(pipeline)
 		})
 
-		const j = await jresult.json()
-		if (jresult.status === 400) {
-			exception = j.error
+		if (response.ok) {
 			const t: ToastSettings = {
-				message: exception,
-				timeout: 4000,
-				background: 'variant-filled-error'
-			}
-			getToastStore().trigger(t)
-		} else {
-			process_id = j.id
-		}
-	}
-
-	function cancelPipeline() {
-		if (status === DUUIStatus.Completed) {
-			const t: ToastSettings = {
-				message: 'Pipeline has already completed',
+				message: 'Component has been deleted',
 				timeout: 4000,
 				background: 'variant-filled-warning'
 			}
-			getToastStore().trigger(t)
-			return
+			toastStore.trigger(t)
 		}
-
-		if (status === DUUIStatus.Cancelled) {
-			const t: ToastSettings = {
-				message: 'Pipeline has already cancelled',
-				timeout: 4000,
-				background: 'variant-filled-warning'
-			}
-			getToastStore().trigger(t)
-			return
-		}
-
-		fetch('http://127.0.0.1:2605/processes/' + process_id, {
-			method: 'PUT',
-			mode: 'cors'
-		})
-
-		const t: ToastSettings = {
-			message: 'Pipeline has been cancelled',
-			timeout: 4000,
-			background: 'variant-filled-warning'
-		}
-		getToastStore().trigger(t)
+		return
 	}
 
 	function addComponent() {
@@ -230,14 +110,22 @@
 		}
 
 		if (button.id === 'update') {
-			await fetch('/pipelines/api/update', {
+			let response = await fetch('/pipelines/api/update', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify(pipeline)
 			})
-			console.log(button)
+
+			if (response.ok) {
+				const t: ToastSettings = {
+					message: 'Changes saved successfully',
+					timeout: 4000,
+					background: 'variant-filled-success'
+				}
+				getToastStore().trigger(t)
+			}
 			return
 		}
 
@@ -351,29 +239,28 @@
 				</form>
 			</div>
 
-			<h2 class="h3 hidden lg:block px-4">Recent Processes</h2>
-			<button
-				class="btn variant-filled-primary ml-auto"
-				on:click={() => goto('/pipelines/' + pipeline.id + '/process')}
-			>
-				<span><Fa icon={faRocket} /></span>
-				<span>Setup new Process</span>
-			</button>
-			<Table source={tableData} interactive on:selected={(e) => console.log(e.detail)} />
-			<div>
-				{#if building || status === DUUIStatus.Running}
-					<form
-						class="flex items-center gap-4"
-						on:submit|preventDefault={() => console.log('Cancel')}
-					>
-						<ProgressRadial stroke={120} width="w-16" meter="stroke-primary-400" />
-						<button class="btn variant-ghost-error" on:click={cancelPipeline}>
-							<span><Fa icon={faCancel} /></span>
-							<span>Cancel Pipeline</span>
-						</button>
-					</form>
-				{/if}
+			<div class="space-y-4">
+				<p class="h3 hidden lg:block">Components</p>
+				<ul
+					use:dndzone={{ items: pipeline.components, dropTargetStyle: {} }}
+					on:consider={(event) => handleDndConsider(event)}
+					on:finalize={(event) => handleDndFinalize(event)}
+					class="grid gap-4"
+				>
+					{#each pipeline.components as component (component.id)}
+						<div animate:flip={{ duration: flipDurationMs }}>
+							<PipelineComponent
+								{component}
+								active={status === DUUIStatus.Running}
+								completed={progress >= component.id + 1}
+								on:deletion={deleteComponent}
+								on:remove={deleteComponent}
+							/>
+						</div>
+					{/each}
+				</ul>
 			</div>
+
 			<!-- {#if annotations.size > 0}
 				<div class="card space-y-4 p-4">
 					<p class="h4 hidden lg:block">Annotations</p>
@@ -385,25 +272,19 @@
 		</div>
 
 		<div class="space-y-4">
-			<p class="h3 hidden lg:block">Components</p>
-			<ul
-				use:dndzone={{ items: pipeline.components, dropTargetStyle: {} }}
-				on:consider={(event) => handleDndConsider(event)}
-				on:finalize={(event) => handleDndFinalize(event)}
-				class="grid gap-4"
+			<h2 class="h3 hidden lg:block px-4">Recent Processes</h2>
+			<Table
+				source={tableData}
+				interactive
+				on:selected={(e) => goto('/process/' + e.detail[0].id)}
+			/>
+			<button
+				class="btn variant-filled-primary ml-auto"
+				on:click={() => goto('/process?pipeline=' + pipeline.id)}
 			>
-				{#each pipeline.components as component (component.id)}
-					<div animate:flip={{ duration: flipDurationMs }}>
-						<PipelineComponent
-							{component}
-							active={status === DUUIStatus.Running}
-							completed={progress >= component.id + 1}
-							on:deletion={deleteComponent}
-							on:remove={deleteComponent}
-						/>
-					</div>
-				{/each}
-			</ul>
+				<span><Fa icon={faRocket} /></span>
+				<span>Setup new Process</span>
+			</button>
 		</div>
 	</div>
 </div>

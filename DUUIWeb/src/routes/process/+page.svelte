@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
 	import {
 		DUUIDocumentOutput,
@@ -14,13 +15,13 @@
 	export let data
 	let { session } = data
 
-	let inputSource: DUUIDocumentSource = DUUIDocumentSource.Dropbox
-	let inputPath: string = '/sample'
-	let inputText: string = ''
-	let fileExtension: string = '.gz'
+	let inputSource: DUUIDocumentSource = DUUIDocumentSource.Text
+	let inputPath: string = '/txt'
+	let inputText: string = 'Hello World.'
+	let fileExtension: string = '.txt'
 
-	let outputType: DUUIDocumentOutput = DUUIDocumentOutput.Dropbox
-	let outputPath: string = '/duui-web-app-output'
+	let outputType: DUUIDocumentOutput = DUUIDocumentOutput.None
+	let outputPath: string = '/xd'
 
 	let files: FileList
 	let sortedFiles: File[] = []
@@ -48,31 +49,45 @@
 		data.append(
 			'process',
 			JSON.stringify({
-				pipeline_id: $page.url.pathname.split('/')[2],
+				pipeline_id: $page.url.searchParams.get('pipeline'),
 				input: {
-					source: inputSource,
+					source: inputSource.toLowerCase(),
 					path: inputPath,
 					text: inputText,
 					extension: fileExtension
 				},
 				output: {
-					type: outputType,
+					type: outputType.toLowerCase(),
 					path: outputPath
 				}
 			})
 		)
 
-		let response = await fetch('http://127.0.0.1:2605/processes/dropbox', {
+		let response = await fetch('http://127.0.0.1:2605/processes', {
 			method: 'POST',
 			mode: 'cors',
 			headers: {
 				session: session || ''
 			},
-			body: data
+			body: JSON.stringify({
+				pipeline_id: $page.url.searchParams.get('pipeline'),
+				input: {
+					source: inputSource.toLowerCase(),
+					path: inputPath,
+					text: inputText,
+					extension: fileExtension
+				},
+				output: {
+					type: outputType.toLowerCase(),
+					path: outputPath
+				}
+			})
 		})
 
-		let responseText = await response.text()
-		console.log(responseText)
+		let content = await response.json()
+		if (response.ok) {
+			goto('/process/' + content.id)
+		}
 	}
 
 	function sortFiles() {

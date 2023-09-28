@@ -1,4 +1,4 @@
-import type { DUUIProcess } from './data'
+import { DUUIStatus, type DUUIProcess } from './data'
 
 export const slugify = (text: string) =>
 	text
@@ -9,18 +9,27 @@ export const slugify = (text: string) =>
 		.replace(/^-+|-+$/g, '')
 
 export const toTitleCase = (text: string) => <string>text[0].toUpperCase() + text.slice(1)
-export const toDateTimeString = (date: Date) => <string>''
+export function toDateTimeString(date: Date) {
+	const options: Intl.DateTimeFormatOptions = {
+		year: 'numeric',
+		month: '2-digit',
+		day: '2-digit',
+		hour: '2-digit',
+		minute: '2-digit',
+	}
+	return date.toLocaleString('de-DE', options)
+}
 
 export const getDuration = (process: DUUIProcess) => {
-	if (!process.startedAt) {
+	if (process.startedAt === null || process.startedAt === undefined) {
 		return 0
 	}
 
-	if (!process.finishedAt) {
-		return new Date(Date.now() - process.startedAt).getSeconds()
+	if (process.finishedAt === null || process.finishedAt === undefined) {
+		return Math.ceil((Date.now() - process.startedAt) / 1000)
 	}
 
-	return new Date(process.finishedAt - process.startedAt).getSeconds()
+	return Math.ceil((process.finishedAt - process.startedAt) / 1000)
 }
 
 const urlRegex =
@@ -59,4 +68,12 @@ export const cutText = (text: string, maxSize: number = 50) => {
 	}
 
 	return newText
+}
+
+export function pipelineActive(status: string) {
+	return [
+		DUUIStatus.Setup.valueOf(),
+		DUUIStatus.Running.valueOf(),
+		DUUIStatus.Output.valueOf()
+	].includes(status)
 }

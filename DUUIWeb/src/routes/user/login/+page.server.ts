@@ -9,7 +9,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 }
 
 export const actions: Actions = {
-	async login({ cookies, request, url }) {
+	async login({ cookies, request }) {
 		const data = await request.formData()
 		const email = data.get('email')
 		const password = data.get('password')
@@ -19,7 +19,7 @@ export const actions: Actions = {
 				error: 'Invalid credentials.'
 			})
 		}
-		
+
 		const response = await fetch('http://127.0.0.1:2605/users/' + email, {
 			method: 'GET',
 			mode: 'cors'
@@ -49,7 +49,7 @@ export const actions: Actions = {
 		})
 
 		const session = await userUpdate.json()
-
+		
 		cookies.set('session', session.session, {
 			path: '/',
 			httpOnly: true,
@@ -57,6 +57,7 @@ export const actions: Actions = {
 			secure: process.env.NODE_ENV === 'production',
 			maxAge: 60 * 60 * 24 * 30
 		})
+		
 		throw redirect(302, '/pipelines')
 	},
 

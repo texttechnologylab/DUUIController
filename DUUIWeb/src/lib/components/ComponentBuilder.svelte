@@ -80,7 +80,7 @@
 				bind:value={$componentStore.settings.target}
 			/>
 		</label>
-		<label class="label ">
+		<label class="label">
 			<span>Category</span>
 			<input
 				class="input border-2"
@@ -93,16 +93,16 @@
 			<span>Description</span>
 			<textarea
 				class="textarea border-2"
-				placeholder="Name"
+				placeholder="My new Component for..."
 				bind:value={$componentStore.description}
 			/>
 		</label>
 	</div>
 	<h3>Advanced Settings</h3>
 	{#if $componentStore.settings.driver === DUUIDockerDriver || $componentStore.settings.driver === DUUISwarmDriver}
-		<DockerSettings {$componentStore} />
+		<DockerSettings component={$componentStore} />
 	{:else if $componentStore.settings.driver === DUUIRemoteDriver}
-		<RemoteSettings {$componentStore} />
+		<RemoteSettings component={$componentStore} />
 	{/if}
 	<!-- 
 	{#if expanded}

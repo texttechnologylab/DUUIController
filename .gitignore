@@ -34,3 +34,4 @@ DUUIRestService/src/test/java/TestDUUI.java
 PythonClient/token.txt
 
 node_modules
+tmp/duui
