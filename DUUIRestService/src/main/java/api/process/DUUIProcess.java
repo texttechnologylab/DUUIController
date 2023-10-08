@@ -88,8 +88,8 @@ public class DUUIProcess extends Thread {
             boolean dockerImageFetching = false;
 
             if (options != null && !options.isEmpty()) {
-                useGPU = options.getBoolean("useGPU");
-                dockerImageFetching = options.getBoolean("dockerImageFetching");
+                useGPU = options.getBoolean("useGPU", true);
+                dockerImageFetching = options.getBoolean("dockerImageFetching", true);
             }
 
             if (target.equals("org.dkpro.core.io.xmi.XmiWriter")) continue;
@@ -171,7 +171,14 @@ public class DUUIProcess extends Thread {
         try {
             initializeComposer();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            interrupt();
+            _service.cancel(false);
+            DUUIProcessController.setError(id, e);
+            composer.addStatus("ERROR: " + e.getMessage());
+            Application.metrics.get("active_processes").decrementAndGet();
+            Application.metrics.get("failed_processes").incrementAndGet();
+            DUUIProcessController.updateLog(id, composer.getLog());
+            DUUIProcessController.setStatus(id, "failed");
         }
 
 
@@ -238,11 +245,10 @@ public class DUUIProcess extends Thread {
                 composer.shutdown();
                 if (error == null) {
                     if (_singleDocument && cas != null) {
-                        for (Annotation annotation : cas.getAnnotationIndex()) {
-                            System.out.println(annotation.getClass().getCanonicalName());
-                        }
+                        Set<String> annotations = new HashSet<>();
+                        cas.getAnnotationIndex().forEach(annotation -> annotations.add(annotation.getClass().getSimpleName()));
+                        annotations.forEach(annotation -> composer.addStatus("Added annotation " + annotation));
                     } else {
-
                         if (dataReader != null && outputType.equals(inputSource)) {
                             DUUIProcessController.setStatus(id, "output");
                             List<DUUIInputStream> streams = getFilesInDirectoryRecursive("tmp/duui/" + outputPath);
@@ -273,7 +279,7 @@ public class DUUIProcess extends Thread {
 
         DUUIProcessController.setError(id, error);
         Application.metrics.get("active_processes").decrementAndGet();
-
+        DUUIProcessController.updateLog(id, composer.getLog());
     }
 
     private IDUUIDataReader setupDataReader(String source) {
