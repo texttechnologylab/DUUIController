@@ -1,31 +1,19 @@
 <script lang="ts">
+	import { popup, type PopupSettings } from '@skeletonlabs/skeleton'
 	import { componentStore } from '../../../routes/pipelines/new/store'
 
 	let useGPU: boolean = false
 	let dockerImageFetching: boolean = false
 
+	const tooltip: PopupSettings = {
+		event: 'hover',
+		target: 'tooltip',
+		placement: 'top'
+	}
+
 	$: {
-		$componentStore.settings.options.set('gpu', useGPU + '')
-		$componentStore.settings.options.set('dockerImageFetching', dockerImageFetching + '')
+		$componentStore.settings.options['gpu'] = useGPU
+		$componentStore.settings.options['dockerImageFetching'] = dockerImageFetching
 	}
 </script>
 
-<div class="grid grid-cols-1 card p-4 gap-4 pointer-events-auto">
-	<label class="flex items-center space-x-2">
-		<input class="checkbox" type="checkbox" bind:value={useGPU} />
-		<span>Utilize GPU</span>
-	</label>
-	<label class="flex items-center space-x-2">
-		<input
-			class="checkbox checked:variant-filled-primary"
-			type="checkbox"
-			bind:value={dockerImageFetching}
-		/>
-		<span>Fetch Image if not available</span>
-	</label>
-	<!-- <label class="label">
-		<span>Use GPU (Cuda)</span>
-		<input class="input" type="number" placeholder="useGPU" bind:value={useGPU} />
-	</label>
-	<Fa icon={faNetworkWired} /> -->
-</div>

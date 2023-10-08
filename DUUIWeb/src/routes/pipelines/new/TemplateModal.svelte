@@ -1,11 +1,24 @@
 <script lang="ts">
 	import DriverIcon from '$lib/components/DriverIcon.svelte'
 	import type { DUUIPipelineComponent } from '$lib/data'
-	import { faCheck } from '@fortawesome/free-solid-svg-icons'
+	import { faCheck, faX } from '@fortawesome/free-solid-svg-icons'
 	import { getModalStore } from '@skeletonlabs/skeleton'
+	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
 
-	export let components: DUUIPipelineComponent[]
+	let components: DUUIPipelineComponent[] = []
+
+	onMount(async () => {
+		const response = await fetch('/pipelines/api/components', {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		})
+
+		let object = await response.json()
+		components = object.components
+	})
 
 	let selectedComponents: DUUIPipelineComponent[] = []
 	const modalStore = getModalStore()
@@ -25,7 +38,6 @@
 	}
 
 	let searchText: string = ''
-	let searchOpen: boolean = false
 	let filteredTemplates = components
 
 	$: {
@@ -43,32 +55,33 @@
 
 {#if $modalStore[0]}
 	<div
-		class="card max-w-7xl items-start justify-start overflow-y-scroll max-h-[90vh] md:max-h-[80vh] rounded-md shadow-lg"
+		class="card max-w-7xl items-start justify-start overflow-y-scroll max-h-[90vh] md:max-h-[80vh] overflow-hidden rounded-md shadow-lg"
 	>
-		<div class="flex justify-between items-center sticky top-0 bg-surface-800 shadow-lg p-4">
-			<h3 class="h3">Select Template</h3>
-			<button class="btn variant-filled-primary rounded-sm shadow-lg" on:click={onFormSubmit}
-				>Choose</button
-			>
+		<div class="sticky top-0 flex flex-col card z-10">
+			<div class="flex justify-between items-center shadow-lg p-4">
+				<h3 class="h3">Select Templates</h3>
+				<button class="btn-icon shadow-lg variant-glass-success" on:click={onFormSubmit}>
+					<Fa icon={faCheck} />
+				</button>
+			</div>
 		</div>
-		<article class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 p-8 cursor-pointer">
+		<article class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 cursor-pointer">
 			{#each components as component (component.id)}
 				<button
 					class="flex flex-col rounded-md hover:shadow-2xl overflow-hidden card
-					{selectedComponents.includes(component) ? 'border-2 border-primary-500' : ''}"
+					{selectedComponents.includes(component) ? 'border-2 border-success-500' : ''}"
 					on:click={() => selectTemplate(component)}
 				>
-					<div class="grid variant-soft-primary p-2 text-center">
-						<p>{component.category}</p>
-					</div>
-					<header class=" p-4 flex items-center justify-between gap-4">
+					<!--  -->
+
+					<p class="variant-soft-primary p-2 grid text-center">{component.category}</p>
+
+					<header class="p-4 flex items-center justify-between gap-4">
 						<DriverIcon driver={component.settings.driver} />
 						<p class="md:h4 text-left mr-auto">{component.name}</p>
 					</header>
 					<hr />
-					<div class="p-4 text-left grow">
-						<p class="text-sm md:text-base max-w-[40ch]">{component.description}</p>
-					</div>
+					<p class="text-sm text-left p-4 md:text-base max-w-[40ch]">{component.description}</p>
 				</button>
 			{/each}
 		</article>

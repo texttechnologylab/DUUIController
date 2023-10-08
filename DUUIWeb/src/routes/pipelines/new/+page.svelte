@@ -9,7 +9,7 @@
 	import Fa from 'svelte-fa'
 	import { flip } from 'svelte/animate'
 
-	import type { ModalComponent, ModalSettings, ToastSettings } from '@skeletonlabs/skeleton'
+	import type { ModalComponent, ModalSettings } from '@skeletonlabs/skeleton'
 	import { componentStore } from './store.js'
 	import { invalidNameToast, invalidTargetToast } from './toast.js'
 	import TemplateModal from './TemplateModal.svelte'
@@ -21,6 +21,8 @@
 	let editing: boolean = false
 	let missing: boolean = false
 	let createForm: HTMLFormElement
+
+	const toastStore = getToastStore()
 
 	function handleDndConsider(event: CustomEvent<DndEvent<DUUIPipelineComponent>>) {
 		pipeline.components = event.detail.items
@@ -34,11 +36,8 @@
 
 	function editNewComponent() {
 		$componentStore = blankComponent(pipeline.components.length + 1)
-		editing = true
-	}
+		console.log(templates.includes($componentStore))
 
-	function editComponent(id: number) {
-		$componentStore = { ...pipeline.components[id] }
 		editing = true
 	}
 
@@ -54,8 +53,10 @@
 				c.description = $componentStore.description
 				c.settings.driver = $componentStore.settings.driver
 				c.settings.target = $componentStore.settings.target
+				c.settings.options = $componentStore.settings.options
 			}
 		})
+
 		pipeline.components = pipeline.components
 	}
 
@@ -65,12 +66,12 @@
 		}
 
 		if (!$componentStore.name) {
-			invalidNameToast()
+			invalidNameToast(toastStore)
 			missing = true
 		}
 
 		if (!$componentStore.settings.target) {
-			invalidTargetToast($componentStore.settings.driver)
+			invalidTargetToast($componentStore.settings.driver, toastStore)
 			missing = true
 		}
 
@@ -112,10 +113,11 @@
 
 	const modalComponent: ModalComponent = {
 		ref: TemplateModal,
-		props: { components: templates }
+		props: { components: [...templates] }
 	}
 
 	const modalStore = getModalStore()
+
 	function showTemplateModal() {
 		new Promise<DUUIPipelineComponent[]>((resolve) => {
 			const modal: ModalSettings = {
@@ -127,12 +129,11 @@
 			}
 			modalStore.trigger(modal)
 		}).then((response: DUUIPipelineComponent[]) => {
-			if (!response) {
-				return
-			}
+			if (!response) return
+
 			response.forEach((component) => {
 				const comp = { ...component }
-				comp.id = pipeline.components.length + 1
+				comp.id = Math.max(...pipeline.components.map((c) => c.id)) + 1
 				pipeline.components = [...pipeline.components, comp]
 			})
 		})
@@ -172,7 +173,7 @@
 									<DriverIcon driver={component.settings.driver} />
 									<p>{component.name}</p>
 									<button
-										class="btn-icon pointer-events-auto ml-auto"
+										class="btn-icon pointer-events-auto ml-auto variant-soft-primary"
 										on:click={() => {
 											if (editing && $componentStore.id === component.id) {
 												editing = false
@@ -182,9 +183,7 @@
 											}
 										}}
 									>
-										<span>
-											<Fa size="lg" icon={faEdit} />
-										</span>
+										<Fa icon={faEdit} />
 									</button>
 								</div>
 							{/each}
@@ -194,48 +193,43 @@
 
 				<!-- Component Editor -->
 				{#if editing}
-					<div class="card rounded-md shadow-lg col-span-2">
+					<div class="card rounded-md shadow-lg md:col-span-2">
 						<ComponentBuilder
 							on:remove={deleteComponent}
 							deleteButton={pipeline.components.map((c) => c.id).includes($componentStore.id)}
 						/>
 
 						<div class="grid grid-cols-2 gap-4 p-4">
-							<button
-								class="btn variant-filled-success rounded-sm shadow-lg"
-								on:click={saveComponent}
-							>
+							<button class="btn variant-filled-success shadow-lg" on:click={saveComponent}>
 								<span>Save</span>
 							</button>
-							<button
-								class="btn variant-filled-error rounded-sm shadow-lg"
-								on:click={() => (editing = false)}
-							>
+							<button class="btn variant-filled-error shadow-lg" on:click={() => (editing = false)}>
 								<span>Cancel</span>
 							</button>
 						</div>
 					</div>
 				{:else}
 					<div
-						class="container h-full flex-col flex gap-4 justify-center card rounded-md shadow-lg p-4"
+						class="container h-full flex-col flex gap-8 justify-center card rounded-md shadow-lg p-4"
 					>
 						{#if !editing}
-							<div class="p-4 space-y-4 flex flex-col items-center justify-center">
-								<p class="text-md md:h4">Start by adding a new Component</p>
-							</div>
+							{#if pipeline.components.length === 0}
+								<p class="h2 text-center">Start by adding a Component</p>
+							{/if}
+
 							<div class="mx-auto grid gap-4">
 								<button
 									class="btn text-sm md:text-base variant-filled-primary rounded-md shadow-lg"
 									on:click={editNewComponent}
 								>
-									<span>New Component</span>
+									<span>Custom Component</span>
 									<Fa icon={faPlus} />
 								</button>
 								<button
 									class="btn text-sm md:text-base variant-ghost-primary rounded-md shadow-lg"
 									on:click={showTemplateModal}
 								>
-									<span>Choose template</span>
+									<span>Template Component</span>
 									<Fa icon={faBookOpen} />
 								</button>
 							</div>{/if}

@@ -171,7 +171,7 @@ export function getProgressPercentLive(progress: number, limit: number) {
 
 export function outputIsCloudProvider(outputType: DUUIDocumentOutput) {
 	return (
-		outputType === DUUIDocumentOutput.S3.toLowerCase() ||
-		outputType === DUUIDocumentOutput.Dropbox.toLowerCase()
+		outputType.toLowerCase() === DUUIDocumentOutput.S3.toLowerCase() ||
+		outputType.toLowerCase() === DUUIDocumentOutput.Dropbox.toLowerCase()
 	)
 }

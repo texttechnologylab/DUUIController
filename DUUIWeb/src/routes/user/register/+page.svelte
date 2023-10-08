@@ -8,7 +8,7 @@
 	<title>Register</title>
 </svelte:head>
 
-<div class="shadow-lg p-16 rounded-md card variant-form-material space-y-8">
+<div class="card rounded-md shadow-lg p-4 space-y-8">
 	{#if form?.error}
 		<p class="variant-filled-error p-4 rounded-md shadow-lg">{form.error}</p>
 	{/if}

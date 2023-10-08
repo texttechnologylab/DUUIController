@@ -7,7 +7,7 @@
 		DUUIInputSourcesList,
 		DUUIOutputSourcesList
 	} from '$lib/data'
-	import { cutText, formatFileSize, toTitleCase } from '$lib/utils'
+	import { cutText, formatFileSize, outputIsCloudProvider, toTitleCase } from '$lib/utils'
 	import { faSortNumericAsc, faSortNumericDesc, faX } from '@fortawesome/free-solid-svg-icons'
 	import { Step, Stepper } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
@@ -114,9 +114,10 @@
 >
 	<Step
 		locked={(inputText === DUUIDocumentSource.Text && !inputText) ||
-			(outputType !== DUUIDocumentOutput.None && !outputPath)}
+			(inputSource === DUUIDocumentSource.Files && !files) ||
+			(outputIsCloudProvider(outputType) && !outputPath)}
 	>
-		<svelte:fragment slot="header">Choose input and output type</svelte:fragment>
+		<svelte:fragment slot="header">Input & Output</svelte:fragment>
 		<div class=" grid md:grid-cols-2 gap-4">
 			<div class="card rounded-md p-4 flex gap-4 flex-col">
 				<h3 class="h3">Input</h3>

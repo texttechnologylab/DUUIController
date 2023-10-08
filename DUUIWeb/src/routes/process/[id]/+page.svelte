@@ -33,6 +33,7 @@
 	let { pipeline, process } = data
 
 	let status = process.status
+	let error: string = ''
 	let progress = process.progress
 	let progressPercent: number
 	let log = process.log
@@ -79,6 +80,7 @@
 			status = content.status
 			progress = content.progress
 			log = content.log
+			error = content.error
 
 			process.documentNames = content.documentNames || []
 			process.documentCount = content.documentCount || 0
@@ -93,7 +95,7 @@
 				status === DUUIStatus.Failed ||
 				status === DUUIStatus.Cancelled
 			) {
-				clearInterval(interval)
+				setTimeout(checkStatus, 5000)
 			}
 		}
 
@@ -126,8 +128,8 @@
 	}
 </script>
 
-<div class="p-4 mx-auto container grid lg:grid-cols-2 gap-4">
-	<div class="space-y-4 variant-ghost-surface p-4 self-start">
+<div class="p-4 mx-auto container grid gap-4">
+	<div class="space-y-4 variant-ghost-surface p-4">
 		<div class="flex justify-between items-center gap-4">
 			<h3 class="h3">{pipeline.name}</h3>
 			<div class="flex items-center gap-4">
@@ -158,7 +160,7 @@
 					</div>
 				{/each}
 			{:else if process.documentNames}
-				<div class="grid md:grid-cols-2 2xl:grid-cols-3 grid-flow-row gap-4">
+				<div class="grid md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 grid-flow-row gap-4">
 					{#each process.documentNames as document}
 						<div class="flex gap-4 items-center px-4">
 							{#if pipelineActive(status)}
@@ -203,6 +205,9 @@
 	<div class="space-y-4 variant-ghost-surface p-4">
 		<div class="flex justify-between items-center gap-4">
 			<h3 class="h3">Log</h3>
+			{#if error}
+				<p class="text-error-500 font-bold">ERROR: {error}</p>
+			{/if}
 			<button class="flex items-center gap-4" on:click={() => (logExpanded = !logExpanded)}>
 				<span><Fa icon={logExpanded ? faCaretUp : faCaretDown} /></span>
 				<span>{logExpanded ? 'Hide full log' : 'Show full log'}</span>
@@ -214,7 +219,7 @@
 				.sort((eventA, eventB) => (eventA.timestamp < eventB.timestamp ? 1 : -1))
 				.slice(0, logExpanded ? -1 : 10) as statusEvent}
 				<div class="flex items-start gap-8">
-					<p >+{getTimeDifference(process.startedAt, statusEvent.timestamp)}</p>
+					<p class="min-w-[8ch]">+{getTimeDifference(process.startedAt, statusEvent.timestamp)}</p>
 					<p class="break-words max-w-[20ch] md:max-w-[60ch]">{statusEvent.message}</p>
 				</div>
 			{/each}

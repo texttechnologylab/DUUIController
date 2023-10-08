@@ -41,7 +41,7 @@
 </script>
 
 <Modal />
-<Toast />
+<Toast position="br"/>
 <Drawer>
 	{#if $drawerStore.id === 'docs'}
 		<SidebarNav hidden={false} withNavigation={true} />
@@ -98,17 +98,16 @@
 			<div
 				class="page-footer bg-surface-50 dark:bg-surface-900 border-t border-surface-500/10 text-xs md:text-base"
 			>
-				<div class="w-full max-w-7xl mx-auto space-y-10 py-8">
-					<section class="flex flex-col md:flex-row justify-center space-y-8">
+				<div class="w-full max-w-7xl mx-auto space-y-4 py-8">
+					<div class="flex flex-col md:flex-row justify-center space-y-8">
 						<div class="grid grid-cols-1 gap-4 place-items-center">
 							<img src={Logo} class="max-h-14" alt="" />
 							<p class="!text-sm opacity-80">
 								<span class="text-primary-400 font-bold">DUUI</span> - Lightweight NLP Framework
 							</p>
 						</div>
-					</section>
-					<hr class="opacity-20" />
-					<section
+					</div>
+					<div
 						class="flex flex-col md:flex-row justify-center items-center md:items-start space-y-4 md:space-y-0"
 					>
 						<div class="flex space-x-4">
@@ -131,7 +130,7 @@
 								<span class="hidden md:inline-block ml-2">TTLab</span></a
 							>
 						</div>
-					</section>
+					</div>
 				</div>
 			</div>
 		</footer>

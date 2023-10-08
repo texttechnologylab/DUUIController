@@ -3,9 +3,7 @@
 
 	let ignore200Error: boolean = false
 
-	$: {
-		$componentStore.settings.options.set('ignore200Error', ignore200Error + '')
-	}
+	
 </script>
 
 <div class="grid grid-cols-1 card p-4 gap-4 pointer-events-auto">

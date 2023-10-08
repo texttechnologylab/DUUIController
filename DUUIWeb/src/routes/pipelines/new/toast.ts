@@ -1,5 +1,5 @@
 import { DUUIDockerDriver, DUUIRemoteDriver, DUUISwarmDriver, DUUIUIMADriver } from '$lib/data'
-import { getToastStore } from '@skeletonlabs/skeleton'
+import { getToastStore, type ToastStore } from '@skeletonlabs/skeleton'
 
 export const driverTargetMap: Map<string, string> = new Map([
 	[DUUIRemoteDriver, 'Address'],
@@ -12,7 +12,7 @@ const errorToast = (message: string, timeout: number = 4000) => {
 	return {
 		message: message,
 		timeout: timeout,
-		background: 'variant-filled-error',
+		background: 'variant-filled-error'
 	}
 }
 
@@ -20,18 +20,18 @@ const successToast = (message: string, timeout: number = 4000) => {
 	return {
 		message: message,
 		timeout: timeout,
-		background: 'variant-filled-success',
+		background: 'variant-filled-success'
 	}
 }
 
-export const invalidTargetToast = (driver: string) => {
-	getToastStore().trigger(errorToast(driverTargetMap.get(driver) + ' cannot be empty!'))
+export const invalidTargetToast = (driver: string, toatsStore: ToastStore) => {
+	toatsStore.trigger(errorToast(driverTargetMap.get(driver) + ' cannot be empty!'))
 }
 
-export const invalidNameToast = () => {
-	getToastStore().trigger(errorToast('Name cannot be empty!'))
+export const invalidNameToast = (toatsStore: ToastStore) => {
+	toatsStore.trigger(errorToast('Name cannot be empty!'))
 }
 
-export const pipelineCreatedToast = () => {
-    getToastStore().trigger(successToast("Pipeline created successfully."))
+export const pipelineCreatedToast = (toatsStore: ToastStore) => {
+	toatsStore.trigger(successToast('Pipeline created successfully.'))
 }

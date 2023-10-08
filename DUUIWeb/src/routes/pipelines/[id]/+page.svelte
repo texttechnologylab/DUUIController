@@ -1,13 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import PipelineComponent from '$lib/components/PipelineComponent.svelte'
-	import {
-		blankComponent,
-		DUUIStatus,
-		type DUUIPipelineComponent,
-		DUUIDocumentSource
-	} from '$lib/data'
-	import { faArrowLeft, faCog, faRocket } from '@fortawesome/free-solid-svg-icons'
+	import { blankComponent, DUUIStatus, type DUUIPipelineComponent } from '$lib/data'
+	import { faArrowLeft, faRocket } from '@fortawesome/free-solid-svg-icons'
 	import {
 		type ModalSettings,
 		getModalStore,
@@ -21,13 +16,7 @@
 	import { getToastStore } from '@skeletonlabs/skeleton'
 	import type { TableSource, ToastSettings } from '@skeletonlabs/skeleton'
 	import type { ActionData, PageServerData } from './$types'
-	import {
-		getDuration,
-		getProgressPercent,
-		getTimeDifference,
-		toDateTimeString,
-		toTitleCase
-	} from '$lib/utils'
+	import { getProgressPercent, getTimeDifference, toDateTimeString, toTitleCase } from '$lib/utils'
 
 	export let data: PageServerData
 	let { pipeline, processes } = data
@@ -62,8 +51,6 @@
 	}
 
 	export let form: ActionData
-
-	// let runningProcesses: number = processes.filter((process) => process.status === DUUIStatus.Running).length;
 
 	let flipDurationMs = 300
 
@@ -107,12 +94,26 @@
 		return
 	}
 
-	function addComponent() {
-		pipeline.components = [...pipeline.components, blankComponent(pipeline.components.length + 1)]
-	}
-
 	const modalStore = getModalStore()
 	const toastStore = getToastStore()
+
+	const updatePipeline = async () => {
+		let response = await fetch('/pipelines/api/update', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(pipeline)
+		})
+		if (response.ok) {
+			const t: ToastSettings = {
+				message: 'Changes saved successfully',
+				timeout: 4000,
+				background: 'variant-filled-success'
+			}
+			toastStore.trigger(t)
+		}
+	}
 
 	const onMaybeDeletePipeline = async (e: SubmitEvent) => {
 		let button = e.submitter as HTMLButtonElement
@@ -122,65 +123,49 @@
 		}
 
 		if (button.id === 'update') {
-			let response = await fetch('/pipelines/api/update', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify(pipeline)
+			updatePipeline()
+		} else {
+			new Promise<boolean>((resolve) => {
+				const modal: ModalSettings = {
+					type: 'confirm',
+					title: 'Please Confirm',
+					body: `Are you sure you wish to delete ${pipeline.name}?`,
+					response: (r: boolean) => {
+						resolve(r)
+					}
+				}
+				modalStore.trigger(modal)
+			}).then(async (accepted: boolean) => {
+				if (accepted) {
+					const data = new FormData(e.target as HTMLFormElement)
+
+					const response = await fetch((e.target as HTMLFormElement).action, {
+						method: 'POST',
+						body: data,
+						headers: {
+							'x-sveltekit-action': 'true'
+						}
+					})
+
+					if (response.ok) {
+						goto('/pipelines')
+						const t: ToastSettings = {
+							message: 'Pipeline successfully deleted.',
+							timeout: 4000,
+							background: 'variant-filled-success'
+						}
+						getToastStore().trigger(t)
+					} else {
+						const t: ToastSettings = {
+							message: 'Pipeline could not be deleted.',
+							timeout: 4000,
+							background: 'variant-filled-warning'
+						}
+						getToastStore().trigger(t)
+					}
+				}
 			})
-
-			if (response.ok) {
-				const t: ToastSettings = {
-					message: 'Changes saved successfully',
-					timeout: 4000,
-					background: 'variant-filled-success'
-				}
-				toastStore.trigger(t)
-			}
-			return
 		}
-
-		new Promise<boolean>((resolve) => {
-			const modal: ModalSettings = {
-				type: 'confirm',
-				title: 'Please Confirm',
-				body: `Are you sure you wish to delete ${pipeline.name}?`,
-				response: (r: boolean) => {
-					resolve(r)
-				}
-			}
-			modalStore.trigger(modal)
-		}).then(async (accepted: boolean) => {
-			if (accepted) {
-				const data = new FormData(e.target as HTMLFormElement)
-
-				const response = await fetch((e.target as HTMLFormElement).action, {
-					method: 'POST',
-					body: data,
-					headers: {
-						'x-sveltekit-action': 'true'
-					}
-				})
-
-				if (response.ok) {
-					goto('/pipelines')
-					const t: ToastSettings = {
-						message: 'Pipeline successfully deleted.',
-						timeout: 4000,
-						background: 'variant-filled-success'
-					}
-					getToastStore().trigger(t)
-				} else {
-					const t: ToastSettings = {
-						message: 'Pipeline could not be deleted.',
-						timeout: 4000,
-						background: 'variant-filled-warning'
-					}
-					getToastStore().trigger(t)
-				}
-			}
-		})
 	}
 </script>
 
@@ -188,14 +173,18 @@
 	<!-- HEADER -->
 	<header class="grow self-stretch">
 		<div class="flex items-center space-x-2">
-			<button
-				on:click={() => goto('/pipelines')}
-				class="btn-icon shadow-lg variant-glass-primary absolute"
+			<button on:click={() => goto('/pipelines')} class="btn-icon shadow-lg variant-glass-primary"
 				><Fa size="lg" icon={faArrowLeft} /></button
 			>
 			<h1 class="h2 font-bold grow text-center">
 				{pipeline.name}
 			</h1>
+			<button
+				class="btn-icon shadow-lg variant-glass-primary"
+				on:click={() => goto('/process?pipeline=' + pipeline.id)}
+			>
+				<span><Fa icon={faRocket} /></span>
+			</button>
 		</div>
 	</header>
 
@@ -232,18 +221,10 @@
 					</label>
 
 					<div class="flex justify-between">
-						<button
-							class="btn variant-filled-primary rounded-sm shadow-lg"
-							type="submit"
-							id="update"
-						>
+						<button class="btn variant-filled-primary shadow-lg" type="submit" id="update">
 							<span>Update</span>
 						</button>
-						<button
-							class="btn variant-filled-error rounded-sm shadow-lg ml-auto"
-							type="submit"
-							id="delete"
-						>
+						<button class="btn variant-filled-error shadow-lg ml-auto" type="submit" id="delete">
 							<span>Delete</span>
 						</button>
 					</div>
@@ -264,8 +245,8 @@
 								{component}
 								active={status === DUUIStatus.Running}
 								completed={progress >= component.id + 1}
-								on:deletion={deleteComponent}
 								on:remove={deleteComponent}
+								on:update={updatePipeline}
 							/>
 						</div>
 					{/each}

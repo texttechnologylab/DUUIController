@@ -1,5 +1,9 @@
 import { v4 as uuidv4 } from 'uuid'
 
+interface _Object {
+	[key: string]: any
+}
+
 export interface DUUIPipeline {
 	id: string
 	name: string
@@ -17,8 +21,8 @@ export interface DUUIPipelineComponent {
 	settings: {
 		driver: string
 		target: string
-		options: Map<string, string> // Advanced Settings
-		parameters: Map<string, string>
+		options: _Object // Advanced Settings
+		parameters: _Object
 	}
 }
 
@@ -121,14 +125,14 @@ export const blankPipeline = () =>
 export const blankComponent = (id: number) =>
 	<DUUIPipelineComponent>{
 		id: id,
-		name: '',
+		name: 'New Component ' + id,
 		category: '',
 		description: '',
 		settings: {
 			driver: DUUIDockerDriver,
 			target: '',
-			options: new Map<string, string>(),
-			parameters: new Map<string, string>()
+			options: {},
+			parameters: {}
 		}
 	}
 

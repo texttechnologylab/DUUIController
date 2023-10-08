@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { DUUIDockerDriver, DUUIDrivers, DUUIRemoteDriver, DUUISwarmDriver } from '$lib/data'
+	import { DUUIDrivers } from '$lib/data'
 	import DriverIcon from './DriverIcon.svelte'
 	import Fa from 'svelte-fa'
 	import { faChevronDown } from '@fortawesome/free-solid-svg-icons'
@@ -7,13 +7,10 @@
 	import { componentStore } from '../../routes/pipelines/new/store'
 	import { ListBox, ListBoxItem, popup, type PopupSettings } from '@skeletonlabs/skeleton'
 	import { driverTargetMap } from '../../routes/pipelines/new/toast'
-	import DockerSettings from './Settings/DockerSettings.svelte'
-	import RemoteSettings from './Settings/RemoteSettings.svelte'
 
 	const dispatcher = createEventDispatcher()
 
 	export let deleteButton: boolean = false
-
 
 	let onRemove = () => {
 		dispatcher('remove', {
@@ -30,89 +27,104 @@
 		},
 		closeQuery: '.listbox-item'
 	}
+
+	let useGPU: boolean = true
+	let dockerImageFetching: boolean = true
+
+	$: {
+		$componentStore.settings.options['gpu'] = useGPU
+		$componentStore.settings.options['dockerImageFetching'] = dockerImageFetching
+	}
 </script>
 
-<div class="bg-surface-700 shadow-lg z-100" data-popup="popupCombobox">
+<div class="bg-surface-700 rounded-md shadow-lg z-100" data-popup="popupCombobox">
 	<ListBox active="variant-filled-primary">
 		{#each DUUIDrivers as driver}
-			<ListBoxItem bind:group={$componentStore.settings.driver} name="medium" value={driver}>
+			<ListBoxItem
+				bind:group={$componentStore.settings.driver}
+				name="medium"
+				value={driver}
+				class="text-sm md:text-base"
+			>
 				{driver}
 			</ListBoxItem>
 		{/each}
 	</ListBox>
 </div>
 
-<div class="cflex flex-col gap-4 p-4 pointer-events-auto">
+<div class="flex flex-col gap-4 p-4 pointer-events-auto text-sm md:text-base">
 	<header class="flex justify-start gap-4 items-center">
 		<DriverIcon driver={$componentStore.settings.driver} />
-		<p class="h4">{$componentStore.name}</p>
+		<p class="md:h4">{$componentStore.name}</p>
 		{#if deleteButton}
 			<button class="btn variant-filled-error rounded-sm shadow-lg ml-auto" on:click={onRemove}>
 				Delete
 			</button>
 		{/if}
 	</header>
-	<div class="grid grid-cols-2 gap-4">
+	<div class="grid md:grid-cols-2 gap-4">
 		<label class="label">
 			<span>Name*</span>
 			<input
-				class="input border-2"
+				class="input border-2 text-sm md:text-base"
 				type="text"
-				placeholder="Name"
 				bind:value={$componentStore.name}
 			/>
 		</label>
-		<label class="flex flex-col space-y-1">
+
+		<label class="flex flex-col space-y-[0.125rem]">
 			<span>Driver</span>
 			<button
-				class="flex grow bg-surface-700 justify-between items-center px-4 border-2 input"
+				class="flex grow justify-between items-center py-2 px-3 border-2 input"
 				use:popup={popupCombobox}
 			>
-				<span class="capitalize">{$componentStore.settings.driver}</span>
+				<span class="capitalize text-sm md:text-base">{$componentStore.settings.driver}</span>
 				<Fa icon={faChevronDown} />
 			</button>
 		</label>
-		<label class="label col-span-2">
+		<label class="label md:col-span-2">
 			<span>{driverTargetMap.get($componentStore.settings.driver)}*</span>
 			<input
-				class="input border-2"
+				class="input border-2 text-sm md:text-base"
 				type="text"
-				placeholder="Name"
 				bind:value={$componentStore.settings.target}
 			/>
 		</label>
 		<label class="label">
 			<span>Category</span>
 			<input
-				class="input border-2"
+				class="input border-2 text-sm md:text-base"
 				type="text"
-				placeholder="Category"
 				bind:value={$componentStore.category}
 			/>
 		</label>
-		<label class="label col-span-2">
+		<label class="label md:col-span-2">
 			<span>Description</span>
 			<textarea
-				class="textarea border-2"
-				placeholder="My new Component for..."
+				class="textarea border-2 text-sm md:text-base"
 				bind:value={$componentStore.description}
 			/>
 		</label>
 	</div>
-	<h3>Advanced Settings</h3>
-	{#if $componentStore.settings.driver === DUUIDockerDriver || $componentStore.settings.driver === DUUISwarmDriver}
-		<DockerSettings />
-	{:else if $componentStore.settings.driver === DUUIRemoteDriver}
-		<RemoteSettings  />
-	{/if}
-	<!-- 
-	{#if expanded}
-		
-	{/if} -->
-	<!-- <button
-		class="btn-icon variant-soft-surface self-center pointer-events-auto"
-		on:click={() => (expanded = !expanded)}
-	>
-		<Fa icon={expanded ? faCaretUp : faCaretDown} />
-	</button> -->
+	<div class="space-y-1">
+		<h3>Advanced Settings</h3>
+		<div class="card p-4 variant-filled-secondary" data-popup="tooltip">
+			<p>Hover Content</p>
+			<div class="arrow variant-filled-secondary" />
+		</div>
+		<div class="grid grid-cols-1 card p-4 gap-4 pointer-events-auto">
+			<label class="flex items-center space-x-2 text-sm md:text-base">
+				<input class="checkbox" type="checkbox" bind:checked={useGPU} />
+				<span>Utilize GPU</span>
+			</label>
+			<label class="flex items-start space-x-2 text-sm md:text-base">
+				<input
+					class="checkbox checked:variant-filled-primary"
+					type="checkbox"
+					bind:checked={dockerImageFetching}
+				/>
+				<span>Download Docker Image if unavailable</span>
+			</label>
+		</div>
+	</div>
 </div>

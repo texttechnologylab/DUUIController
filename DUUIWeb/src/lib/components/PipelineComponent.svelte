@@ -39,10 +39,9 @@
 		})
 	}
 
-	function toggleAdvancedSettings(
-		event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }
-	) {
-		throw new Error('Function not implemented.')
+	const onUpdate = () => {
+		dispatcher('update', {})
+		editMode = false
 	}
 </script>
 
@@ -95,13 +94,8 @@
 			</label>
 
 			<div class="flex justify-between gap-4">
-				<button
-					class="btn variant-filled-primary rounded-sm shadow-lg"
-					on:click={toggleAdvancedSettings}
-				>
-					Advanced Settings
-				</button>
-				<button class="btn variant-filled-error rounded-sm shadow-lg" on:click={onMaybeDelete}>
+				<button class="btn variant-filled-primary shadow-lg" on:click={onUpdate}> Update </button>
+				<button class="btn variant-filled-error shadow-lg" on:click={onMaybeDelete}>
 					Delete
 				</button>
 			</div>
