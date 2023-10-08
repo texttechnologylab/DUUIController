@@ -6,9 +6,7 @@ import api.services.DUUIMongoService;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.*;
 
 import api.users.DUUIUserController;
@@ -18,8 +16,6 @@ import org.apache.uima.fit.factory.AnalysisEngineFactory;
 import org.apache.uima.fit.factory.JCasFactory;
 import org.apache.uima.jcas.JCas;
 import org.apache.uima.jcas.tcas.Annotation;
-import org.apache.uima.resource.ResourceInitializationException;
-import org.apache.uima.util.InvalidXMLException;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.dkpro.core.io.xmi.XmiWriter;
@@ -40,9 +36,8 @@ public class DUUIProcess extends Thread {
     private final Document pipeline;
     private final Document process;
     private DUUIComposer composer;
-    private final ScheduledExecutorService progressTrackerService = Executors.newScheduledThreadPool(
-        1);
-    private ScheduledFuture<?> progressTracker;
+    private ScheduledFuture<?> _service;
+    private boolean _interrupted = false;
     boolean _singleDocument = false;
 
 
@@ -64,12 +59,18 @@ public class DUUIProcess extends Thread {
     }
 
     private void setupDrivers() throws IOException, UIMAException, SAXException {
+        List<String> addedDrivers = new ArrayList<>();
         for (Document component : pipeline.getList("components", Document.class)) {
             IDUUIDriverInterface driver = getDriverFromString(component.get("settings", Document.class).getString("driver"));
             if (driver == null) {
                 throw new ArgumentAccessException("Driver cannot be empty.");
             }
+            String name = driver.getClass().getSimpleName();
+            if (addedDrivers.contains(name)) {
+                continue;
+            }
             composer.addDriver(driver);
+            addedDrivers.add(name);
         }
     }
 
@@ -77,23 +78,35 @@ public class DUUIProcess extends Thread {
         throws IOException, UIMAException, SAXException, URISyntaxException, CompressorException {
         for (Document component : pipeline.getList("components", Document.class)) {
 
-            String target = component.get("settings", Document.class).getString("target");
-            String driver = component.get("settings", Document.class).getString("driver");
+            Document settings = component.get("settings", Document.class);
+            Document options = settings.get("options", Document.class);
+
+            String target = settings.getString("target");
+            String driver = settings.getString("driver");
+
+            boolean useGPU = false;
+            boolean dockerImageFetching = false;
+
+            if (options != null && !options.isEmpty()) {
+                useGPU = options.getBoolean("useGPU");
+                dockerImageFetching = options.getBoolean("dockerImageFetching");
+            }
+
             if (target.equals("org.dkpro.core.io.xmi.XmiWriter")) continue;
 
             switch (driver) {
                 case "DUUIDockerDriver" -> composer.add(
-                    new DUUIDockerDriver.Component(target));
+                    new DUUIDockerDriver.Component(target).withParameter("name", component.getString("name"))
+                        .withImageFetching(dockerImageFetching).withGPU(useGPU));
                 case "DUUISwarmDriver" -> composer.add(
-                    new DUUISwarmDriver.Component(target));
+                    new DUUISwarmDriver.Component(target).withParameter("name", component.getString("name")));
                 case "DUUIRemoteDriver" -> composer.add(
-                    new DUUIRemoteDriver.Component(target));
+                    new DUUIRemoteDriver.Component(target).withParameter("name", component.getString("name")));
                 case "DUUIUIMADriver" -> composer.add(
                     new DUUIUIMADriver.Component(
                         AnalysisEngineFactory.createEngineDescription(
-                            target)));
-                default -> throw new IllegalArgumentException(
-                    "Driver cannot be empty.");
+                            target)).withParameter("name", component.getString("name")));
+                default -> throw new IllegalArgumentException("Driver cannot be empty");
             }
         }
     }
@@ -103,6 +116,7 @@ public class DUUIProcess extends Thread {
             .withSkipVerification(true)
             .withStorageBackend(
                 new DUUIMongoStorageBackend(DUUIMongoService.getConnectionURI()))
+            .withWorkers(5)
             .withLuaContext(new DUUILuaContext().withJsonLibrary());
 
         setupDrivers();
@@ -123,14 +137,36 @@ public class DUUIProcess extends Thread {
     @Override
     public void run() {
 
+        Application.metrics.get("active_processes").incrementAndGet();
         Document input = process.get("input", Document.class);
         Document output = process.get("output", Document.class);
 
-        String inputSource = input.getString("source");
+        String inputSource = input.getString("source").toLowerCase();
         String inputPath = input.getString("path");
         String inputExtension = input.getString("extension");
 
+        String outputType = output.getString("type").toLowerCase();
         String outputPath = output.getString("path");
+        String outputExtension = output.getString("extension");
+
+
+        _service = Executors
+            .newScheduledThreadPool(1)
+            .scheduleAtFixedRate(
+                () -> {
+                    if (composer != null) {
+                        try {
+                            DUUIProcessController.setProgress(id, composer.getProgress());
+                            DUUIProcessController.updateLog(id, composer.getLog());
+                        } catch (Exception e) {
+                            System.out.println(e);
+                        }
+                    }
+                },
+                0,
+                1000,
+                TimeUnit.MILLISECONDS
+            );
 
         try {
             initializeComposer();
@@ -138,44 +174,42 @@ public class DUUIProcess extends Thread {
             throw new RuntimeException(e);
         }
 
-        progressTracker = progressTrackerService.scheduleAtFixedRate(
-            () -> DUUIProcessController.setProgress(id, composer.getProgress()),
-            0,
-            2,
-            TimeUnit.SECONDS);
+
         JCas cas = null;
 
         IDUUIDataReader dataReader = null;
         Exception error = null;
 
-        if (Objects.equals(input.getString("source"), "text")) {
-            // Run in single document mode.
-            String text = input.getString("text");
+        if (inputSource.equals("text")) {
+            String inputText = input.getString("text");
             _singleDocument = true;
 
             try {
-                cas = JCasFactory.createText(text);
+                cas = JCasFactory.createText(inputText);
+                composer.addStatus("Loaded document, starting Pipeline");
                 DUUIProcessController.setStatus(id, "running");
-                Application.metrics.get("active_processes").incrementAndGet();
+
                 composer.run(cas, pipeline.getString("name") + "_" + process.getLong("startedAt"));
             } catch (Exception e) {
                 error = e;
                 DUUIProcessController.setStatus(id, "failed");
-                DUUIProcessController.setFinishTime(id, new Date().toInstant().toEpochMilli());
-                Application.metrics.get("failed_processes").incrementAndGet();
-                Application.metrics.get("active_processes").decrementAndGet();
-                progressTracker.cancel(true);
+                _service.cancel(false);
             }
 
         } else {
 
             dataReader = setupDataReader(inputSource);
+            composer.addStatus("AsyncCollectionReader", "Loading documents");
             AsyncCollectionReader reader = new AsyncCollectionReader.Builder()
                 .withDataReader(dataReader)
                 .withSourceDirectory(dataReader instanceof DUUIDropboxDataReader && inputPath.equals("/") ? "" : inputPath)
                 .withFileExtension(inputExtension)
                 .withAddMetadata(true)
                 .build();
+
+            composer.addStatus("AsyncCollectionReader", "Loaded " + reader.getDocumentCount() + " documents");
+            DUUIProcessController.setDocumentCount(id, reader.getDocumentCount());
+            DUUIProcessController.setDocumentNames(id, reader.getDocumentNames());
 
             try {
                 DUUIUIMADriver.Component component = new DUUIUIMADriver.Component(
@@ -186,53 +220,60 @@ public class DUUIProcess extends Thread {
                         XmiWriter.PARAM_OVERWRITE, true,
                         XmiWriter.PARAM_VERSION, "1.1",
                         XmiWriter.PARAM_STRIP_EXTENSION, true
-                    ));
+                    )).withParameter("name", "XMIWriter");
 
                 composer.add(component);
                 DUUIProcessController.setStatus(id, "running");
-                Application.metrics.get("active_processes").incrementAndGet();
                 composer.run(reader, pipeline.getString("name") + "_" + process.getLong("startedAt"));
 
+            } catch (InterruptedException ignored) {
             } catch (Exception e) {
                 DUUIProcessController.setStatus(id, "failed");
-                DUUIProcessController.setFinishTime(id, new Date().toInstant().toEpochMilli());
-                Application.metrics.get("failed_processes").incrementAndGet();
-                Application.metrics.get("active_processes").decrementAndGet();
-                progressTracker.cancel(true);
                 error = e;
             }
         }
 
-        try {
-            composer.shutdown();
+        if (!_interrupted) {
+            try {
+                composer.shutdown();
+                if (error == null) {
+                    if (_singleDocument && cas != null) {
+                        for (Annotation annotation : cas.getAnnotationIndex()) {
+                            System.out.println(annotation.getClass().getCanonicalName());
+                        }
+                    } else {
 
-            if (_singleDocument && cas != null) {
-                for (Annotation annotation : cas.getAnnotationIndex()) {
-                    System.out.println(annotation.getClass().getCanonicalName());
-                }
-            } else {
-                String outputType = output.getString("type");
-                String outputExtension = output.getString("extension");
+                        if (dataReader != null && outputType.equals(inputSource)) {
+                            DUUIProcessController.setStatus(id, "output");
+                            List<DUUIInputStream> streams = getFilesInDirectoryRecursive("tmp/duui/" + outputPath);
+                            dataReader.writeFiles(streams, outputPath);
+                        }
+                    }
+                    if (Objects.equals(inputSource, "text")) {
+                        DUUIProcessController.setProgress(id, pipeline.getList("components", Document.class).size());
+                    }
 
-                if (dataReader != null && outputType.equals(inputSource)) {
-                    DUUIProcessController.setStatus(id, "output");
-                    List<DUUIInputStream> streams = getFilesInDirectoryRecursive("tmp/duui/" + outputPath);
-                    dataReader.writeFiles(streams, outputPath);
+                    DUUIProcessController.setStatus(id, "completed");
+                    Application.metrics.get("completed_processes").incrementAndGet();
+                } else {
+                    DUUIProcessController.setStatus(id, "failed");
+                    Application.metrics.get("failed_processes").incrementAndGet();
                 }
+
+            } catch (IOException e) {
+                DUUIProcessController.setStatus(id, "failed");
+                error = e;
+                Application.metrics.get("failed_processes").incrementAndGet();
+
+            } finally {
+                _service.cancel(false);
             }
-
-            DUUIProcessController.setStatus(id, error == null ? "completed" : "failed");
-            Application.metrics.get("completed_processes").incrementAndGet();
-
-        } catch (IOException e) {
-            DUUIProcessController.setStatus(id, "failed");
-            Application.metrics.get("failed_processes").incrementAndGet();
-
-        } finally {
             DUUIProcessController.setFinishTime(id, new Date().toInstant().toEpochMilli());
-            Application.metrics.get("active_processes").decrementAndGet();
-            progressTracker.cancel(true);
         }
+
+        DUUIProcessController.setError(id, error);
+        Application.metrics.get("active_processes").decrementAndGet();
+
     }
 
     private IDUUIDataReader setupDataReader(String source) {
@@ -253,10 +294,14 @@ public class DUUIProcess extends Thread {
     }
 
     public void cancel() throws UnknownHostException {
-        interrupt();
+        _interrupted = true;
         composer.shutdown();
         DUUIProcessController.setStatus(id, "cancelled");
-        progressTracker.cancel(true);
+        DUUIProcessController.setFinishTime(id, new Date().toInstant().toEpochMilli());
+        Application.metrics.get("cancelled_processes").incrementAndGet();
+
+        _service.cancel(false);
+        interrupt();
     }
 
     public DUUIComposer getComposer() {

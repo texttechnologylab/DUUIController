@@ -15,13 +15,13 @@ class DUUIClient:
         return user
 
     def __fetch_user_by_api_key(self) -> DUUIUser:
-        return requests.get(f"http://127.0.0.1:2605/users/auth/{self.api_key}").json()
+        return requests.get(f"http://192.168.2.122:2605/users/auth/{self.api_key}").json()
 
     def fetch_pipeline(self, pipeline_id: str) -> dict:
-        return requests.get(f"http://127.0.0.1:2605/pipelines/{pipeline_id}", headers={"session": self.user["session"]}).json()
+        return requests.get(f"http://192.168.2.122:2605/pipelines/{pipeline_id}", headers={"session": self.user["session"]}).json()
 
     def fetch_pipelines(self) -> dict:
-        return requests.get(f"http://127.0.0.1:2605/pipelines/all/{self.user['id']}").json()
+        return requests.get(f"http://192.168.2.122:2605/pipelines/all/{self.user['id']}").json()
 
 
 if __name__ == "__main__":

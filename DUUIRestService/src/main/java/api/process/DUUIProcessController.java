@@ -4,7 +4,6 @@ import static api.Application.queryIntElseDefault;
 import static api.services.DUUIMongoService.mapObjectIdToString;
 
 import api.Application;
-import api.pipeline.DUUIPipeline;
 import api.pipeline.DUUIPipelineController;
 import api.responses.MissingRequiredFieldResponse;
 import api.responses.NotFoundResponse;
@@ -16,17 +15,15 @@ import api.validation.PipelineValidator;
 import api.validation.UserValidator;
 import api.validation.Validator;
 import com.mongodb.client.FindIterable;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Projections;
-import com.mongodb.client.model.Updates;
+import com.mongodb.client.model.*;
 
 import java.net.UnknownHostException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import org.bson.Document;
-import org.bson.json.JsonWriterSettings;
 import org.bson.types.ObjectId;
-import org.javatuples.Pair;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatusEvent;
 import spark.Request;
 import spark.Response;
 
@@ -94,7 +91,11 @@ public class DUUIProcessController {
                     .append("path", outputPath)
                     .append("extension", outputExtension))
             .append("options", options)
-            .append("pipeline_id", pipelineId);
+            .append("pipeline_id", pipelineId)
+            .append("log", new ArrayList<Document>())
+            .append("documentCount", 0)
+            .append("documentNames", new ArrayList<String>());
+
 
         DUUIMongoService
             .getInstance()
@@ -116,10 +117,6 @@ public class DUUIProcessController {
     public static String stopProcess(Request request, Response response)
         throws UnknownHostException {
         String id = request.params(":id");
-        if (id == null) {
-            response.status(400);
-            return new MissingRequiredFieldResponse("id").toJson();
-        }
 
         Document process = DUUIMongoService
             .getInstance()
@@ -140,8 +137,6 @@ public class DUUIProcessController {
         DUUIProcess p = runningProcesses.get(id);
         p.cancel();
         runningProcesses.remove(id);
-        Application.metrics.get("active_processes").decrementAndGet();
-        Application.metrics.get("cancelled_processes").incrementAndGet();
 
         return new Document("id", id).toJson();
     }
@@ -185,7 +180,8 @@ public class DUUIProcessController {
             .getInstance()
             .getDatabase("duui")
             .getCollection("processes")
-            .find(Filters.eq("pipeline_id", pipelineId));
+            .find(Filters.eq("pipeline_id", pipelineId))
+            .sort(Sorts.descending("startedAt"));
 
         if (limit != 0) {
             pipelines.limit(limit);
@@ -198,10 +194,7 @@ public class DUUIProcessController {
         List<Document> documents = new ArrayList<>();
         pipelines.into(documents);
 
-        documents.forEach(
-            (document -> {
-                mapObjectIdToString(document);
-            }));
+        documents.forEach((DUUIMongoService::mapObjectIdToString));
 
         response.status(200);
         return new Document("processes", documents).toJson();
@@ -259,12 +252,50 @@ public class DUUIProcessController {
         return process.toJson();
     }
 
+    public static String getLog(Request request, Response response) {
+        String id = request.params(":id");
+        if (id == null) {
+            response.status(400);
+            return new MissingRequiredFieldResponse("id").toJson();
+        }
+
+        Document process = DUUIMongoService
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("processes")
+            .find(Filters.eq(new ObjectId(id)))
+            .projection(Projections.fields(Projections.include("log")))
+            .first();
+
+        if (process == null) {
+            response.status(404);
+            return new NotFoundResponse("No process found for id <" + id + ">")
+                .toJson();
+        }
+
+        mapObjectIdToString(process);
+        response.status(200);
+        return process.toJson();
+    }
+
     public static void setStatus(String id, String status) {
         DUUIMongoService
             .getInstance()
             .getDatabase("duui")
             .getCollection("processes")
             .updateOne(Filters.eq(new ObjectId(id)), Updates.set("status", status));
+    }
+
+    public static void updateLog(String id, List<DUUIStatusEvent> log) {
+        DUUIMongoService
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("processes")
+            .updateOne(Filters.eq(new ObjectId(id)), Updates.set("log", log.stream().map(
+                (statusEvent) -> new Document("timestamp", statusEvent.getTimestamp())
+                    .append("sender", statusEvent.getSender())
+                    .append("message", statusEvent.getMessage())
+            ).collect(Collectors.toList())));
     }
 
     public static void setProgress(String id, int progress) {
@@ -285,344 +316,35 @@ public class DUUIProcessController {
             .updateOne(Filters.eq(new ObjectId(id)), Updates.set("finishedAt", finishTime));
     }
 
-    // public static String startProcess(Request request, Response response)
-    // throws UIMAException, URISyntaxException, IOException, InterruptedException,
-    // ExecutionException {
-    // Application.metrics.get("active_processes").incrementAndGet();
+    public static void setError(String id, Exception error) {
+        DUUIMongoService
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("processes")
+            .updateOne(Filters.eq(new ObjectId(id)), Updates.set("error", error == null ? null : error.getMessage()));
+    }
 
-    // String id = request.params(":id");
-    // if (id == null) {
-    // return new Document("Bad Request", "Missing required parameter id.")
-    // .toJson();
-    // }
+    public static void setDocumentCount(String id, int documentCount) {
+        DUUIMongoService
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("processes")
+            .updateOne(
+                Filters.eq(new ObjectId(id)),
+                Updates.set("documentCount", documentCount));
+    }
 
-    // Document options = Document.parse(request.body());
-    // Document pipeline = DUUIMongoService
-    // .PipelineService()
-    // .withIdFilter(id)
-    // .findOne();
+    public static void setDocumentNames(String id, List<String> documentNames) {
+        DUUIMongoService
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("processes")
+            .updateOne(
+                Filters.eq(new ObjectId(id)),
+                Updates.set("documentNames", documentNames));
+    }
 
-    // String processName =
-    // pipeline.getString("name") + "_" + new Date().toInstant().toEpochMilli();
-    // DUUIComposer composer = new DUUIComposer();
-    // composer.withSkipVerification(true);
-
-    // composer.withLuaContext(LuaConsts.getJSON());
-
-    // return id;
-    //
-    // DUUILuaContext context = new DUUILuaContext()
-    // .withGlobalLibrary(
-    // "json",
-    // DUUIComposer.class.getResourceAsStream("lua_stdlib/json.lua")
-    // );
-    //
-    // Document pipeline = DUUIMongoService
-    // .PipelineService()
-    // .withFilter(Filters.eq(new ObjectId(pipelineId)))
-    // .findOne();
-    //
-    // DUUIComposer composer = new DUUIComposer()
-    // .withLuaContext(context)
-    // .withSkipVerification(true);
-    //
-    // List<Document> components = pipeline.getList("components", Document.class);
-    // for (Document component : components) {
-    // String target = component.getString("target");
-    // System.out.println("---- " + target + " ----");
-    // try {
-    // switch (component.getString("driver")) {
-    // case "DUUIRemoteDriver" -> {
-    // composer.addDriver(new DUUIRemoteDriver(5000));
-    // composer.add(new DUUIRemoteDriver.Component(target));
-    // }
-    // case "DUUIUIMADriver" -> {
-    // composer.addDriver(new DUUIUIMADriver());
-    // composer.add(
-    // new DUUIUIMADriver.Component(
-    // AnalysisEngineFactory.createEngineDescription(target)
-    // )
-    // );
-    // }
-    // case "DUUIDockerDriver" -> {
-    // composer.addDriver(new DUUIDockerDriver().withTimeout(5000));
-    // composer.add(
-    // new DUUIDockerDriver.Component(target)
-    // .withGPU(true)
-    // .withImageFetching()
-    // );
-    // }
-    // case "DUUISwarmDriver" -> {
-    // composer.addDriver(new DUUISwarmDriver());
-    // composer.add(new DUUISwarmDriver.Component(target));
-    // }
-    // default -> {}
-    // }
-    // } catch (
-    // IOException
-    // | SAXException
-    // | CompressorException
-    // | UIMAException
-    // | URISyntaxException e
-    // ) {
-    // response.status(400);
-    // return new Document(
-    // "error",
-    // "Failed to instantiate component <" +
-    // component.getString("name") +
-    // ">."
-    // )
-    // .toJson();
-    // }
-    // }
-    //
-    // String uuid = UUID.randomUUID().toString();
-    //
-    // JCas cas;
-    // String documentText = processData.getString("document");
-    // if (documentText == null) {
-    // return new Document("error", "Empty document can not be annotated.")
-    // .toJson();
-    // }
-    //
-    // try {
-    // cas = JCasFactory.createJCas();
-    // cas.setDocumentText(documentText);
-    // } catch (UIMAException e) {
-    // response.status(400);
-    // return new Document("error", "JCas Object could not be instantiated.")
-    // .toJson();
-    // }
-    //
-    // CompletableFuture<Void> thread = CompletableFuture.runAsync(() -> {
-    // try {
-    // composer.run(cas, pipeline.getString("name") + "_" + new Date());
-    // } catch (Exception e) {
-    // throw new RuntimeException(e);
-    // }
-    // });
-    //
-    // DUUIProcess process = new DUUIProcess(uuid, composer, thread);
-    // runningProcesses.put(uuid, process);
-    //
-    // try {
-    // thread.get();
-    // } catch (CancellationException e) {
-    // System.out.println("Pipeline cancelled. Shutting down.");
-    // }
-    //
-    // if (thread.isCancelled()) {
-    // composer.shutdown();
-    // }
-    //
-    // runningProcesses.remove(uuid);
-    // return new Document("id", uuid).toJson();
-    // }
-
-    // public static String startPipeline(Request request, Response response) {
-    // String id = request.params(":id");
-    // if (id == null) {
-    // response.status(400);
-    // return new MissingRequiredFieldResponse("id").toJson();
-    // }
-
-    // DUUIMongoService service = DUUIMongoService
-    // .PipelineService()
-    // .withFilter(Filters.eq("_id", new ObjectId(id)))
-    // .withProjection(
-    // Projections.fields(Projections.include("name", "components"))
-    // );
-
-    // Document document = service.findOne();
-    // JSONObject pipeline = new JSONObject(document.toJson());
-    // pipeline.remove("_id");
-
-    // System.out.println("---------------------------------------");
-    // System.out.println(pipeline);
-    // System.out.println("---------------------------------------");
-
-    // DUUIComposer composer;
-    // DUUILuaContext context;
-    // try {
-    // context =
-    // new DUUILuaContext()
-    // .withGlobalLibrary(
-    // "json",
-    // DUUIComposer.class.getResourceAsStream("lua_stdlib/json.lua")
-    // );
-    // } catch (IOException e) {
-    // response.status(500);
-    // throw new RuntimeException(e);
-    // }
-
-    // try {
-    // composer =
-    // new DUUIComposer().withLuaContext(context).withSkipVerification(true);
-    // } catch (URISyntaxException e) {
-    // response.status(400);
-    // return new Document("error", "Composer could not be instantiated.")
-    // .toJson();
-    // }
-
-    // JSONArray components = pipeline.getJSONArray("components");
-
-    // for (Object component : components) {
-    // JSONObject componentObject = (JSONObject) component;
-    // String target = componentObject.getString("target");
-    // System.out.println("---- " + target + " ----");
-    // try {
-    // switch (componentObject.getString("driver")) {
-    // case "DUUIRemoteDriver" -> {
-    // composer.addDriver(new DUUIRemoteDriver(5000));
-    // composer.add(new DUUIRemoteDriver.Component(target));
-    // }
-    // case "DUUIUIMADriver" -> {
-    // composer.addDriver(new DUUIUIMADriver());
-    // composer.add(
-    // new DUUIUIMADriver.Component(
-    // AnalysisEngineFactory.createEngineDescription(target)
-    // )
-    // );
-    // }
-    // case "DUUIDockerDriver" -> {
-    // composer.addDriver(new DUUIDockerDriver().withTimeout(5000));
-    // composer.add(
-    // new DUUIDockerDriver.Component(target)
-    // .withGPU(true)
-    // .withImageFetching()
-    // );
-    // }
-    // case "DUUISwarmDriver" -> {
-    // composer.addDriver(new DUUISwarmDriver());
-    // composer.add(new DUUISwarmDriver.Component(target));
-    // }
-    // default -> {}
-    // }
-    // } catch (
-    // IOException
-    // | SAXException
-    // | CompressorException
-    // | UIMAException
-    // | URISyntaxException e
-    // ) {
-    // response.status(400);
-    // return new Document(
-    // "error",
-    // "Failed to instantiate component <" +
-    // componentObject.getString("name") +
-    // ">."
-    // )
-    // .toJson();
-    // }
-    // }
-
-    // JCas cas;
-    // Document doc = Document.parse(request.body());
-    // String documentText = doc.getString("doc");
-    // try {
-    // cas = JCasFactory.createJCas();
-    // cas.setDocumentText(documentText);
-    // } catch (UIMAException e) {
-    // response.status(400);
-    // return new Document("error", "Cas could not be instantiated.").toJson();
-    // }
-
-    // Date now = new Date();
-    // CompletableFuture<JSONObject> task = CompletableFuture.supplyAsync(() -> {
-    // try {
-    // composer.run(cas, pipeline.getString("name") + "_" + now);
-    // } catch (InterruptedException e) {
-    // response.status(400);
-    // return new JSONObject()
-    // .put("message", "Pipeline has been canceled.")
-    // .put("error", e.getMessage());
-    // } catch (Exception e) {
-    // response.status(400);
-    // return new JSONObject()
-    // .put("message", "Failed to start pipeline.")
-    // .put("error", e.getMessage());
-    // }
-
-    // response.status(200);
-    // response.type("application/json");
-    // return null;
-    // });
-
-    // DUUIMongoService runService = DUUIMongoService.ProcessService();
-    // Document run = new Document("pipelineId", id)
-    // .append("startedAt", new Date())
-    // .append("status", "Running")
-    // .append("documentText", cas.getDocumentText());
-
-    // runService.insertOne(run);
-    // service.updatePipelineStatus(id, "Running");
-
-    // try {
-    // task.get();
-    // response.status(200);
-    // composer.shutdown();
-
-    // service.updatePipelineStatus(id, "Completed");
-    // ByteArrayOutputStream result = new ByteArrayOutputStream();
-    // XmiCasSerializer.serialize(cas.getCas(), result);
-
-    // HashMap<String, Annotation> annotations = new HashMap<>();
-    // for (Annotation annotation : cas.getAnnotationIndex()) {
-    // annotations.put(annotation.getClass().getCanonicalName(), annotation);
-    // }
-
-    // Document counter = new Document();
-    // for (Annotation annotation : annotations.values()) {
-    // if (
-    // Objects.equals(
-    // annotation.getClass().getCanonicalName(),
-    // "org.apache.uima.jcas.tcas.DocumentAnnotation"
-    // )
-    // ) {
-    // continue;
-    // }
-    // counter.put(
-    // annotation.getClass().getCanonicalName(),
-    // JCasUtil.select(cas, annotation.getClass()).size()
-    // );
-    // System.out.println(annotation.getClass().getName());
-    // System.out.println(counter.get(annotation.getClass().getName()));
-    // }
-
-    // // service.updateOne(id,
-    // // Updates.set("result", result.toString(StandardCharsets.UTF_8))
-    // // );
-    // return counter.toJson();
-    // } catch (
-    // InterruptedException | ExecutionException | UnknownHostException e
-    // ) {
-    // response.status(400);
-    // try {
-    // composer.shutdown();
-    // } catch (UnknownHostException e1) {}
-    // service.updatePipelineStatus(id, "Error");
-
-    // return new Document("message", "Pipeline failed.")
-    // .append("error", e.getMessage())
-    // .toJson();
-    // } catch (SAXException e) {
-    // throw new RuntimeException(e);
-    // }
-    // }
-
-    // public static String stopPipeline(Request request, Response response) {
-    // String id = request.params(":id");
-    // if (id == null) {
-    // response.status(400);
-    // return new MissingRequiredFieldResponse("id").toJson();
-    // }
-
-    // DUUIMongoService service = DUUIMongoService
-    // .PipelineService()
-    // .withFilter(Filters.eq("_id", new ObjectId(id)));
-
-    // service.updatePipelineStatus(id, "Cancelled");
-    // return new Document("message", "Cancelled pipeline").toJson();
-    // }
-
+    public static String getResult(Request request, Response response) {
+        return new Document("message", "NOT IMPLEMENTED").toJson();
+    }
 }

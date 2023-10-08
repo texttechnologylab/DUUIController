@@ -93,7 +93,7 @@ if __name__ == "__main__":
     f0 = open("PythonClient/component.py", 'rb')
     f1 = open("PythonClient/pipeline.py", 'rb')
 
-    response = requests.post("http://127.0.0.1:2605/files", files={"component.py": f0, "pipeline.py": f1})
+    response = requests.post("http://192.168.2.122:2605/files", files={"component.py": f0, "pipeline.py": f1})
 
     f0.close()
     f1.close()

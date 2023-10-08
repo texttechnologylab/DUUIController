@@ -204,6 +204,8 @@ public class Application {
         get("pipelines/:id/processes", DUUIProcessController::findMany);
         get("/processes/:id/status", DUUIProcessController::getStatus);
         get("/processes/:id/progress", DUUIProcessController::getProgress);
+        get("/processes/:id/log", DUUIProcessController::getLog);
+        get("/processes/:id/result", DUUIProcessController::getResult);
 
         post("/processes", DUUIProcessController::startProcess);
         put("/processes/:id", DUUIProcessController::stopProcess);
@@ -241,141 +243,6 @@ public class Application {
             return new Document("path", path);
         }));
 
-        post("/processes/dropbox", "application/json", ((request, response) -> {
-            request.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement("/temp"));
-
-            String session = request.headers("session");
-            if (session == null) {
-                response.status(401);
-                return "Invalid session";
-            }
-
-            Document process = null;
-            for (Part part : request.raw().getParts()) {
-                if (Objects.equals(part.getContentType(), "files")) {
-                    System.out.println(part.getSubmittedFileName());
-                    System.out.println(part.getSize());
-                } else {
-                    InputStream inputStream = part.getInputStream();
-                    StringBuilder stringBuilder = new StringBuilder();
-                    try (Reader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
-                        int c;
-                        while ((c = reader.read()) != -1) {
-                            stringBuilder.append((char) c);
-                        }
-                    }
-                    if (Objects.equals(part.getName(), "process")) {
-                        process = Document.parse(String.valueOf(stringBuilder));
-                    }
-                }
-            }
-
-            if (process == null) {
-                response.status(400);
-                return new MissingRequiredFieldResponse("process").toJson();
-            }
-
-            String pipeline_id = process.getString("pipeline_id");
-            if (pipeline_id.isEmpty()) {
-                response.status(400);
-                return "Missing pipeline_id";
-            }
-
-            Document pipeline = DUUIPipelineController.getPipelineById(pipeline_id);
-
-            if (pipeline == null) {
-                response.status(404);
-                return "No pipeline found for id <" + pipeline_id + ">";
-            }
-
-            if (!DUUIUserController.validateSession("user_id", session)) {
-                response.status(401);
-                return "Invalid session";
-            }
-
-            Document input = process.get("input", Document.class);
-            Document output = process.get("output", Document.class);
-
-            if (input == null) {
-                response.status(400);
-                return new MissingRequiredFieldResponse("input").toJson();
-            }
-
-            if (output == null) {
-                response.status(400);
-                return new MissingRequiredFieldResponse("output").toJson();
-            }
-
-            String inputSource = input.getString("source");
-            String inputPath = input.getString("path");
-            String inputText = input.getString("text");
-            String outputType = output.getString("type");
-            String outputPath = output.getString("path");
-
-            String error = DUUIRequestValidator.validateIO(inputSource, inputPath, inputText, outputType, outputPath);
-            if (!error.isEmpty()) {
-                response.status(400);
-                return new MissingRequiredFieldResponse(error).toJson();
-            }
-
-            if (inputSource.equals("Dropbox")) {
-                response.status(200);
-
-                DUUIDropboxDataReader dataReader = new DUUIDropboxDataReader("Cedric Test App");
-
-                DUUIComposer composer =
-                    new DUUIComposer()
-                        .withSkipVerification(true)
-                        .withStorageBackend(
-                            new DUUIMongoStorageBackend(DUUIMongoService.getConnectionURI())
-                        )
-                        .withWorkers(Math.min(dataReader.listFiles(inputPath).size(), 10))
-                        .withLuaContext(new DUUILuaContext().withJsonLibrary());
-
-
-                AsyncCollectionReader reader = new AsyncCollectionReader.Builder()
-                    .withDataReader(dataReader)
-                    .withSourceDirectory(inputPath)
-                    .withFileExtension(".gz")
-                    .build();
-
-                composer.addDriver(new DUUIUIMADriver());
-
-                composer.add(new DUUIUIMADriver.Component(
-                    createEngineDescription(BreakIteratorSegmenter.class)
-                ));
-
-                DUUIUIMADriver.Component component = new DUUIUIMADriver.Component(
-                    createEngineDescription(
-                        XmiWriter.class,
-                        XmiWriter.PARAM_TARGET_LOCATION, inputPath,
-                        XmiWriter.PARAM_PRETTY_PRINT, true,
-                        XmiWriter.PARAM_OVERWRITE, true,
-                        XmiWriter.PARAM_VERSION, "1.1",
-                        XmiWriter.PARAM_COMPRESSION, "GZIP"
-                    ));
-
-                composer.add(component);
-                composer.run(reader, "dropbox-test");
-
-                List<DUUIInputStream> files = getFilesInDirectoryRecursive(inputPath);
-
-                dataReader.writeFiles(
-                    files,
-                    outputPath
-                );
-
-                return "Starting composer in multi document mode with input source: <" + inputSource + ":" + inputPath + ">" +
-                    " Writing to: <" + outputType + ":" + outputPath + ">";
-
-//                return "Starting composer in single document mode with: <" + inputText + ">" +
-//                    " Writing to: <" + outputType + ":" + outputPath + ">";
-            } else {
-                response.status(200);
-                return "Starting composer in multi document mode with input source: <" + inputSource + ":" + inputPath + ">" +
-                    " Writing to: <" + outputType + ":" + outputPath + ">";
-            }
-        }));
 
         get(
             "/metrics",

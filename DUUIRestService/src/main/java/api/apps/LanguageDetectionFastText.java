@@ -22,7 +22,7 @@ public class LanguageDetectionFastText {
   public static void main(String[] args) throws Exception {
     int PORT = 8000;
     HttpServer server = HttpServer.create(
-      new InetSocketAddress("127.0.0.1", PORT),
+      new InetSocketAddress("192.168.2.122", PORT),
       0
     );
 

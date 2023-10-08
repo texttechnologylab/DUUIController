@@ -25,7 +25,7 @@ public class StanfordLemma {
 
   public static void main(String[] args) throws Exception {
     HttpServer server = HttpServer.create(
-      new InetSocketAddress("127.0.0.1", 9003),
+      new InetSocketAddress("192.168.2.122", 9003),
       0
     );
 
