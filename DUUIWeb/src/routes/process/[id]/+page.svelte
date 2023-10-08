@@ -1,19 +1,44 @@
 <script lang="ts">
+	import { goto } from '$app/navigation'
 	import DriverIcon from '$lib/components/DriverIcon.svelte'
-	import { DUUIStatus } from '$lib/data.js'
-	import { pipelineActive, toTitleCase } from '$lib/utils.js'
-	import { faCancel, faCheck, faEdit, faRefresh } from '@fortawesome/free-solid-svg-icons'
-	import { ProgressRadial } from '@skeletonlabs/skeleton'
+	import { DUUIDocumentOutput, DUUIDocumentSource, DUUIStatus } from '$lib/data.js'
+	import {
+		documentIsProcessed,
+		getIconForStatus,
+		getProgressPercent,
+		getProgressPercentLive,
+		getTimeDifference,
+		outputIsCloudProvider,
+		pipelineActive,
+		toTitleCase
+	} from '$lib/utils.js'
+	import {
+		faArrowLeft,
+		faCancel,
+		faCaretDown,
+		faCaretUp,
+		faCheck,
+		faFile,
+		faRefresh,
+		faX
+	} from '@fortawesome/free-solid-svg-icons'
+	import { ProgressBar, getToastStore, type ToastSettings } from '@skeletonlabs/skeleton'
 
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
 
 	export let data
+	const toastStore = getToastStore()
 
 	let { pipeline, process } = data
 
 	let status = process.status
 	let progress = process.progress
+	let progressPercent: number
+	let log = process.log
+	let logExpanded: boolean = false
+
+	const inputIsText: boolean = process.input.source === DUUIDocumentSource.Text.toLowerCase()
 
 	// function cancelPipeline() {
 	// 	if (status === DUUIStatus.Completed) {
@@ -36,22 +61,16 @@
 	// 		return
 	// 	}
 
-	// 	fetch('http://127.0.0.1:2605/processes/' + process.id, {
+	// 	fetch('http://192.168.2.122:2605/processes/' + process.id, {
 	// 		method: 'PUT',
 	// 		mode: 'cors'
 	// 	})
 
-	// 	const t: ToastSettings = {
-	// 		message: 'Pipeline has been cancelled',
-	// 		timeout: 4000,
-	// 		background: 'variant-filled-warning'
-	// 	}
-	// 	getToastStore().trigger(t)
 	// }
 
 	onMount(() => {
 		async function checkStatus() {
-			const response = await fetch('http://127.0.0.1:2605/processes/' + process.id, {
+			const response = await fetch('http://192.168.2.122:2605/processes/' + process.id, {
 				method: 'GET',
 				mode: 'cors'
 			})
@@ -59,108 +78,146 @@
 			const content = await response.json()
 			status = content.status
 			progress = content.progress
+			log = content.log
 
-			console.log(progress)
+			process.documentNames = content.documentNames || []
+			process.documentCount = content.documentCount || 0
 
-			if (status === DUUIStatus.Completed || status === DUUIStatus.Failed) {
+			progressPercent = getProgressPercentLive(
+				progress,
+				inputIsText ? pipeline.components.length : process.documentCount
+			)
+
+			if (
+				status === DUUIStatus.Completed ||
+				status === DUUIStatus.Failed ||
+				status === DUUIStatus.Cancelled
+			) {
 				clearInterval(interval)
 			}
 		}
 
-		// async function checkStatus() {
-		// 	if (process === undefined) {
-		// 		return
-		// 	}
-		// 	if (process.status === DUUIStatus.Completed) {
-		// 		return
-		// 	}
-
-		// 	const response = await fetch('http://127.0.0.1:2605/processes/' + process_id, {
-		// 		method: 'GET',
-		// 		mode: 'cors'
-		// 	})
-
-		// 	const process = await response.json()
-		// 	status = process.status
-		// 	progress = process.progress
-		// 	building = process.status === DUUIStatus.Setup
-
-		// 	if (process.status !== DUUIStatus.Running || process.status !== DUUIStatus.Setup) {
-		// 		clearInterval(interval)
-		// 		processes = [...processes, process]
-		// 		tableSource = processes.map((process, index, array) => {
-		// 			return {
-		// 				positon: index,
-		// 				status: toTitleCase(process.status),
-		// 				progress: (process.progress / pipeline.components.length) * 100 + ' %',
-		// 				startedAt: process.startedAt ? toDateTimeString(new Date(process.startedAt)) : '',
-		// 				duration: getDuration(process),
-		// 				process: process
-		// 			}
-		// 		})
-		// 		tableSource = tableSource
-		// 		tableData = {
-		// 			head: ['Status', 'Progress', 'Start Time', 'Duration'],
-		// 			body: tableMapperValues(tableSource, ['status', 'progress', 'startedAt', 'duration']),
-		// 			meta: tableMapperValues(tableSource, ['process'])
-		// 		}
-		// 	}
-		// }
-
-		const interval = setInterval(checkStatus, 2000)
+		const interval = setInterval(checkStatus, 500)
 		checkStatus()
-
 		return () => clearInterval(interval)
 	})
 
-	function cancelPipeline(event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }) {
-		throw new Error('Function not implemented.')
+	async function cancelPipeline() {
+		await fetch('http://192.168.2.122:2605/processes/' + process.id, {
+			method: 'PUT',
+			mode: 'cors'
+		})
+		const t: ToastSettings = {
+			message: 'Pipeline has been cancelled',
+			timeout: 4000,
+			background: 'variant-filled-warning'
+		}
+		toastStore.trigger(t)
+	}
+
+	async function getOutput() {
+		const response = await fetch('http://192.168.2.122:2605/processes/' + process.id + '/result', {
+			method: 'GET',
+			mode: 'cors'
+		})
+
+		const content = await response.json()
+		console.log(content)
 	}
 </script>
 
-<div class="p-4 mx-auto container grid grid-cols-2 gap-4 m-32">
-	<div class="flex flex-col gap-4 variant-ghost-surface p-4">
-		<div class="grid grid-cols-2 gap-4">
-			<p>{pipeline.name}</p>
-			<p>{Math.round(progress / pipeline.components.length * 100)} %</p>
-			<p>{toTitleCase(status)}</p>
+<div class="p-4 mx-auto container grid lg:grid-cols-2 gap-4">
+	<div class="space-y-4 variant-ghost-surface p-4 self-start">
+		<div class="flex justify-between items-center gap-4">
+			<h3 class="h3">{pipeline.name}</h3>
+			<div class="flex items-center gap-4">
+				<Fa
+					icon={getIconForStatus(status)}
+					size="lg"
+					class={status === DUUIStatus.Running ? 'animate-spin-slow ' : ''}
+				/>
+				<p class="h4">{toTitleCase(status)}</p>
+			</div>
 		</div>
+		<hr />
 		<div class="flex flex-col gap-4">
+			<div class="flex justify-between items-center gap-4">
+				<h3 class="h3">{inputIsText ? 'Components' : 'Documents'}</h3>
+				<p class="h4">{progressPercent} %</p>
+			</div>
+			{#if inputIsText}
+				{#each pipeline.components as component, id}
+					<div class="flex gap-4 items-center px-4">
+						{#if progress > id}
+							<Fa icon={faCheck} size="lg" />
+						{:else if status === DUUIStatus.Running}
+							<Fa icon={faRefresh} size="lg" class="animate-spin-slow " />
+						{/if}
+						<DriverIcon driver={component.settings.driver} />
+						<p class="h4 grow">{component.name}</p>
+					</div>
+				{/each}
+			{:else if process.documentNames}
+				<div class="grid md:grid-cols-2 2xl:grid-cols-3 grid-flow-row gap-4">
+					{#each process.documentNames as document}
+						<div class="flex gap-4 items-center px-4">
+							{#if pipelineActive(status)}
+								{#if documentIsProcessed(log, document)}
+									<Fa icon={faCheck} size="lg" class="text-success-400" />
+								{:else}
+									<Fa icon={faRefresh} size="lg" class="animate-spin-slow" />
+								{/if}
+							{:else if documentIsProcessed(log, document)}
+								<Fa icon={faCheck} size="lg" class="text-success-400" />
+							{:else}
+								<Fa icon={faX} size="lg" class="text-error-400" />
+							{/if}
+							<p>{document.split('/').at(-1)}</p>
+						</div>
+					{/each}
+				</div>
+			{/if}
+		</div>
+
+		<hr />
+		<div class="flex flex-col md:flex-row justify-between gap-4">
+			<button class="btn variant-ghost-success" on:click={() => goto('/pipelines/' + pipeline.id)}>
+				<span><Fa icon={faArrowLeft} /></span>
+				<span>Back to pipeline</span>
+			</button>
+			{#if status === DUUIStatus.Completed && !outputIsCloudProvider(process.output.type) && process.output.type !== DUUIDocumentOutput.None.toLowerCase()}
+				<button class="btn variant-ghost-primary" on:click={getOutput}>
+					<span><Fa icon={faFile} /></span>
+					<span>Get Output</span>
+				</button>
+			{/if}
 			{#if pipelineActive(status)}
-				<form
-					class="flex items-center gap-4"
-					on:submit|preventDefault={() => console.log('Cancel')}
-				>
-					<ProgressRadial stroke={120} width="w-16" meter="stroke-primary-400" />
-					<button class="btn variant-ghost-error" on:click={cancelPipeline}>
-						<span><Fa icon={faCancel} /></span>
-						<span>Cancel Pipeline</span>
-					</button>
-				</form>
-			{:else}
-				<form
-					class="flex items-center gap-4"
-					on:submit|preventDefault={() => console.log('Restart')}
-				>
-					<button class="btn variant-ghost-primary" on:click={cancelPipeline}>
-						<span><Fa icon={faRefresh} /></span>
-						<span>Restart Pipeline</span>
-					</button>
-				</form>
+				<button class="btn variant-ghost-error" on:click={cancelPipeline}>
+					<span><Fa icon={faCancel} /></span>
+					<span>Cancel Pipeline</span>
+				</button>
 			{/if}
 		</div>
 	</div>
-	<div class="flex flex-col gap-4 variant-ghost-surface p-4">
-		{#each pipeline.components as component}
-			<div class="flex gap-4 items-center">
-				{#if progress >= component.id + 1}
-					<Fa icon={faCheck} size="lg" />
-				{:else if status === DUUIStatus.Running}
-					<Fa icon={faRefresh} size="lg" class="animate-spin " />
-				{/if}
-				<DriverIcon driver={component.settings.driver} />
-				<p class="h4 grow">{component.name}</p>
-			</div>
-		{/each}
+
+	<div class="space-y-4 variant-ghost-surface p-4">
+		<div class="flex justify-between items-center gap-4">
+			<h3 class="h3">Log</h3>
+			<button class="flex items-center gap-4" on:click={() => (logExpanded = !logExpanded)}>
+				<span><Fa icon={logExpanded ? faCaretUp : faCaretDown} /></span>
+				<span>{logExpanded ? 'Hide full log' : 'Show full log'}</span>
+			</button>
+		</div>
+		<hr />
+		<div class="space-y-2">
+			{#each log
+				.sort((eventA, eventB) => (eventA.timestamp < eventB.timestamp ? 1 : -1))
+				.slice(0, logExpanded ? -1 : 10) as statusEvent}
+				<div class="flex items-start gap-8">
+					<p >+{getTimeDifference(process.startedAt, statusEvent.timestamp)}</p>
+					<p class="break-words max-w-[20ch] md:max-w-[60ch]">{statusEvent.message}</p>
+				</div>
+			{/each}
+		</div>
 	</div>
 </div>

@@ -20,14 +20,13 @@ export const actions: Actions = {
 			})
 		}
 
-		const response = await fetch('http://127.0.0.1:2605/users/' + email, {
+		const response = await fetch('http://192.168.2.122:2605/users/' + email, {
 			method: 'GET',
 			mode: 'cors'
 		})
 
 		const user = await response.json()
-
-		if (Object.keys(user).length === 0) {
+		if (user['message'] === 'User not found') {
 			return fail(400, {
 				error: 'Invalid credentials.'
 			})
@@ -39,7 +38,7 @@ export const actions: Actions = {
 			})
 		}
 
-		const userUpdate = await fetch('http://127.0.0.1:2605/users', {
+		const userUpdate = await fetch('http://192.168.2.122:2605/users', {
 			method: 'PUT',
 			mode: 'cors',
 			body: JSON.stringify({
@@ -49,7 +48,7 @@ export const actions: Actions = {
 		})
 
 		const session = await userUpdate.json()
-		
+
 		cookies.set('session', session.session, {
 			path: '/',
 			httpOnly: true,
@@ -57,7 +56,7 @@ export const actions: Actions = {
 			secure: process.env.NODE_ENV === 'production',
 			maxAge: 60 * 60 * 24 * 30
 		})
-		
+
 		throw redirect(302, '/pipelines')
 	},
 

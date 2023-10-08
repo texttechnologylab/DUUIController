@@ -3,7 +3,6 @@ import type { Actions, PageServerLoad } from './$types'
 import bcrypt from 'bcrypt'
 
 export const load: PageServerLoad = async ({ locals }) => {
-
 	if (locals.user) {
 		throw redirect(302, '/')
 	}
@@ -13,15 +12,16 @@ export const actions: Actions = {
 	async register({ request }) {
 		const data = await request.formData()
 		const email = data.get('email')
+		console.log(data)
 
-		const response = await fetch('http://127.0.0.1:2605/users/' + email, {
+		const response = await fetch('http://192.168.2.122:2605/users/' + email, {
 			method: 'GET',
 			mode: 'cors'
 		})
 
 		const user = await response.json()
 
-		if (Object.keys(user).length !== 0) {
+		if (user['message'] !== 'User not found') {
 			// return fail(400, {user: true})
 			throw redirect(302, '/user/login?email=' + email) // might be unsecure?
 		}
@@ -42,7 +42,8 @@ export const actions: Actions = {
 		}
 
 		const encryptedPassword = await bcrypt.hash(password1.toString(), 10)
-		await fetch('http://127.0.0.1:2605/users', {
+
+		await fetch('http://192.168.2.122:2605/users', {
 			method: 'POST',
 			mode: 'cors',
 			body: JSON.stringify({

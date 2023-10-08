@@ -7,7 +7,7 @@
 		DUUIInputSourcesList,
 		DUUIOutputSourcesList
 	} from '$lib/data'
-	import { cutText, formatFileSize } from '$lib/utils'
+	import { cutText, formatFileSize, toTitleCase } from '$lib/utils'
 	import { faSortNumericAsc, faSortNumericDesc, faX } from '@fortawesome/free-solid-svg-icons'
 	import { Step, Stepper } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
@@ -15,13 +15,15 @@
 	export let data
 	let { session } = data
 
-	let inputSource: DUUIDocumentSource = DUUIDocumentSource.Text
-	let inputPath: string = '/txt'
+	let inputSource: DUUIDocumentSource = DUUIDocumentSource.Dropbox
+	let inputPath: string = '/sample_splitted'
 	let inputText: string = 'Hello World.'
 	let fileExtension: string = '.txt'
 
 	let outputType: DUUIDocumentOutput = DUUIDocumentOutput.None
-	let outputPath: string = '/xd'
+	let outputPath: string = ''
+
+	let notify: boolean = false
 
 	let files: FileList
 	let sortedFiles: File[] = []
@@ -46,24 +48,24 @@
 			_files.forEach((file) => data.append('files', file))
 		}
 
-		data.append(
-			'process',
-			JSON.stringify({
-				pipeline_id: $page.url.searchParams.get('pipeline'),
-				input: {
-					source: inputSource.toLowerCase(),
-					path: inputPath,
-					text: inputText,
-					extension: fileExtension
-				},
-				output: {
-					type: outputType.toLowerCase(),
-					path: outputPath
-				}
-			})
-		)
+		// data.append(
+		// 	'process',
+		// 	JSON.stringify({
+		// 		pipeline_id: $page.url.searchParams.get('pipeline'),
+		// 		input: {
+		// 			source: inputSource.toLowerCase(),
+		// 			path: inputPath,
+		// 			text: inputText,
+		// 			extension: fileExtension
+		// 		},
+		// 		output: {
+		// 			type: outputType.toLowerCase(),
+		// 			path: outputPath
+		// 		}
+		// 	})
+		// )
 
-		let response = await fetch('http://127.0.0.1:2605/processes', {
+		let response = await fetch('http://192.168.2.122:2605/processes', {
 			method: 'POST',
 			mode: 'cors',
 			headers: {
@@ -102,17 +104,22 @@
 	}
 </script>
 
-<h1 class="h2 text-center mx-auto my-8">New Process</h1>
+<h1 class="h1 text-center mx-auto my-4">New Process</h1>
 <Stepper
 	on:complete={submitProcess}
-	class="max-w-7xl mx-auto"
+	buttonCompleteLabel="Start"
+	class="max-w-7xl mx-auto p-4"
 	active="rounded-full variant-filled px-4"
 	badge="rounded-full variant-filled-primary"
 >
-	<Step locked={inputText === DUUIDocumentSource.Text && !inputText}>
-		<svelte:fragment slot="header">Select an Input method</svelte:fragment>
-		<div class="space-y-4 rounded-md flex justify-center">
-			<div class="card p-4 grid gap-4">
+	<Step
+		locked={(inputText === DUUIDocumentSource.Text && !inputText) ||
+			(outputType !== DUUIDocumentOutput.None && !outputPath)}
+	>
+		<svelte:fragment slot="header">Choose input and output type</svelte:fragment>
+		<div class=" grid md:grid-cols-2 gap-4">
+			<div class="card rounded-md p-4 flex gap-4 flex-col">
+				<h3 class="h3">Input</h3>
 				<label class="label space-y-2">
 					<span>Source</span>
 					<select class="select border-2" bind:value={inputSource}>
@@ -158,7 +165,7 @@
 						<span>Document Text</span>
 						<textarea
 							class="textarea border-2"
-							rows="12"
+							rows="4"
 							placeholder="Enter the document text"
 							bind:value={inputText}
 						/>
@@ -178,27 +185,47 @@
 					</label>
 				{/if}
 			</div>
-		</div>
-	</Step>
-	<Step>
-		<svelte:fragment slot="header">Select an Output method</svelte:fragment>
-		<div class="card p-4 space-y-8 rounded-md">
-			<form action="" class="space-y-4">
+			<div class="card rounded-md p-4 flex gap-4 flex-col">
+				<h3 class="h3">Output</h3>
 				<label class="label space-y-2">
 					<span>Type</span>
 					<select class="select border-2" bind:value={outputType}>
-						{#each DUUIOutputSourcesList.slice(1) as source}
+						{#each DUUIOutputSourcesList as source}
 							<option value={source}>{source}</option>
 						{/each}
 					</select>
 				</label>
-				{#if outputPath !== DUUIDocumentOutput.None}
+				{#if outputType === DUUIDocumentOutput.S3 || outputType === DUUIDocumentOutput.Dropbox}
 					<label class="label space-y-2">
-						<span>{inputSource === DUUIDocumentSource.S3 ? 'Bucket Name' : 'Path to folder'}</span>
+						<span>{outputType === DUUIDocumentOutput.S3 ? 'Bucket Name' : 'Path to folder'}</span>
+						<input class="input border-2" type="text" bind:value={outputPath} />
+					</label>
+				{:else if outputType !== DUUIDocumentOutput.None}
+					<label class="label space-y-2">
+						<span>Filename</span>
 						<input class="input border-2" type="text" bind:value={outputPath} />
 					</label>
 				{/if}
-			</form>
+			</div>
+		</div>
+		<svelte:fragment slot="navigation">
+			<button
+				class="btn variant-filled-error"
+				on:click={() => goto('/pipelines/' + $page.url.searchParams.get('pipeline'))}>Cancel</button
+			>
+		</svelte:fragment>
+	</Step>
+	<Step>
+		<svelte:fragment slot="header">Extra settings</svelte:fragment>
+		<div class="card rounded-md p-4 flex gap-4 flex-col">
+			<label class="flex items-center space-x-2">
+				<span>Get notified when finished (E-Mail)</span>
+				<input
+					class="checkbox checked:variant-filled-primary"
+					type="checkbox"
+					bind:value={notify}
+				/>
+			</label>
 		</div>
 	</Step>
 </Stepper>

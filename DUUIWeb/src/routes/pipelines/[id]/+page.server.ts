@@ -3,7 +3,7 @@ import type { Actions, PageServerLoad } from './$types'
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
 	const loadPipeline = async (): Promise<DUUIPipeline> => {
-		const result = await fetch('http://127.0.0.1:2605/pipelines/' + params.id, {
+		const result = await fetch('http://192.168.2.122:2605/pipelines/' + params.id, {
 			method: 'GET',
 			mode: 'cors',
 			headers: {
@@ -15,7 +15,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 
 	const loadProcesses = async (): Promise<DUUIProcess[]> => {
 		const result = await fetch(
-			'http://127.0.0.1:2605/pipelines/' + params.id + '/processes?limit=10',
+			'http://192.168.2.122:2605/pipelines/' + params.id + '/processes?limit=10',
 			{
 				method: 'GET',
 				mode: 'cors',

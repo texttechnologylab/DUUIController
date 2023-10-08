@@ -14,6 +14,7 @@
 
 	export let deleteButton: boolean = false
 
+
 	let onRemove = () => {
 		dispatcher('remove', {
 			id: $componentStore.id
@@ -41,7 +42,7 @@
 	</ListBox>
 </div>
 
-<div class="variant-soft-surface shadow-lg flex flex-col gap-4 p-4 pointer-events-auto">
+<div class="cflex flex-col gap-4 p-4 pointer-events-auto">
 	<header class="flex justify-start gap-4 items-center">
 		<DriverIcon driver={$componentStore.settings.driver} />
 		<p class="h4">{$componentStore.name}</p>
@@ -100,9 +101,9 @@
 	</div>
 	<h3>Advanced Settings</h3>
 	{#if $componentStore.settings.driver === DUUIDockerDriver || $componentStore.settings.driver === DUUISwarmDriver}
-		<DockerSettings component={$componentStore} />
+		<DockerSettings />
 	{:else if $componentStore.settings.driver === DUUIRemoteDriver}
-		<RemoteSettings component={$componentStore} />
+		<RemoteSettings  />
 	{/if}
 	<!-- 
 	{#if expanded}

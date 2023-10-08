@@ -1,7 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import PipelineComponent from '$lib/components/PipelineComponent.svelte'
-	import { blankComponent, DUUIStatus, type DUUIPipelineComponent } from '$lib/data'
+	import {
+		blankComponent,
+		DUUIStatus,
+		type DUUIPipelineComponent,
+		DUUIDocumentSource
+	} from '$lib/data'
 	import { faArrowLeft, faCog, faRocket } from '@fortawesome/free-solid-svg-icons'
 	import {
 		type ModalSettings,
@@ -16,20 +21,27 @@
 	import { getToastStore } from '@skeletonlabs/skeleton'
 	import type { TableSource, ToastSettings } from '@skeletonlabs/skeleton'
 	import type { ActionData, PageServerData } from './$types'
-	import { getDuration, toDateTimeString, toTitleCase } from '$lib/utils'
+	import {
+		getDuration,
+		getProgressPercent,
+		getTimeDifference,
+		toDateTimeString,
+		toTitleCase
+	} from '$lib/utils'
 
 	export let data: PageServerData
 	let { pipeline, processes } = data
 
 	let status: string = DUUIStatus.Unknown
 	let progress: number = 0
+
 	let tableSource = processes.map((process, index, _) => {
 		return {
 			positon: index,
 			status: toTitleCase(process.status),
-			progress: (process.progress / pipeline.components.length) * 100 + ' %',
+			progress: getProgressPercent(process, pipeline) + ' %',
 			startedAt: process.startedAt ? toDateTimeString(new Date(process.startedAt)) : '',
-			duration: getDuration(process) + 's',
+			duration: getTimeDifference(process.startedAt, process.finishedAt),
 			input: toTitleCase(process.input.source),
 			output: toTitleCase(process.output.type),
 			process: process
@@ -54,7 +66,6 @@
 	// let runningProcesses: number = processes.filter((process) => process.status === DUUIStatus.Running).length;
 
 	let flipDurationMs = 300
-	const toastStore = getToastStore();
 
 	function handleDndConsider(event: CustomEvent<DndEvent<DUUIPipelineComponent>>) {
 		pipeline.components = event.detail.items
@@ -101,6 +112,7 @@
 	}
 
 	const modalStore = getModalStore()
+	const toastStore = getToastStore()
 
 	const onMaybeDeletePipeline = async (e: SubmitEvent) => {
 		let button = e.submitter as HTMLButtonElement
@@ -124,7 +136,7 @@
 					timeout: 4000,
 					background: 'variant-filled-success'
 				}
-				getToastStore().trigger(t)
+				toastStore.trigger(t)
 			}
 			return
 		}
@@ -175,26 +187,25 @@
 <div class="container h-full flex-col mx-auto flex gap-4">
 	<!-- HEADER -->
 	<header class="grow self-stretch">
-		<div class="flex items-center space-x-2 my-8">
-			<button on:click={() => goto('/pipelines')} class="btn-icon shadow-lg variant-glass-primary"
+		<div class="flex items-center space-x-2">
+			<button
+				on:click={() => goto('/pipelines')}
+				class="btn-icon shadow-lg variant-glass-primary absolute"
 				><Fa size="lg" icon={faArrowLeft} /></button
 			>
 			<h1 class="h2 font-bold grow text-center">
 				{pipeline.name}
 			</h1>
-			<button class="btn-icon shadow-lg variant-glass-primary lg:hidden">
-				<Fa size="lg" icon={faCog} />
-			</button>
 		</div>
 	</header>
 
 	<!-- Settings & Recent processes -->
 
-	<div class="grid lg:grid-cols-2 lg:gap-8">
+	<div class="grid lg:grid-cols-2 lg:gap-4">
 		<!-- Settings -->
 		<div class="space-y-4">
 			<h2 class="h3 hidden lg:block px-4">Settings</h2>
-			<div class="card space-y-4 p-4">
+			<div class="card space-y-4 p-4 rounded-md">
 				<form
 					class="flex flex-col gap-4"
 					method="POST"
@@ -240,7 +251,7 @@
 			</div>
 
 			<div class="space-y-4">
-				<p class="h3 hidden lg:block">Components</p>
+				<h2 class="h3 hidden lg:block px-4">Components</h2>
 				<ul
 					use:dndzone={{ items: pipeline.components, dropTargetStyle: {} }}
 					on:consider={(event) => handleDndConsider(event)}
@@ -272,18 +283,19 @@
 		</div>
 
 		<div class="space-y-4">
-			<h2 class="h3 hidden lg:block px-4">Recent Processes</h2>
+			<h2 class="h3 hidden md:block px-4">Recent Processes</h2>
 			<Table
+				class="hidden md:block rounded-md shadow-lg "
 				source={tableData}
 				interactive
 				on:selected={(e) => goto('/process/' + e.detail[0].id)}
 			/>
 			<button
-				class="btn variant-filled-primary ml-auto"
+				class="btn variant-filled-primary ml-auto rounded-md shadow-lg"
 				on:click={() => goto('/process?pipeline=' + pipeline.id)}
 			>
 				<span><Fa icon={faRocket} /></span>
-				<span>Setup new Process</span>
+				<span>Create new process</span>
 			</button>
 		</div>
 	</div>

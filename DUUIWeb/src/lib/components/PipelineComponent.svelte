@@ -46,7 +46,7 @@
 	}
 </script>
 
-<li class="card shadow-lg flex flex-col gap-4 p-4 pointer-events-none">
+<li class="card rounded-md shadow-lg flex flex-col gap-4 p-4 pointer-events-none">
 	<div class="flex grid-cols-2 gap-4 items-center">
 		{#if completed}
 			<Fa icon={faCheck} size="lg" />
@@ -54,7 +54,7 @@
 			<Fa icon={faRefresh} size="lg" class="animate-spin " />
 		{/if}
 		<DriverIcon driver={component.settings.driver} />
-		<p class="h4 grow">{component.name}</p>
+		<p class="md:h4 grow">{component.name}</p>
 		<button
 			class="btn-icon pointer-events-auto variant-glass-primary"
 			on:click={() => (editMode = !editMode)}
@@ -86,7 +86,12 @@
 				{:else}
 					<span>Image Name</span>
 				{/if}
-				<input class="border-2 input" type="text" placeholder="Name" bind:value={component.settings.target} />
+				<input
+					class="border-2 input"
+					type="text"
+					placeholder="Name"
+					bind:value={component.settings.target}
+				/>
 			</label>
 
 			<div class="flex justify-between gap-4">

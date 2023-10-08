@@ -3,7 +3,7 @@ import type { Actions, PageServerLoad } from './$types'
 
 export const load: PageServerLoad = async () => {
 	const loadComponentTemplates = async (): Promise<{ components: DUUIPipelineComponent[] }> => {
-		const result = await fetch('http://127.0.0.1:2605/components', {
+		const result = await fetch('http://192.168.2.122:2605/components', {
 			method: 'GET',
 			mode: 'cors'
 		})

@@ -10,7 +10,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	let userResponse
 
 	try {
-		userResponse = await fetch('http://127.0.0.1:2605/users/auth/' + session, {
+		userResponse = await fetch('http://192.168.2.122:2605/users/auth/' + session, {
 			method: 'GET',
 			mode: 'cors'
 		})

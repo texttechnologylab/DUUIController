@@ -1,7 +1,4 @@
 <script lang="ts">
-	import { page } from '$app/stores'
-	import { faTriangleExclamation } from '@fortawesome/free-solid-svg-icons'
-	import Fa from 'svelte-fa'
 	import type { ActionData } from './$types'
 
 	export let form: ActionData

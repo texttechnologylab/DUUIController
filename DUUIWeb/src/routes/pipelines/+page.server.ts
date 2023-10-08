@@ -10,7 +10,7 @@ export const load: PageServerLoad = async ({ fetch, locals, cookies }) => {
 	console.log(locals.user)
 
 	const loadPipelines = async (): Promise<{ pipelines: DUUIPipeline[] }> => {
-		const result = await fetch('http://127.0.0.1:2605/pipelines/all/' + locals.user.id, {
+		const result = await fetch('http://192.168.2.122:2605/pipelines/all/' + locals.user.id, {
 			method: 'GET',
 			mode: 'cors',
 			headers: {

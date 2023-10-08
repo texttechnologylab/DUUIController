@@ -148,15 +148,16 @@
 	>
 		<Step locked={pipeline.components.length === 0}>
 			<svelte:fragment slot="header">Build Components</svelte:fragment>
-			<div class="grid grid-cols-3 gap-4">
+			<div
+				class="grid lg:grid-cols-3 gap-4 {pipeline.components.length === 0
+					? 'grid-cols-1'
+					: 'md:grid-cols-2'}"
+			>
 				<!-- Component List -->
-				<aside class="variant-soft-surface p-4 space-y-4 self-start">
-					{#if pipeline.components.length === 0}
-						<div class="p-4 space-y-4 flex flex-col items-center justify-center">
-							<p class="h5">Start by adding a new Component</p>
-							<Fa size="3x" icon={faArrowRight} />
-						</div>
-					{:else}
+				{#if pipeline.components.length > 0}
+					<aside
+						class="rounded-md shadow-lg space-y-4 self-start row-start-2 md:row-start-1 md:col-start-3 md:col-span-1"
+					>
 						<ul
 							use:dndzone={{ items: pipeline.components, dropTargetStyle: {} }}
 							on:consider={(event) => handleDndConsider(event)}
@@ -165,7 +166,7 @@
 						>
 							{#each pipeline.components as component (component.id)}
 								<div
-									class="flex items-center justify-start gap-4 card p-4"
+									class="flex items-center justify-start gap-4 card p-4 rounded-md shadow-lg"
 									animate:flip={{ duration: flipDurationMs }}
 								>
 									<DriverIcon driver={component.settings.driver} />
@@ -188,30 +189,18 @@
 								</div>
 							{/each}
 						</ul>
-					{/if}
-				</aside>
+					</aside>
+				{/if}
 
 				<!-- Component Editor -->
-				<div class="container h-full flex-col flex gap-4 col-span-2 justify-center">
-					{#if editing}
+				{#if editing}
+					<div class="card rounded-md shadow-lg col-span-2">
 						<ComponentBuilder
 							on:remove={deleteComponent}
 							deleteButton={pipeline.components.map((c) => c.id).includes($componentStore.id)}
 						/>
-					{/if}
-					{#if !editing}
-						<div class="mx-auto grid grid-cols-2 gap-4">
-							<button class="btn variant-filled-primary" on:click={editNewComponent}>
-								<span>New Component</span>
-								<Fa icon={faPlus} />
-							</button>
-							<button class="btn variant-ghost-primary" on:click={showTemplateModal}>
-								<span>Choose template</span>
-								<Fa icon={faBookOpen} />
-							</button>
-						</div>
-					{:else}
-						<div class="mr-auto grid grid-cols-2 gap-4">
+
+						<div class="grid grid-cols-2 gap-4 p-4">
 							<button
 								class="btn variant-filled-success rounded-sm shadow-lg"
 								on:click={saveComponent}
@@ -225,8 +214,33 @@
 								<span>Cancel</span>
 							</button>
 						</div>
-					{/if}
-				</div>
+					</div>
+				{:else}
+					<div
+						class="container h-full flex-col flex gap-4 justify-center card rounded-md shadow-lg p-4"
+					>
+						{#if !editing}
+							<div class="p-4 space-y-4 flex flex-col items-center justify-center">
+								<p class="text-md md:h4">Start by adding a new Component</p>
+							</div>
+							<div class="mx-auto grid gap-4">
+								<button
+									class="btn text-sm md:text-base variant-filled-primary rounded-md shadow-lg"
+									on:click={editNewComponent}
+								>
+									<span>New Component</span>
+									<Fa icon={faPlus} />
+								</button>
+								<button
+									class="btn text-sm md:text-base variant-ghost-primary rounded-md shadow-lg"
+									on:click={showTemplateModal}
+								>
+									<span>Choose template</span>
+									<Fa icon={faBookOpen} />
+								</button>
+							</div>{/if}
+					</div>
+				{/if}
 			</div>
 			<svelte:fragment slot="navigation">
 				<button class="btn variant-filled-error" on:click={() => goto('/pipelines')}>Cancel</button>

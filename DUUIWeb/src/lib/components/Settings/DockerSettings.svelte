@@ -1,14 +1,13 @@
 <script lang="ts">
-	import type { DUUIPipelineComponent } from '$lib/data'
-	import { faThreads } from '@fortawesome/free-brands-svg-icons'
-	import { faNetworkWired } from '@fortawesome/free-solid-svg-icons'
-	import Fa from 'svelte-fa'
+	import { componentStore } from '../../../routes/pipelines/new/store'
 
-	export let component: DUUIPipelineComponent;
-	
 	let useGPU: boolean = false
 	let dockerImageFetching: boolean = false
-	
+
+	$: {
+		$componentStore.settings.options.set('gpu', useGPU + '')
+		$componentStore.settings.options.set('dockerImageFetching', dockerImageFetching + '')
+	}
 </script>
 
 <div class="grid grid-cols-1 card p-4 gap-4 pointer-events-auto">
@@ -17,7 +16,11 @@
 		<span>Utilize GPU</span>
 	</label>
 	<label class="flex items-center space-x-2">
-		<input class="checkbox checked:variant-filled-primary" type="checkbox" bind:value={dockerImageFetching} />
+		<input
+			class="checkbox checked:variant-filled-primary"
+			type="checkbox"
+			bind:value={dockerImageFetching}
+		/>
 		<span>Fetch Image if not available</span>
 	</label>
 	<!-- <label class="label">

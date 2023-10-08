@@ -18,6 +18,7 @@ export interface DUUIPipelineComponent {
 		driver: string
 		target: string
 		options: Map<string, string> // Advanced Settings
+		parameters: Map<string, string>
 	}
 }
 
@@ -40,6 +41,15 @@ export interface DUUIProcess {
 	}
 	options: Map<string, string>
 	pipeline_id: string
+	log: DUUIStatusEvent[]
+	documentCount: number
+	documentNames: string[]
+}
+
+export interface DUUIStatusEvent {
+	timestamp: number
+	sender: string
+	message: string
 }
 
 export const DUUIRemoteDriver = 'DUUIRemoteDriver'
@@ -57,7 +67,7 @@ export const DUUIDrivers: string[] = [
 export enum DUUIStatus {
 	Setup = 'setup',
 	Running = 'running',
-	Output = "output",
+	Output = 'output',
 	Failed = 'failed',
 	Cancelled = 'cancelled',
 	Completed = 'completed',
@@ -66,7 +76,6 @@ export enum DUUIStatus {
 
 export enum DUUIDocumentSource {
 	Dropbox = 'Dropbox',
-	Hessenbox = 'Hessenbox',
 	Files = 'Files',
 	S3 = 'S3',
 	Text = 'Text'
@@ -80,25 +89,23 @@ export const DUUIInputSourcesList = [
 ]
 
 export enum DUUIDocumentOutput {
-	CSV = 'CSV',
+	CSV = '.csv',
 	Dropbox = 'Dropbox',
-	Files = 'Files',
-	Hessenbox = 'Hessenbox',
-	Json = 'Json',
+	Json = '.json',
 	None = 'None',
 	S3 = 'S3',
-	Text = 'Text'
+	Xmi = '.xmi',
+	Text = '.txt'
 }
 
 export const DUUIOutputSourcesList = [
-	DUUIDocumentOutput.CSV,
-	DUUIDocumentOutput.Dropbox,
-	DUUIDocumentOutput.Files,
-	DUUIDocumentOutput.Hessenbox,
-	DUUIDocumentOutput.Json,
-	DUUIDocumentOutput.None,
 	DUUIDocumentOutput.S3,
-	DUUIDocumentOutput.Text
+	DUUIDocumentOutput.Dropbox,
+	DUUIDocumentOutput.CSV,
+	DUUIDocumentOutput.Json,
+	DUUIDocumentOutput.Text,
+	DUUIDocumentOutput.Xmi,
+	DUUIDocumentOutput.None
 ]
 
 export const blankPipeline = () =>
@@ -120,7 +127,8 @@ export const blankComponent = (id: number) =>
 		settings: {
 			driver: DUUIDockerDriver,
 			target: '',
-			options: new Map<string, string>()
+			options: new Map<string, string>(),
+			parameters: new Map<string, string>()
 		}
 	}
 
@@ -143,5 +151,8 @@ export const blankProcess = (pipeline_id: string) =>
 			compression: ''
 		},
 		options: new Map<string, string>(),
-		pipeline_id: pipeline_id
+		pipeline_id: pipeline_id,
+		log: [],
+		documentCount: 0,
+		documentNames: []
 	}
