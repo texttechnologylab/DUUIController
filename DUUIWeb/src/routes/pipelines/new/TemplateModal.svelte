@@ -24,7 +24,7 @@
 		}
 	}
 
-    let searchText: string = ''
+	let searchText: string = ''
 	let searchOpen: boolean = false
 	let filteredTemplates = components
 
@@ -39,36 +39,36 @@
 			})
 		}
 	}
-
 </script>
 
 {#if $modalStore[0]}
-	<div class="card max-w-7xl items-start justify-start overflow-y-scroll max-h-[80vh] rounded-md">
+	<div
+		class="card max-w-7xl items-start justify-start overflow-y-scroll max-h-[90vh] md:max-h-[80vh] rounded-md shadow-lg"
+	>
 		<div class="flex justify-between items-center sticky top-0 bg-surface-800 shadow-lg p-4">
 			<h3 class="h3">Select Template</h3>
 			<button class="btn variant-filled-primary rounded-sm shadow-lg" on:click={onFormSubmit}
 				>Choose</button
 			>
 		</div>
-		<article class="grid md:grid-cols-2 lg: grid-cols-3 gap-8 p-8 cursor-pointer">
+		<article class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 p-8 cursor-pointer">
 			{#each components as component (component.id)}
 				<button
-					class="variant-soft-surface flex flex-col rounded-md hover:shadow-2xl"
+					class="flex flex-col rounded-md hover:shadow-2xl overflow-hidden card
+					{selectedComponents.includes(component) ? 'border-2 border-primary-500' : ''}"
 					on:click={() => selectTemplate(component)}
 				>
-					<header class="variant-form-material p-4 flex items-center justify-between gap-4">
-						<DriverIcon driver={component.settings.driver} />
-						<p class="text-lg mr-auto">{component.name}</p>
-						{#if selectedComponents.includes(component)}
-							<Fa size="2x" class="text-success-400" icon={faCheck} />
-						{/if}
-					</header>
-					<div class="p-4 text-left grow">
-						<p class="max-w-[40ch]">{component.description}</p>
-					</div>
-					<footer class="grid variant-soft-primary p-2 text-center">
+					<div class="grid variant-soft-primary p-2 text-center">
 						<p>{component.category}</p>
-					</footer>
+					</div>
+					<header class=" p-4 flex items-center justify-between gap-4">
+						<DriverIcon driver={component.settings.driver} />
+						<p class="md:h4 text-left mr-auto">{component.name}</p>
+					</header>
+					<hr />
+					<div class="p-4 text-left grow">
+						<p class="text-sm md:text-base max-w-[40ch]">{component.description}</p>
+					</div>
 				</button>
 			{/each}
 		</article>
