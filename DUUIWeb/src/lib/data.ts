@@ -1,5 +1,8 @@
 import { v4 as uuidv4 } from 'uuid'
 
+
+export const BASE_URL = "http://169.254.222.47:2605" // "http://192.168.2.122:2605"
+
 interface _Object {
 	[key: string]: any
 }

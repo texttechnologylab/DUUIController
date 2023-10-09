@@ -56,7 +56,8 @@
 				c.settings.options = $componentStore.settings.options
 			}
 		})
-
+		console.log(pipeline.components);
+		
 		pipeline.components = pipeline.components
 	}
 
@@ -133,7 +134,7 @@
 
 			response.forEach((component) => {
 				const comp = { ...component }
-				comp.id = Math.max(...pipeline.components.map((c) => c.id)) + 1
+				comp.id = Math.max(...pipeline.components.map((c) => c.id), 0) + 1
 				pipeline.components = [...pipeline.components, comp]
 			})
 		})
@@ -214,7 +215,7 @@
 					>
 						{#if !editing}
 							{#if pipeline.components.length === 0}
-								<p class="h2 text-center">Start by adding a Component</p>
+								<p class="h3 text-center">Start by adding a Component</p>
 							{/if}
 
 							<div class="mx-auto grid gap-4">

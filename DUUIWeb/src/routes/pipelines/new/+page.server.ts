@@ -1,9 +1,9 @@
-import type { DUUIPipelineComponent } from '$lib/data'
+import { BASE_URL, type DUUIPipelineComponent } from '$lib/data'
 import type { Actions, PageServerLoad } from './$types'
 
 export const load: PageServerLoad = async () => {
 	const loadComponentTemplates = async (): Promise<{ components: DUUIPipelineComponent[] }> => {
-		const result = await fetch('http://192.168.2.122:2605/components', {
+		const result = await fetch(BASE_URL + '/components', {
 			method: 'GET',
 			mode: 'cors'
 		})

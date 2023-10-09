@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
 	import {
+		BASE_URL,
 		DUUIDocumentOutput,
 		DUUIDocumentSource,
 		DUUIInputSourcesList,
@@ -65,7 +66,7 @@
 		// 	})
 		// )
 
-		let response = await fetch('http://192.168.2.122:2605/processes', {
+		let response = await fetch(BASE_URL + '/processes', {
 			method: 'POST',
 			mode: 'cors',
 			headers: {

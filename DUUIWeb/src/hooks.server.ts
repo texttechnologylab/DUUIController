@@ -1,3 +1,4 @@
+import { BASE_URL } from '$lib/data'
 import type { Handle } from '@sveltejs/kit'
 
 export const handle: Handle = async ({ event, resolve }) => {
@@ -10,7 +11,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	let userResponse
 
 	try {
-		userResponse = await fetch('http://192.168.2.122:2605/users/auth/' + session, {
+		userResponse = await fetch(BASE_URL + '/users/auth/' + session, {
 			method: 'GET',
 			mode: 'cors'
 		})

@@ -28,8 +28,8 @@
 		closeQuery: '.listbox-item'
 	}
 
-	let useGPU: boolean = true
-	let dockerImageFetching: boolean = true
+	let useGPU: boolean = $componentStore.settings.options['gpu']
+	let dockerImageFetching: boolean = $componentStore.settings.options['dockerImageFetching']
 
 	$: {
 		$componentStore.settings.options['gpu'] = useGPU

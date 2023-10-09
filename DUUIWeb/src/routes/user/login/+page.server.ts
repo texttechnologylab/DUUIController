@@ -1,6 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit'
 import type { Actions, PageServerLoad } from './$types'
 import bcrypt from 'bcrypt'
+import { BASE_URL } from '$lib/data'
 
 export const load: PageServerLoad = async ({ locals }) => {
 	return {
@@ -20,7 +21,7 @@ export const actions: Actions = {
 			})
 		}
 
-		const response = await fetch('http://192.168.2.122:2605/users/' + email, {
+		const response = await fetch(BASE_URL + '/users/' + email, {
 			method: 'GET',
 			mode: 'cors'
 		})
@@ -38,7 +39,7 @@ export const actions: Actions = {
 			})
 		}
 
-		const userUpdate = await fetch('http://192.168.2.122:2605/users', {
+		const userUpdate = await fetch(BASE_URL + '/users', {
 			method: 'PUT',
 			mode: 'cors',
 			body: JSON.stringify({

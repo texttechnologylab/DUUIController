@@ -1,7 +1,7 @@
-import type { DUUIPipelineComponent } from '$lib/data'
+import { BASE_URL } from '$lib/data'
 
 export async function GET() {
-	const response = await fetch('http://192.168.2.122:2605/components', {
+	const response = await fetch(BASE_URL + '/components', {
 		method: 'GET',
 		mode: 'cors'
 	})

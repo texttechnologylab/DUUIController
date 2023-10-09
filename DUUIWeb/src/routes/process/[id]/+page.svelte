@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import DriverIcon from '$lib/components/DriverIcon.svelte'
-	import { DUUIDocumentOutput, DUUIDocumentSource, DUUIStatus } from '$lib/data.js'
+	import { BASE_URL, DUUIDocumentOutput, DUUIDocumentSource, DUUIStatus } from '$lib/data.js'
 	import {
 		documentIsProcessed,
 		getIconForStatus,
@@ -62,7 +62,7 @@
 	// 		return
 	// 	}
 
-	// 	fetch('http://192.168.2.122:2605/processes/' + process.id, {
+	// 	fetch(BASE_URL + '/processes/' + process.id, {
 	// 		method: 'PUT',
 	// 		mode: 'cors'
 	// 	})
@@ -71,7 +71,7 @@
 
 	onMount(() => {
 		async function checkStatus() {
-			const response = await fetch('http://192.168.2.122:2605/processes/' + process.id, {
+			const response = await fetch(BASE_URL + '/processes/' + process.id, {
 				method: 'GET',
 				mode: 'cors'
 			})
@@ -105,7 +105,7 @@
 	})
 
 	async function cancelPipeline() {
-		await fetch('http://192.168.2.122:2605/processes/' + process.id, {
+		await fetch(BASE_URL + '/processes/' + process.id, {
 			method: 'PUT',
 			mode: 'cors'
 		})
@@ -118,7 +118,7 @@
 	}
 
 	async function getOutput() {
-		const response = await fetch('http://192.168.2.122:2605/processes/' + process.id + '/result', {
+		const response = await fetch(BASE_URL + '/processes/' + process.id + '/result', {
 			method: 'GET',
 			mode: 'cors'
 		})
@@ -129,7 +129,7 @@
 </script>
 
 <div class="p-4 mx-auto container grid gap-4">
-	<div class="space-y-4 variant-ghost-surface p-4">
+	<div class="space-y-4 card shadow-lg rounded-md p-4">
 		<div class="flex justify-between items-center gap-4">
 			<h3 class="h3">{pipeline.name}</h3>
 			<div class="flex items-center gap-4">
@@ -202,7 +202,7 @@
 		</div>
 	</div>
 
-	<div class="space-y-4 variant-ghost-surface p-4">
+	<div class="space-y-4 card shadow-lg rounded-md p-4">
 		<div class="flex justify-between items-center gap-4">
 			<h3 class="h3">Log</h3>
 			{#if error}
