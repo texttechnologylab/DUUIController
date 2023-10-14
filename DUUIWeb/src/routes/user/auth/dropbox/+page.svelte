@@ -1,26 +1,22 @@
 <script lang="ts">
-	import { Dropbox } from 'dropbox'
-	import { DropboxAuth } from 'dropbox'
+	import { page } from '$app/stores'
+	import { onMount } from 'svelte'
 
-	import { browser } from '$app/environment'
 
-	const redirectURI = 'http://localhost:5173/pipelines'
-	let dbxAuth = new DropboxAuth({
-		clientId: 'l2nw2ign2z8h9hg'
-	})
+	let success: boolean = false
 
-	const doAuth = () => {
-		dbxAuth
-			.getAuthenticationUrl(redirectURI, undefined, 'code', 'offline', undefined, undefined, true)
-			.then((url) => {
-				if (browser) {
-					window.sessionStorage.clear()
-					window.sessionStorage.setItem('codeVerifier', dbxAuth.getCodeVerifier())
-					window.location.href = url
-				}
+	onMount(async () => {
+		let code = $page.url.searchParams.get('code')
+		if (code) {
+			const response = await fetch('/user/api/auth/dropbox/refresh', {
+				method: 'POST',
+				body: JSON.stringify({
+					code: code
+				})
 			})
-			.catch((error) => console.error(error))
-	}
+			success = response.ok
+		}
+	})
 </script>
 
-<button class="btn variant-glass-primary" on:click={doAuth}> Authenticate </button>
+<button class="btn variant-filled-primary"> {success ? 'Success' : 'Failed'} </button>

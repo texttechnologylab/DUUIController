@@ -24,6 +24,9 @@
 	let status: string = DUUIStatus.Unknown
 	let progress: number = 0
 
+	const lastUsed: number | undefined = processes.at(0)?.startedAt
+		
+
 	let tableSource = processes.map((process, index, _) => {
 		return {
 			positon: index,

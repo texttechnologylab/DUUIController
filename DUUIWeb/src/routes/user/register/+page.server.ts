@@ -1,7 +1,7 @@
-import { fail, redirect } from '@sveltejs/kit'
+import { error, fail, redirect } from '@sveltejs/kit'
 import type { Actions, PageServerLoad } from './$types'
 import bcrypt from 'bcrypt'
-import { BASE_URL } from '$lib/data'
+import { API_URL } from '$lib/config'
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (locals.user) {
@@ -13,9 +13,8 @@ export const actions: Actions = {
 	async register({ request }) {
 		const data = await request.formData()
 		const email = data.get('email')
-		console.log(data)
 
-		const response = await fetch(BASE_URL + '/users/' + email, {
+		const response = await fetch(`${API_URL}/users/${email}`, {
 			method: 'GET',
 			mode: 'cors'
 		})
@@ -44,7 +43,7 @@ export const actions: Actions = {
 
 		const encryptedPassword = await bcrypt.hash(password1.toString(), 10)
 
-		await fetch(BASE_URL + '/users', {
+		await fetch(API_URL + '/users', {
 			method: 'POST',
 			mode: 'cors',
 			body: JSON.stringify({

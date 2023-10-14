@@ -1,13 +1,13 @@
 import {
 	faCancel,
 	faCheck,
-	faExclamation,
 	faFileArrowUp,
 	faQuestion,
 	faRotate,
 	faWrench,
 	faX
 } from '@fortawesome/free-solid-svg-icons'
+
 import {
 	DUUIStatus,
 	type DUUIProcess,
@@ -125,7 +125,7 @@ export function documentIsProcessed(log: DUUIStatusEvent[], document: string): b
 	const name: string | undefined = document.split('/').at(-1)
 
 	for (let statusEvent of log) {
-		if (name && statusEvent.message.includes(name)) {
+		if (name && statusEvent.message.toLowerCase().includes(name.toLowerCase())) {
 			return true
 		}
 	}
@@ -169,7 +169,7 @@ export function getProgressPercentLive(progress: number, limit: number) {
 	}
 }
 
-export function outputIsCloudProvider(outputType: DUUIDocumentOutput) {
+export function outputIsCloudProvider(outputType: string) {
 	return (
 		outputType.toLowerCase() === DUUIDocumentOutput.S3.toLowerCase() ||
 		outputType.toLowerCase() === DUUIDocumentOutput.Dropbox.toLowerCase()

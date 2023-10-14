@@ -1,14 +1,13 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import DriverIcon from '$lib/components/DriverIcon.svelte'
-	import { BASE_URL, DUUIDocumentOutput, DUUIDocumentSource, DUUIStatus } from '$lib/data.js'
+	import { API_URL } from '$lib/config.js'
+	import { DUUIDocumentOutput, DUUIDocumentSource, DUUIStatus } from '$lib/data.js'
 	import {
 		documentIsProcessed,
 		getIconForStatus,
-		getProgressPercent,
 		getProgressPercentLive,
 		getTimeDifference,
-		outputIsCloudProvider,
 		pipelineActive,
 		toTitleCase
 	} from '$lib/utils.js'
@@ -22,7 +21,7 @@
 		faRefresh,
 		faX
 	} from '@fortawesome/free-solid-svg-icons'
-	import { ProgressBar, getToastStore, type ToastSettings } from '@skeletonlabs/skeleton'
+	import { getToastStore, type ToastSettings } from '@skeletonlabs/skeleton'
 
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
@@ -41,37 +40,11 @@
 
 	const inputIsText: boolean = process.input.source === DUUIDocumentSource.Text.toLowerCase()
 
-	// function cancelPipeline() {
-	// 	if (status === DUUIStatus.Completed) {
-	// 		const t: ToastSettings = {
-	// 			message: 'Pipeline has already completed',
-	// 			timeout: 4000,
-	// 			background: 'variant-filled-warning'
-	// 		}
-	// 		getToastStore().trigger(t)
-	// 		return
-	// 	}
-
-	// 	if (status === DUUIStatus.Cancelled) {
-	// 		const t: ToastSettings = {
-	// 			message: 'Pipeline has already cancelled',
-	// 			timeout: 4000,
-	// 			background: 'variant-filled-warning'
-	// 		}
-	// 		getToastStore().trigger(t)
-	// 		return
-	// 	}
-
-	// 	fetch(BASE_URL + '/processes/' + process.id, {
-	// 		method: 'PUT',
-	// 		mode: 'cors'
-	// 	})
-
-	// }
+	let filteredDocuments: string[] = []
 
 	onMount(() => {
 		async function checkStatus() {
-			const response = await fetch(BASE_URL + '/processes/' + process.id, {
+			const response = await fetch(API_URL + '/processes/' + process.id, {
 				method: 'GET',
 				mode: 'cors'
 			})
@@ -90,6 +63,8 @@
 				inputIsText ? pipeline.components.length : process.documentCount
 			)
 
+			if (progressPercent > 100) progressPercent = 100
+
 			if (
 				status === DUUIStatus.Completed ||
 				status === DUUIStatus.Failed ||
@@ -105,7 +80,7 @@
 	})
 
 	async function cancelPipeline() {
-		await fetch(BASE_URL + '/processes/' + process.id, {
+		await fetch(API_URL + '/processes/' + process.id, {
 			method: 'PUT',
 			mode: 'cors'
 		})
@@ -117,15 +92,33 @@
 		toastStore.trigger(t)
 	}
 
-	async function getOutput() {
-		const response = await fetch(BASE_URL + '/processes/' + process.id + '/result', {
-			method: 'GET',
-			mode: 'cors'
-		})
+	function getOutput(): string {
+		if (process.output.type === DUUIDocumentOutput.Dropbox.toLowerCase()) {
+			if (process.output.path.startsWith('/')) {
+				return `https://www.dropbox.com/home/Apps/Cedric%20Test%20App${process.output.path}`
+			} else {
+				return `https://www.dropbox.com/home/Apps/Cedric%20Test%20App/${process.output.path}`
+			}
+		} else if (process.output.type === DUUIDocumentOutput.Minio.toLowerCase()) {
+			return `https://play.min.io:9443/browser/${process.output.path}`
+		}
 
-		const content = await response.json()
-		console.log(content)
+		return ''
 	}
+
+	async function restart() {
+		goto(
+			`/process?pipeline=${pipeline.id}&
+			source=${process.input.source}&
+			input-path=${process.input.path}&
+			${process.input.source === DUUIDocumentSource.Text ? 'text=' + process.input.text + '&' : ''}
+			extension=${process.input.extension}&
+			type=${process.output.type}&
+			output-path=${process.output.path}
+			`
+		)
+	}
+	
 </script>
 
 <div class="p-4 mx-auto container grid gap-4">
@@ -187,16 +180,22 @@
 				<span><Fa icon={faArrowLeft} /></span>
 				<span>Back to pipeline</span>
 			</button>
-			{#if status === DUUIStatus.Completed && !outputIsCloudProvider(process.output.type) && process.output.type !== DUUIDocumentOutput.None.toLowerCase()}
-				<button class="btn variant-ghost-primary" on:click={getOutput}>
+			<!-- outputIsCloudProvider(process.output.type) &&  -->
+			{#if status === DUUIStatus.Completed && process.output.type !== DUUIDocumentOutput.None.toLowerCase()}
+				<a href={getOutput()} target="_blank" class="btn variant-ghost-primary">
 					<span><Fa icon={faFile} /></span>
 					<span>Get Output</span>
-				</button>
+				</a>
 			{/if}
 			{#if pipelineActive(status)}
 				<button class="btn variant-ghost-error" on:click={cancelPipeline}>
 					<span><Fa icon={faCancel} /></span>
 					<span>Cancel Pipeline</span>
+				</button>
+			{:else}
+				<button on:click={restart} class="btn variant-ghost-primary mr-auto">
+					<span><Fa icon={faRefresh} /></span>
+					<span>Restart</span>
 				</button>
 			{/if}
 		</div>
@@ -215,9 +214,7 @@
 		</div>
 		<hr />
 		<div class="space-y-2">
-			{#each log
-				.sort((eventA, eventB) => (eventA.timestamp < eventB.timestamp ? 1 : -1))
-				.slice(0, logExpanded ? -1 : 10) as statusEvent}
+			{#each log.reverse().slice(0, logExpanded ? -1 : 10) as statusEvent}
 				<div class="flex items-start gap-8">
 					<p class="min-w-[8ch]">+{getTimeDifference(process.startedAt, statusEvent.timestamp)}</p>
 					<p class="break-words max-w-[20ch] md:max-w-[60ch]">{statusEvent.message}</p>

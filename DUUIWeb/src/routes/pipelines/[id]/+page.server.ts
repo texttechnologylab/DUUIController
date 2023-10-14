@@ -1,9 +1,10 @@
-import { BASE_URL, type DUUIPipeline, type DUUIProcess } from '$lib/data'
+import { API_URL } from '$lib/config'
+import type { DUUIPipeline, DUUIProcess } from '$lib/data'
 import type { Actions, PageServerLoad } from './$types'
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
 	const loadPipeline = async (): Promise<DUUIPipeline> => {
-		const result = await fetch(BASE_URL + '/pipelines/' + params.id, {
+		const result = await fetch(API_URL + '/pipelines/' + params.id, {
 			method: 'GET',
 			mode: 'cors',
 			headers: {
@@ -14,16 +15,13 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 	}
 
 	const loadProcesses = async (): Promise<DUUIProcess[]> => {
-		const result = await fetch(
-			BASE_URL + '/pipelines/' + params.id + '/processes?limit=10',
-			{
-				method: 'GET',
-				mode: 'cors',
-				headers: {
-					session: cookies.get('session') || ''
-				}
+		const result = await fetch(API_URL + '/pipelines/' + params.id + '/processes?limit=10', {
+			method: 'GET',
+			mode: 'cors',
+			headers: {
+				session: cookies.get('session') || ''
 			}
-		)
+		})
 		return (await result.json()).processes
 	}
 
@@ -37,7 +35,7 @@ export const actions: Actions = {
 	default: async ({ params, cookies }) => {
 		let id: string = params.id
 
-		const response = await fetch(BASE_URL + '/pipelines/' + id, {
+		const response = await fetch(API_URL + '/pipelines/' + id, {
 			method: 'DELETE',
 			mode: 'cors',
 			headers: {

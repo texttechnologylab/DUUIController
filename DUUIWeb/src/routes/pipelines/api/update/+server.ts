@@ -1,8 +1,8 @@
-import { BASE_URL } from "$lib/data"
+import { API_URL } from "$lib/config"
 
 export async function POST({ request, cookies }) {
 	const data = await request.json()
-	const response = await fetch(BASE_URL + '/pipelines/' + data.id, {
+	const response = await fetch(API_URL + '/pipelines/' + data.id, {
 		method: 'PUT',
 		mode: 'cors',
 		body: JSON.stringify(data),

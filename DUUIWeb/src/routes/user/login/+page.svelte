@@ -3,7 +3,6 @@
 	import {
 		faArrowLeft,
 		faArrowRight,
-		faTriangleExclamation
 	} from '@fortawesome/free-solid-svg-icons'
 	import Fa from 'svelte-fa'
 	import type { ActionData } from './$types'
@@ -19,13 +18,14 @@
 	let { user } = data
 	let message: string
 	$: message = $page.url.searchParams.get('message') ?? ''
+
 </script>
 
 <svelte:head>
 	<title>Login</title>
 </svelte:head>
 
-<div class="card rounded-md shadow-lg p-4 space-y-8">
+<div class="card rounded-md shadow-lg p-4 md:p-8 space-y-8">
 	{#if message}
 		<p class="variant-filled-error p-4 rounded-md shadow-lg">{message}</p>
 	{/if}
@@ -43,7 +43,6 @@
 				<button
 					type="submit"
 					class="btn variant-filled-primary flex gap-2"
-					on:click={() => goto('/')}
 				>
 					<span>Logout</span>
 					<Fa icon={faArrowRight} />

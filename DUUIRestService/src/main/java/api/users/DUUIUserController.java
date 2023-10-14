@@ -275,4 +275,40 @@ public class DUUIUserController {
         Document user = getUserById(id);
         return user != null && user.getString("session").equals(session);
     }
+
+    public static String updateUser(Request request, Response response) {
+        Document body = Document.parse(request.body());
+
+        for (String field : body.keySet()) {
+            DUUIMongoService
+                .getInstance()
+                .getDatabase("duui")
+                .getCollection("users")
+                .findOneAndUpdate(
+                    Filters.eq("_id", new ObjectId(request.params(":id"))),
+                    Updates.set(field, body.getString(field)));
+        }
+
+        response.status(200);
+        return getUserById(request.params(":id")).toJson();
+    }
+
+    public static String dbxIsAuthorized(Request request, Response response) {
+        String session = request.headers("session");
+        if (!isAuthorized(session, Role.USER))
+            return unauthorized(response);
+
+        Document user = getUserById(request.params(":id"));
+        if (user == null)
+            return userNotFound(response);
+
+        Document credentials = DUUIUserController.getDropboxCredentials(user);
+        if (credentials.getString("dbx_refresh_token") == null) {
+            return missingAuthorization(response, "Dropbox");
+        }
+
+        mapObjectIdToString(user);
+        response.status(200);
+        return user.toJson();
+    }
 }

@@ -3,8 +3,10 @@ import org.apache.uima.fit.factory.JCasFactory;
 import org.apache.uima.jcas.JCas;
 import org.apache.uima.jcas.tcas.Annotation;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.DUUIComposer;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.DUUIDropboxDataReader;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.DUUIDockerDriver;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.DUUIUIMADriver;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.io.AsyncCollectionReader;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.lua.DUUILuaContext;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.pipeline_storage.mongodb.DUUIMongoStorageBackend;
 
@@ -18,35 +20,33 @@ public class Main {
 
     private static String getConnectionURI() {
         return "mongodb+srv://<user>:<password>@testcluster.727ylpr.mongodb.net/".replace(
-                        "<user>",
-                        user
-                )
-                .replace("<password>", pass);
+                "<user>",
+                user
+            )
+            .replace("<password>", pass);
     }
 
     public static void main(String[] args) throws Exception {
         DUUILuaContext context = new DUUILuaContext()
-                .withGlobalLibrary(
-                        "json",
-                        DUUIComposer.class.getResourceAsStream("lua_stdlib/json.lua")
-                );
+            .withGlobalLibrary(
+                "json",
+                DUUIComposer.class.getResourceAsStream("lua_stdlib/json.lua")
+            );
         DUUIComposer composer = new DUUIComposer()
-                .withLuaContext(context)
-                .withSkipVerification(true)
-                .withStorageBackend(new DUUIMongoStorageBackend(getConnectionURI()));
+            .withLuaContext(context)
+            .withSkipVerification(true)
+            .withStorageBackend(new DUUIMongoStorageBackend(getConnectionURI()));
 
         composer.addDriver(new DUUIUIMADriver());
         composer.addDriver(new DUUIDockerDriver());
 
         composer.add(
-                new DUUIUIMADriver.Component(
-                        createEngineDescription(
-                                BreakIteratorSegmenter.class
-                        )
+            new DUUIUIMADriver.Component(
+                createEngineDescription(
+                    BreakIteratorSegmenter.class
                 )
+            )
         );
-        composer.add(new DUUIDockerDriver.Component("docker.texttechnologylab.org/textimager-duui-spacy-single-de_core_news_sm:latest").withImageFetching());
-
 
         JCas cas = JCasFactory.createText("Das ist ein Testsatz, den ich am 14.09.2023 geschrieben habe.", "de");
         composer.run(cas, "duui_spacy");

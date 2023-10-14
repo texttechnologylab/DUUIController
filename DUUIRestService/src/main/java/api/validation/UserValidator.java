@@ -44,4 +44,8 @@ public class UserValidator {
         return new Document("message", "User not found").toJson();
     }
 
+    public static String missingAuthorization(Response response, String service) {
+        response.status(404);
+        return new Document("message", "Missing authorization for " + service).toJson();
+    }
 }

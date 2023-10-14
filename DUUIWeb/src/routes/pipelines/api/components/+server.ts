@@ -1,7 +1,7 @@
-import { BASE_URL } from '$lib/data'
+import { API_URL } from '$lib/config'
 
 export async function GET() {
-	const response = await fetch(BASE_URL + '/components', {
+	const response = await fetch(API_URL + '/components', {
 		method: 'GET',
 		mode: 'cors'
 	})

@@ -41,7 +41,7 @@
 </script>
 
 <Modal />
-<Toast position="br"/>
+<Toast/>
 <Drawer>
 	{#if $drawerStore.id === 'docs'}
 		<SidebarNav hidden={false} withNavigation={true} />

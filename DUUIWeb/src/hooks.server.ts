@@ -1,4 +1,4 @@
-import { BASE_URL } from '$lib/data'
+import { API_URL } from "$lib/config"
 import type { Handle } from '@sveltejs/kit'
 
 export const handle: Handle = async ({ event, resolve }) => {
@@ -11,7 +11,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	let userResponse
 
 	try {
-		userResponse = await fetch(BASE_URL + '/users/auth/' + session, {
+		userResponse = await fetch(API_URL + '/users/auth/' + session, {
 			method: 'GET',
 			mode: 'cors'
 		})
@@ -20,6 +20,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	const user = await userResponse.json()
+
+
 	if (userResponse.status === 200) {
 		event.locals.user = {
 			id: user.id,

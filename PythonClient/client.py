@@ -90,15 +90,85 @@ if __name__ == "__main__":
 
     import requests
 
-    f0 = open("PythonClient/component.py", 'rb')
-    f1 = open("PythonClient/pipeline.py", 'rb')
+    response = requests.get(
+        "http://192.168.2.122:2605/pipelines/6510683fef55580233da1f79", headers={"session": "18866d1a-6afe-46c5-b236-5d17115da6ce"}
+    )
 
-    response = requests.post("http://192.168.2.122:2605/files", files={"component.py": f0, "pipeline.py": f1})
+    pipeline = response.json()
+    pipeline_id = pipeline["id"]
 
-    f0.close()
-    f1.close()
+    # response = requests.post(
+    #     "http://192.168.2.122:2605/processes",
+    #     headers={"session": "18866d1a-6afe-46c5-b236-5d17115da6ce"},
+    #     data=json.dumps(
+    #         {
+    #             "pipeline_id": pipeline_id,
+    #             "input": {"source": "Dropbox", "path": "/sample_txt", "extension": ".txt"},
+    #             "output": {"type": "Dropbox", "path": "/output/txt"},
+    #         }
+    #     ),
+    # # )
 
-    print(response.text)
+    # response = requests.post(
+    #     "http://192.168.2.122:2605/processes",
+    #     headers={"session": "18866d1a-6afe-46c5-b236-5d17115da6ce"},
+    #     data=json.dumps(
+    #         {
+    #             "pipeline_id": pipeline_id,
+    #             "input": {"source": "Dropbox", "path": "/sample_gz", "extension": ".gz"},
+    #             "output": {"type": "Dropbox", "path": "/output/gz"},
+    #         }
+    #     ),
+    # )
+
+    response = requests.post(
+        "http://192.168.2.122:2605/processes",
+        headers={"session": "18866d1a-6afe-46c5-b236-5d17115da6ce"},
+        data=json.dumps(
+            {
+                "pipeline_id": pipeline_id,
+                "input": {"source": "Dropbox", "path": "/Bundestag", "extension": ".txt"},
+                "output": {"type": "Minio", "path": "bundestag"},
+            }
+        ),
+    )
+
+
+    response = requests.post(
+        "http://192.168.2.122:2605/processes",
+        headers={"session": "18866d1a-6afe-46c5-b236-5d17115da6ce"},
+        data=json.dumps(
+            {
+                "pipeline_id": pipeline_id,
+                "input": {"source": "Dropbox", "path": "/sample_xmi", "extension": ".xmi"},
+                "output": {"type": "Minio", "path": "xmi"},
+            }
+        ),
+    )
+
+    
+    response = requests.post(
+        "http://192.168.2.122:2605/processes",
+        headers={"session": "18866d1a-6afe-46c5-b236-5d17115da6ce"},
+        data=json.dumps(
+            {
+                "pipeline_id": pipeline_id,
+                "input": {"source": "Dropbox", "path": "/sample_txt", "extension": ".txt"},
+                "output": {"type": "Minio", "path": "txt"},
+            }
+        ),
+    )
+
+
+    # f0 = open("PythonClient/component.py", 'rb')
+    # f1 = open("PythonClient/pipeline.py", 'rb')
+
+    # response = requests.post("http://192.168.2.122:2605/files", files={"component.py": f0, "pipeline.py": f1})
+
+    # f0.close()
+    # f1.close()
+
+    # print(response.text)
 
     # id = "65030e56200b892ea7805da6"
     # print(start_process(id, options={"document": "Das ist ein Testsatz vom 14. September 2023."}))

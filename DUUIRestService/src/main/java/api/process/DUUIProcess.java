@@ -3,19 +3,23 @@ package api.process;
 import api.Application;
 import api.services.DUUIMongoService;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
 
 import api.users.DUUIUserController;
+import de.tudarmstadt.ukp.dkpro.core.api.metadata.type.DocumentMetaData;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.uima.UIMAException;
 import org.apache.uima.fit.factory.AnalysisEngineFactory;
 import org.apache.uima.fit.factory.JCasFactory;
+import org.apache.uima.fit.util.JCasUtil;
 import org.apache.uima.jcas.JCas;
-import org.apache.uima.jcas.tcas.Annotation;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.dkpro.core.io.xmi.XmiWriter;
@@ -28,6 +32,7 @@ import org.texttechnologylab.DockerUnifiedUIMAInterface.lua.DUUILuaContext;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.pipeline_storage.mongodb.DUUIMongoStorageBackend;
 import org.xml.sax.SAXException;
 
+import static org.apache.uima.fit.factory.AnalysisEngineFactory.createEngineDescription;
 import static org.texttechnologylab.DockerUnifiedUIMAInterface.io.AsyncCollectionReader.getFilesInDirectoryRecursive;
 
 public class DUUIProcess extends Thread {
@@ -111,28 +116,17 @@ public class DUUIProcess extends Thread {
         }
     }
 
-    private void initializeComposer() throws Exception {
+    private void initializeComposer(int maxThreads) throws Exception {
         composer = new DUUIComposer()
             .withSkipVerification(true)
             .withStorageBackend(
                 new DUUIMongoStorageBackend(DUUIMongoService.getConnectionURI()))
-            .withWorkers(5)
+            .withWorkers(maxThreads)
             .withLuaContext(new DUUILuaContext().withJsonLibrary());
 
         setupDrivers();
         setupComponents();
     }
-
-    // private void initializeComposerMultiDocument() throws Exception {
-    // composer = new DUUIComposer()
-    // .withSkipVerification(true)
-    // .withStorageBackend(
-    // new DUUIMongoStorageBackend(DUUIMongoService.getConnectionURI()))
-    // .withLuaContext(new DUUILuaContext().withJsonLibrary());
-
-    // setupDrivers();
-    // setupComponents();
-    // }
 
     @Override
     public void run() {
@@ -148,6 +142,23 @@ public class DUUIProcess extends Thread {
         String outputType = output.getString("type").toLowerCase();
         String outputPath = output.getString("path");
         String outputExtension = output.getString("extension");
+
+        JCas cas = null;
+
+        IDUUIDataReader dataReader = null;
+        Exception error = null;
+
+        dataReader = setupDataReader(inputSource);
+
+        AsyncCollectionReader reader = new AsyncCollectionReader.Builder()
+            .withDataReader(dataReader)
+            .withSourceDirectory(dataReader instanceof DUUIDropboxDataReader && inputPath.equals("/") ? "" : inputPath)
+            .withFileExtension(inputExtension)
+            .withAddMetadata(true)
+            .build();
+
+        DUUIProcessController.setDocumentCount(id, reader.getDocumentCount());
+        DUUIProcessController.setDocumentNames(id, reader.getDocumentNames());
 
 
         _service = Executors
@@ -169,7 +180,8 @@ public class DUUIProcess extends Thread {
             );
 
         try {
-            initializeComposer();
+            initializeComposer(reader.getDocumentCount());
+            composer.addStatus("AsyncCollectionReader", "Loaded " + reader.getDocumentCount() + " documents");
         } catch (Exception e) {
             interrupt();
             _service.cancel(false);
@@ -181,11 +193,33 @@ public class DUUIProcess extends Thread {
             DUUIProcessController.setStatus(id, "failed");
         }
 
+        String path = Paths.get("temp/duui", outputPath).toString();
+        if (outputTypeIsCloudProvider(outputType)) {
+            try {
+                composer.add(new DUUIUIMADriver.Component(
+                    createEngineDescription(
+                        XmiWriter.class,
+                        XmiWriter.PARAM_TARGET_LOCATION, path,
+                        XmiWriter.PARAM_STRIP_EXTENSION, true,
+                        XmiWriter.PARAM_OVERWRITE, true,
+                        XmiWriter.PARAM_VERSION, "1.1",
+                        XmiWriter.PARAM_FILENAME_EXTENSION, ".xmi"
+                    )).withParameter("name", "XMIWriter"));
 
-        JCas cas = null;
+            } catch (Exception e) {
+                interrupt();
+                _service.cancel(false);
+                DUUIProcessController.setError(id, e);
+                composer.addStatus("ERROR: " + e.getMessage());
+                Application.metrics.get("active_processes").decrementAndGet();
+                Application.metrics.get("failed_processes").incrementAndGet();
 
-        IDUUIDataReader dataReader = null;
-        Exception error = null;
+
+                DUUIProcessController.updateLog(id, composer.getLog());
+                DUUIProcessController.setStatus(id, "failed");
+            }
+        }
+
 
         if (inputSource.equals("text")) {
             String inputText = input.getString("text");
@@ -193,43 +227,32 @@ public class DUUIProcess extends Thread {
 
             try {
                 cas = JCasFactory.createText(inputText);
+                if (JCasUtil.select(cas, DocumentMetaData.class).isEmpty()) {
+                    DocumentMetaData dmd = DocumentMetaData.create(cas);
+                    dmd.setDocumentId(pipeline.getString("name"));
+                    dmd.setDocumentTitle(pipeline.getString("name"));
+                    dmd.setDocumentUri(process.getString("id"));
+                    dmd.addToIndexes();
+                }
                 composer.addStatus("Loaded document, starting Pipeline");
                 DUUIProcessController.setStatus(id, "running");
 
                 composer.run(cas, pipeline.getString("name") + "_" + process.getLong("startedAt"));
             } catch (Exception e) {
                 error = e;
+                DUUIProcessController.setError(id, error);
                 DUUIProcessController.setStatus(id, "failed");
                 _service.cancel(false);
             }
 
         } else {
 
-            dataReader = setupDataReader(inputSource);
-            composer.addStatus("AsyncCollectionReader", "Loading documents");
-            AsyncCollectionReader reader = new AsyncCollectionReader.Builder()
-                .withDataReader(dataReader)
-                .withSourceDirectory(dataReader instanceof DUUIDropboxDataReader && inputPath.equals("/") ? "" : inputPath)
-                .withFileExtension(inputExtension)
-                .withAddMetadata(true)
-                .build();
-
-            composer.addStatus("AsyncCollectionReader", "Loaded " + reader.getDocumentCount() + " documents");
-            DUUIProcessController.setDocumentCount(id, reader.getDocumentCount());
-            DUUIProcessController.setDocumentNames(id, reader.getDocumentNames());
 
             try {
-                DUUIUIMADriver.Component component = new DUUIUIMADriver.Component(
-                    AnalysisEngineFactory.createEngineDescription(
-                        XmiWriter.class,
-                        XmiWriter.PARAM_TARGET_LOCATION, "tmp/duui/" + outputPath,
-                        XmiWriter.PARAM_PRETTY_PRINT, true,
-                        XmiWriter.PARAM_OVERWRITE, true,
-                        XmiWriter.PARAM_VERSION, "1.1",
-                        XmiWriter.PARAM_STRIP_EXTENSION, true
-                    )).withParameter("name", "XMIWriter");
+                if (reader.getDocumentCount() == 0) {
+                    throw new NoDocumentFoundError(inputExtension, inputPath);
+                }
 
-                composer.add(component);
                 DUUIProcessController.setStatus(id, "running");
                 composer.run(reader, pipeline.getString("name") + "_" + process.getLong("startedAt"));
 
@@ -237,6 +260,7 @@ public class DUUIProcess extends Thread {
             } catch (Exception e) {
                 DUUIProcessController.setStatus(id, "failed");
                 error = e;
+                DUUIProcessController.setError(id, error);
             }
         }
 
@@ -248,13 +272,14 @@ public class DUUIProcess extends Thread {
                         Set<String> annotations = new HashSet<>();
                         cas.getAnnotationIndex().forEach(annotation -> annotations.add(annotation.getClass().getSimpleName()));
                         annotations.forEach(annotation -> composer.addStatus("Added annotation " + annotation));
-                    } else {
-                        if (dataReader != null && outputType.equals(inputSource)) {
-                            DUUIProcessController.setStatus(id, "output");
-                            List<DUUIInputStream> streams = getFilesInDirectoryRecursive("tmp/duui/" + outputPath);
-                            dataReader.writeFiles(streams, outputPath);
-                        }
                     }
+                    if (outputTypeIsCloudProvider(outputType)) {
+                        IDUUIDataReader outputDataReader = outputType.equals(inputSource) ? dataReader : setupDataReader(outputType);
+                        DUUIProcessController.setStatus(id, "output");
+                        List<DUUIInputStream> streams = getFilesInDirectoryRecursive(path);
+                        outputDataReader.writeFiles(streams, outputPath); // TODO: Don't catch error (duplicate) in writeFiles but display to user in WEB
+                    }
+
                     if (Objects.equals(inputSource, "text")) {
                         DUUIProcessController.setProgress(id, pipeline.getList("components", Document.class).size());
                     }
@@ -269,6 +294,7 @@ public class DUUIProcess extends Thread {
             } catch (IOException e) {
                 DUUIProcessController.setStatus(id, "failed");
                 error = e;
+                DUUIProcessController.setError(id, error);
                 Application.metrics.get("failed_processes").incrementAndGet();
 
             } finally {
@@ -277,9 +303,17 @@ public class DUUIProcess extends Thread {
             DUUIProcessController.setFinishTime(id, new Date().toInstant().toEpochMilli());
         }
 
-        DUUIProcessController.setError(id, error);
         Application.metrics.get("active_processes").decrementAndGet();
+        if (deleteTempOutputDirectory(new File(path))) {
+            composer.addStatus("Clean up complete");
+        }
+
         DUUIProcessController.updateLog(id, composer.getLog());
+
+    }
+
+    private boolean outputTypeIsCloudProvider(String outputType) {
+        return (outputType.equals("dropbox") || outputType.equals("s3") || outputType.equals("minio"));
     }
 
     private IDUUIDataReader setupDataReader(String source) {
@@ -293,7 +327,7 @@ public class DUUIProcess extends Thread {
                 credentials.getString("dbx_access_token"),
                 credentials.getString("dbx_refresh_token")
             );
-            case "s3" -> new DUUIS3DataReader();
+            case "minio" -> new DUUIMinioDataReader();
             default -> new DUUILocalDataReader();
         };
 
@@ -316,5 +350,25 @@ public class DUUIProcess extends Thread {
 
     public Document getPipeline() {
         return pipeline;
+    }
+
+
+    private static class NoDocumentFoundError extends Exception {
+        public NoDocumentFoundError(String extension, String path) {
+            super("No documents matching the pattern " + extension + " have been found in " + path);
+        }
+    }
+
+    private boolean deleteTempOutputDirectory(File directory) {
+        if (directory.getName().isEmpty()) {
+            return false;
+        }
+        File[] allContents = directory.listFiles();
+        if (allContents != null) {
+            for (File file : allContents) {
+                deleteTempOutputDirectory(file);
+            }
+        }
+        return directory.delete();
     }
 }

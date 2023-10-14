@@ -135,8 +135,12 @@ public class DUUIProcessController {
         }
 
         DUUIProcess p = runningProcesses.get(id);
-        p.cancel();
-        runningProcesses.remove(id);
+        if (p == null) {
+            DUUIProcessController.setStatus(id, "cancelled");
+        } else {
+            p.cancel();
+            runningProcesses.remove(id);
+        }
 
         return new Document("id", id).toJson();
     }

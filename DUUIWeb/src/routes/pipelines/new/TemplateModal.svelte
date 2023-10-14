@@ -74,7 +74,7 @@
 				>
 					<!--  -->
 
-					<p class="variant-soft-primary p-2 grid text-center">{component.category}</p>
+					<p class="variant-soft-primary p-2 w-full grid text-center">{component.category}</p>
 
 					<header class="p-4 flex items-center justify-between gap-4">
 						<DriverIcon driver={component.settings.driver} />

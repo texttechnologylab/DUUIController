@@ -1,8 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
 
-
-export const BASE_URL = "http://169.254.222.47:2605" // "http://192.168.2.122:2605"
-
 interface _Object {
 	[key: string]: any
 }
@@ -85,14 +82,16 @@ export enum DUUIDocumentSource {
 	Dropbox = 'Dropbox',
 	Files = 'Files',
 	S3 = 'S3',
-	Text = 'Text'
+	Text = 'Text',
+	Minio = 'Minio'
 }
 
 export const DUUIInputSourcesList = [
-	DUUIDocumentSource.Text,
-	DUUIDocumentSource.Files,
 	DUUIDocumentSource.Dropbox,
-	DUUIDocumentSource.S3
+	DUUIDocumentSource.Files,
+	DUUIDocumentSource.Minio,
+	DUUIDocumentSource.S3,
+	DUUIDocumentSource.Text
 ]
 
 export enum DUUIDocumentOutput {
@@ -102,17 +101,19 @@ export enum DUUIDocumentOutput {
 	None = 'None',
 	S3 = 'S3',
 	Xmi = '.xmi',
-	Text = '.txt'
+	Text = '.txt',
+	Minio = 'Minio'
 }
 
 export const DUUIOutputSourcesList = [
-	DUUIDocumentOutput.S3,
-	DUUIDocumentOutput.Dropbox,
 	DUUIDocumentOutput.CSV,
+	DUUIDocumentOutput.Dropbox,
 	DUUIDocumentOutput.Json,
+	DUUIDocumentOutput.Minio,
+	DUUIDocumentOutput.None,
+	DUUIDocumentOutput.S3,
 	DUUIDocumentOutput.Text,
-	DUUIDocumentOutput.Xmi,
-	DUUIDocumentOutput.None
+	DUUIDocumentOutput.Xmi
 ]
 
 export const blankPipeline = () =>

@@ -1,7 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit'
 import type { Actions, PageServerLoad } from './$types'
 import bcrypt from 'bcrypt'
-import { BASE_URL } from '$lib/data'
+import { API_URL } from '$lib/config'
 
 export const load: PageServerLoad = async ({ locals }) => {
 	return {
@@ -14,14 +14,14 @@ export const actions: Actions = {
 		const data = await request.formData()
 		const email = data.get('email')
 		const password = data.get('password')
-
+		
 		if (!email || !password) {
 			return fail(400, {
 				error: 'Invalid credentials.'
 			})
 		}
 
-		const response = await fetch(BASE_URL + '/users/' + email, {
+		const response = await fetch(API_URL + '/users/' + email, {
 			method: 'GET',
 			mode: 'cors'
 		})
@@ -39,7 +39,7 @@ export const actions: Actions = {
 			})
 		}
 
-		const userUpdate = await fetch(BASE_URL + '/users', {
+		const userUpdate = await fetch(API_URL + '/users', {
 			method: 'PUT',
 			mode: 'cors',
 			body: JSON.stringify({
@@ -61,9 +61,12 @@ export const actions: Actions = {
 		throw redirect(302, '/pipelines')
 	},
 
-	async logout({ cookies }) {
+	async logout({ cookies, locals }) {
 		cookies.set('session', '', {
 			path: '/',
+			httpOnly: true,
+			sameSite: 'strict',
+			secure: process.env.NODE_ENV === 'production',
 			expires: new Date(0)
 		})
 		throw redirect(302, '/user/login')
