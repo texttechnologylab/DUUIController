@@ -19,6 +19,7 @@ import com.mongodb.client.model.*;
 
 import java.net.UnknownHostException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import org.bson.Document;
@@ -49,53 +50,31 @@ public class DUUIProcessController {
             return Validator.missingField(response, "pipeline_id");
         }
 
-        Document input = body.get("input", Document.class);
-        Document output = body.get("output", Document.class);
+        DUUIDocumentInput input = new DUUIDocumentInput(body.get("input", Document.class));
+        DUUIDocumentOutput output = new DUUIDocumentOutput(body.get("output", Document.class));
+
         Document options = body.get("options", Document.class);
 
-        if (input == null) return Validator.missingField(response, "input");
-        if (output == null) return Validator.missingField(response, "output");
+        String error = DUUIRequestValidator.validateIO(input, output);
 
-        String inputSource = input.getString("source");
-        String inputPath = input.getString("path");
-        String inputText = input.getString("text");
-        String inputExtension = input.getString("extension");
-
-        String outputType = output.getString("type");
-        String outputPath = output.getString("path");
-        String outputExtension = output.getString("extension");
-
-        String error = DUUIRequestValidator.validateIO(
-            inputSource,
-            inputPath,
-            inputText,
-            outputType,
-            outputPath
-        );
         if (!error.isEmpty()) return Validator.missingField(response, error);
 
         Document pipeline = DUUIPipelineController.getPipelineById(pipelineId);
         if (pipeline == null) return PipelineValidator.pipelineNotFound(response);
 
-        Document process = new Document("status", "setup")
+        Document process = new Document("status", "Setup")
             .append("progress", 0)
             .append("startedAt", new Date().toInstant().toEpochMilli())
             .append("finishedAt", null)
-            .append("input",
-                new Document("source", inputSource)
-                    .append("path", inputPath)
-                    .append("text", inputText)
-                    .append("extension", inputExtension))
-            .append("output",
-                new Document("type", outputType)
-                    .append("path", outputPath)
-                    .append("extension", outputExtension))
+            .append("input", input.toDocument())
+            .append("output", output.toDocument())
             .append("options", options)
             .append("pipeline_id", pipelineId)
             .append("log", new ArrayList<Document>())
             .append("documentCount", 0)
-            .append("documentNames", new ArrayList<String>());
-
+            .append("done", false)
+            .append("documentNames", new ArrayList<String>())
+            .append("documentProgress", new HashMap<>());
 
         DUUIMongoService
             .getInstance()
@@ -125,7 +104,7 @@ public class DUUIProcessController {
             .find(
                 Filters.and(
                     Filters.eq(new ObjectId(id)),
-                    Filters.eq("status", "running")))
+                    Filters.ne("done", true)))
             .first();
 
         if (process == null) {
@@ -136,7 +115,9 @@ public class DUUIProcessController {
 
         DUUIProcess p = runningProcesses.get(id);
         if (p == null) {
-            DUUIProcessController.setStatus(id, "cancelled");
+            DUUIProcessController.setStatus(id, "Canceled");
+            DUUIProcessController.setDone(id, true);
+            DUUIProcessController.setFinishTime(id, new Date().toInstant().toEpochMilli());
         } else {
             p.cancel();
             runningProcesses.remove(id);
@@ -312,6 +293,17 @@ public class DUUIProcessController {
                 Updates.set("progress", progress));
     }
 
+    public static void updateDocumentProgress(String id, Map<String, AtomicInteger> documentProgress) {
+
+        DUUIMongoService
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("processes")
+            .updateOne(
+                Filters.eq(new ObjectId(id)),
+                Updates.set("documentProgress", documentProgress));
+    }
+
     public static void setFinishTime(String id, long finishTime) {
         DUUIMongoService
             .getInstance()
@@ -351,4 +343,14 @@ public class DUUIProcessController {
     public static String getResult(Request request, Response response) {
         return new Document("message", "NOT IMPLEMENTED").toJson();
     }
+
+    public static void setDone(String id, boolean done) {
+        DUUIMongoService
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("processes")
+            .updateOne(Filters.eq(new ObjectId(id)), Updates.set("done", done));
+    }
+
+
 }

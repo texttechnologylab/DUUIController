@@ -15,4 +15,7 @@ public class Validator {
         return new Document("message", "Successfully updated <" + field + ">").toJson();
     }
 
+    public static boolean isNullOrEmpty(String value) {
+        return value == null || value.isEmpty();
+    }
 }

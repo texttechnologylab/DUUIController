@@ -2,9 +2,13 @@ package api.services;
 
 import java.util.Objects;
 
+import api.process.DUUIDocumentInput;
+import api.process.DUUIDocumentOutput;
 import org.bson.Document;
 import org.javatuples.Pair;
 import spark.Request;
+
+import static api.validation.Validator.isNullOrEmpty;
 
 public class DUUIRequestValidator {
 
@@ -32,30 +36,15 @@ public class DUUIRequestValidator {
     }
 
     public static String validateIO(
-        String inputSource,
-        String inputPath,
-        String inputText,
-        String outputType,
-        String outputPath) {
-        if (inputSource == null || inputSource.isEmpty()) {
-            return "input.source";
-        }
+        DUUIDocumentInput input,
+        DUUIDocumentOutput output) {
+        if (isNullOrEmpty(input.getSource())) return "input.source";
+        if (input.isText() && isNullOrEmpty(input.getContent())) return "input.text";
+        if (!input.isText() && isNullOrEmpty(input.getFolder())) return "input.folder";
+        if (!input.isText() && isNullOrEmpty(input.getFileExtension())) return "input.fileExtension";
 
-        if (Objects.equals(inputSource, "text") && (inputText == null || inputText.isEmpty())) {
-            return "input.text";
-        }
-
-        if (!(inputSource.equals("text")) && (inputPath == null || inputPath.isEmpty())) {
-            return "input.path";
-        }
-
-        if (outputType == null || outputType.isEmpty()) {
-            return "output.type";
-        }
-
-        if (!outputType.equals("none") && (outputPath == null || outputPath.isEmpty())) {
-            return "output.path";
-        }
+        if (isNullOrEmpty(output.getTarget())) return "output.target";
+        if (!output.isNone() && isNullOrEmpty(output.getFolder())) return "output.folder";
         return "";
     }
 

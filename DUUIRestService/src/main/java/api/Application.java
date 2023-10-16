@@ -66,8 +66,6 @@ public class Application {
         }
     }
 
-
-
     /*
      *
      *  GET    /pipelines/:id           - Retrieve a pipeline

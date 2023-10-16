@@ -4,7 +4,6 @@ import static api.services.DUUIMongoService.mapObjectIdToString;
 import static api.validation.UserValidator.*;
 import static api.validation.Validator.*;
 
-import api.responses.MissingRequiredFieldResponse;
 import api.services.DUUIMongoService;
 import api.validation.Role;
 import com.mongodb.client.model.Filters;
@@ -14,11 +13,11 @@ import com.mongodb.client.model.Updates;
 import java.util.Date;
 import java.util.UUID;
 
-import kotlin.NotImplementedError;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import spark.Request;
 import spark.Response;
+
 
 public class DUUIUserController {
 
@@ -234,7 +233,7 @@ public class DUUIUserController {
     }
 
     private static void sendPasswordResetEmail(String email, String passwordResetToken) {
-        throw new NotImplementedError(); // TODO
+
     }
 
     public static String resetPassword(Request request, Response response) {
