@@ -1,12 +1,15 @@
 import { API_URL } from '$lib/config'
-import type { DUUIPipelineComponent } from '$lib/data'
+import type { DUUIComponent } from '$lib/duui/component'
 import type { PageServerLoad } from './$types'
 
-export const load: PageServerLoad = async () => {
-	const loadComponentTemplates = async (): Promise<{ components: DUUIPipelineComponent[] }> => {
+export const load: PageServerLoad = async ({ cookies }) => {
+	const loadComponentTemplates = async (): Promise<{ components: DUUIComponent[] }> => {
 		const result = await fetch(API_URL + '/components', {
 			method: 'GET',
-			mode: 'cors'
+			mode: 'cors',
+			headers: {
+				session: cookies.get('session') || ''
+			}
 		})
 		return await result.json()
 	}

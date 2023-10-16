@@ -1,12 +1,12 @@
 <script lang="ts">
 	import DriverIcon from '$lib/components/DriverIcon.svelte'
-	import type { DUUIPipelineComponent } from '$lib/data'
-	import { faCheck, faX } from '@fortawesome/free-solid-svg-icons'
+	import type { DUUIComponent } from '$lib/duui/component'
+	import { faCheck } from '@fortawesome/free-solid-svg-icons'
 	import { getModalStore } from '@skeletonlabs/skeleton'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
 
-	let components: DUUIPipelineComponent[] = []
+	let components: DUUIComponent[] = []
 
 	onMount(async () => {
 		const response = await fetch('/pipelines/api/components', {
@@ -20,7 +20,7 @@
 		components = object.components
 	})
 
-	let selectedComponents: DUUIPipelineComponent[] = []
+	let selectedComponents: DUUIComponent[] = []
 	const modalStore = getModalStore()
 
 	// Handle Form Submission
@@ -29,7 +29,7 @@
 		modalStore.close()
 	}
 
-	function selectTemplate(component: DUUIPipelineComponent) {
+	function selectTemplate(component: DUUIComponent) {
 		if (selectedComponents.includes(component)) {
 			selectedComponents = selectedComponents.filter((c) => c !== component)
 		} else {

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import PipelineComponent from '$lib/components/PipelineComponent.svelte'
-	import { blankComponent, DUUIStatus, type DUUIPipelineComponent } from '$lib/data'
+
 	import { faArrowLeft, faRocket } from '@fortawesome/free-solid-svg-icons'
 	import {
 		type ModalSettings,
@@ -16,64 +16,55 @@
 	import { getToastStore } from '@skeletonlabs/skeleton'
 	import type { TableSource, ToastSettings } from '@skeletonlabs/skeleton'
 	import type { ActionData, PageServerData } from './$types'
-	import { getProgressPercent, getTimeDifference, toDateTimeString, toTitleCase } from '$lib/utils'
+	import { datetimeToString, progresAsPercent, toTitleCase } from '$lib/utils/text'
+	import { getDuration } from '$lib/utils/time'
+	import { progressMaximum } from '$lib/duui/process'
+	import type { DUUIComponent } from '$lib/duui/component'
+	import { isActive } from '$lib/duui/monitor'
 
 	export let data: PageServerData
 	let { pipeline, processes } = data
 
-	let status: string = DUUIStatus.Unknown
+	let status: string = 'Unknown'
 	let progress: number = 0
-
-	const lastUsed: number | undefined = processes.at(0)?.startedAt
-		
 
 	let tableSource = processes.map((process, index, _) => {
 		return {
 			positon: index,
-			status: toTitleCase(process.status),
-			progress: getProgressPercent(process, pipeline) + ' %',
-			startedAt: process.startedAt ? toDateTimeString(new Date(process.startedAt)) : '',
-			duration: getTimeDifference(process.startedAt, process.finishedAt),
-			input: toTitleCase(process.input.source),
-			output: toTitleCase(process.output.type),
+			startedAt: process.startedAt ? datetimeToString(new Date(process.startedAt)) : '',
+			duration: getDuration(process.startedAt, process.finishedAt),
+			io: process.input.source + ' / ' + process.output.target,
+			progress: progresAsPercent(process.progress, progressMaximum(process, pipeline)) + ' %',
+			status: process.status,
 			process: process
 		}
 	})
 
 	let tableData: TableSource = {
-		head: ['Status', 'Start Time', 'Duration', 'Data source', 'Data output', 'Progress'],
-		body: tableMapperValues(tableSource, [
-			'status',
-			'startedAt',
-			'duration',
-			'input',
-			'output',
-			'progress'
-		]),
+		head: ['Start Time', 'Duration', 'Input / Output', 'Progress', 'Status'],
+		body: tableMapperValues(tableSource, ['startedAt', 'duration', 'io', 'progress', 'status']),
 		meta: tableMapperValues(tableSource, ['process'])
 	}
 
-	export let form: ActionData
-
 	let flipDurationMs = 300
 
-	function handleDndConsider(event: CustomEvent<DndEvent<DUUIPipelineComponent>>) {
+	function handleDndConsider(event: CustomEvent<DndEvent<DUUIComponent>>) {
 		pipeline.components = event.detail.items
 		pipeline.components = [...pipeline.components]
 	}
 
-	function handleDndFinalize(event: CustomEvent<DndEvent<DUUIPipelineComponent>>) {
+	function handleDndFinalize(event: CustomEvent<DndEvent<DUUIComponent>>) {
 		pipeline.components = event.detail.items
 		pipeline.components = [...pipeline.components]
 	}
 
-	pipeline.components.forEach((component: DUUIPipelineComponent) => {
+	pipeline.components.forEach((component: DUUIComponent) => {
 		component.id = pipeline.components.indexOf(component)
 	})
 
 	async function deleteComponent(event: CustomEvent<any>): Promise<void> {
 		pipeline.components = pipeline.components.filter(
-			(component: DUUIPipelineComponent, index: number, array: DUUIPipelineComponent[]) => {
+			(component: DUUIComponent, index: number, array: DUUIComponent[]) => {
 				if (component.id !== event.detail.id) return component
 			}
 		)
@@ -246,7 +237,7 @@
 						<div animate:flip={{ duration: flipDurationMs }}>
 							<PipelineComponent
 								{component}
-								active={status === DUUIStatus.Running}
+								active={isActive(status)}
 								completed={progress >= component.id + 1}
 								on:remove={deleteComponent}
 								on:update={updatePipeline}

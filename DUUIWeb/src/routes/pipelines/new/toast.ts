@@ -1,4 +1,9 @@
-import { DUUIDockerDriver, DUUIRemoteDriver, DUUISwarmDriver, DUUIUIMADriver } from '$lib/data'
+import {
+	DUUIRemoteDriver,
+	DUUIUIMADriver,
+	DUUIDockerDriver,
+	DUUISwarmDriver
+} from '$lib/duui/component'
 import type { ToastStore } from '@skeletonlabs/skeleton'
 
 export const driverTargetMap: Map<string, string> = new Map([

@@ -1,7 +1,6 @@
 import { API_URL } from '$lib/config'
 import { DropboxAuth } from 'dropbox'
-import type { Actions, PageServerLoad } from './$types'
-import { goto } from '$app/navigation'
+import type { PageServerLoad } from './$types'
 
 const dbxAuth = new DropboxAuth({
 	clientId: 'l2nw2ign2z8h9hg',

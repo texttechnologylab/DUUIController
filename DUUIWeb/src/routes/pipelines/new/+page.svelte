@@ -2,17 +2,18 @@
 	import { goto } from '$app/navigation'
 	import ComponentBuilder from '$lib/components/ComponentBuilder.svelte'
 	import DriverIcon from '$lib/components/DriverIcon.svelte'
-	import { blankComponent, blankPipeline, type DUUIPipelineComponent } from '$lib/data'
-	import { faArrowRight, faBookOpen, faEdit, faPlus } from '@fortawesome/free-solid-svg-icons'
-	import { getModalStore, getToastStore, Step, Stepper } from '@skeletonlabs/skeleton'
+	import { faBookOpen, faEdit, faPlus } from '@fortawesome/free-solid-svg-icons'
+	import { Step, Stepper, getModalStore, getToastStore } from '@skeletonlabs/skeleton'
 	import { dndzone, type DndEvent } from 'svelte-dnd-action'
 	import Fa from 'svelte-fa'
 	import { flip } from 'svelte/animate'
 
 	import type { ModalComponent, ModalSettings } from '@skeletonlabs/skeleton'
+	import TemplateModal from './TemplateModal.svelte'
 	import { componentStore } from './store.js'
 	import { invalidNameToast, invalidTargetToast } from './toast.js'
-	import TemplateModal from './TemplateModal.svelte'
+	import { blankPipeline } from '$lib/duui/pipeline'
+	import { blankComponent, type DUUIComponent } from '$lib/duui/component'
 
 	export let data
 	let { templates } = data
@@ -24,12 +25,12 @@
 
 	const toastStore = getToastStore()
 
-	function handleDndConsider(event: CustomEvent<DndEvent<DUUIPipelineComponent>>) {
+	function handleDndConsider(event: CustomEvent<DndEvent<DUUIComponent>>) {
 		pipeline.components = event.detail.items
 		pipeline.components = [...pipeline.components]
 	}
 
-	function handleDndFinalize(event: CustomEvent<DndEvent<DUUIPipelineComponent>>) {
+	function handleDndFinalize(event: CustomEvent<DndEvent<DUUIComponent>>) {
 		pipeline.components = event.detail.items
 		pipeline.components = [...pipeline.components]
 	}
@@ -91,7 +92,7 @@
 
 	function deleteComponent(event: CustomEvent<any>): void {
 		pipeline.components = pipeline.components.filter(
-			(component: DUUIPipelineComponent, index: number, array: DUUIPipelineComponent[]) => {
+			(component: DUUIComponent, index: number, array: DUUIComponent[]) => {
 				if (component.id !== event.detail.id) return component
 			}
 		)
@@ -120,16 +121,16 @@
 	const modalStore = getModalStore()
 
 	function showTemplateModal() {
-		new Promise<DUUIPipelineComponent[]>((resolve) => {
+		new Promise<DUUIComponent[]>((resolve) => {
 			const modal: ModalSettings = {
 				type: 'component',
 				component: modalComponent,
-				response: (components: DUUIPipelineComponent[]) => {
+				response: (components: DUUIComponent[]) => {
 					resolve(components)
 				}
 			}
 			modalStore.trigger(modal)
-		}).then((response: DUUIPipelineComponent[]) => {
+		}).then((response: DUUIComponent[]) => {
 			if (!response) return
 
 			response.forEach((component) => {

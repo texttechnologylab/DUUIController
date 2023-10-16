@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { DUUIDrivers, type DUUIPipelineComponent } from '$lib/data'
+	import { DUUIDrivers, type DUUIComponent } from '$lib/duui/component'
 	import { getModalStore, type ModalSettings } from '@skeletonlabs/skeleton'
 	import { createEventDispatcher } from 'svelte'
 	const dispatcher = createEventDispatcher()
 
 	const modalStore = getModalStore()
 
-	export let component: DUUIPipelineComponent
+	export let component: DUUIComponent
 	let onRemove = () => {
 		dispatcher('remove', {
 			id: component.id

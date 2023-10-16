@@ -1,9 +1,7 @@
 import { API_URL } from '$lib/config'
-import type { DUUIPipeline, DUUIProcess } from '$lib/data'
-import { DropboxAuth } from 'dropbox'
+import type { DUUIPipeline } from '$lib/duui/pipeline'
+import type { DUUIProcess } from '$lib/duui/process'
 import type { PageServerLoad } from './$types'
-
-
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
 	const response = await fetch(API_URL + '/processes/' + params.id, {
@@ -22,7 +20,6 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 		})
 		return await response.json()
 	}
-
 
 	return {
 		process: process,

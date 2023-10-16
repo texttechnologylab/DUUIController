@@ -1,13 +1,13 @@
 <script lang="ts">
 	import DriverIcon from './DriverIcon.svelte'
-	import { DUUIDrivers, DUUIStatus, type DUUIPipelineComponent } from '$lib/data'
 	import { createEventDispatcher } from 'svelte'
 	import Fa from 'svelte-fa'
 	import { faCheck, faEdit, faRefresh, faX } from '@fortawesome/free-solid-svg-icons'
 	import { getModalStore, type ModalSettings } from '@skeletonlabs/skeleton'
+	import { DUUIDrivers, type DUUIComponent } from '$lib/duui/component'
 	const dispatcher = createEventDispatcher()
 
-	export let component: DUUIPipelineComponent
+	export let component: DUUIComponent
 
 	const modalStore = getModalStore()
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { DUUIComponent } from '$lib/duui/component.js'
 	import { componentsStore } from '$lib/store.js'
 	import { faEdit, faPlus, faSearch } from '@fortawesome/free-solid-svg-icons'
 
@@ -9,7 +10,7 @@
 	let { pipelines } = data
 
 	pipelines.forEach(({ components }) => {
-		components.forEach((component) => {
+		components.forEach((component: DUUIComponent) => {
 			$componentsStore = [...$componentsStore, component]
 		})
 	})

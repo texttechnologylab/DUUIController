@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { DUUIDrivers } from '$lib/data'
 	import DriverIcon from './DriverIcon.svelte'
 	import Fa from 'svelte-fa'
 	import { faChevronDown } from '@fortawesome/free-solid-svg-icons'
@@ -7,6 +6,7 @@
 	import { componentStore } from '../../routes/pipelines/new/store'
 	import { ListBox, ListBoxItem, popup, type PopupSettings } from '@skeletonlabs/skeleton'
 	import { driverTargetMap } from '../../routes/pipelines/new/toast'
+	import { DUUIDrivers } from '$lib/duui/component'
 
 	const dispatcher = createEventDispatcher()
 
@@ -28,10 +28,12 @@
 		closeQuery: '.listbox-item'
 	}
 
+	let saveAsTemplate: boolean = $componentStore.settings.options['saveAsTemplate']
 	let useGPU: boolean = $componentStore.settings.options['gpu']
 	let dockerImageFetching: boolean = $componentStore.settings.options['dockerImageFetching']
 
 	$: {
+		$componentStore.settings.options['saveAsTemplate'] = saveAsTemplate
 		$componentStore.settings.options['gpu'] = useGPU
 		$componentStore.settings.options['dockerImageFetching'] = dockerImageFetching
 	}
@@ -113,6 +115,10 @@
 			<div class="arrow variant-filled-secondary" />
 		</div>
 		<div class="grid grid-cols-1 card p-4 gap-4 pointer-events-auto">
+			<label class="flex items-center space-x-2 text-sm md:text-base">
+				<input class="checkbox" type="checkbox" bind:checked={saveAsTemplate} />
+				<span>Save as template<span /></span></label
+			>
 			<label class="flex items-center space-x-2 text-sm md:text-base">
 				<input class="checkbox" type="checkbox" bind:checked={useGPU} />
 				<span>Utilize GPU</span>

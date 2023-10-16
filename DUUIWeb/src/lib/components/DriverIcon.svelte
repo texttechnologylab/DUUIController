@@ -1,9 +1,17 @@
 <script lang="ts">
+	import {
+		DUUIDockerDriver,
+		DUUIRemoteDriver,
+		DUUISwarmDriver,
+		DUUIUIMADriver
+	} from '$lib/duui/component'
+	import { equals } from '$lib/utils/text'
+
 	export let driver: string
 </script>
 
 <div>
-	{#if driver === 'DUUIDockerDriver'}
+	{#if equals(driver, DUUIDockerDriver)}
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			height="1em"
@@ -15,7 +23,7 @@
 				d="M349.9 236.3h-66.1v-59.4h66.1v59.4zm0-204.3h-66.1v60.7h66.1V32zm78.2 144.8H362v59.4h66.1v-59.4zm-156.3-72.1h-66.1v60.1h66.1v-60.1zm78.1 0h-66.1v60.1h66.1v-60.1zm276.8 100c-14.4-9.7-47.6-13.2-73.1-8.4-3.3-24-16.7-44.9-41.1-63.7l-14-9.3-9.3 14c-18.4 27.8-23.4 73.6-3.7 103.8-8.7 4.7-25.8 11.1-48.4 10.7H2.4c-8.7 50.8 5.8 116.8 44 162.1 37.1 43.9 92.7 66.2 165.4 66.2 157.4 0 273.9-72.5 328.4-204.2 21.4.4 67.6.1 91.3-45.2 1.5-2.5 6.6-13.2 8.5-17.1l-13.3-8.9zm-511.1-27.9h-66v59.4h66.1v-59.4zm78.1 0h-66.1v59.4h66.1v-59.4zm78.1 0h-66.1v59.4h66.1v-59.4zm-78.1-72.1h-66.1v60.1h66.1v-60.1z"
 			/>
 		</svg>
-	{:else if driver === 'DUUISwarmDriver'}
+	{:else if equals(driver, DUUISwarmDriver)}
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			height="1em"
@@ -25,7 +33,7 @@
 				d="M418.4 157.9c35.3-8.3 61.6-40 61.6-77.9c0-44.2-35.8-80-80-80c-43.4 0-78.7 34.5-80 77.5L136.2 151.1C121.7 136.8 101.9 128 80 128c-44.2 0-80 35.8-80 80s35.8 80 80 80c12.2 0 23.8-2.7 34.1-7.6L259.7 407.8c-2.4 7.6-3.7 15.8-3.7 24.2c0 44.2 35.8 80 80 80s80-35.8 80-80c0-27.7-14-52.1-35.4-66.4l37.8-207.7zM156.3 232.2c2.2-6.9 3.5-14.2 3.7-21.7l183.8-73.5c3.6 3.5 7.4 6.7 11.6 9.5L317.6 354.1c-5.5 1.3-10.8 3.1-15.8 5.5L156.3 232.2z"
 			/></svg
 		>
-	{:else if driver === 'DUUIRemoteDriver'}
+	{:else if equals(driver, DUUIRemoteDriver)}
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			height="1em"
@@ -35,7 +43,7 @@
 				d="M54.2 202.9C123.2 136.7 216.8 96 320 96s196.8 40.7 265.8 106.9c12.8 12.2 33 11.8 45.2-.9s11.8-33-.9-45.2C549.7 79.5 440.4 32 320 32S90.3 79.5 9.8 156.7C-2.9 169-3.3 189.2 8.9 202s32.5 13.2 45.2 .9zM320 256c56.8 0 108.6 21.1 148.2 56c13.3 11.7 33.5 10.4 45.2-2.8s10.4-33.5-2.8-45.2C459.8 219.2 393 192 320 192s-139.8 27.2-190.5 72c-13.3 11.7-14.5 31.9-2.8 45.2s31.9 14.5 45.2 2.8c39.5-34.9 91.3-56 148.2-56zm64 160a64 64 0 1 0 -128 0 64 64 0 1 0 128 0z"
 			/></svg
 		>
-	{:else if driver === 'DUUIUIMADriver'}
+	{:else if equals(driver, DUUIUIMADriver)}
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			height="1em"
