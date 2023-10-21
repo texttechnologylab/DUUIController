@@ -6,16 +6,18 @@
 		Input,
 		InputFileExtensions,
 		InputSources,
+		Output,
 		OutputFileExtensions,
 		OutputTargets,
-		isValidSourceAndTarget,
+		isValidIO,
+		isValidS3BucketName,
 		outputIsCloudProvider
 	} from '$lib/duui/io.js'
 	import { needsAuthorization } from '$lib/duui/user.js'
 	import { equals } from '$lib/utils/text.js'
+	import { faQuestion, faQuestionCircle } from '@fortawesome/free-solid-svg-icons'
 
-	import { faSortNumericAsc, faSortNumericDesc, faX } from '@fortawesome/free-solid-svg-icons'
-	import { Step, Stepper } from '@skeletonlabs/skeleton'
+	import { Step, Stepper, type PopupSettings, popup } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
 
 	export let data
@@ -62,12 +64,6 @@
 	}
 
 	async function submitProcess() {
-		let data = new FormData()
-		// if (inputSource === Input.Files && files) {
-		// 	let _files = sortedFiles.length > 0 ? sortedFiles : [...files]
-		// 	_files.forEach((file) => data.append('files', file))
-		// }
-
 		let response = await fetch(API_URL + '/processes', {
 			method: 'POST',
 			mode: 'cors',
@@ -106,7 +102,44 @@
 		sortedFiles.sort((a, b) => (a.size > b.size ? ascending : -ascending))
 		sortOrder = sortOrder === 1 ? -1 : 1
 	}
+
+	let inputBucketIsValid: boolean = false
+	let outputBucketIsValid: boolean = false
+
+	$: {
+		inputBucketIsValid = !equals(inputSource, Input.Minio) || isValidS3BucketName(input.folder)
+		outputBucketIsValid = !equals(outputTarget, Output.Minio) || isValidS3BucketName(output.folder)
+
+	}
+
+	const s3NamingPopup: PopupSettings = {
+		event: 'hover',
+		target: 's3NamingPopup',
+		placement: 'top',
+		middleware: {
+			offset: 24
+		}
+	}
 </script>
+
+<div
+	class="variant-filled-primary hidden p-4 rounded-md shadow-lg space-y-2 text-md z-100"
+	data-popup="s3NamingPopup"
+>
+	<p class="h5">S3 Bucket Naming Conventions</p>
+	<ul class="list-disc px-4">
+		<li>Bucket names must be between 3 (min) and 63 (max) characters long.</li>
+		<li>Bucket names can consist only of lowercase letters, numbers, dots (.), and hyphens (-).</li>
+		<li>Bucket names must begin and end with a letter or number.</li>
+		<li>Bucket names must not contain two adjacent periods.</li>
+		<li>Bucket names must not be formatted as an IP address (for example, 192.168.5.4).</li>
+		<li>Bucket names must not start with the prefix xn--.</li>
+		<li>Bucket names must not start with the prefix sthree- and the prefix sthree-configurator.</li>
+		<li>Bucket names must not end with the suffix -s3alias.</li>
+		<li>Bucket names must not end with the suffix --ol-s3.</li>
+	</ul>
+	<div class="arrow variant-filled-primary" />
+</div>
 
 <h1 class="h1 text-center mx-auto my-4">New Process</h1>
 <Stepper
@@ -116,7 +149,7 @@
 	active="rounded-full variant-filled px-4"
 	badge="rounded-full variant-filled-primary"
 >
-	<Step locked={isValidSourceAndTarget(input, output)}>
+	<Step locked={!isValidIO(input, output)}>
 		<svelte:fragment slot="header">Input & Output</svelte:fragment>
 		<div class=" grid md:grid-cols-2 gap-4">
 			<div class="card rounded-md p-4 flex gap-4 flex-col">
@@ -172,10 +205,27 @@
 						/>
 					</label>
 				{:else}
-					<label class="label space-y-2">
-						<span>{equals(inputSource, 'Minio') ? 'Bucket Name' : 'Path to folder'}</span>
-						<input class="input border-2" type="text" bind:value={inputFolder} />
-					</label>
+					{#if equals(input.source, 'minio')}
+						<label class="label space-y-2">
+							<div class="flex items-center gap-2">
+								<span class={!inputBucketIsValid ? 'text-error-500' : ''}>Bucket Name</span>
+								<div class="[&>*]:pointer-events-none" use:popup={s3NamingPopup}>
+									<Fa icon={faQuestionCircle} />
+								</div>
+							</div>
+							<input
+								class="input border-2 "
+								type="text"
+								bind:value={inputFolder}
+							/>
+						</label>
+					{:else}
+						<label class="label space-y-2">
+							<span>Path to folder</span>
+							<input class="input border-2" type="text" bind:value={inputFolder} />
+						</label>
+					{/if}
+
 					<label class="label space-y-2">
 						<span>File extension</span>
 						<select class="select border-2 input" bind:value={inputFileExtension}>
@@ -189,7 +239,7 @@
 			<div class="card rounded-md p-4 flex gap-4 flex-col">
 				<h3 class="h3">Output</h3>
 				<label class="label space-y-2">
-					<span>Type</span>
+					<span>Target</span>
 					<select class="select border-2" bind:value={outputTarget}>
 						{#each OutputTargets as target}
 							<option value={target}>{target}</option>
@@ -197,12 +247,22 @@
 					</select>
 				</label>
 				{#if outputIsCloudProvider(outputTarget)}
-					<label class="label space-y-2">
-						<span
-							>{equals(outputTarget, 'minio') ? 'Bucket Name (lower case)' : 'Path to folder'}</span
-						>
-						<input class="input border-2" type="text" bind:value={outputFolder} />
-					</label>
+					{#if equals(output.target, 'minio')}
+						<label class="label space-y-2">
+							<div class="flex items-center gap-2">
+								<span class={!outputBucketIsValid ? 'text-error-500' : ''}>Bucket Name</span>
+								<div class="[&>*]:pointer-events-none" use:popup={s3NamingPopup}>
+									<Fa icon={faQuestionCircle} />
+								</div>
+							</div>
+							<input class="input border-2" type="text" bind:value={outputFolder} />
+						</label>
+					{:else}
+						<label class="label space-y-2">
+							<span>Path to folder</span>
+							<input class="input border-2" type="text" bind:value={outputFolder} />
+						</label>
+					{/if}
 				{/if}
 				{#if !equals(outputTarget, 'none')}
 					<label class="label space-y-2">

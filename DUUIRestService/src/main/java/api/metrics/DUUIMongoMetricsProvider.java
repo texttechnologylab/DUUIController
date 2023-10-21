@@ -1,14 +1,12 @@
 package api.metrics;
 
-import api.services.DUUIMongoService;
-import com.mongodb.client.AggregateIterable;
+import api.storage.DUUIMongoDBStorage;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.BsonField;
 import org.bson.BsonDocument;
 import org.bson.BsonString;
 import org.bson.Document;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +36,7 @@ public class DUUIMongoMetricsProvider implements IDUUIMetricsProvider {
 
     @Override
     public Map<String, Long> updateMetrics() {
-        Document _queryResult = DUUIMongoService.getInstance()
+        Document _queryResult = DUUIMongoDBStorage.getInstance()
             .getDatabase(_database)
             .getCollection(_collection)
             .aggregate(

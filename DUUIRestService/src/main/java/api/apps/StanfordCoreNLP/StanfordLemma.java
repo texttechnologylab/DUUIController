@@ -23,6 +23,8 @@ import org.xml.sax.SAXException;
 
 public class StanfordLemma {
 
+  static Properties props;
+
   public static void main(String[] args) throws Exception {
     HttpServer server = HttpServer.create(
       new InetSocketAddress("192.168.2.122", 9003),
@@ -38,6 +40,10 @@ public class StanfordLemma {
       "/v1/typesystem",
       new StanfordLemma.TypesystemHandler()
     );
+
+    props = new Properties();
+    props.setProperty("annotators", "tokenize, ssplit, pos, lemma");
+
     server.createContext("/v1/process", new StanfordLemma.ProcessHandler());
 
     server.setExecutor(null); // creates a default executor
@@ -62,8 +68,6 @@ public class StanfordLemma {
         jc.reset();
         CasIOUtils.load(t.getRequestBody(), jc.getCas());
 
-        Properties props = new Properties();
-        props.setProperty("annotators", "tokenize, ssplit, pos, lemma");
         props.setProperty("language", jc.getDocumentLanguage());
         StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
 

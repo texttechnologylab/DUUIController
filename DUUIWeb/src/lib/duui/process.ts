@@ -1,5 +1,5 @@
 import { equals } from '$lib/utils/text'
-import type { DUUIDocumentInput, DUUIDocumentOutput } from './io'
+import type { DUUIDocument, DUUIDocumentInput, DUUIDocumentOutput } from './io'
 import type { DUUIStatusEvent } from './monitor'
 import type { DUUIPipeline } from './pipeline'
 
@@ -17,7 +17,7 @@ export interface DUUIProcess {
 	done: boolean
 	documentCount: number
 	documentNames: string[]
-	documentProgress: Object
+	documents: DUUIDocument[]
 }
 
 export const progressMaximum = (process: DUUIProcess, pipeline: DUUIPipeline) => {

@@ -28,7 +28,6 @@
 					return pipeline
 				}
 			})
-			console.log(filteredPipelines)
 		}
 	}
 </script>

@@ -2,20 +2,13 @@
 	import { goto } from '$app/navigation'
 	import DriverIcon from '$lib/components/DriverIcon.svelte'
 	import { API_URL } from '$lib/config.js'
-	import type { DUUIComponent } from '$lib/duui/component.js'
-	import { Input, Output, outputIsCloudProvider } from '$lib/duui/io.js'
-	import {
-		Status,
-		type DUUIStatusEvent,
-		isActive,
-		documentIsProcessed,
-		isDocumentProcessed,
-		getDocumentProgress
-	} from '$lib/duui/monitor.js'
+	import { Input, Output, type DUUIDocument, outputIsCloudProvider } from '$lib/duui/io.js'
+	import { Status, type DUUIStatusEvent, isActive, getComponentStatus } from '$lib/duui/monitor.js'
 	import { processAsSeachParams } from '$lib/duui/process.js'
 	import { equals, includes, progresAsPercent } from '$lib/utils/text.js'
 	import { getDuration } from '$lib/utils/time.js'
 	import { getDocumentStatusIcon, getStatusIcon } from '$lib/utils/ui.js'
+	import DocumentModal from './DocumentModal.svelte'
 
 	import {
 		faArrowLeft,
@@ -23,13 +16,19 @@
 		faCancel,
 		faCaretDown,
 		faCaretUp,
-		faCheck,
-		faCheckDouble,
 		faFile,
-		faRefresh,
-		faX
+		faFileDownload,
+		faFileUpload,
+		faGears,
+		faRefresh
 	} from '@fortawesome/free-solid-svg-icons'
-	import { getToastStore, type ToastSettings } from '@skeletonlabs/skeleton'
+	import {
+		getModalStore,
+		getToastStore,
+		type ModalComponent,
+		type ModalSettings,
+		type ToastSettings
+	} from '@skeletonlabs/skeleton'
 
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
@@ -50,17 +49,7 @@
 
 	const inputIsText: boolean = equals(process.input.source, Input.Text)
 
-	let searchText: string = ''
-	let documentStatus: string = 'All'
-	let filteredDocuments: string[] = process.documentNames
-	let filteredComponents: DUUIComponent[] = pipeline.components
-
-	let documentProgress: Map<string, number> = new Map(
-		Object.entries(process.documentProgress || {})
-	)
-
-	let componentCategory: string = 'All'
-	let componentCategories: string[] = ['All'].concat(pipeline.components.map((c) => c.category))
+	let documents: Map<string, DUUIDocument> = new Map()
 
 	onMount(() => {
 		async function updateProcess() {
@@ -78,10 +67,10 @@
 			progress = updatedProcess.progress
 			log = updatedProcess.log.reverse()
 			error = updatedProcess.error
-			documentProgress = new Map(Object.entries(updatedProcess.documentProgress || {}))
 			done = updatedProcess.done
 			process.documentNames = updatedProcess.documentNames || []
 			process.documentCount = updatedProcess.documentCount || 0
+			process.documents = updatedProcess.documents || []
 
 			process.documentNames.map((document) => {
 				if (includes(document, '/')) {
@@ -90,6 +79,27 @@
 					return document
 				}
 			})
+
+			for (let doc of updatedProcess.documentNames) {
+				let name = includes(doc, '/') ? doc.split('/').at(-1) : doc
+
+				let document = process.documents.find((d) => d.name === name)
+				if (document) {
+					documents.set(name, document)
+				} else {
+					documents.set(name, {
+						name: name,
+						path: doc,
+						progress: 0,
+						done: false,
+						decodeDuration: 0,
+						deserializeDuration: 0,
+						processDuration: 0,
+						error: ''
+					})
+				}
+			}
+
 
 			progressPercent = progresAsPercent(
 				progress,
@@ -119,6 +129,8 @@
 			background: 'variant-filled-warning'
 		}
 		toastStore.trigger(t)
+		status = Status.Canceled
+		done = true
 	}
 
 	function getOutput(): string {
@@ -139,28 +151,19 @@
 		goto(`/process?pipeline=${pipeline.id}&${processAsSeachParams(process)}`)
 	}
 
-	$: {
-		if (inputIsText) {
-			filteredComponents = pipeline.components.filter((component) => {
-				if (equals('All', componentCategory)) {
-					return includes(component.name, searchText)
-				} else {
-					return (
-						includes(component.name, searchText) && equals(component.category, componentCategory)
-					)
-				}
-			})
-		} else {
-			filteredDocuments = process.documentNames.filter((document) => {
-				return includes(document, searchText)
+	const modalStore = getModalStore()
+	const modalComponent: ModalComponent = {
+		ref: DocumentModal,
+		props: { input: process.input, output: process.output }
+	}
 
-				// if (documentStatus === 'All') {
-
-				// } else {
-				// 	return document.toLowerCase().includes(searchText.toLowerCase())
-				// }
-			})
+	const showDocumentModal = (document: DUUIDocument) => {
+		const modal: ModalSettings = {
+			type: 'component',
+			component: modalComponent,
+			meta: { document: document }
 		}
+		modalStore.trigger(modal)
 	}
 </script>
 
@@ -168,22 +171,7 @@
 	<div class="space-y-4 card shadow-lg rounded-md p-4">
 		<div class="flex justify-between items-center gap-4">
 			<h3 class="h3">{pipeline.name}</h3>
-			<div class="grid md:grid-cols-2 gap-4">
-				<input class="input border-2" placeholder="Search" type="text" bind:value={searchText} />
-				{#if inputIsText}
-					<select class="select border-2 input" bind:value={componentCategory}>
-						{#each componentCategories as category}
-							<option value={category}>{category}</option>
-						{/each}
-					</select>
-				{:else}
-					<select class="select border-2 input" bind:value={documentStatus}>
-						{#each ['All', 'Running', 'Success', 'Failed'] as status}
-							<option value={status}>{status}</option>
-						{/each}
-					</select>
-				{/if}
-			</div>
+	
 			<div class="flex items-center gap-4">
 				<Fa
 					icon={getStatusIcon(status)}
@@ -199,41 +187,34 @@
 				<h3 class="h3">{inputIsText ? 'Components' : 'Documents'}</h3>
 				<p class="h4">{progressPercent} %</p>
 			</div>
-			{#if inputIsText}
-				{#each filteredComponents as component, id}
-					<div class="flex gap-4 items-center px-4">
-						{#if progress > id}
-							<Fa icon={faCheckDouble} size="lg" />
-						{:else if isActive(status)}
-							<Fa icon={faRefresh} size="lg" class="animate-spin-slow " />
-						{:else}
-							<Fa icon={faX} size="lg" />
-						{/if}
-						<DriverIcon driver={component.settings.driver} />
-						<p class="h4 grow">{component.name}</p>
-					</div>
+			<div class="grid md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 grid-flow-row gap-4">
+				{#each documents.values() as document}
+					<button
+						on:click={() => showDocumentModal(document)}
+						class="btn variant-soft-surface flex gap-2 justify-start"
+					>
+						<Fa
+							icon={getDocumentStatusIcon(document, status, inputIsText)}
+							size="lg"
+							class={equals(status, Status.Running) && !document.done ? 'animate-spin-slow' : ''}
+						/>
+						<p class=" grow">{document.name}</p>
+
+						<p class="">
+							{inputIsText
+								? !isActive(status) && !equals(status, Status.Failed)
+									? pipeline.components.length
+									: process.progress
+								: document.progress}
+							/ {pipeline.components.length +
+								(outputIsCloudProvider(process.output.target) ? 1 : 0)}
+						</p>
+					</button>
 				{/each}
-			{:else if filteredDocuments}
-				<div class="grid md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 grid-flow-row gap-4">
-					{#each filteredDocuments as document}
-						<div class="flex gap-4 items-center px-4">
-							<Fa
-								icon={getDocumentStatusIcon(documentProgress, status, process, pipeline, document)}
-								size="lg"
-								class={isActive(status) &&
-								!isDocumentProcessed(documentProgress, process, pipeline, document)
-									? 'animate-spin-slow'
-									: ''}
-							/>
-							<p>
-								{getDocumentProgress(documentProgress, pipeline, document)}
-							</p>
-							<p>{document.split('/').at(-1)}</p>
-						</div>
-					{/each}
-				</div>
-			{/if}
+
+			</div>
 		</div>
+
 
 		<hr />
 		<div class="flex flex-col md:flex-row justify-between gap-4">
@@ -242,7 +223,7 @@
 				<span>Back to pipeline</span>
 			</button>
 			<!-- outputIsCloudProvider(process.output.type) &&  -->
-			{#if done && !equals(process.output.target, Output.None)}
+			{#if done && !equals(process.output.target, Output.None) && !(equals(status, Status.Failed) || equals(status, Status.Canceled))}
 				<a href={getOutput()} target="_blank" class="btn variant-ghost-primary">
 					<span><Fa icon={faFile} /></span>
 					<span>Get Output</span>
@@ -262,37 +243,58 @@
 		</div>
 	</div>
 
-	<div class="space-y-4 card shadow-lg rounded-md p-4">
-		<div class="flex justify-between items-center gap-4">
-			<h3 class="h3">Log</h3>
-			<div class="flex gap-4 items-center">
-				<p>Reading from {process.input.source}</p>
-				<div class="flex justify-center">
-					<Fa icon={faArrowRight} size="sm" />
-				</div>
-				<p>Writing to {process.output.target}</p>
-			</div>
-			<button
-				class="btn variant-soft-surface flex items-center gap-4"
-				on:click={() => (logExpanded = !logExpanded)}
-			>
-				<span><Fa icon={logExpanded ? faCaretUp : faCaretDown} /></span>
-				<span>{logExpanded ? 'Hide log' : 'Show log'}</span>
-			</button>
-		</div>
-		<hr />
-		<div class="space-y-2">
-			{#if error}
-				<p class="text-error-500 font-bold">ERROR: {error}</p>
-			{/if}
+	<div class="gap-4 grid md:grid-cols-2 items-start">
+		<div class="card shadow-lg rounded-md p-4 space-y-4">
+			<h3 class="h3">Pipeline status</h3>
 
-			{#if logExpanded}
-				{#each log as statusEvent}
-					<div class="flex items-start gap-8">
-						<p class="min-w-[8ch]">+{getDuration(process.startedAt, statusEvent.timestamp)}</p>
-						<p class="break-words max-w-[20ch] md:max-w-[60ch]">{statusEvent.message}</p>
+			<hr />
+			{#if error}
+				<p class="text-error-500 font-bold break-words">ERROR: {error}</p>
+			{/if}
+			{#each pipeline.components as component}
+				<div class="flex gap-4 items-center p-4">
+					<DriverIcon driver={component.settings.driver} />
+					<p class="h4 grow">{component.name}</p>
+					<p class="h4">{getComponentStatus(log, component)}</p>
+				</div>
+			{/each}
+		</div>
+		<div class="card shadow-lg rounded-md p-4 space-y-4">
+			<div class="flex justify-between items-center gap-4">
+				<h3 class="h3">Log</h3>
+				<div class="flex gap-16 justify-between items-center">
+					<div
+						class="flex gap-4 items-center rounded-md overflow-hidden variant-soft-surface p-2 px-4"
+					>
+						<Fa icon={faFileDownload} size="md" />
+						<p class="">{process.input.source}</p>
 					</div>
-				{/each}
+					<Fa icon={faArrowRight} size="lg" />
+					<div
+						class="flex gap-4 items-center rounded-md overflow-hidden variant-soft-surface p-2 px-4"
+					>
+						<Fa icon={faFileUpload} size="md" />
+						<p class="">{process.output.target}</p>
+					</div>
+				</div>
+				<button
+					class="btn variant-ghost-primary flex items-center gap-4"
+					on:click={() => (logExpanded = !logExpanded)}
+				>
+					<span><Fa icon={logExpanded ? faCaretUp : faCaretDown} /></span>
+					<span>{logExpanded ? 'Hide log' : 'Show log'}</span>
+				</button>
+			</div>
+			{#if logExpanded}
+				<hr />
+				<div class="space-y-2">
+					{#each log as statusEvent}
+						<div class="flex items-start gap-8">
+							<p class="min-w-[8ch]">+{getDuration(process.startedAt, statusEvent.timestamp)}</p>
+							<p class="break-words max-w-[20ch] md:max-w-[60ch]">{statusEvent.message}</p>
+						</div>
+					{/each}
+				</div>
 			{/if}
 		</div>
 	</div>

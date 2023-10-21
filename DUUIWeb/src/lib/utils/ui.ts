@@ -11,9 +11,8 @@ import {
 	faX
 } from '@fortawesome/free-solid-svg-icons'
 import { equals } from './text'
-import type { DUUIPipeline } from '$lib/duui/pipeline'
-import type { DUUIProcess } from '$lib/duui/process'
-import { isActive, isDocumentProcessed } from '$lib/duui/monitor'
+import { Status, isActive } from '$lib/duui/monitor'
+import type { DUUIDocument } from '$lib/duui/io'
 
 export function getStatusIcon(status: string) {
 	if (equals(status, 'input')) return faFileDownload
@@ -29,25 +28,16 @@ export function getStatusIcon(status: string) {
 }
 
 export const getDocumentStatusIcon = (
-	documentProgress: Map<string, number>,
+	document: DUUIDocument,
 	status: string,
-	process: DUUIProcess,
-	pipeline: DUUIPipeline,
-	document: string
+	inputIsText: boolean
 ) => {
-	const documentProcessed = isDocumentProcessed(documentProgress, process, pipeline, document)
-	const active = isActive(status)
+	if (document.done) return faCheckDouble
 
-	if (!active) {
-		if (documentProcessed) return faCheckDouble
-		else return faX
-	} else {
-		if (equals(status, 'input')) return faFileDownload
-		if (!documentProcessed) return faRefresh
-		if (equals(status, 'output') && documentProcessed) return faFileUpload
-		return faCheck
+	if (equals(status, Status.Running)) {
+		return document.error ? faX : faRefresh
 	}
+
+	if (inputIsText && !document.error) return faCheckDouble
+	return document.done ? faCheckDouble : faFileDownload
 }
-
-
-

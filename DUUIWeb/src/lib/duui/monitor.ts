@@ -1,4 +1,5 @@
 import { includes } from '$lib/utils/text'
+import type { DUUIComponent } from './component'
 import { outputIsCloudProvider } from './io'
 import type { DUUIPipeline } from './pipeline'
 import type { DUUIProcess } from './process'
@@ -33,7 +34,7 @@ export enum Status {
 	Unknown = 'Unknown'
 }
 
-export const activeStatusList: string[] = ['Input', 'Setup', 'Running', 'Shutdown', 'Output']
+export const activeStatusList: string[] = ['Setup', 'Input', 'Running', 'Shutdown', 'Output']
 export const isActive = (status: string) => {
 	return activeStatusList.includes(status)
 }
@@ -51,15 +52,10 @@ export const documentIsProcessed = (log: DUUIStatusEvent[], document: string) =>
 
 export const isDocumentProcessed = (
 	documentProgress: Map<string, number>,
-	process: DUUIProcess,
 	pipeline: DUUIPipeline,
 	document: string
 ) => {
-	if (outputIsCloudProvider(process.output.target)) {
-		return documentProgress.get(document.split('/').at(-1) || '') === pipeline.components.length + 1
-	} else {
-		return documentProgress.get(document.split('/').at(-1) || '') === pipeline.components.length
-	}
+	return documentProgress.get(document.split('/').at(-1) || '') || 0 >= pipeline.components.length
 }
 
 export const getDocumentProgress = (
@@ -71,4 +67,11 @@ export const getDocumentProgress = (
 	return `${Math.min(progress, pipeline.components.length)} / ${pipeline.components.length}`
 }
 
-
+export const getComponentStatus = (log: DUUIStatusEvent[], component: DUUIComponent) => {
+	for (let event of log) {
+		if (includes(event.message, 'Finished setup for component ' + component.name)) return 'Active'
+		if (includes(event.message, 'Instantiating component ' + component.name)) return 'Instantiating'
+		if (includes(event.message, 'Added component ' + component.name)) return 'Added'
+	}
+	return 'Setup'
+}

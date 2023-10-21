@@ -1,48 +1,24 @@
 package api;
 
-import static org.apache.uima.fit.factory.AnalysisEngineFactory.createEngineDescription;
-import static spark.Spark.*;
-
+import api.duui.component.DUUIComponentController;
 import api.metrics.DUUIMetricsProvider;
 import api.metrics.DUUIMongoMetricsProvider;
-import api.responses.MissingRequiredFieldResponse;
-import api.component.DUUIComponentController;
-import api.pipeline.DUUIPipelineController;
-import api.process.DUUIProcessController;
-import api.services.DUUIMongoService;
-import api.services.DUUIRequestValidator;
-import api.users.DUUIUserController;
+import api.duui.pipeline.DUUIPipelineController;
+import api.duui.process.DUUIProcessController;
+import api.duui.users.DUUIUserController;
 import com.sun.management.OperatingSystemMXBean;
+import spark.Request;
 
-import java.io.*;
 import java.lang.management.ManagementFactory;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-
-import de.tudarmstadt.ukp.dkpro.core.tokit.BreakIteratorSegmenter;
-import org.bson.Document;
-import org.bson.json.JsonWriterSettings;
-import org.dkpro.core.io.xmi.XmiWriter;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.DUUIComposer;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.DUUIDropboxDataReader;
-
-import static org.texttechnologylab.DockerUnifiedUIMAInterface.io.AsyncCollectionReader.getFilesInDirectoryRecursive;
-
-import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.DUUIInputStream;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.DUUIUIMADriver;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.io.AsyncCollectionReader;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.lua.DUUILuaContext;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.pipeline_storage.mongodb.DUUIMongoStorageBackend;
-import spark.Request;
-
-import javax.servlet.MultipartConfigElement;
-import javax.servlet.http.Part;
+import static spark.Spark.*;
 
 public class Application {
 
@@ -96,15 +72,6 @@ public class Application {
      *
      * */
 
-    public static String queryStringElseDefault(
-        Request request,
-        String field,
-        String fallback
-    ) {
-        return request.queryParams(field) == null
-            ? fallback
-            : request.queryParams(field);
-    }
 
     public static int queryIntElseDefault(
         Request request,
@@ -180,6 +147,7 @@ public class Application {
         metrics.put("total_virtual_memory", new AtomicLong(0));
         metrics.put("free_virtual_memory", new AtomicLong(0));
         metrics.put("used_virtual_memory", new AtomicLong(0));
+        metrics.put("active_threads", new AtomicLong(0));
 
         for (Map.Entry<String, Long> entry : _metricsProvider.getMetrics().entrySet()) {
             metrics.put(entry.getKey(), new AtomicLong(entry.getValue()));
@@ -203,7 +171,6 @@ public class Application {
         get("/processes/:id/status", DUUIProcessController::getStatus);
         get("/processes/:id/progress", DUUIProcessController::getProgress);
         get("/processes/:id/log", DUUIProcessController::getLog);
-        get("/processes/:id/result", DUUIProcessController::getResult);
 
         post("/processes", DUUIProcessController::startProcess);
         put("/processes/:id", DUUIProcessController::stopProcess);
@@ -222,31 +189,6 @@ public class Application {
         post("/users/recover-password", DUUIUserController::recoverPassword);
 
         delete("/users/:id", DUUIUserController::deleteOne);
-
-        post("/files/:folder", "multipart/form-data", ((request, response) -> {
-            request.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement("/temp"));
-            String folder = request.params(":folder");
-            List<DUUIInputStream> streams = new ArrayList<>();
-
-            String path = "/temp/" + folder;
-
-            for (Part part : request.raw().getParts()) {
-                if (part.getSubmittedFileName() != null) {
-                    streams.add(new DUUIInputStream(
-                        part.getSubmittedFileName(),
-                        path,
-                        part.getSize(),
-                        new ByteArrayInputStream(part.getInputStream().readAllBytes())
-                    ));
-                }
-            }
-
-            DUUIDropboxDataReader dataReader = new DUUIDropboxDataReader("Cedric Test App");
-            dataReader.writeFiles(streams, path);
-
-            return new Document("path", path);
-        }));
-
 
         get(
             "/metrics",
@@ -270,10 +212,7 @@ public class Application {
                 TimeUnit.SECONDS
             );
 
-        Thread _shutdownHook = new Thread(() -> {
-            service.cancel(true);
-        });
-
+        Thread _shutdownHook = new Thread(() -> service.cancel(true));
         Runtime.getRuntime().addShutdownHook(_shutdownHook);
     }
 }

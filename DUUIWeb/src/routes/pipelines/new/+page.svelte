@@ -37,8 +37,6 @@
 
 	function editNewComponent() {
 		$componentStore = blankComponent(pipeline.components.length + 1)
-		console.log(templates.includes($componentStore))
-
 		editing = true
 	}
 
@@ -57,8 +55,6 @@
 				c.settings.options = $componentStore.settings.options
 			}
 		})
-		console.log(pipeline.components);
-		
 		pipeline.components = pipeline.components
 	}
 
