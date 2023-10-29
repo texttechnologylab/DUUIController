@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
+	import CheckButton from '$lib/components/CheckButton.svelte'
 	import { API_URL } from '$lib/config.js'
 	import {
 		Input,
@@ -11,11 +12,11 @@
 		OutputTargets,
 		isValidIO,
 		isValidS3BucketName,
-		outputIsCloudProvider
+		isCloudProvider
 	} from '$lib/duui/io.js'
 	import { needsAuthorization } from '$lib/duui/user.js'
 	import { equals } from '$lib/utils/text.js'
-	import { faQuestion, faQuestionCircle } from '@fortawesome/free-solid-svg-icons'
+	import { faQuestionCircle } from '@fortawesome/free-solid-svg-icons'
 
 	import { Step, Stepper, type PopupSettings, popup } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
@@ -24,7 +25,7 @@
 	let { dbxAuthorized, session, dbxURL } = data
 
 	let inputSource: string = $page.url.searchParams.get('input-source') || 'Text'
-	let inputFolder: string = $page.url.searchParams.get('input-folder') || ''
+	let inputFolder: string = $page.url.searchParams.get('input-folder') || '/input/sample_txt'
 	let inputContent: string = $page.url.searchParams.get('input-content') || 'Hello World!'
 	let inputFileExtension: string = $page.url.searchParams.get('input-file-extension') || '.txt'
 
@@ -46,22 +47,8 @@
 	}
 
 	let notify: boolean = false
-
-	let files: FileList
-	let sortedFiles: File[] = []
-
-	let sortOrder: number = 1
-
-	function removeFileFromFileList(index: number) {
-		const dt = new DataTransfer()
-
-		for (let i = 0; i < files.length; i++) {
-			const file = files[i]
-			if (index !== i) dt.items.add(file) // here you exclude the file. thus removing it.
-		}
-
-		files = dt.files // Assign the updates list
-	}
+	let checkTarget: boolean = false
+	let recursive: boolean = false
 
 	async function submitProcess() {
 		let response = await fetch(API_URL + '/processes', {
@@ -82,6 +69,11 @@
 					target: outputTarget,
 					folder: outputFolder,
 					fileExtension: outputFileExtension
+				},
+				settings: {
+					notify: notify,
+					checkTarget: checkTarget,
+					recursive: recursive
 				}
 			})
 		})
@@ -92,24 +84,12 @@
 		}
 	}
 
-	function sortFiles() {
-		if (!files) {
-			return
-		}
-		sortedFiles = [...files]
-
-		let ascending = sortOrder === 1 ? -1 : 1
-		sortedFiles.sort((a, b) => (a.size > b.size ? ascending : -ascending))
-		sortOrder = sortOrder === 1 ? -1 : 1
-	}
-
 	let inputBucketIsValid: boolean = false
 	let outputBucketIsValid: boolean = false
 
 	$: {
 		inputBucketIsValid = !equals(inputSource, Input.Minio) || isValidS3BucketName(input.folder)
 		outputBucketIsValid = !equals(outputTarget, Output.Minio) || isValidS3BucketName(output.folder)
-
 	}
 
 	const s3NamingPopup: PopupSettings = {
@@ -145,7 +125,7 @@
 <Stepper
 	on:complete={submitProcess}
 	buttonCompleteLabel="Start"
-	class="max-w-7xl mx-auto p-4"
+	class="max-w-5xl mx-auto p-4"
 	active="rounded-full variant-filled px-4"
 	badge="rounded-full variant-filled-primary"
 >
@@ -162,38 +142,6 @@
 						{/each}
 					</select>
 				</label>
-				<!-- {#if inputSource === DUUIDocumentSource.Files}
-					<div class="flex items-end gap-4 justify-start">
-						<label class="label space-y-2">
-							<span>Select files</span>
-							<input
-								class="input border-2 text-transparent grow"
-								type="file"
-								bind:files
-								multiple
-								placeholder="Enter the document text"
-								accept="text/plain, application/gzip, application/xml"
-							/>
-						</label>
-						<button class="btn variant-filled-primary" on:click={sortFiles}>
-							<span>Sort by size</span>
-							<Fa icon={sortOrder === 1 ? faSortNumericAsc : faSortNumericDesc} />
-						</button>
-					</div>
-					{#if files}
-						<div class="space-y-2">
-							<p>{files.length} Files</p>
-							{#each sortedFiles.length > 0 ? sortedFiles : [...files] as file, index}
-								<div class="flex justify-between items-center variant-soft-surface gap-2 p-2 px-4">
-									<p>{cutText(file.name, 60)}</p>
-									<p class="ml-auto">{formatFileSize(file.size)}</p>
-									<button on:click={() => removeFileFromFileList(index)}>
-										<Fa icon={faX} />
-									</button>
-								</div>
-							{/each}
-						</div>
-					{/if} -->
 				{#if equals(inputSource, 'Text')}
 					<label class="label space-y-2">
 						<span>Document Text</span>
@@ -208,16 +156,12 @@
 					{#if equals(input.source, 'minio')}
 						<label class="label space-y-2">
 							<div class="flex items-center gap-2">
-								<span class={!inputBucketIsValid ? 'text-error-500' : ''}>Bucket Name</span>
+								<span class={!inputBucketIsValid ? 'text-error-400' : ''}>Bucket Name</span>
 								<div class="[&>*]:pointer-events-none" use:popup={s3NamingPopup}>
 									<Fa icon={faQuestionCircle} />
 								</div>
 							</div>
-							<input
-								class="input border-2 "
-								type="text"
-								bind:value={inputFolder}
-							/>
+							<input class="input border-2" type="text" bind:value={inputFolder} />
 						</label>
 					{:else}
 						<label class="label space-y-2">
@@ -246,11 +190,11 @@
 						{/each}
 					</select>
 				</label>
-				{#if outputIsCloudProvider(outputTarget)}
+				{#if isCloudProvider(outputTarget)}
 					{#if equals(output.target, 'minio')}
 						<label class="label space-y-2">
 							<div class="flex items-center gap-2">
-								<span class={!outputBucketIsValid ? 'text-error-500' : ''}>Bucket Name</span>
+								<span class={!outputBucketIsValid ? 'text-error-400' : ''}>Bucket Name</span>
 								<div class="[&>*]:pointer-events-none" use:popup={s3NamingPopup}>
 									<Fa icon={faQuestionCircle} />
 								</div>
@@ -284,16 +228,17 @@
 		</svelte:fragment>
 	</Step>
 	<Step locked={!dbxAuthorized && needsAuthorization(inputSource, outputTarget)}>
-		<svelte:fragment slot="header">Extra settings</svelte:fragment>
-		<div class="card rounded-md p-4 flex gap-4 flex-col">
-			<label class="flex items-center space-x-2">
-				<span>Get notified when finished (E-Mail)</span>
-				<input
-					class="checkbox checked:variant-filled-primary"
-					type="checkbox"
-					bind:value={notify}
-				/>
-			</label>
+		<svelte:fragment slot="header">Settings</svelte:fragment>
+		<div class="grid md:grid-cols-3 gap-4">
+			<CheckButton text="Enable Notifications" bind:checked={notify} />
+
+			{#if isCloudProvider(outputTarget)}
+				<CheckButton text="Check Target for Documents" bind:checked={checkTarget} />
+			{/if}
+
+			{#if isCloudProvider(input.source) || isCloudProvider(output.target)}
+				<CheckButton text="Find Documents recursively" bind:checked={recursive} />
+			{/if}
 		</div>
 
 		{#if !dbxAuthorized && needsAuthorization(inputSource, outputTarget)}

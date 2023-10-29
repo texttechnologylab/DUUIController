@@ -3,7 +3,7 @@ import type { DUUIComponent } from '$lib/duui/component'
 import type { PageServerLoad } from './$types'
 
 export const load: PageServerLoad = async ({ cookies }) => {
-	const loadComponentTemplates = async (): Promise<{ components: DUUIComponent[] }> => {
+	const fetchTemplates = async (): Promise<{ components: DUUIComponent[] }> => {
 		const result = await fetch(API_URL + '/components', {
 			method: 'GET',
 			mode: 'cors',
@@ -13,8 +13,8 @@ export const load: PageServerLoad = async ({ cookies }) => {
 		})
 		return await result.json()
 	}
-
+	
 	return {
-		templates: (await loadComponentTemplates()).components
+		templates: (await fetchTemplates()).components
 	}
 }

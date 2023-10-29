@@ -1,30 +1,28 @@
-import { equals } from '$lib/utils/text'
-import type { DUUIDocument, DUUIDocumentInput, DUUIDocumentOutput } from './io'
-import type { DUUIStatusEvent } from './monitor'
+import type { DUUIDocumentInput, DUUIDocumentOutput } from './io'
 import type { DUUIPipeline } from './pipeline'
 
 export interface DUUIProcess {
 	id: string
+	pipeline_id: string
 	status: string
+	error: string
 	progress: number
-	startedAt?: number
-	finishedAt?: number
+	startTime: number
+	endTime: number
 	input: DUUIDocumentInput
 	output: DUUIDocumentOutput
-	options: Map<string, string>
-	pipeline_id: string
-	log: DUUIStatusEvent[]
-	done: boolean
-	documentCount: number
+	settings: Map<string, Object>
 	documentNames: string[]
-	documents: DUUIDocument[]
+	finished: boolean
+	setupDuration: number
+	instantiationDuration: number
 }
 
 export const progressMaximum = (process: DUUIProcess, pipeline: DUUIPipeline) => {
-	return equals(process.input.source, 'text') ? pipeline.components.length : process.documentCount
+	return process.documentNames.length
 }
 
-export const processAsSeachParams = (process: DUUIProcess) => {
+export const processToSeachParams = (process: DUUIProcess) => {
 	return `
 		input-source=${process.input.source}&
 		input-folder=${process.input.folder}&

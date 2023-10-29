@@ -8,6 +8,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 		method: 'GET',
 		mode: 'cors'
 	})
+	
 	const process: DUUIProcess = await response.json()
 
 	const loadPipeline = async (process: DUUIProcess): Promise<DUUIPipeline> => {

@@ -36,19 +36,19 @@
 	}
 
 	function editNewComponent() {
-		$componentStore = blankComponent(pipeline.components.length + 1)
+		$componentStore = blankComponent(pipeline.id, pipeline.components.length + 1)
 		editing = true
 	}
 
 	function updateComponent() {
-		if ($componentStore.id === -1) {
+		if ($componentStore.id === '') {
 			return
 		}
 
 		pipeline.components.forEach((c) => {
 			if (c.id === $componentStore.id) {
 				c.name = $componentStore.name
-				c.category = $componentStore.category
+				c.categories = $componentStore.categories
 				c.description = $componentStore.description
 				c.settings.driver = $componentStore.settings.driver
 				c.settings.target = $componentStore.settings.target
@@ -59,7 +59,7 @@
 	}
 
 	function saveComponent() {
-		if ($componentStore.id === -1) {
+		if ($componentStore.id === '') {
 			return
 		}
 
@@ -131,7 +131,6 @@
 
 			response.forEach((component) => {
 				const comp = { ...component }
-				comp.id = Math.max(...pipeline.components.map((c) => c.id), 0) + 1
 				pipeline.components = [...pipeline.components, comp]
 			})
 		})

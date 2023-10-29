@@ -54,7 +54,7 @@ export const formatFileSize = (bytes: number, decimals: number = 0) => {
 	}
 
 	const factor = 1024
-	const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
+	const sizes = ['Bytes', 'KBytes', 'MBytes', 'GBytes', 'TBytes']
 	const size = Math.floor(Math.log(bytes) / Math.log(factor))
 
 	return `${parseFloat((bytes / Math.pow(factor, size)).toFixed(decimals))} ${sizes[size]}`

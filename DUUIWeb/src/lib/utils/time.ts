@@ -1,13 +1,18 @@
-export const formatSeconds = (durationInSeconds: number) => {
-	const hours = Math.floor(durationInSeconds / 3600)
-	const minutes = Math.floor((durationInSeconds % 3600) / 60)
-	const seconds = Math.floor(durationInSeconds % 60)
+export const formatMilliseconds = (durationInMilliseconds: number) => {
+	const hours = Math.floor(durationInMilliseconds / 3600000)
+	const minutes = Math.floor((durationInMilliseconds % 3600000) / 60000)
+	const seconds = Math.floor((durationInMilliseconds % 60000) / 1000)
+	const milliseconds = durationInMilliseconds % 1000
 
 	const hoursText = hours > 0 ? `${hours}h` : ''
 	const minutesText = minutes > 0 ? `${minutes}m` : ''
 	const secondsText = seconds > 0 && hours <= 0 ? `${seconds}s` : ''
 
-	const result = [hoursText, minutesText, secondsText].filter(Boolean).join(' ')
+	let result = [hoursText, minutesText, secondsText].filter(Boolean).join(' ')
+
+	if (durationInMilliseconds < 1000) {
+		result = `${result} ${milliseconds}ms`
+	}
 
 	return result || '0s'
 }
@@ -15,7 +20,7 @@ export const formatSeconds = (durationInSeconds: number) => {
 export const getDuration = (start: number | undefined, end: number | undefined) => {
 	if (!start) return 0
 
-	if (!end) return formatSeconds(Math.ceil((Date.now() - start) / 1000))
+	if (!end) return formatMilliseconds(Math.ceil(Date.now() - start))
 
-	return formatSeconds(Math.ceil((end - start) / 1000))
+	return formatMilliseconds(Math.ceil(end - start))
 }

@@ -1,7 +1,7 @@
-import type { DUUIPipeline } from '$lib/data'
 import { redirect } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
 import { API_URL } from '$lib/config'
+import type { DUUIPipeline } from '$lib/duui/pipeline'
 
 export const load: PageServerLoad = async ({ fetch, locals, cookies }) => {
 	if (!locals.user) {

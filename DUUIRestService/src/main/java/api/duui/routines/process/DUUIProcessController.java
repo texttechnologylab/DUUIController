@@ -1,0 +1,426 @@
+package api.duui.routines.process;
+
+import api.duui.document.DUUIDocumentInput;
+import api.duui.document.DUUIDocumentOutput;
+import api.duui.pipeline.DUUIPipelineController;
+import api.duui.routines.service.DUUIService;
+import api.duui.users.DUUIUserController;
+import api.requests.responses.MissingRequiredFieldResponse;
+import api.requests.responses.NotFoundResponse;
+import api.requests.validation.PipelineValidator;
+import api.requests.validation.RequestValidator;
+import api.requests.validation.UserValidator;
+import api.storage.DUUIMongoDBStorage;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.model.*;
+import org.bson.Document;
+import org.bson.types.ObjectId;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.DUUIDocument;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatusEvent;
+import spark.Request;
+import spark.Response;
+
+import java.net.UnknownHostException;
+import java.time.Instant;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+import static api.Application.queryIntElseDefault;
+import static api.requests.validation.UserValidator.unauthorized;
+import static api.requests.validation.Validator.isNullOrEmpty;
+import static api.requests.validation.Validator.missingField;
+import static api.storage.DUUIMongoDBStorage.mapObjectIdToString;
+
+public class DUUIProcessController {
+
+    private static final List<String> _documentFields = List.of(
+        "name",
+        "path",
+        "absolute_path",
+        "size",
+        "progress",
+        "status",
+        "error",
+        "finished",
+        "decodeDuration",
+        "deserializeDuration",
+        "waitDuration",
+        "processDuration"
+    );
+
+    private static final Map<String, DUUIProcess> _runningProcesses = new HashMap<>();
+
+    public static String findOne(Request request, Response response) {
+        String id = request.params(":id");
+
+        Document process = DUUIMongoDBStorage
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("processes")
+            .find(Filters.eq(new ObjectId(id)))
+            .first();
+
+        if (process == null) {
+            response.status(404);
+            return new NotFoundResponse("No process found for id <" + id + ">")
+                .toJson();
+        }
+
+        mapObjectIdToString(process);
+        response.status(200);
+        return process.toJson();
+    }
+
+    public static String findMany(Request request, Response response) {
+        String pipelineId = request.params(":id");
+
+        int limit = queryIntElseDefault(request, "limit", 0);
+        int offset = queryIntElseDefault(request, "offset", 0);
+
+        FindIterable<Document> documents = DUUIMongoDBStorage
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("processes")
+            .find(Filters.eq("pipeline_id", pipelineId))
+            .sort(Sorts.descending("startTime"));
+
+        if (limit != 0) {
+            documents.limit(limit);
+        }
+
+        if (offset != 0) {
+            documents.skip(offset);
+        }
+
+        List<Document> processes = new ArrayList<>();
+        documents.into(processes);
+
+        processes.forEach((DUUIMongoDBStorage::mapObjectIdToString));
+
+        response.status(200);
+        return new Document("processes", processes).toJson();
+    }
+
+    public static String deleteOne(Request request, Response response) {
+        String id = request.params(":id");
+
+        DUUIMongoDBStorage
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("processes")
+            .deleteOne(Filters.eq(new ObjectId(id)));
+
+        response.status(200);
+        return new Document("message", "Process deleted").toJson();
+    }
+
+    public static String startOne(Request request, Response response) {
+        String session = request.headers("session");
+        if (isNullOrEmpty(session)) return unauthorized(response);
+
+        Document user = DUUIUserController.getUserBySession(session);
+        if (user == null) return UserValidator.userNotFound(response);
+
+        Document body = Document.parse(request.body());
+        String pipelineId = body.getString("pipeline_id");
+
+        if (isNullOrEmpty(pipelineId)) return missingField(response, "pipeline_id");
+
+        DUUIDocumentInput input = new DUUIDocumentInput(body.get("input", Document.class));
+        DUUIDocumentOutput output = new DUUIDocumentOutput(body.get("output", Document.class));
+        Document settings = body.get("settings", Document.class);
+
+        String error = RequestValidator.validateIO(input, output);
+        if (!error.isEmpty()) return missingField(response, error);
+
+        Document pipeline = DUUIPipelineController.getPipelineById(pipelineId);
+        if (pipeline == null) return PipelineValidator.pipelineNotFound(response);
+
+        Document process = new Document("pipeline_id", pipelineId)
+            .append("status", "Setup")
+            .append("error", null)
+            .append("progress", 0)
+            .append("startTime", Instant.now().toEpochMilli())
+            .append("endTime", null)
+            .append("input", input.toDocument())
+            .append("output", output.toDocument())
+            .append("settings", settings)
+            .append("documentNames", new HashSet<String>())
+            .append("finished", false);
+
+        DUUIMongoDBStorage
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("processes")
+            .insertOne(process);
+
+        mapObjectIdToString(process);
+        String id = process.getString("id");
+
+        _runningProcesses.put(id, new DUUIProcess(id, pipeline, process, settings, user));
+
+        if (DUUIPipelineController.pipelineIsActive(pipelineId)) {
+            try {
+                DUUIPipelineController.getService(pipelineId).start(process, settings);
+            } catch (Exception e) {
+                DUUIPipelineController.getService(pipelineId).cancel();
+                DUUIPipelineController.removeService(pipelineId);
+            }
+        } else {
+            _runningProcesses.get(id).start();
+        }
+
+
+        return process.toJson();
+    }
+
+    public static String stopOne(Request request, Response response) {
+        String id = request.params(":id");
+
+        Document process = DUUIMongoDBStorage
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("processes")
+            .find(
+                Filters.and(
+                    Filters.eq(new ObjectId(id)),
+                    Filters.ne("finished", true)))
+            .first();
+
+        if (isNullOrEmpty(process)) {
+            response.status(404);
+            return new NotFoundResponse("No process found for id <" + id + ">")
+                .toJson();
+        }
+
+
+        DUUIProcess activeProcess = _runningProcesses.get(id);
+        if (activeProcess == null) {
+            DUUIProcessController.setStatus(id, "Canceled");
+            DUUIProcessController.setFinished(id, true);
+            DUUIProcessController.setFinishTime(id, new Date().toInstant().toEpochMilli());
+        } else {
+            String pipelineId = activeProcess.getPipeline().getObjectId("_id").toString();
+            if (DUUIPipelineController.pipelineIsActive(pipelineId)) {
+                DUUIService service = DUUIPipelineController.getService(pipelineId);
+                service.cancelProcess();
+            } else {
+                activeProcess.cancel();
+            }
+        }
+        return new Document("id", id).toJson();
+    }
+
+    public static String findDocuments(Request request, Response response) {
+        String id = request.params(":id");
+
+        List<Document> documents = StreamSupport.stream(
+            DUUIMongoDBStorage
+                .getInstance()
+                .getDatabase("duui")
+                .getCollection("documents")
+                .find(Filters.eq("process_id", id))
+                .spliterator(), false).toList();
+
+        response.status(200);
+        return new Document("documents", documents).toJson();
+    }
+
+    public static void updateDocuments(String id, Set<DUUIDocument> documents) {
+        for (DUUIDocument document : documents.stream().toList()) {
+            DUUIMongoDBStorage
+                .getInstance()
+                .getDatabase("duui")
+                .getCollection("documents")
+                .updateOne(
+                    Filters.and(
+                        Filters.eq("process_id", id),
+                        Filters.eq("absolute_path", document.getAbsolutePath())
+                    ),
+                    Updates.combine(
+                        Updates.set("name", document.getName()),
+                        Updates.set("path", document.getPath()),
+                        Updates.set("absolute_path", document.getAbsolutePath()),
+                        Updates.set("size", document.size()),
+                        Updates.set("progress", document.getProgress()),
+                        Updates.set("status", document.getStatus()),
+                        Updates.set("error", document.getError()),
+                        Updates.set("finished", document.getIsFinished()),
+                        Updates.set("decodeDuration", document.getDecodeDuration()),
+                        Updates.set("deserializeDuration", document.getDeserializeDuration()),
+                        Updates.set("waitDuration", document.getWaitDuration()),
+                        Updates.set("processDuration", document.getProcessDuration() > 1000000000000L ? 0 : document.getProcessDuration())
+                    ),
+                    new UpdateOptions().upsert(true));
+        }
+    }
+
+    public static void removeProcess(String id) {
+        _runningProcesses.remove(id);
+    }
+
+    public static String getStatus(Request request, Response response) {
+        String id = request.params(":id");
+        if (id == null) {
+            response.status(400);
+            return new MissingRequiredFieldResponse("id").toJson();
+        }
+
+        Document process = DUUIMongoDBStorage
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("processes")
+            .find(Filters.eq(new ObjectId(id)))
+            .projection(Projections.fields(Projections.include("status")))
+            .first();
+
+        if (process == null) {
+            response.status(404);
+            return new NotFoundResponse("No process found for id <" + id + ">")
+                .toJson();
+        }
+
+        mapObjectIdToString(process);
+        response.status(200);
+        return process.toJson();
+    }
+
+    public static String getProgress(Request request, Response response) {
+        String id = request.params(":id");
+        if (id == null) {
+            response.status(400);
+            return new MissingRequiredFieldResponse("id").toJson();
+        }
+
+        Document process = DUUIMongoDBStorage
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("processes")
+            .find(Filters.eq(new ObjectId(id)))
+            .projection(Projections.fields(Projections.include("progress")))
+            .first();
+
+        if (process == null) {
+            response.status(404);
+            return new NotFoundResponse("No process found for id <" + id + ">")
+                .toJson();
+        }
+
+        mapObjectIdToString(process);
+        response.status(200);
+        return process.toJson();
+    }
+
+    public static String getLog(Request request, Response response) {
+        String id = request.params(":id");
+        if (id == null) {
+            response.status(400);
+            return new MissingRequiredFieldResponse("id").toJson();
+        }
+
+        Document process = DUUIMongoDBStorage
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("processes")
+            .find(Filters.eq(new ObjectId(id)))
+            .projection(Projections.fields(Projections.include("log")))
+            .first();
+
+        if (process == null) {
+            response.status(404);
+            return new NotFoundResponse("No process found for id <" + id + ">")
+                .toJson();
+        }
+
+        mapObjectIdToString(process);
+        response.status(200);
+        return process.toJson();
+    }
+
+    public static void setStatus(String id, String status) {
+        DUUIMongoDBStorage
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("processes")
+            .updateOne(Filters.eq(new ObjectId(id)), Updates.set("status", status));
+    }
+
+    /*
+        Probably not a good idea for the future. Should be a separate Collection containing Documents
+     */
+    public static void updateLog(String id, List<DUUIStatusEvent> log) {
+        DUUIMongoDBStorage
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("processes")
+            .updateOne(Filters.eq(new ObjectId(id)), Updates.set("log", log.stream().map(
+                (statusEvent) -> new Document("timestamp", statusEvent.getTimestamp())
+                    .append("sender", statusEvent.getSender())
+                    .append("message", statusEvent.getMessage())
+            ).collect(Collectors.toList())));
+    }
+
+    public static void setProgress(String id, int progress) {
+        DUUIMongoDBStorage
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("processes")
+            .updateOne(
+                Filters.eq(new ObjectId(id)),
+                Updates.set("progress", progress));
+    }
+
+    public static void setFinishTime(String id, long endTime) {
+        DUUIMongoDBStorage
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("processes")
+            .updateOne(Filters.eq(new ObjectId(id)), Updates.set("endTime", endTime));
+    }
+
+    public static void setFinished(String id, boolean finished) {
+        DUUIMongoDBStorage
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("processes")
+            .updateOne(Filters.eq(new ObjectId(id)), Updates.set("finished", finished));
+    }
+
+    public static void setFinishTime(String id) {
+        DUUIMongoDBStorage
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("processes")
+            .updateOne(Filters.eq(new ObjectId(id)), Updates.set("finishedAt", Instant.now().toEpochMilli()));
+    }
+
+    public static void setError(String id, String error) {
+        DUUIMongoDBStorage
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("processes")
+            .updateOne(Filters.eq(new ObjectId(id)), Updates.set("error", error));
+    }
+
+    public static void setDocumentNames(String id, Set<String> documentNames) {
+        DUUIMongoDBStorage
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("processes")
+            .updateOne(
+                Filters.eq(new ObjectId(id)),
+                Updates.set("documentNames", documentNames));
+    }
+
+
+    public static void setInstantiationDuration(String id, long instantiationDuration) {
+        DUUIMongoDBStorage
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("processes")
+            .updateOne(
+                Filters.eq(new ObjectId(id)),
+                Updates.set("instantiationDuration", instantiationDuration));
+    }
+}

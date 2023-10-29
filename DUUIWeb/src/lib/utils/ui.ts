@@ -1,43 +1,77 @@
 import {
+	faArrowTrendDown,
+	faArrowTrendUp,
 	faCancel,
 	faCheck,
 	faCheckDouble,
 	faClock,
+	faFileArchive,
+	faFileCode,
 	faFileDownload,
 	faFileUpload,
 	faGears,
+	faHourglass,
 	faQuestion,
 	faRefresh,
 	faX
 } from '@fortawesome/free-solid-svg-icons'
 import { equals } from './text'
-import { Status, isActive } from '$lib/duui/monitor'
+import { Status } from '$lib/duui/monitor'
 import type { DUUIDocument } from '$lib/duui/io'
 
+export const documentStatusNames = [
+	Status.Any,
+	Status.Setup,
+	Status.Input,
+	Status.Decode,
+	Status.Deserialize,
+	Status.Waiting,
+	Status.Running,
+	Status.Output,
+	Status.Shutdown,
+	Status.Completed,
+	Status.Canceled,
+	Status.Failed
+]
+
+export const documentStatusNamesString = [
+	Status.Any.valueOf,
+	Status.Setup.valueOf,
+	Status.Input.valueOf,
+	Status.Decode.valueOf,
+	Status.Deserialize.valueOf,
+	Status.Waiting.valueOf,
+	Status.Running.valueOf,
+	Status.Output.valueOf,
+	Status.Shutdown.valueOf,
+	Status.Completed.valueOf,
+	Status.Canceled.valueOf,
+	Status.Failed.valueOf
+]
+
 export function getStatusIcon(status: string) {
-	if (equals(status, 'input')) return faFileDownload
-	if (equals(status, 'setup')) return faGears
-	if (equals(status, 'running')) return faRefresh
-	if (equals(status, 'shutdown')) return faClock
-	if (equals(status, 'output')) return faFileUpload
-	if (equals(status, 'completed')) return faCheckDouble
-	if (equals(status, 'canceled')) return faCancel
-	if (equals(status, 'failed')) return faX
+	if (equals(status, Status.Input)) return faFileDownload
+	if (equals(status, Status.Setup)) return faArrowTrendUp
+	if (equals(status, Status.Running)) return faRefresh
+	if (equals(status, Status.Shutdown)) return faArrowTrendDown
+	if (equals(status, Status.Output)) return faFileUpload
+	if (equals(status, Status.Completed)) return faCheckDouble
+	if (equals(status, Status.Canceled)) return faCancel
+	if (equals(status, Status.Failed)) return faX
 
 	return faQuestion
 }
 
-export const getDocumentStatusIcon = (
-	document: DUUIDocument,
-	status: string,
-	inputIsText: boolean
-) => {
-	if (document.done) return faCheckDouble
+export const getDocumentStatusIcon = (document: DUUIDocument) => {
+	if (equals(document.status, Status.Setup)) return faArrowTrendUp
+	if (equals(document.status, Status.Input)) return faFileDownload
+	if (equals(document.status, Status.Decode)) return faFileCode
+	if (equals(document.status, Status.Deserialize)) return faFileArchive
+	if (equals(document.status, Status.Waiting)) return faHourglass
+	if (equals(document.status, Status.Canceled)) return document.error ? faX : faCancel
+	if (equals(document.status, Status.Output)) return document.error ? faX : faFileUpload
+	if (equals(document.status, Status.Failed)) return document.error ? faX : faCheck
+	if (equals(document.status, Status.Completed)) return document.error ? faX : faCheckDouble
 
-	if (equals(status, Status.Running)) {
-		return document.error ? faX : faRefresh
-	}
-
-	if (inputIsText && !document.error) return faCheckDouble
-	return document.done ? faCheckDouble : faFileDownload
+	return document.error ? faX : document.finished ? faCheck : faRefresh
 }

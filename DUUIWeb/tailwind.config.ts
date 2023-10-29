@@ -13,7 +13,23 @@ export default {
 	theme: {
 		extend: {
 			animation: {
-				'spin-slow': 'spin 2s linear infinite'
+				'spin-slow': 'spin 2s linear infinite',
+				'hourglass': 'turn 4s linear infinite'
+			},
+			keyframes: {
+				turn: {
+					'0%': { transform: 'rotate( 0.0deg)' },
+					'10%': { transform: 'rotate(90.0deg)' },
+					'20%': { transform: 'rotate(180.0deg)' },
+					'30%': { transform: 'rotate(180.0deg)' },
+					'40%': { transform: 'rotate(180.0deg)' },
+					'50%': { transform: 'rotate(180.0deg)' },
+					'60%': { transform: 'rotate(270.0deg)' },
+					'70%': { transform: 'rotate(360.0deg)' },
+					'80%': { transform: 'rotate(360.0deg)' },
+					'90%': { transform: 'rotate(360.0deg)' },
+					'100%': { transform: 'rotate(360.0deg)' }
+				}
 			}
 		}
 	},
@@ -21,9 +37,7 @@ export default {
 		forms,
 		skeleton({
 			themes: {
-				custom: [
-					Theme
-				],
+				custom: [Theme],
 				preset: [
 					{
 						name: 'rocket',

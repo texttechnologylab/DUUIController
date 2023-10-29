@@ -45,17 +45,14 @@
 	}
 </script>
 
-<li class="card rounded-md shadow-lg flex flex-col gap-4 p-4 pointer-events-none">
-	<div class="flex grid-cols-2 gap-4 items-center">
-		{#if completed}
-			<Fa icon={faCheck} size="lg" />
-		{:else if active}
-			<Fa icon={faRefresh} size="lg" class="animate-spin " />
-		{/if}
-		<DriverIcon driver={component.settings.driver} />
-		<p class="md:h4 grow">{component.name}</p>
+<li class="card rounded-md shadow-lg flex flex-col gap-4 px-4 py-2 pointer-events-none">
+	<div class="flex justify-between gap-2 items-center">
+		<div class="grid gap-2">
+			<DriverIcon driver={component.settings.driver} />
+			<p class="md:h4 grow text-sm">{component.name}</p>
+		</div>
 		<button
-			class="btn-icon pointer-events-auto variant-glass-primary"
+			class="btn-icon pointer-events-auto variant-ringed-surface"
 			on:click={() => (editMode = !editMode)}
 		>
 			<span>

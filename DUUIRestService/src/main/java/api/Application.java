@@ -1,10 +1,11 @@
 package api;
 
 import api.duui.component.DUUIComponentController;
+import api.duui.routines.service.DUUIService;
 import api.metrics.DUUIMetricsProvider;
 import api.metrics.DUUIMongoMetricsProvider;
 import api.duui.pipeline.DUUIPipelineController;
-import api.duui.process.DUUIProcessController;
+import api.duui.routines.process.DUUIProcessController;
 import api.duui.users.DUUIUserController;
 import com.sun.management.OperatingSystemMXBean;
 import spark.Request;
@@ -153,27 +154,43 @@ public class Application {
             metrics.put(entry.getKey(), new AtomicLong(entry.getValue()));
         }
 
-
-        get("/pipelines/:id", DUUIPipelineController::findOneById);
-        get("/pipelines/all/:user_id", DUUIPipelineController::findMany);
-        post("/pipelines", DUUIPipelineController::insertOne);
-        put("/pipelines/:id", DUUIPipelineController::replaceOne);
-        delete("/pipelines/:id", DUUIPipelineController::deleteOne);
+        /* Components */
 
         get("/components/:id", DUUIComponentController::findOne);
         get("/components", DUUIComponentController::findMany);
+
         post("/components", DUUIComponentController::insertOne);
-        put("/components/:id", DUUIComponentController::replaceOne);
+
+        put("/components/:id", DUUIComponentController::updateOne);
+
         delete("/components/:id", DUUIComponentController::deleteOne);
 
-        get("/processes/:id", DUUIProcessController::findOne);
-        get("pipelines/:id/processes", DUUIProcessController::findMany);
-        get("/processes/:id/status", DUUIProcessController::getStatus);
-        get("/processes/:id/progress", DUUIProcessController::getProgress);
-        get("/processes/:id/log", DUUIProcessController::getLog);
+        /* Pipelines */
 
-        post("/processes", DUUIProcessController::startProcess);
-        put("/processes/:id", DUUIProcessController::stopProcess);
+        get("/pipelines/:id", DUUIPipelineController::findOne);
+        get("/pipelines/all/:user-id", DUUIPipelineController::findMany);
+        get("/pipelines/:id/processes", DUUIProcessController::findMany);
+
+        post("/pipelines", DUUIPipelineController::insertOne);
+
+        put("/pipelines/:id", DUUIPipelineController::updateOne);
+        put("/pipelines/:id/start", DUUIPipelineController::startService);
+        put("/pipelines/:id/stop", DUUIPipelineController::stopService);
+
+        delete("/pipelines/:id", DUUIPipelineController::deleteOne);
+
+        /* Processes */
+
+        get("/processes/:id", DUUIProcessController::findOne);
+        get("/processes/:id/documents", DUUIProcessController::findDocuments);
+
+        post("/processes", DUUIProcessController::startOne);
+
+        put("/processes/:id", DUUIProcessController::stopOne);
+
+        delete("/processes/:id", DUUIProcessController::deleteOne);
+
+        /* Users */
 
         get("/users/:email", DUUIUserController::findOneByEmail);
         get("/users/auth/:session", DUUIUserController::findOneBySession);
@@ -214,5 +231,6 @@ public class Application {
 
         Thread _shutdownHook = new Thread(() -> service.cancel(true));
         Runtime.getRuntime().addShutdownHook(_shutdownHook);
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> DUUIPipelineController.getServices().values().forEach(DUUIService::onApplicationShutdown)));
     }
 }

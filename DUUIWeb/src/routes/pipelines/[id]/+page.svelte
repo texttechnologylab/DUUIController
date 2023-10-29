@@ -1,8 +1,18 @@
 <script lang="ts">
+	import { v4 as uuidv4 } from 'uuid'
 	import { goto } from '$app/navigation'
 	import PipelineComponent from '$lib/components/PipelineComponent.svelte'
 
-	import { faArrowLeft, faRocket } from '@fortawesome/free-solid-svg-icons'
+	import {
+		faArrowLeft,
+		faClose,
+		faDoorClosed,
+		faDoorOpen,
+		faHourglassEnd,
+		faHourglassStart,
+		faPlus,
+		faWifi
+	} from '@fortawesome/free-solid-svg-icons'
 	import {
 		type ModalSettings,
 		getModalStore,
@@ -15,12 +25,15 @@
 
 	import { getToastStore } from '@skeletonlabs/skeleton'
 	import type { TableSource, ToastSettings } from '@skeletonlabs/skeleton'
-	import type { ActionData, PageServerData } from './$types'
-	import { datetimeToString, progresAsPercent, toTitleCase } from '$lib/utils/text'
+	import type { PageServerData } from './$types'
+	import { datetimeToString, progresAsPercent } from '$lib/utils/text'
 	import { getDuration } from '$lib/utils/time'
 	import { progressMaximum } from '$lib/duui/process'
 	import type { DUUIComponent } from '$lib/duui/component'
 	import { isActive } from '$lib/duui/monitor'
+	import { TabGroup, Tab } from '@skeletonlabs/skeleton'
+	import { page } from '$app/stores'
+	import { onMount } from 'svelte'
 
 	export let data: PageServerData
 	let { pipeline, processes } = data
@@ -28,11 +41,13 @@
 	let status: string = 'Unknown'
 	let progress: number = 0
 
+	let tabSet: number = +($page.url.searchParams.get('tab') || 0)
+
 	let tableSource = processes.map((process, index, _) => {
 		return {
 			positon: index,
-			startedAt: process.startedAt ? datetimeToString(new Date(process.startedAt)) : '',
-			duration: getDuration(process.startedAt, process.finishedAt),
+			startedAt: process.startTime ? datetimeToString(new Date(process.startTime)) : '',
+			duration: getDuration(process.startTime, process.endTime),
 			io: process.input.source + ' / ' + process.output.target,
 			progress: progresAsPercent(process.progress, progressMaximum(process, pipeline)) + ' %',
 			status: process.status,
@@ -59,7 +74,9 @@
 	}
 
 	pipeline.components.forEach((component: DUUIComponent) => {
-		component.id = pipeline.components.indexOf(component)
+		if (!component.id) {
+			component.id = uuidv4()
+		}
 	})
 
 	async function deleteComponent(event: CustomEvent<any>): Promise<void> {
@@ -99,6 +116,7 @@
 			},
 			body: JSON.stringify(pipeline)
 		})
+
 		if (response.ok) {
 			const t: ToastSettings = {
 				message: 'Changes saved successfully',
@@ -107,6 +125,44 @@
 			}
 			toastStore.trigger(t)
 		}
+	}
+
+	let startingService: boolean = false
+	let stoppingService: boolean = false
+
+	const startService = async () => {
+		startingService = true
+		let response = await fetch('/pipelines/api/service/start', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(pipeline)
+		})
+
+		if (response.ok) {
+			const json = await response.json()
+			pipeline.serviceStartTime = json.serviceStartTime
+		}
+
+		startingService = false
+	}
+
+	const stopService = async () => {
+		stoppingService = true
+		let response = await fetch('/pipelines/api/service/stop', {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(pipeline)
+		})
+
+		if (response.ok) {
+			pipeline.serviceStartTime = 0
+		}
+
+		stoppingService = false
 	}
 
 	const onMaybeDeletePipeline = async (e: SubmitEvent) => {
@@ -118,6 +174,14 @@
 
 		if (button.id === 'update') {
 			updatePipeline()
+		} else if (button.id === 'service') {
+			if (startingService || stoppingService) return
+
+			if (pipeline.serviceStartTime === 0) {
+				startService()
+			} else {
+				stopService()
+			}
 		} else {
 			new Promise<boolean>((resolve) => {
 				const modal: ModalSettings = {
@@ -165,68 +229,109 @@
 
 <div class="container h-full flex-col mx-auto flex gap-4">
 	<!-- HEADER -->
-	<header class="grow self-stretch">
-		<div class="flex items-center space-x-2">
-			<button on:click={() => goto('/pipelines')} class="btn-icon shadow-lg variant-glass-primary"
-				><Fa size="lg" icon={faArrowLeft} /></button
-			>
-			<h1 class="h2 font-bold grow text-center">
-				{pipeline.name}
-			</h1>
+	<header class="grow self-stretch space-y-4">
+		<h1 class="h2 font-bold grow text-center md:my-8">
+			{pipeline.name}
+		</h1>
+
+		<div class="flex items-center justify-start">
+			<button on:click={() => goto('/pipelines')} class="btn rounded-md hover:variant-soft-surface"
+				><Fa icon={faArrowLeft} />
+				<span class="hidden md:block">Pipelines</span>
+			</button>
+			<form method="POST" on:submit|preventDefault={onMaybeDeletePipeline}>
+				<button id="service" class="btn rounded-md hover:variant-soft-surface">
+					{#if startingService}
+						<p>Instantiating</p>
+						<Fa icon={faHourglassStart} class="animate-pulse" />
+					{:else if stoppingService}
+						<p>Shutting Down</p>
+						<Fa icon={faHourglassEnd} class="animate-pulse" />
+					{:else}
+						<p>{pipeline.serviceStartTime !== 0 ? 'Online' : 'Offline'}</p>
+						<Fa
+							icon={faWifi}
+							class={pipeline.serviceStartTime === 0 ? 'text-error-400' : 'text-success-400'}
+						/>
+					{/if}
+				</button>
+			</form>
+
 			<button
-				class="btn-icon shadow-lg variant-glass-primary"
+				class="btn rounded-md hover:variant-soft-surface ml-auto"
 				on:click={() => goto('/process?pipeline=' + pipeline.id)}
 			>
-				<span><Fa icon={faRocket} /></span>
+				<span><Fa icon={faPlus} /></span>
+				<span>Create new process</span>
 			</button>
+		</div>
+
+		<div
+			class="grid grid-cols-3 justify-between items-center variant-soft-surface rounded-md shadow-lg"
+		>
+			<TabGroup active="variant-filled-surface rounded-md" border="none">
+				<Tab
+					bind:group={tabSet}
+					name="settings"
+					value={0}
+					on:click={() => {
+						$page.url.searchParams.set('tab', '0')
+						goto($page.url)
+					}}
+				>
+					<span>Settings</span>
+				</Tab>
+				<Tab
+					bind:group={tabSet}
+					name="processes"
+					value={1}
+					on:click={() => {
+						$page.url.searchParams.set('tab', '1')
+						goto($page.url)
+					}}>Processes</Tab
+				>
+			</TabGroup>
 		</div>
 	</header>
 
-	<!-- Settings & Recent processes -->
+	{#if tabSet === 0}
+		<div class="grid md:grid-cols-2 gap-4">
+			<form
+				class="flex flex-col gap-4 variant-soft-surface rounded-md shadow-lg p-4"
+				method="POST"
+				on:submit|preventDefault={onMaybeDeletePipeline}
+			>
+				<label class="label">
+					<span>Name</span>
+					<input
+						bind:value={pipeline.name}
+						class="border-2 input focus-within:outline-primary-400"
+						type="text"
+					/>
+				</label>
 
-	<div class="grid lg:grid-cols-2 lg:gap-4">
-		<!-- Settings -->
-		<div class="space-y-4">
-			<h2 class="h3 hidden lg:block px-4">Settings</h2>
-			<div class="card space-y-4 p-4 rounded-md">
-				<form
-					class="flex flex-col gap-4"
-					method="POST"
-					on:submit|preventDefault={onMaybeDeletePipeline}
-				>
-					<label class="label grow col-span-2">
-						<span>Name</span>
-						<input
-							bind:value={pipeline.name}
-							class="border-2 input focus-within:outline-primary-400"
-							type="text"
-						/>
-					</label>
+				<label class="label">
+					<span>Description</span>
 
-					<label class="label grow col-span-2">
-						<span>Description</span>
+					<textarea
+						class="textarea resize-none border-2 input"
+						rows="4"
+						placeholder="Enter a description..."
+						bind:value={pipeline.description}
+					/>
+				</label>
 
-						<textarea
-							class="textarea resize-none border-2 input"
-							rows="4"
-							placeholder="Enter a description..."
-							bind:value={pipeline.description}
-						/>
-					</label>
+				<div class="flex justify-between">
+					<button class="btn variant-filled-primary shadow-lg" type="submit" id="update">
+						<span>Update</span>
+					</button>
 
-					<div class="flex justify-between">
-						<button class="btn variant-filled-primary shadow-lg" type="submit" id="update">
-							<span>Update</span>
-						</button>
-						<button class="btn variant-filled-error shadow-lg ml-auto" type="submit" id="delete">
-							<span>Delete</span>
-						</button>
-					</div>
-				</form>
-			</div>
-
-			<div class="space-y-4">
-				<h2 class="h3 hidden lg:block px-4">Components</h2>
+					<button class="btn variant-filled-error shadow-lg" type="submit" id="delete">
+						<span>Delete</span>
+					</button>
+				</div>
+			</form>
+			<div class="space-y-4 variant-soft-surface rounded-md shadow-lg p-4">
 				<ul
 					use:dndzone={{ items: pipeline.components, dropTargetStyle: {} }}
 					on:consider={(event) => handleDndConsider(event)}
@@ -238,7 +343,7 @@
 							<PipelineComponent
 								{component}
 								active={isActive(status)}
-								completed={progress >= component.id + 1}
+								completed={progress >= pipeline.components.indexOf(component)}
 								on:remove={deleteComponent}
 								on:update={updatePipeline}
 							/>
@@ -246,32 +351,19 @@
 					{/each}
 				</ul>
 			</div>
-
-			<!-- {#if annotations.size > 0}
-				<div class="card space-y-4 p-4">
-					<p class="h4 hidden lg:block">Annotations</p>
-					{#each annotations.entries() as [key, value]}
-						<p>{key.split('.').at(-1)}: {value}</p>
-					{/each}
-				</div>
-			{/if} -->
 		</div>
+	{:else if tabSet === 1}
+		<Table
+			class="md:block rounded-md shadow-lg variant-soft-surface"
+			source={tableData}
+			interactive
+			on:selected={(e) => goto('/process/' + e.detail[0].id)}
+		/>
 
-		<div class="space-y-4">
-			<h2 class="h3 hidden md:block px-4">Recent Processes</h2>
-			<Table
-				class="hidden md:block rounded-md shadow-lg "
-				source={tableData}
-				interactive
-				on:selected={(e) => goto('/process/' + e.detail[0].id)}
-			/>
-			<button
-				class="btn variant-filled-primary ml-auto rounded-md shadow-lg"
-				on:click={() => goto('/process?pipeline=' + pipeline.id)}
-			>
-				<span><Fa icon={faRocket} /></span>
-				<span>Create new process</span>
-			</button>
+		<div class="md:hidden">
+			{#each processes as process}
+				<button class="btn" />
+			{/each}
 		</div>
-	</div>
+	{/if}
 </div>

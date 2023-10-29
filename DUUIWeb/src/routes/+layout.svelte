@@ -41,7 +41,7 @@
 </script>
 
 <Modal />
-<Toast/>
+<Toast />
 <Drawer>
 	{#if $drawerStore.id === 'docs'}
 		<SidebarNav hidden={false} withNavigation={true} />
@@ -136,3 +136,5 @@
 		</footer>
 	</svelte:fragment>
 </AppShell>
+
+

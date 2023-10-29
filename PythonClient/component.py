@@ -17,20 +17,38 @@ def update_component(id: str, new_component: dict) -> str:
     return response.text
 
 
-def create_component(name: str, category: str, description: str, settings: Mapping = None) -> dict:
+def create_component(
+    name: str, categories: list[str], description: str, settings: Mapping, status: str = "None", pipeline_id: str = None, user_id: str = None
+) -> dict:
     if settings["driver"] not in ("DUUIRemoteDriver", "DUUIDockerDriver", "DUUISwarmDriver", "DUUIUIMADriver"):
         return f"Invalid driver <{settings.driver}>."
 
     if name == "":
-        return "Name cannot be empty."
-    if category == "":
-        return "Category cannot be empty."
-    if settings["target"] == "":
-        return "Target cannot be empty."
+        return "Name cannot be empty"
+
+    if not settings["driver"]:
+        return "Driver cannot be empty"
+
+    if not settings["target"]:
+        return "Target cannot be empty"
+
+    if pipeline_id is None and user_id is None:
+        return "Either pipeline_id or user_id must be set"
 
     response = requests.post(
         "http://192.168.2.122:2605/components",
-        data=json.dumps({"name": name, "category": category, "settings": settings, "description": description}),
+        data=json.dumps(
+            {
+                "name": name,
+                "categories": categories,
+                "settings": settings,
+                "description": description,
+                "status": "",
+                "pipeline_id": pipeline_id,
+                "user_id": user_id,
+            }
+        ),
+        headers={"session": "3ba62df3-5022-4c1d-ae8b-3301e4a46b4e"},
     )
     return response.json()
 

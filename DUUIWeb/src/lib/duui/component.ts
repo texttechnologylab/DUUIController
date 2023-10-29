@@ -1,4 +1,5 @@
 import type { _Object } from '$lib/config'
+import { v4 as uuidv4 } from 'uuid'
 
 export const DUUIRemoteDriver = 'DUUIRemoteDriver'
 export const DUUIDockerDriver = 'DUUIDockerDriver'
@@ -13,30 +14,36 @@ export const DUUIDrivers: string[] = [
 ]
 
 export interface DUUIComponent {
-	id: number
+	id: string
 	name: string
-	category: string
+	categories: string[]
 	description: string
-	saveAsTemplate: boolean
+	status: string
 	settings: {
 		driver: string
 		target: string
 		options: _Object
 		parameters: _Object
 	}
+	pipelineId: string | null
+	userId: string | null
+	index: number | null
 }
 
-export const blankComponent = (id: number) =>
+export const blankComponent = (pipelineId: string, index: number) =>
 	<DUUIComponent>{
-		id: id,
-		name: 'New Component ' + id,
-		category: '',
+		id: uuidv4(),
+		name: 'New Component ' + index,
+		categories: [],
 		description: '',
-		saveAsTemplate: true,
+		status: '',
 		settings: {
 			driver: DUUIDockerDriver,
 			target: '',
 			options: {},
 			parameters: {}
-		}
+		},
+		pipelineId: pipelineId,
+		userId: null,
+		index: index
 	}

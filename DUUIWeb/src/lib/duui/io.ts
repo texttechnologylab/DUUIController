@@ -3,11 +3,13 @@ import { equals } from '$lib/utils/text'
 export interface DUUIDocument {
 	name: string
 	path: string
+	status: string
 	progress: number
-	done: boolean
+	finished: boolean
 	error: string
 	decodeDuration: number
 	deserializeDuration: number
+	waitDuration: number
 	processDuration: number
 	size: number
 }
@@ -46,8 +48,8 @@ export const OutputTargets: string[] = ['Dropbox', 'Minio', 'None'] // File
 
 export const OutputFileExtensions: string[] = ['.txt', '.xmi']
 
-export const outputIsCloudProvider = (target: string) => {
-	return equals(target, 'dropbox') || equals(target, 'minio')
+export const isCloudProvider = (provider: string) => {
+	return equals(provider, 'dropbox') || equals(provider, 'minio')
 }
 
 export const isValidIO = (input: DUUIDocumentInput, output: DUUIDocumentOutput) => {
@@ -121,4 +123,13 @@ export const isValidS3BucketName = (bucket: string) => {
 	}
 
 	return true
+}
+
+export const getTotalDuration = (document: DUUIDocument) => {
+	return (
+		document.decodeDuration +
+		document.deserializeDuration +
+		document.waitDuration +
+		document.processDuration
+	)
 }

@@ -1,7 +1,5 @@
 <script lang="ts">
-	import type { DUUIComponent } from '$lib/duui/component.js'
-	import { componentsStore } from '$lib/store.js'
-	import { faEdit, faPlus, faSearch } from '@fortawesome/free-solid-svg-icons'
+	import { faPlus, faSearch, faWifi } from '@fortawesome/free-solid-svg-icons'
 
 	import Fa from 'svelte-fa'
 
@@ -9,11 +7,11 @@
 
 	let { pipelines } = data
 
-	pipelines.forEach(({ components }) => {
-		components.forEach((component: DUUIComponent) => {
-			$componentsStore = [...$componentsStore, component]
-		})
-	})
+	// pipelines.forEach(({ components }) => {
+	// 	components.forEach((component: DUUIComponent) => {
+	// 		$componentsStore = [...$componentsStore, component]
+	// 	})
+	// })
 
 	let searchText: string = ''
 	let searchOpen: boolean = false
@@ -41,15 +39,20 @@
 			<span>Create</span>
 			<Fa icon={faPlus} />
 		</a>
-		<div class="flex items-center justify-start card rounded-sm shadow-lg">
+		<div class="flex items-center justify-start shadow-lg rounded-md overflow-hidden">
 			<button
-				class="btn-icon variant-filled-primary p-4 rounded-sm"
+				class="btn-icon variant-filled-primary p-4 rounded-none"
 				on:click={() => (searchOpen = !searchOpen)}
 			>
 				<Fa icon={faSearch} />
 			</button>
 			{#if searchOpen}
-				<input class="input" type="text" placeholder="search..." bind:value={searchText} />
+				<input
+					class="input border-2 rounded-none rounded-tr-md rounded-br-md"
+					type="text"
+					placeholder="search..."
+					bind:value={searchText}
+				/>
 			{/if}
 		</div>
 	</div>
@@ -61,7 +64,12 @@
 				href="/pipelines/{pipeline.id}"
 			>
 				<div class="grid gap-4 grow items-center">
-					<p class="h4 break-words">{pipeline.name}</p>
+					<div class="flex items-center justify-between">
+						<p class="h4 break-words">{pipeline.name}</p>
+						{#if pipeline.serviceStartTime !== 0}
+							<Fa icon={faWifi} class="text-success-400" />
+						{/if}
+					</div>
 					<p>{pipeline.components.length} Component(s)</p>
 				</div>
 			</a>

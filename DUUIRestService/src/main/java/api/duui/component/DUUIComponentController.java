@@ -1,30 +1,42 @@
 package api.duui.component;
 
-import static api.Application.queryIntElseDefault;
-import static api.storage.DUUIMongoDBStorage.mapObjectIdToString;
-import static api.requests.validation.UserValidator.isAuthorized;
-import static api.requests.validation.UserValidator.unauthorized;
-import static api.requests.validation.Validator.isNullOrEmpty;
-import static api.requests.validation.Validator.missingField;
-
-import api.requests.responses.MissingRequiredFieldResponse;
-import api.requests.responses.NotFoundResponse;
-import api.storage.DUUIMongoDBStorage;
-
 import api.duui.users.DUUIUserController;
 import api.duui.users.Role;
+import api.requests.responses.NotFoundResponse;
+import api.storage.DUUIMongoDBStorage;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import com.mongodb.client.model.Updates;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import spark.Request;
 import spark.Response;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+import static api.Application.queryIntElseDefault;
+import static api.requests.validation.UserValidator.isAuthorized;
+import static api.requests.validation.UserValidator.unauthorized;
+import static api.requests.validation.Validator.isNullOrEmpty;
+import static api.requests.validation.Validator.missingField;
+import static api.storage.DUUIMongoDBStorage.combineUpdates;
+import static api.storage.DUUIMongoDBStorage.mapObjectIdToString;
+
 public class DUUIComponentController {
+
+    private static final List<String> _fields = List.of(
+        "name",
+        "description",
+        "categories",
+        "status",
+        "settings",
+        "pipeline_id",
+        "user_id",
+        "index"
+    );
 
     public static String insertOne(Request request, Response response) {
         Document newComponent = Document.parse(request.body());
@@ -36,22 +48,24 @@ public class DUUIComponentController {
         if (isNullOrEmpty(settings.getString("driver"))) return missingField(response, "settings.driver");
         if (isNullOrEmpty(settings.getString("target"))) return missingField(response, "settings.target");
 
-
-        String category = newComponent.getString("category");
-        if (isNullOrEmpty(category)) return missingField(response, "category");
-
+        List<String> categories = newComponent.getList("categories", String.class);
         String description = newComponent.getString("description");
 
         Document component = new Document();
-        Document user = DUUIUserController.getUserBySession(request.headers("session"));
 
+        String pipelineId = newComponent.getString("pipeline_id");
+        String userId = newComponent.getString("user_id");
+
+        Document user = DUUIUserController.getUserBySession(request.headers("session"));
         if (user == null) return unauthorized(response);
 
         component.put("name", name);
-        component.put("category", category);
+        component.put("categories", categories);
         component.put("description", description);
+        component.put("status", "None");
         component.put("settings", settings);
-        component.put("user_id", user.getObjectId("_id").toString());
+        component.put("pipeline_id", pipelineId);
+        component.put("user_id", userId);
 
         DUUIMongoDBStorage
             .getInstance()
@@ -67,10 +81,6 @@ public class DUUIComponentController {
 
     public static String findOne(Request request, Response response) {
         String id = request.params(":id");
-        if (id == null) {
-            response.status(400);
-            return new MissingRequiredFieldResponse("id").toJson();
-        }
 
         Document component = DUUIMongoDBStorage
             .getInstance()
@@ -91,7 +101,6 @@ public class DUUIComponentController {
     }
 
     public static String findMany(Request request, Response response) {
-
         String session = request.headers("session");
         if (!isAuthorized(session, Role.USER)) return unauthorized(response);
 
@@ -105,9 +114,16 @@ public class DUUIComponentController {
             .getDatabase("duui")
             .getCollection("components")
             .find(
-                Filters.or(
-                    Filters.eq("user_id", user.getObjectId("_id").toString()),
-                    Filters.exists("user_id", false)));
+                Filters.and(
+                    Filters.eq("pipeline_id", null),
+                    Filters.or(
+                        Filters.eq("user_id", null),
+                        Filters.eq("user_id", user.getObjectId("_id").toString())
+                    )
+                ));
+
+        // No pipelineId -> template
+        // No userId or userId matches -> template for user or public
 
         if (limit != 0) {
             components.limit(limit);
@@ -130,31 +146,23 @@ public class DUUIComponentController {
         return new Document("components", documents).toJson();
     }
 
-    public static String replaceOne(Request request, Response response) {
+    public static String updateOne(Request request, Response response) {
         String id = request.params(":id");
-        if (id == null) {
-            response.status(400);
-            return new MissingRequiredFieldResponse("id").toJson();
-        }
-
-        Document updatedComponents = Document.parse(request.body());
+        Document updates = Document.parse(request.body());
 
         DUUIMongoDBStorage
             .getInstance()
             .getDatabase("duui")
             .getCollection("components")
-            .replaceOne(Filters.eq(new ObjectId(id)), updatedComponents);
+            .findOneAndUpdate(Filters.eq(new ObjectId(id)),
+                combineUpdates(updates, _fields));
 
         response.status(200);
-        return new Document("id", id).toJson();
+        return getComponentById(id).toJson();
     }
 
     public static String deleteOne(Request request, Response response) {
         String id = request.params(":id");
-        if (id == null) {
-            response.status(400);
-            return new MissingRequiredFieldResponse("id").toJson();
-        }
 
         DUUIMongoDBStorage
             .getInstance()
@@ -163,6 +171,45 @@ public class DUUIComponentController {
             .deleteOne(Filters.eq(new ObjectId(id)));
 
         response.status(200);
-        return new Document("message", "Component deleted.").toJson();
+        return new Document("message", "Component deleted").toJson();
+    }
+
+    public static void deleteMany(String id) {
+        DUUIMongoDBStorage
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("components")
+            .deleteMany(Filters.eq("pipeline_id", id));
+    }
+
+    public static Document getComponentById(String id) {
+        return DUUIMongoDBStorage
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("components")
+            .find(Filters.eq("_id", new ObjectId(id)))
+            .first();
+    }
+
+    public static List<Document> getComponentsForPipeline(String id) {
+        List<Document> documents = StreamSupport.stream(
+                DUUIMongoDBStorage
+                    .getInstance()
+                    .getDatabase("duui")
+                    .getCollection("components")
+                    .find(Filters.eq("pipeline_id", id))
+                    .spliterator(), false)
+            .collect(Collectors.toList());
+
+        documents.forEach(DUUIMongoDBStorage::mapObjectIdToString);
+        return documents;
+    }
+
+    public static void setStatus(String id, String status) {
+        DUUIMongoDBStorage
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("components")
+            .findOneAndUpdate(Filters.eq(new ObjectId(id)), Updates.set("status", status));
     }
 }
