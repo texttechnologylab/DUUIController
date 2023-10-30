@@ -16,9 +16,13 @@ public class DUUIMongoDBStorage {
     private static final String pass = System.getenv("mongo_pass");
 
     public static void mapObjectIdToString(Document document) {
-        String id = document.getObjectId("_id").toString();
-        document.remove("_id");
-        document.put("id", id);
+        try {
+            String id = document.getObjectId("_id").toString();
+            document.remove("_id");
+            document.put("id", id);
+        } catch (NullPointerException ignored) {
+
+        }
     }
 
     public static void mapObjectIdToString(Document document, String field, String newName) {

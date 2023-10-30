@@ -92,7 +92,7 @@ public class DUUIService extends Thread {
 
     private String pipelineId() {
         if (_pipeline == null) return null;
-        return _pipeline.getObjectId("_id").toString();
+        return _pipeline.getString("id");
     }
 
     private String userId() {
@@ -184,7 +184,7 @@ public class DUUIService extends Thread {
             onShutdown(false);
         }
 
-        String id = _pipeline.getObjectId("_id").toString();
+        String id = pipelineId();
         DUUIPipelineController.setServiceStartTime(id, 0);
         DUUIPipelineController.getServices().remove(id);
     }
@@ -436,7 +436,7 @@ public class DUUIService extends Thread {
         _composer.getDocuments().stream().filter(document ->
             !document.getIsFinished() || document.getStatus().equalsIgnoreCase("running") || document.getStatus().equalsIgnoreCase("waiting")).forEach(document -> {
 
-            document.setStatus("Canceled");
+                document.setStatus("Canceled");
                 document.setFinished(true);
                 document.setProcessingEndTime();
             }

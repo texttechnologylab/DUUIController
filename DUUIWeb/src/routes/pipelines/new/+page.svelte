@@ -2,7 +2,14 @@
 	import { goto } from '$app/navigation'
 	import ComponentBuilder from '$lib/components/ComponentBuilder.svelte'
 	import DriverIcon from '$lib/components/DriverIcon.svelte'
-	import { faBookOpen, faEdit, faPlus } from '@fortawesome/free-solid-svg-icons'
+	import {
+		faArrowLeft,
+		faBackwardStep,
+		faBookOpen,
+		faCancel,
+		faEdit,
+		faPlus
+	} from '@fortawesome/free-solid-svg-icons'
 	import { Step, Stepper, getModalStore, getToastStore } from '@skeletonlabs/skeleton'
 	import { dndzone, type DndEvent } from 'svelte-dnd-action'
 	import Fa from 'svelte-fa'
@@ -14,6 +21,8 @@
 	import { invalidNameToast, invalidTargetToast } from './toast.js'
 	import { blankPipeline } from '$lib/duui/pipeline'
 	import { blankComponent, type DUUIComponent } from '$lib/duui/component'
+	import { Api, makeApiCall } from '$lib/utils/api'
+	import { info } from '$lib/utils/ui'
 
 	export let data
 	let { templates } = data
@@ -96,15 +105,13 @@
 		editing = false
 	}
 
-	async function finalizePipeline() {
-		await fetch('/pipelines/api/create', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify(pipeline)
-		})
-		goto('/pipelines')
+	const createPipeline = async () => {
+		const response = await makeApiCall(Api.Pipelines, 'POST', pipeline)
+		if (response.ok) {
+			const data = await response.json()
+			toastStore.trigger(info('Pipeline copied successfully'))
+			goto(`/pipelines/${data.id}`)
+		}
 	}
 
 	let flipDurationMs = 300
@@ -137,15 +144,17 @@
 	}
 </script>
 
-<div class="container h-full mx-auto">
+<div class="container h-full flex-col mx-auto flex gap-4 md:my-8">
+	<h1 class="h2">New Pipeline</h1>
+	<hr />
 	<Stepper
-		on:complete={finalizePipeline}
-		class="max-w-7xl mx-auto"
-		active="rounded-full variant-filled px-4"
-		badge="rounded-full variant-filled-primary"
+		on:complete={createPipeline}
+		active="rounded-full variant-filled-primary px-2"
+		badge="rounded-full variant-filled"
 	>
 		<Step locked={pipeline.components.length === 0}>
 			<svelte:fragment slot="header">Build Components</svelte:fragment>
+
 			<div
 				class="grid lg:grid-cols-3 gap-4 {pipeline.components.length === 0
 					? 'grid-cols-1'
@@ -234,11 +243,14 @@
 				{/if}
 			</div>
 			<svelte:fragment slot="navigation">
-				<button class="btn variant-filled-error" on:click={() => goto('/pipelines')}>Cancel</button>
+				<button on:click={() => goto('/pipelines')} class="btn rounded-md variant-soft-error"
+					><Fa icon={faArrowLeft} />
+					<span class="hidden md:block">Cancel</span>
+				</button>
 			</svelte:fragment>
 		</Step>
 		<!-- Pipeline specific settings -->
-		<Step>
+		<Step buttonBack="btn rounded-md variant-soft-surface">
 			<svelte:fragment slot="header">Choose a name for your Pipeline</svelte:fragment>
 			<label class="label">
 				<span>Name</span>

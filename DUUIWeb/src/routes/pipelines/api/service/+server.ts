@@ -15,3 +15,18 @@ export async function POST({ request, cookies }) {
 
 	return response
 }
+
+export async function PUT({ request, cookies }) {
+	const data: DUUIPipeline = await request.json()
+
+	const response = await fetch(`${API_URL}/pipelines/${data.id}/stop`, {
+		method: 'PUT',
+		mode: 'cors',
+		body: JSON.stringify(data),
+		headers: {
+			session: cookies.get('session') || ''
+		}
+	})
+
+	return response
+}

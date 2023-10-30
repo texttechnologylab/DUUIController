@@ -4,12 +4,10 @@ import {
 	faCancel,
 	faCheck,
 	faCheckDouble,
-	faClock,
 	faFileArchive,
 	faFileCode,
 	faFileDownload,
 	faFileUpload,
-	faGears,
 	faHourglass,
 	faQuestion,
 	faRefresh,
@@ -18,6 +16,7 @@ import {
 import { equals } from './text'
 import { Status } from '$lib/duui/monitor'
 import type { DUUIDocument } from '$lib/duui/io'
+import type { ToastSettings } from '@skeletonlabs/skeleton'
 
 export const documentStatusNames = [
 	Status.Any,
@@ -35,18 +34,19 @@ export const documentStatusNames = [
 ]
 
 export const documentStatusNamesString = [
-	Status.Any.valueOf,
-	Status.Setup.valueOf,
-	Status.Input.valueOf,
-	Status.Decode.valueOf,
-	Status.Deserialize.valueOf,
-	Status.Waiting.valueOf,
-	Status.Running.valueOf,
-	Status.Output.valueOf,
-	Status.Shutdown.valueOf,
-	Status.Completed.valueOf,
-	Status.Canceled.valueOf,
-	Status.Failed.valueOf
+	'Any',
+	'Setup',
+	'Input',
+	'Decode',
+	'Deserialize',
+	'Waiting',
+	'Running',
+	'Shutdown',
+	'Output',
+	'Completed',
+	'Failed',
+	'Canceled',
+	'Unknown'
 ]
 
 export function getStatusIcon(status: string) {
@@ -74,4 +74,20 @@ export const getDocumentStatusIcon = (document: DUUIDocument) => {
 	if (equals(document.status, Status.Completed)) return document.error ? faX : faCheckDouble
 
 	return document.error ? faX : document.finished ? faCheck : faRefresh
+}
+
+export const success = (message: string, duration: number = 4000): ToastSettings => {
+	return {
+		message: message,
+		timeout: duration,
+		background: 'variant-filled-success'
+	}
+}
+
+export const info = (message: string, duration: number = 4000): ToastSettings => {
+	return {
+		message: message,
+		timeout: duration,
+		background: 'variant-filled-surface'
+	}
 }

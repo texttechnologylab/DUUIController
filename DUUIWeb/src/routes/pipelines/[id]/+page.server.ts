@@ -39,19 +39,3 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 		processes: loadProcesses()
 	}
 }
-
-export const actions: Actions = {
-	default: async ({ params, cookies }) => {
-		let id: string = params.id
-
-		const response = await fetch(API_URL + '/pipelines/' + id, {
-			method: 'DELETE',
-			mode: 'cors',
-			headers: {
-				session: cookies.get('session') || ''
-			}
-		})
-
-		return response.ok
-	}
-}

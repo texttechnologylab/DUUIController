@@ -1,5 +1,14 @@
 <script lang="ts">
-	import { faPlus, faSearch, faWifi } from '@fortawesome/free-solid-svg-icons'
+	import { datetimeToString, includes } from '$lib/utils/text'
+	import {
+		faCheck,
+		faFileExport,
+		faFileImport,
+		faPlus,
+		faSearch,
+		faWifi,
+		faX
+	} from '@fortawesome/free-solid-svg-icons'
 
 	import Fa from 'svelte-fa'
 
@@ -14,63 +23,82 @@
 	// })
 
 	let searchText: string = ''
-	let searchOpen: boolean = false
 	let filteredPipelines = pipelines
 
+	let activeOnly: boolean = false
+	let isNew: boolean = true
+
 	$: {
-		if (searchText === '') {
-			filteredPipelines = pipelines
-		} else {
-			filteredPipelines = pipelines.filter((pipeline) => {
-				if (pipeline.name.toLowerCase().includes(searchText.toLowerCase())) {
-					return pipeline
-				}
-			})
+		filteredPipelines = pipelines.filter(
+			(pipeline) => includes(pipeline.name, searchText) || !searchText
+		)
+
+		if (activeOnly) {
+			filteredPipelines = filteredPipelines.filter((pipeline) => pipeline.serviceStartTime !== 0)
 		}
+
+		filteredPipelines = filteredPipelines.filter((pipeline) => pipeline.timesUsed === 0 && isNew)
 	}
 </script>
 
 <svelte:head>
 	<title>Pipelines</title>
 </svelte:head>
-<div class="container h-full mx-auto flex flex-col space-y-4 md:space-y-8">
-	<div class="flex gap-4">
-		<a href="pipelines/new" class="btn variant-filled-primary shadow-lg">
+<div class="container h-full mx-auto flex flex-col space-y-4 md:my-8">
+	<h1 class="h2">Pipelines</h1>
+	<hr />
+
+	<div class="flex items-center justify-between gap-4">
+		<a href="pipelines/new" class="btn variant-soft-surface">
 			<span>Create</span>
 			<Fa icon={faPlus} />
 		</a>
-		<div class="flex items-center justify-start shadow-lg rounded-md overflow-hidden">
-			<button
-				class="btn-icon variant-filled-primary p-4 rounded-none"
-				on:click={() => (searchOpen = !searchOpen)}
-			>
-				<Fa icon={faSearch} />
+		<button class="btn rounded-md variant-soft-surface">
+			<Fa icon={faFileImport} />
+			<span>Import</span>
+			<!-- TODO: Dialog / Modal -->
+		</button>
+
+		<div class="flex items-center gap-4 ml-auto">
+			<input
+				class="input variant-soft-surface"
+				type="text"
+				placeholder="Search..."
+				bind:value={searchText}
+			/>
+			<button class="chip rounded-md variant-soft-surface" on:click={() => (isNew = !isNew)}>
+				<Fa icon={isNew ? faCheck : faX} />
+				<span>New</span>
 			</button>
-			{#if searchOpen}
-				<input
-					class="input border-2 rounded-none rounded-tr-md rounded-br-md"
-					type="text"
-					placeholder="search..."
-					bind:value={searchText}
-				/>
-			{/if}
+			<button
+				class="chip rounded-md variant-soft-surface"
+				on:click={() => (activeOnly = !activeOnly)}
+			>
+				<Fa icon={activeOnly ? faCheck : faX} />
+				<span>Active</span>
+			</button>
 		</div>
 	</div>
 
-	<div class="grid gap-4 md:gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 relative">
+	<div class="grid gap-4 md:gap-8 md:grid-cols-2 lg:grid-cols-3 relative">
 		{#each filteredPipelines as pipeline}
 			<a
-				class="card rounded-md hover:shadow-lg focus-within:shadow-lg p-4 flex items-start relative"
+				class="card grid gap-4 rounded-md shadow-lg p-4 items-start"
 				href="/pipelines/{pipeline.id}"
 			>
-				<div class="grid gap-4 grow items-center">
-					<div class="flex items-center justify-between">
-						<p class="h4 break-words">{pipeline.name}</p>
-						{#if pipeline.serviceStartTime !== 0}
-							<Fa icon={faWifi} class="text-success-400" />
-						{/if}
-					</div>
+				<div class="flex items-center justify-between">
+					<p class="h4 break-words">{pipeline.name}</p>
+					{#if pipeline.serviceStartTime !== 0}
+						<Fa icon={faWifi} class="text-success-400" />
+					{/if}
+				</div>
+				<div class="flex items-center justify-between">
 					<p>{pipeline.components.length} Component(s)</p>
+					{#if pipeline.lastUsed}
+						<p>Last used: {datetimeToString(new Date(pipeline.lastUsed))}</p>
+					{:else}
+						<p>Last used: Never</p>
+					{/if}
 				</div>
 			</a>
 		{/each}
@@ -78,3 +106,5 @@
 </div>
 
 <!-- <Table source={tableSimple} interactive={true} on:selected={mySelectionHandler} /> -->
+<style>
+</style>

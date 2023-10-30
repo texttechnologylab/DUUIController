@@ -1,16 +1,23 @@
 <script lang="ts">
 	import { v4 as uuidv4 } from 'uuid'
-	import { goto } from '$app/navigation'
+	import { beforeNavigate, goto, onNavigate } from '$app/navigation'
 	import PipelineComponent from '$lib/components/PipelineComponent.svelte'
 
 	import {
 		faArrowLeft,
-		faClose,
-		faDoorClosed,
-		faDoorOpen,
+		faCopy,
+		faFileCircleCheck,
+		faFileCircleXmark,
+		faFileExport,
+		faFilePen,
+		faGears,
 		faHourglassEnd,
 		faHourglassStart,
+		faLayerGroup,
 		faPlus,
+		faSave,
+		faTrash,
+		faUpRightAndDownLeftFromCenter,
 		faWifi
 	} from '@fortawesome/free-solid-svg-icons'
 	import {
@@ -24,22 +31,24 @@
 	import { flip } from 'svelte/animate'
 
 	import { getToastStore } from '@skeletonlabs/skeleton'
-	import type { TableSource, ToastSettings } from '@skeletonlabs/skeleton'
+	import type { TableSource } from '@skeletonlabs/skeleton'
 	import type { PageServerData } from './$types'
 	import { datetimeToString, progresAsPercent } from '$lib/utils/text'
 	import { getDuration } from '$lib/utils/time'
 	import { progressMaximum } from '$lib/duui/process'
 	import type { DUUIComponent } from '$lib/duui/component'
-	import { isActive } from '$lib/duui/monitor'
 	import { TabGroup, Tab } from '@skeletonlabs/skeleton'
 	import { page } from '$app/stores'
-	import { onMount } from 'svelte'
+	import { Api, makeApiCall } from '$lib/utils/api'
+	import { info, success } from '$lib/utils/ui'
 
 	export let data: PageServerData
 	let { pipeline, processes } = data
 
-	let status: string = 'Unknown'
-	let progress: number = 0
+	let hasChanges: boolean = false
+	let name: string = pipeline.name
+	let description: string = pipeline.description
+	let components: DUUIComponent[] = pipeline.components
 
 	let tabSet: number = +($page.url.searchParams.get('tab') || 0)
 
@@ -73,76 +82,64 @@
 		pipeline.components = [...pipeline.components]
 	}
 
-	pipeline.components.forEach((component: DUUIComponent) => {
-		if (!component.id) {
-			component.id = uuidv4()
-		}
-	})
-
-	async function deleteComponent(event: CustomEvent<any>): Promise<void> {
-		pipeline.components = pipeline.components.filter(
-			(component: DUUIComponent, index: number, array: DUUIComponent[]) => {
-				if (component.id !== event.detail.id) return component
-			}
-		)
-
-		let response = await fetch('/pipelines/api/update', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify(pipeline)
-		})
-
-		if (response.ok) {
-			const t: ToastSettings = {
-				message: 'Component has been deleted',
-				timeout: 4000,
-				background: 'variant-filled-warning'
-			}
-			toastStore.trigger(t)
-		}
-		return
-	}
-
 	const modalStore = getModalStore()
 	const toastStore = getToastStore()
 
 	const updatePipeline = async () => {
-		let response = await fetch('/pipelines/api/update', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify(pipeline)
-		})
+		let response = await makeApiCall(Api.Pipelines, 'PUT', pipeline)
+		if (response.ok) toastStore.trigger(success('Changes saved successfully'))
+	}
 
-		if (response.ok) {
-			const t: ToastSettings = {
-				message: 'Changes saved successfully',
-				timeout: 4000,
-				background: 'variant-filled-success'
+	const deletePipeline = async () => {
+		new Promise<boolean>((resolve) => {
+			const modal: ModalSettings = {
+				type: 'confirm',
+				title: 'Delete Pipeline',
+				buttonTextConfirm: 'Delete',
+				body: `Are you sure you want to delete ${pipeline.name}?`,
+				response: (r: boolean) => {
+					resolve(r)
+				}
 			}
-			toastStore.trigger(t)
+			modalStore.trigger(modal)
+		}).then(async (accepted: boolean) => {
+			if (!accepted) return
+
+			let response = await makeApiCall(Api.Pipelines, 'DELETE', { id: pipeline.id })
+			if (response.ok) {
+				goto('/pipelines')
+				toastStore.trigger(success('Pipeline deleted successfully'))
+			}
+		})
+	}
+
+	const copyPipeline = async () => {
+		let response = await makeApiCall(Api.Pipelines, 'POST', pipeline)
+		if (response.ok) {
+			const data = await response.json()
+			toastStore.trigger(info('Pipeline copied successfully'))
+			goto(`/pipelines/${data.id}`)
 		}
 	}
 
 	let startingService: boolean = false
 	let stoppingService: boolean = false
 
+	const manageService = async () => {
+		if (startingService || stoppingService) return
+		pipeline.serviceStartTime === 0 ? startService() : stopService()
+	}
+
 	const startService = async () => {
 		startingService = true
-		let response = await fetch('/pipelines/api/service/start', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify(pipeline)
-		})
+		toastStore.trigger(info(`Starting Service ${pipeline.name}`))
+
+		let response = await makeApiCall(Api.Services, 'POST', pipeline)
 
 		if (response.ok) {
 			const json = await response.json()
 			pipeline.serviceStartTime = json.serviceStartTime
+			toastStore.trigger(success(`Service ${pipeline.name} has been started`))
 		}
 
 		startingService = false
@@ -150,157 +147,118 @@
 
 	const stopService = async () => {
 		stoppingService = true
-		let response = await fetch('/pipelines/api/service/stop', {
-			method: 'DELETE',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify(pipeline)
-		})
+		toastStore.trigger(info(`Stopping Service ${pipeline.name}`))
+
+		let response = await makeApiCall(Api.Services, 'PUT', pipeline)
 
 		if (response.ok) {
 			pipeline.serviceStartTime = 0
+			toastStore.trigger(success(`Service ${pipeline.name} has been stopped`))
 		}
 
 		stoppingService = false
 	}
 
-	const onMaybeDeletePipeline = async (e: SubmitEvent) => {
-		let button = e.submitter as HTMLButtonElement
+	const discardChanges = () => {
+		pipeline.name = name
+		pipeline.description = description
+		pipeline.components = components
+	}
 
-		if (!button) {
-			return
-		}
-
-		if (button.id === 'update') {
-			updatePipeline()
-		} else if (button.id === 'service') {
-			if (startingService || stoppingService) return
-
-			if (pipeline.serviceStartTime === 0) {
-				startService()
-			} else {
-				stopService()
-			}
-		} else {
-			new Promise<boolean>((resolve) => {
-				const modal: ModalSettings = {
-					type: 'confirm',
-					title: 'Please Confirm',
-					body: `Are you sure you wish to delete ${pipeline.name}?`,
-					response: (r: boolean) => {
-						resolve(r)
-					}
-				}
-				modalStore.trigger(modal)
-			}).then(async (accepted: boolean) => {
-				if (accepted) {
-					const data = new FormData(e.target as HTMLFormElement)
-
-					const response = await fetch((e.target as HTMLFormElement).action, {
-						method: 'POST',
-						body: data,
-						headers: {
-							'x-sveltekit-action': 'true'
-						}
-					})
-
-					if (response.ok) {
-						goto('/pipelines')
-						const t: ToastSettings = {
-							message: 'Pipeline successfully deleted.',
-							timeout: 4000,
-							background: 'variant-filled-success'
-						}
-						getToastStore().trigger(t)
-					} else {
-						const t: ToastSettings = {
-							message: 'Pipeline could not be deleted.',
-							timeout: 4000,
-							background: 'variant-filled-warning'
-						}
-						getToastStore().trigger(t)
-					}
-				}
-			})
-		}
+	$: {
+		hasChanges =
+			name !== pipeline.name ||
+			description !== pipeline.description ||
+			components !== pipeline.components
 	}
 </script>
 
-<div class="container h-full flex-col mx-auto flex gap-4">
+<div class="container h-full flex-col mx-auto flex gap-4 md:my-8">
 	<!-- HEADER -->
-	<header class="grow self-stretch space-y-4">
-		<h1 class="h2 font-bold grow text-center md:my-8">
-			{pipeline.name}
-		</h1>
+	<h1 class="h2">{pipeline.name}</h1>
+	<hr />
+	<div class="flex items-center justify-start gap-4">
+		<button on:click={() => goto('/pipelines')} class="btn rounded-md variant-soft-surface"
+			><Fa icon={faArrowLeft} />
+			<span class="hidden md:block">Back</span>
+		</button>
 
-		<div class="flex items-center justify-start">
-			<button on:click={() => goto('/pipelines')} class="btn rounded-md hover:variant-soft-surface"
-				><Fa icon={faArrowLeft} />
-				<span class="hidden md:block">Pipelines</span>
-			</button>
-			<form method="POST" on:submit|preventDefault={onMaybeDeletePipeline}>
-				<button id="service" class="btn rounded-md hover:variant-soft-surface">
-					{#if startingService}
-						<p>Instantiating</p>
-						<Fa icon={faHourglassStart} class="animate-pulse" />
-					{:else if stoppingService}
-						<p>Shutting Down</p>
-						<Fa icon={faHourglassEnd} class="animate-pulse" />
-					{:else}
-						<p>{pipeline.serviceStartTime !== 0 ? 'Online' : 'Offline'}</p>
-						<Fa
-							icon={faWifi}
-							class={pipeline.serviceStartTime === 0 ? 'text-error-400' : 'text-success-400'}
-						/>
-					{/if}
-				</button>
-			</form>
-
-			<button
-				class="btn rounded-md hover:variant-soft-surface ml-auto"
-				on:click={() => goto('/process?pipeline=' + pipeline.id)}
-			>
-				<span><Fa icon={faPlus} /></span>
-				<span>Create new process</span>
-			</button>
-		</div>
-
-		<div
-			class="grid grid-cols-3 justify-between items-center variant-soft-surface rounded-md shadow-lg"
+		<button
+			class="btn rounded-md variant-soft-surface"
+			on:click={() => {
+				return
+				const jsonString = JSON.stringify(pipeline)
+				const blob = new Blob([jsonString], { type: 'application/json' })
+				const url = URL.createObjectURL(blob)
+				const anchor = document.createElement('a')
+				anchor.href = url
+				anchor.download = `${pipeline.name}.json`
+				document.body.appendChild(anchor)
+				anchor.click()
+				document.body.removeChild(anchor)
+				URL.revokeObjectURL(url)
+			}}
 		>
-			<TabGroup active="variant-filled-surface rounded-md" border="none">
-				<Tab
-					bind:group={tabSet}
-					name="settings"
-					value={0}
-					on:click={() => {
-						$page.url.searchParams.set('tab', '0')
-						goto($page.url)
-					}}
-				>
+			<Fa icon={faFileExport} />
+			<span>Export</span>
+			<!-- TODO: Dialog / Modal -->
+		</button>
+
+		<button class="btn rounded-md variant-soft-surface" on:click={copyPipeline}>
+			<Fa icon={faCopy} />
+			<span>Copy</span>
+		</button>
+
+		<button class="btn rounded-md variant-soft-surface" on:click={deletePipeline}>
+			<Fa icon={faTrash} />
+			<span>Delete</span>
+		</button>
+
+		<button
+			class="btn rounded-md variant-soft-surface"
+			on:click={() => goto('/process?pipeline=' + pipeline.id)}
+		>
+			<Fa icon={faPlus} />
+			<span>New Run</span>
+		</button>
+
+		<button class="btn rounded-md variant-soft-surface ml-auto" on:click={manageService}>
+			{#if startingService}
+				<p>Instantiating</p>
+				<Fa icon={faHourglassStart} class="animate-pulse" />
+			{:else if stoppingService}
+				<p>Shutting Down</p>
+				<Fa icon={faHourglassEnd} class="animate-pulse" />
+			{:else}
+				<p>{pipeline.serviceStartTime !== 0 ? 'Online' : 'Offline'}</p>
+				<Fa
+					icon={faWifi}
+					class={pipeline.serviceStartTime === 0 ? 'text-error-400' : 'text-success-400'}
+				/>
+			{/if}
+		</button>
+	</div>
+
+	<div class="variant-soft-surface rounded-md shadow-lg">
+		<TabGroup active="variant-filled-surface " border="none" rounded="rounded-md">
+			<Tab bind:group={tabSet} name="settings" value={0}>
+				<div class="flex items-center gap-4">
+					<Fa icon={faGears} />
 					<span>Settings</span>
-				</Tab>
-				<Tab
-					bind:group={tabSet}
-					name="processes"
-					value={1}
-					on:click={() => {
-						$page.url.searchParams.set('tab', '1')
-						goto($page.url)
-					}}>Processes</Tab
-				>
-			</TabGroup>
-		</div>
-	</header>
+				</div>
+			</Tab>
+			<Tab bind:group={tabSet} name="processes" value={1}
+				><div class="flex items-center gap-4">
+					<Fa icon={faLayerGroup} />
+					<span>Runs</span>
+				</div></Tab
+			>
+		</TabGroup>
+	</div>
 
 	{#if tabSet === 0}
 		<div class="grid md:grid-cols-2 gap-4">
-			<form
-				class="flex flex-col gap-4 variant-soft-surface rounded-md shadow-lg p-4"
-				method="POST"
-				on:submit|preventDefault={onMaybeDeletePipeline}
-			>
+			<div class="flex flex-col gap-4 variant-soft-surface rounded-md shadow-lg p-4">
 				<label class="label">
 					<span>Name</span>
 					<input
@@ -314,7 +272,7 @@
 					<span>Description</span>
 
 					<textarea
-						class="textarea resize-none border-2 input"
+						class="textarea border-2 input"
 						rows="4"
 						placeholder="Enter a description..."
 						bind:value={pipeline.description}
@@ -322,15 +280,23 @@
 				</label>
 
 				<div class="flex justify-between">
-					<button class="btn variant-filled-primary shadow-lg" type="submit" id="update">
-						<span>Update</span>
+					<button
+						class="btn variant-soft-surface shadow-lg {hasChanges ? 'inline-flex' : 'hidden'}"
+						on:click={updatePipeline}
+					>
+						<Fa icon={faFilePen} />
+						<span>Save Changes</span>
 					</button>
 
-					<button class="btn variant-filled-error shadow-lg" type="submit" id="delete">
-						<span>Delete</span>
+					<button
+						class="btn variant-soft-surface shadow-lg {hasChanges ? 'inline-flex' : 'hidden'}"
+						on:click={discardChanges}
+					>
+						<Fa icon={faFileCircleXmark} />
+						<span>Discard Changes</span>
 					</button>
 				</div>
-			</form>
+			</div>
 			<div class="space-y-4 variant-soft-surface rounded-md shadow-lg p-4">
 				<ul
 					use:dndzone={{ items: pipeline.components, dropTargetStyle: {} }}
@@ -342,10 +308,13 @@
 						<div animate:flip={{ duration: flipDurationMs }}>
 							<PipelineComponent
 								{component}
-								active={isActive(status)}
-								completed={progress >= pipeline.components.indexOf(component)}
-								on:remove={deleteComponent}
 								on:update={updatePipeline}
+								on:delete={(event) => {
+									pipeline.components = pipeline.components.filter(
+										(c) => c !== event.detail.component
+									)
+									components = pipeline.components
+								}}
 							/>
 						</div>
 					{/each}

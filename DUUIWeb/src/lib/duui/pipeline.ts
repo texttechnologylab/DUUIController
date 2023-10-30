@@ -9,6 +9,7 @@ export interface DUUIPipeline {
 	createdAt: number
 	serviceStartTime: number
 	timesUsed: number
+	lastUsed: number | null
 	settings: _Object
 	userId: string | null // if null -> Template
 	components: DUUIComponent[]
@@ -22,6 +23,7 @@ export const blankPipeline = () =>
 		createdAt: Date.now(),
 		serviceStartTime: 0,
 		timesUsed: 0,
+		lastUsed: null,
 		settings: {},
 		userId: null,
 		components: []

@@ -2,39 +2,43 @@
 	import DriverIcon from './DriverIcon.svelte'
 	import { createEventDispatcher } from 'svelte'
 	import Fa from 'svelte-fa'
-	import { faCheck, faEdit, faRefresh, faX } from '@fortawesome/free-solid-svg-icons'
-	import { getModalStore, type ModalSettings } from '@skeletonlabs/skeleton'
+	import { faEdit } from '@fortawesome/free-solid-svg-icons'
+	import { getModalStore, getToastStore, type ModalSettings } from '@skeletonlabs/skeleton'
 	import { DUUIDrivers, type DUUIComponent } from '$lib/duui/component'
+	import { Api, makeApiCall } from '$lib/utils/api'
+	import { success } from '$lib/utils/ui'
 	const dispatcher = createEventDispatcher()
 
 	export let component: DUUIComponent
 
 	const modalStore = getModalStore()
+	const toastStore = getToastStore()
 
 	export let editMode: boolean = false
-	export let completed: boolean = false
-	export let active: boolean = false
 
-	let onRemove = () => {
-		dispatcher('remove', {
-			id: component.id
-		})
-	}
-
-	const onMaybeDelete = () => {
+	let onDelete = () => {
 		new Promise<boolean>((resolve) => {
 			const modal: ModalSettings = {
 				type: 'confirm',
-				title: 'Please Confirm',
-				body: `Are you sure you wish to delete ${component.name}?`,
+				title: 'Delete Component',
+				buttonTextConfirm: 'Delete',
+				body: `Are you sure you want to delete ${component.name}?`,
 				response: (r: boolean) => {
 					resolve(r)
 				}
 			}
 			modalStore.trigger(modal)
-		}).then((r: any) => {
-			if (r) {
-				onRemove()
+		}).then(async (accepted: boolean) => {
+			if (!accepted) return
+
+			let response = await makeApiCall(Api.Pipelines, 'DELETE', {
+				id: component.id,
+				component: true
+			})
+			
+			if (response.ok) {
+				toastStore.trigger(success('Component deleted successfully'))
+				dispatcher('delete', { component: component })
 			}
 		})
 	}
@@ -92,9 +96,7 @@
 
 			<div class="flex justify-between gap-4">
 				<button class="btn variant-filled-primary shadow-lg" on:click={onUpdate}> Update </button>
-				<button class="btn variant-filled-error shadow-lg" on:click={onMaybeDelete}>
-					Delete
-				</button>
+				<button class="btn variant-filled-error shadow-lg" on:click={onDelete}> Delete </button>
 			</div>
 		</form>
 	{/if}

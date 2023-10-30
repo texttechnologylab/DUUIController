@@ -199,6 +199,21 @@
 		page -= 1
 	}
 
+	const documentStatusMap = {
+		Setup: false,
+		Input: false,
+		Decode: false,
+		Deserialize: false,
+		Waiting: false,
+		Running: false,
+		Shutdown: false,
+		Output: false,
+		Completed: false,
+		Failed: false,
+		Canceled: false,
+		Unknown: false
+	}
+
 	const modalStore = getModalStore()
 	const modalComponent: ModalComponent = {
 		ref: DocumentModal,
@@ -217,7 +232,10 @@
 	$: {
 		const finishedDocuments = documents.filter((d) => equals(d.status, Status.Completed))
 		if (finishedDocuments.length > 0) {
-			console.log(finishedDocuments.reduce((sum, current) => sum + current.processDuration, 0) / finishedDocuments.length)
+			console.log(
+				finishedDocuments.reduce((sum, current) => sum + current.processDuration, 0) /
+					finishedDocuments.length
+			)
 		}
 	}
 </script>

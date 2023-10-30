@@ -5,6 +5,7 @@
 	import { getModalStore } from '@skeletonlabs/skeleton'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
+	import { v4 as uuidv4 } from 'uuid'
 
 	let components: DUUIComponent[] = []
 
@@ -33,6 +34,7 @@
 		if (selectedComponents.includes(component)) {
 			selectedComponents = selectedComponents.filter((c) => c !== component)
 		} else {
+			component.id = uuidv4()
 			selectedComponents = [...selectedComponents, component]
 		}
 	}

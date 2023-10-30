@@ -199,6 +199,7 @@ public class DUUIPipelineController {
         }
 
         List<Document> components = DUUIComponentController.getComponentsForPipeline(id);
+        mapObjectIdToString(pipeline);
         return pipeline.append("components", components);
     }
 
