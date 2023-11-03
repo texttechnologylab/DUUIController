@@ -2,7 +2,7 @@ import type { DUUIDocumentInput, DUUIDocumentOutput } from './io'
 import type { DUUIPipeline } from './pipeline'
 
 export interface DUUIProcess {
-	id: string
+	oid: string
 	pipeline_id: string
 	status: string
 	error: string

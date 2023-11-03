@@ -111,6 +111,12 @@ public class DUUIProcessController {
             .getCollection("processes")
             .deleteOne(Filters.eq(new ObjectId(id)));
 
+        DUUIMongoDBStorage
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("documents")
+            .deleteMany(Filters.eq("process_id", id));
+
         response.status(200);
         return new Document("message", "Process deleted").toJson();
     }
@@ -156,7 +162,7 @@ public class DUUIProcessController {
             .insertOne(process);
 
         mapObjectIdToString(process);
-        String id = process.getString("id");
+        String id = process.getString("oid");
 
         _runningProcesses.put(id, new DUUIProcess(id, pipeline, process, settings, user));
 
@@ -171,6 +177,7 @@ public class DUUIProcessController {
             _runningProcesses.get(id).start();
         }
 
+        updateTimesUsed(pipelineId);
 
         return process.toJson();
     }
@@ -258,6 +265,19 @@ public class DUUIProcessController {
 
     public static void removeProcess(String id) {
         _runningProcesses.remove(id);
+    }
+
+    public static void updateTimesUsed(String id) {
+        DUUIMongoDBStorage
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("pipelines")
+            .updateOne(
+                Filters.eq(new ObjectId(id)),
+                Updates.combine(
+                    Updates.set("lastUsed", Instant.now().toEpochMilli()),
+                    Updates.inc("timesUsed", 1))
+            );
     }
 
     public static String getStatus(Request request, Response response) {

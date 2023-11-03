@@ -1,4 +1,4 @@
-import { API_URL } from "$lib/config"
+import { API_URL } from '$lib/config'
 import type { Handle } from '@sveltejs/kit'
 
 export const handle: Handle = async ({ event, resolve }) => {
@@ -21,10 +21,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	const user = await userResponse.json()
 
-
 	if (userResponse.status === 200) {
 		event.locals.user = {
-			id: user.id,
+			id: user.oid,
 			email: user.email,
 			role: user.role
 		}

@@ -5,16 +5,19 @@ export const DUUIRemoteDriver = 'DUUIRemoteDriver'
 export const DUUIDockerDriver = 'DUUIDockerDriver'
 export const DUUISwarmDriver = 'DUUISwarmDriver'
 export const DUUIUIMADriver = 'DUUIUIMADriver'
+export const DUUIKubernetsDriver = 'DUUIKubernetsDriver'
 
 export const DUUIDrivers: string[] = [
 	DUUIRemoteDriver,
 	DUUIDockerDriver,
 	DUUISwarmDriver,
-	DUUIUIMADriver
+	DUUIUIMADriver,
+	DUUIKubernetsDriver
 ]
 
 export interface DUUIComponent {
-	id: string
+	oid: string
+	id: string // Drag & Drop
 	name: string
 	categories: string[]
 	description: string
@@ -27,11 +30,12 @@ export interface DUUIComponent {
 	}
 	pipelineId: string | null
 	userId: string | null
-	index: number | null
+	index: number
 }
 
 export const blankComponent = (pipelineId: string, index: number) =>
 	<DUUIComponent>{
+		oid: uuidv4(),
 		id: uuidv4(),
 		name: 'New Component ' + index,
 		categories: [],
@@ -47,3 +51,14 @@ export const blankComponent = (pipelineId: string, index: number) =>
 		userId: null,
 		index: index
 	}
+
+export const componentToJson = (component: DUUIComponent) => {
+	return {
+		name: component.name,
+		categories: component.categories,
+		description: component.description,
+		status: component.status,
+		settings: component.settings,
+		index: component.index
+	}
+}

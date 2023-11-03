@@ -19,7 +19,7 @@ public class DUUIMongoDBStorage {
         try {
             String id = document.getObjectId("_id").toString();
             document.remove("_id");
-            document.put("id", id);
+            document.put("oid", id);
         } catch (NullPointerException ignored) {
 
         }

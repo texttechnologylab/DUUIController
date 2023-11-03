@@ -4,7 +4,7 @@ import type { DUUIProcess } from '$lib/duui/process'
 import type { PageServerLoad } from './$types'
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
-	const response = await fetch(API_URL + '/processes/' + params.id, {
+	const response = await fetch(API_URL + '/processes/' + params.oid, {
 		method: 'GET',
 		mode: 'cors'
 	})

@@ -50,6 +50,9 @@
 	let checkTarget: boolean = false
 	let recursive: boolean = false
 
+	let onCancelURL =
+		$page.url.searchParams.get('from') || '/pipelines/' + $page.url.searchParams.get('pipeline')
+
 	async function submitProcess() {
 		let response = await fetch(API_URL + '/processes', {
 			method: 'POST',
@@ -78,9 +81,9 @@
 			})
 		})
 
-		let content = await response.json()
+		let run = await response.json()
 		if (response.ok) {
-			goto('/process/' + content.id)
+			goto('/process/' + run.oid)
 		}
 	}
 
@@ -221,10 +224,7 @@
 			</div>
 		</div>
 		<svelte:fragment slot="navigation">
-			<button
-				class="btn variant-filled-error"
-				on:click={() => goto('/pipelines/' + $page.url.searchParams.get('pipeline'))}>Cancel</button
-			>
+			<button class="btn variant-filled-error" on:click={() => goto(onCancelURL)}>Cancel</button>
 		</svelte:fragment>
 	</Step>
 	<Step locked={!dbxAuthorized && needsAuthorization(inputSource, outputTarget)}>

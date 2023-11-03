@@ -1,116 +1,71 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
-	import ComponentBuilder from '$lib/components/ComponentBuilder.svelte'
 	import DriverIcon from '$lib/components/DriverIcon.svelte'
+	import { cloneDeep } from 'lodash'
+	import { v4 as uuidv4 } from 'uuid'
+	import ComponentModal from '$lib/components/ComponentModal.svelte'
 	import {
 		faArrowLeft,
-		faBackwardStep,
+		faArrowRight,
 		faBookOpen,
-		faCancel,
-		faEdit,
+		faCheck,
+		faChevronRight,
+		faChevronUp,
+		faFileCircleCheck,
 		faPlus
 	} from '@fortawesome/free-solid-svg-icons'
-	import { Step, Stepper, getModalStore, getToastStore } from '@skeletonlabs/skeleton'
+	import { getModalStore, getToastStore } from '@skeletonlabs/skeleton'
 	import { dndzone, type DndEvent } from 'svelte-dnd-action'
 	import Fa from 'svelte-fa'
 	import { flip } from 'svelte/animate'
 
 	import type { ModalComponent, ModalSettings } from '@skeletonlabs/skeleton'
 	import TemplateModal from './TemplateModal.svelte'
-	import { componentStore } from './store.js'
-	import { invalidNameToast, invalidTargetToast } from './toast.js'
-	import { blankPipeline } from '$lib/duui/pipeline'
-	import { blankComponent, type DUUIComponent } from '$lib/duui/component'
+	import { blankPipeline, usedDrivers, type DUUIPipeline } from '$lib/duui/pipeline'
+	import { blankComponent, DUUIDrivers, type DUUIComponent } from '$lib/duui/component'
 	import { Api, makeApiCall } from '$lib/utils/api'
-	import { info } from '$lib/utils/ui'
+	import { success } from '$lib/utils/ui'
+	import ActionButton from '$lib/components/ActionButton.svelte'
+	import PipelineComponent from '$lib/components/PipelineComponent.svelte'
+	import IconButton from '$lib/components/IconButton.svelte'
+	import { currentPipelineStore } from '$lib/store'
+	import SettingsMapper from '$lib/components/SettingsMapper.svelte'
 
 	export let data
-	let { templates } = data
+	let { templateComponents, templatePipelines } = data
 
-	let pipeline = blankPipeline()
-	let editing: boolean = false
-	let missing: boolean = false
-	let createForm: HTMLFormElement
+	templateComponents = templateComponents.map((c) => {
+		return { ...c, id: uuidv4() }
+	})
+
+	$currentPipelineStore = blankPipeline()
+	let settings: Map<string, string>
+
+	let step: number = 0
+	const steps: string[] = ['Start', 'Pipeline', 'Components']
 
 	const toastStore = getToastStore()
 
-	function handleDndConsider(event: CustomEvent<DndEvent<DUUIComponent>>) {
-		pipeline.components = event.detail.items
-		pipeline.components = [...pipeline.components]
+	const handleDndConsider = (event: CustomEvent<DndEvent<DUUIComponent>>) => {
+		$currentPipelineStore.components = event.detail.items
+		$currentPipelineStore.components = [...$currentPipelineStore.components]
 	}
 
-	function handleDndFinalize(event: CustomEvent<DndEvent<DUUIComponent>>) {
-		pipeline.components = event.detail.items
-		pipeline.components = [...pipeline.components]
-	}
-
-	function editNewComponent() {
-		$componentStore = blankComponent(pipeline.id, pipeline.components.length + 1)
-		editing = true
-	}
-
-	function updateComponent() {
-		if ($componentStore.id === '') {
-			return
-		}
-
-		pipeline.components.forEach((c) => {
-			if (c.id === $componentStore.id) {
-				c.name = $componentStore.name
-				c.categories = $componentStore.categories
-				c.description = $componentStore.description
-				c.settings.driver = $componentStore.settings.driver
-				c.settings.target = $componentStore.settings.target
-				c.settings.options = $componentStore.settings.options
-			}
+	const handleDndFinalize = (event: CustomEvent<DndEvent<DUUIComponent>>) => {
+		$currentPipelineStore.components = event.detail.items
+		$currentPipelineStore.components = [...$currentPipelineStore.components]
+		$currentPipelineStore.components = $currentPipelineStore.components.map((c) => {
+			return { ...c, index: $currentPipelineStore.components.indexOf(c) }
 		})
-		pipeline.components = pipeline.components
-	}
-
-	function saveComponent() {
-		if ($componentStore.id === '') {
-			return
-		}
-
-		if (!$componentStore.name) {
-			invalidNameToast(toastStore)
-			missing = true
-		}
-
-		if (!$componentStore.settings.target) {
-			invalidTargetToast($componentStore.settings.driver, toastStore)
-			missing = true
-		}
-
-		if (missing) {
-			return
-		}
-
-		if (pipeline.components.map((c) => c.id).includes($componentStore.id)) {
-			updateComponent()
-		} else {
-			pipeline.components = [...pipeline.components, { ...$componentStore }]
-		}
-
-		editing = false
-	}
-
-	function deleteComponent(event: CustomEvent<any>): void {
-		pipeline.components = pipeline.components.filter(
-			(component: DUUIComponent, index: number, array: DUUIComponent[]) => {
-				if (component.id !== event.detail.id) return component
-			}
-		)
-
-		editing = false
 	}
 
 	const createPipeline = async () => {
-		const response = await makeApiCall(Api.Pipelines, 'POST', pipeline)
+		$currentPipelineStore.settings = Object.fromEntries(settings.entries())
+		const response = await makeApiCall(Api.Pipelines, 'POST', $currentPipelineStore)
 		if (response.ok) {
 			const data = await response.json()
-			toastStore.trigger(info('Pipeline copied successfully'))
-			goto(`/pipelines/${data.id}`)
+			toastStore.trigger(success('Pipeline created successfully'))
+			goto(`/pipelines/${data.oid}`)
 		}
 	}
 
@@ -118,7 +73,7 @@
 
 	const modalComponent: ModalComponent = {
 		ref: TemplateModal,
-		props: { components: [...templates] }
+		props: { components: [...templateComponents] }
 	}
 
 	const modalStore = getModalStore()
@@ -138,18 +93,182 @@
 
 			response.forEach((component) => {
 				const comp = { ...component }
-				pipeline.components = [...pipeline.components, comp]
+				$currentPipelineStore.components = [...$currentPipelineStore.components, comp]
 			})
 		})
+	}
+
+	const selectPipelineTemplate = (template: DUUIPipeline) => {
+		$currentPipelineStore = cloneDeep(template)
+		$currentPipelineStore.oid = uuidv4()
+		$currentPipelineStore.components = $currentPipelineStore.components.map((c) => {
+			return { ...c, id: uuidv4(), index: $currentPipelineStore.components.indexOf(c) }
+		})
+
+		step = 1
+	}
+
+	const componentModal: ModalComponent = {
+		ref: ComponentModal
+	}
+
+	const showComponentModal = (component: DUUIComponent) => {
+		const modal: ModalSettings = {
+			type: 'component',
+			component: componentModal,
+			meta: { component: component }
+		}
+		modalStore.trigger(modal)
+	}
+
+	const addComponent = () => {
+		let c = blankComponent($currentPipelineStore.oid, $currentPipelineStore.components.length + 1)
+		$currentPipelineStore.components = [...$currentPipelineStore.components, c]
+		showComponentModal(c)
+	}
+
+	$: {
+		if (settings) {
+			$currentPipelineStore.settings = settings
+		}
 	}
 </script>
 
 <div class="container h-full flex-col mx-auto flex gap-4 md:my-8">
-	<h1 class="h2">New Pipeline</h1>
+	{#if step === 0}
+		<h1 class="h2">New Pipeline</h1>
+	{:else}
+		<h1 class="h2">{$currentPipelineStore.name || 'New Pipeline'}</h1>
+	{/if}
+
 	<hr />
-	<Stepper
+	<div class="flex items-center justify-start gap-4">
+		{#if step === 0}
+			<ActionButton text="Back" icon={faArrowLeft} on:click={() => goto('/pipelines')} />
+		{:else}
+			<ActionButton text="Back" icon={faArrowLeft} on:click={() => (step -= 1)} />
+		{/if}
+
+		<div class="steps flex items-center gap-4 mx-auto">
+			{#each steps as s, index}
+				<div
+					class="flex items-center gap-4
+				{step > index ? 'text-success-400' : step < index ? 'text-stone-400' : ''}"
+				>
+					<p>{s}</p>
+					<Fa class={index === steps.length - 1 ? 'hidden' : ''} icon={faChevronRight} />
+				</div>
+			{/each}
+		</div>
+		{#if step < steps.length - 1}
+			<ActionButton
+				text="Continue"
+				icon={faArrowRight}
+				on:click={() => (step += 1)}
+				leftToRight={false}
+			/>
+		{:else}
+			<ActionButton text="Complete" icon={faCheck} on:click={createPipeline} leftToRight={false} />
+		{/if}
+	</div>
+
+	{#if step === 0}
+		<h2 class="h4">Choose a starting point</h2>
+		<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+			<button
+				class="text-left variant-soft-surface p-4 hover:shadow-lg space-y-4 flex flex-col"
+				on:click={() => selectPipelineTemplate(blankPipeline())}
+			>
+				<p class="text-lg font-bold">Start from scratch</p>
+				<p class="grow">An empty Pipeline.</p>
+				<div class="pt-4 flex items-center justify-around">
+					{#each DUUIDrivers as driver}
+						<DriverIcon {driver} />
+					{/each}
+				</div>
+			</button>
+			{#each templatePipelines as pipeline}
+				<button
+					class="text-left variant-soft-surface p-4 hover:shadow-lg space-y-4 flex flex-col"
+					on:click={() => selectPipelineTemplate(pipeline)}
+				>
+					<p class="text-lg font-bold">{pipeline.name}</p>
+					<p class="grow">{pipeline.description}</p>
+					<div class="pt-4 flex items-center justify-between">
+						<p>{pipeline.components.length} Component(s)</p>
+						<div class="flex items-center gap-4">
+							{#each usedDrivers(pipeline) as driver}
+								<DriverIcon {driver} />
+							{/each}
+						</div>
+					</div>
+				</button>
+			{/each}
+		</div>
+	{:else if step === 1}
+		<div class="grid md:grid-cols-2 gap-4">
+			<div class="flex flex-col gap-4 variant-soft-surface rounded-md shadow-lg p-4">
+				<label class="label">
+					<span>Name</span>
+					<input
+						bind:value={$currentPipelineStore.name}
+						class="border-2 input focus-within:outline-primary-400"
+						type="text"
+					/>
+				</label>
+
+				<label class="label">
+					<span>Description</span>
+
+					<textarea
+						class="textarea border-2 input"
+						rows="4"
+						placeholder="Enter a description..."
+						bind:value={$currentPipelineStore.description}
+					/>
+				</label>
+			</div>
+			<div class="variant-soft-surface p-4 shadow-lg rounded-md">
+				<SettingsMapper bind:settings />
+			</div>
+		</div>
+	{:else if step === 2}
+		<div class="space-y-4 variant-soft-surface rounded-md shadow-lg p-4">
+			<ul
+				use:dndzone={{ items: $currentPipelineStore.components, dropTargetStyle: {} }}
+				on:consider={(event) => handleDndConsider(event)}
+				on:finalize={(event) => handleDndFinalize(event)}
+				class="grid gap-4"
+			>
+				{#each $currentPipelineStore.components as component (component.id)}
+					<div animate:flip={{ duration: flipDurationMs }}>
+						<PipelineComponent
+							{component}
+							on:delete={(event) => {
+								$currentPipelineStore.components = $currentPipelineStore.components.filter(
+									(c) => c !== event.detail.component
+								)
+							}}
+						/>
+					</div>
+				{/each}
+			</ul>
+			<div class="mx-auto flex items-center gap-4 justify-center">
+				<IconButton
+					icon={faPlus}
+					rounded="rounded-full"
+					variant="variant-soft-primary"
+					on:click={addComponent}
+				/>
+				<IconButton icon={faBookOpen} rounded="rounded-full" on:click={showTemplateModal} />
+			</div>
+		</div>
+	{/if}
+
+	<!-- <Stepper
+		buttonBack="AAA"
 		on:complete={createPipeline}
-		active="rounded-full variant-filled-primary px-2"
+		active="rounded-full variant-filled-primary px-4"
 		badge="rounded-full variant-filled"
 	>
 		<Step locked={pipeline.components.length === 0}>
@@ -160,7 +279,6 @@
 					? 'grid-cols-1'
 					: 'md:grid-cols-2'}"
 			>
-				<!-- Component List -->
 				{#if pipeline.components.length > 0}
 					<aside
 						class="rounded-md shadow-lg space-y-4 self-start row-start-2 md:row-start-1 md:col-start-3 md:col-span-1"
@@ -197,7 +315,6 @@
 					</aside>
 				{/if}
 
-				<!-- Component Editor -->
 				{#if editing}
 					<div class="card rounded-md shadow-lg md:col-span-2">
 						<ComponentBuilder
@@ -243,13 +360,14 @@
 				{/if}
 			</div>
 			<svelte:fragment slot="navigation">
-				<button on:click={() => goto('/pipelines')} class="btn rounded-md variant-soft-error"
-					><Fa icon={faArrowLeft} />
-					<span class="hidden md:block">Cancel</span>
-				</button>
+				<ActionButton
+					icon={faCancel}
+					text="Cancel"
+					variant="variant-soft-error"
+					on:click={() => goto('/pipelines')}
+				/>
 			</svelte:fragment>
 		</Step>
-		<!-- Pipeline specific settings -->
 		<Step buttonBack="btn rounded-md variant-soft-surface">
 			<svelte:fragment slot="header">Choose a name for your Pipeline</svelte:fragment>
 			<label class="label">
@@ -262,5 +380,5 @@
 			</label>
 		</Step>
 		<form bind:this={createForm} action="?/create" />
-	</Stepper>
+	</Stepper> -->
 </div>

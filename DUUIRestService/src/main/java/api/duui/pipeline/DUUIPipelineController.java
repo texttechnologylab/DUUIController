@@ -14,6 +14,7 @@ import org.bson.types.ObjectId;
 import spark.Request;
 import spark.Response;
 
+import javax.print.Doc;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,6 +48,7 @@ public class DUUIPipelineController {
         Document pipeline = getPipelineById(id);
         if (pipeline == null) return PipelineValidator.pipelineNotFound(response);
 
+
         if (!UserValidator.isAuthorized(session, pipeline.getString("user_id"))) {
             return unauthorized(response);
         }
@@ -60,7 +62,7 @@ public class DUUIPipelineController {
         String session = request.headers("session");
         Document user = DUUIUserController.getUserBySession(session);
 
-        if (!DUUIUserController.validateSession(user.getObjectId("_id").toString(), session)) {
+        if (isNullOrEmpty(user)) {
             return unauthorized(response);
         }
 
@@ -90,7 +92,46 @@ public class DUUIPipelineController {
             DUUIMongoDBStorage.mapObjectIdToString(pipeline);
             pipeline.put("components",
                 DUUIComponentController
-                    .getComponentsForPipeline(pipeline.getString("id")));
+                    .getComponentsForPipeline(pipeline.getString("oid")));
+        });
+
+        response.status(200);
+        return new Document("pipelines", pipelines).toJson();
+    }
+
+    public static String findTemplates(Request request, Response response) {
+        String session = request.headers("session");
+        Document user = DUUIUserController.getUserBySession(session);
+
+        if (isNullOrEmpty(user)) {
+            return unauthorized(response);
+        }
+
+        int limit = queryIntElseDefault(request, "limit", 0);
+        int offset = queryIntElseDefault(request, "offset", 0);
+
+        FindIterable<Document> documents = DUUIMongoDBStorage
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("pipelines")
+            .find(Filters.exists("user_id", false));
+
+        if (limit != 0) {
+            documents.limit(limit);
+        }
+
+        if (offset != 0) {
+            documents.skip(offset);
+        }
+
+        List<Document> pipelines = new ArrayList<>();
+        documents.into(pipelines);
+
+        pipelines.forEach(pipeline -> {
+            DUUIMongoDBStorage.mapObjectIdToString(pipeline);
+            pipeline.put("components",
+                DUUIComponentController
+                    .getComponentsForPipeline(pipeline.getString("oid")));
         });
 
         response.status(200);
@@ -112,14 +153,13 @@ public class DUUIPipelineController {
         Document user = DUUIUserController.getUserBySession(session);
         if (isNullOrEmpty(user)) return unauthorized(response);
 
-        Document pipeline = new Document();
-
-        pipeline.put("name", name);
-        pipeline.put("description", body.getString("description"));
-        pipeline.put("createdAt", Instant.now().toEpochMilli());
-        pipeline.put("serviceStartTime", 0L);
-        pipeline.put("timesUsed", 0);
-        pipeline.put("user_id", user.getObjectId("_id").toString());
+        Document pipeline = new Document("name", name)
+            .append("description", body.getString("description"))
+            .append("createdAt", Instant.now().toEpochMilli())
+            .append("serviceStartTime", 0L)
+            .append("settings", body.get("settings", Document.class))
+            .append("timesUsed", 0)
+            .append("user_id", user.getObjectId("_id").toString());
 
         DUUIMongoDBStorage
             .getInstance()
@@ -128,8 +168,14 @@ public class DUUIPipelineController {
             .insertOne(pipeline);
 
         mapObjectIdToString(pipeline);
-        String id = pipeline.getString("id");
-        components.forEach(c -> c.put("pipeline_id", id));
+        String id = pipeline.getString("oid");
+        components.forEach(c -> {
+                c.put("pipeline_id", id);
+                c.remove("oid");
+                c.remove("id");
+                c.put("index", components.indexOf(c));
+            }
+        );
 
         DUUIMongoDBStorage
             .getInstance()
@@ -140,6 +186,7 @@ public class DUUIPipelineController {
 
         response.status(201);
         return getPipelineById(id).toJson();
+
     }
 
     public static String updateOne(Request request, Response response) {
@@ -152,6 +199,16 @@ public class DUUIPipelineController {
             .getCollection("pipelines")
             .findOneAndUpdate(Filters.eq(new ObjectId(id)),
                 combineUpdates(update, _fields));
+
+        List<Document> components = update.getList("components", Document.class);
+        if (!isNullOrEmpty(components)) {
+            for (Document component : components) {
+                DUUIComponentController
+                    .updateIndex(
+                        component.getString("oid"),
+                        components.indexOf(component));
+            }
+        }
 
         response.status(200);
         return getPipelineById(id).toJson();
@@ -219,7 +276,7 @@ public class DUUIPipelineController {
         if (user == null) return UserValidator.userNotFound(response);
 
         Document body = Document.parse(request.body());
-        String id = body.getString("id");
+        String id = body.getString("oid");
 
         if (isNullOrEmpty(id)) return missingField(response, "id");
 
@@ -247,7 +304,7 @@ public class DUUIPipelineController {
         if (user == null) return UserValidator.userNotFound(response);
 
         Document body = Document.parse(request.body());
-        String id = body.getString("id");
+        String id = body.getString("oid");
 
         if (isNullOrEmpty(id)) return missingField(response, "id");
         DUUIService service = _services.get(id);

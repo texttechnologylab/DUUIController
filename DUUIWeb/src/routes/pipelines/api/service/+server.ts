@@ -4,7 +4,7 @@ import type { DUUIPipeline } from '$lib/duui/pipeline'
 export async function POST({ request, cookies }) {
 	const data: DUUIPipeline = await request.json()
 
-	const response = await fetch(`${API_URL}/pipelines/${data.id}/start`, {
+	const response = await fetch(`${API_URL}/pipelines/${data.oid}/start`, {
 		method: 'PUT',
 		mode: 'cors',
 		body: JSON.stringify(data),
@@ -19,7 +19,7 @@ export async function POST({ request, cookies }) {
 export async function PUT({ request, cookies }) {
 	const data: DUUIPipeline = await request.json()
 
-	const response = await fetch(`${API_URL}/pipelines/${data.id}/stop`, {
+	const response = await fetch(`${API_URL}/pipelines/${data.oid}/stop`, {
 		method: 'PUT',
 		mode: 'cors',
 		body: JSON.stringify(data),

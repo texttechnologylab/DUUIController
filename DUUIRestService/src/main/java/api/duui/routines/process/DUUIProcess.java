@@ -64,7 +64,7 @@ public class DUUIProcess extends Thread {
                             DUUIProcessController.setProgress(_id, _composer.getProgress());
                             DUUIProcessController.updateDocuments(_id, _composer.getDocuments());
                             _pipeline.getList("components", Document.class).forEach(
-                                component -> DUUIComponentController.setStatus(component.getString("id"), getComponentStatusFromLog(component, _composer))
+                                component -> DUUIComponentController.setStatus(component.getString("oid"), getComponentStatusFromLog(component, _composer))
                             );
                         } catch (Exception e) {
                             onError(e);
@@ -97,6 +97,22 @@ public class DUUIProcess extends Thread {
         DUUIProcessController.setFinished(_id, true);
         if (_service != null) {
             _service.cancel(false);
+        }
+
+        if (_composer != null) {
+            DUUIProcessController.setProgress(_id, _composer.getProgress());
+
+            _composer.getDocuments().stream().filter(document ->
+                !document.getIsFinished() || document.getStatus().equalsIgnoreCase("running") || document.getStatus().equalsIgnoreCase("waiting")).forEach(document -> {
+
+                    document.setStatus("Failed");
+                    document.setError("Process failed before Document was fully processed.");
+                    document.setFinished(true);
+                    document.setProcessingEndTime();
+                }
+            );
+
+            DUUIProcessController.updateDocuments(_id, _composer.getDocuments());
         }
 
         interrupt();
@@ -221,7 +237,6 @@ public class DUUIProcess extends Thread {
             onError(e);
         }
 
-        DUUIProcessController.setInstantiationDuration(_id, _composer.getInstantiationDuration());
 
         if (_interrupted) {
             Application.metrics.get("active_processes").decrementAndGet();
@@ -230,6 +245,9 @@ public class DUUIProcess extends Thread {
             }
             return;
         }
+
+        DUUIProcessController.setInstantiationDuration(_id, _composer.getInstantiationDuration());
+
 
         try {
             DUUIProcessController.setStatus(_id, "Shutdown");

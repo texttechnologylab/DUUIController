@@ -1,6 +1,7 @@
 <script lang="ts">
 	import '../app.postcss'
-	import Logo from '$lib/assets/Logo.png'
+	import Logo from '$lib/assets/Logo.svg'
+	import Logo_Light from '$lib/assets/Logo_Light.svg'
 	import { AppShell, AppBar, LightSwitch } from '@skeletonlabs/skeleton'
 	import { Drawer, getDrawerStore } from '@skeletonlabs/skeleton'
 	import { Toast, type DrawerSettings } from '@skeletonlabs/skeleton'
@@ -59,32 +60,30 @@
 					<button class="ml-auto lg:mr-auto btn-icon lg:hidden" on:click={() => openDocsMenu()}
 						><Fa size="lg" icon={faBars} /></button
 					>
-					<a href="/" class="hidden md:block text-xl font-mono font-bold uppercase">DUUI</a>
+					<a href="/" class="hidden md:block text-xl font-mono font-bold uppercase">
+						<img src={Logo} class="max-h-10 variant-surface" alt="" /></a
+					>
 				</div>
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
 				<div class="hidden lg:flex items-center gap-4">
 					<a
-						class="btn btn-sm hover:variant-ghost-primary rounded-sm"
+						class="btn btn-sm rounded-md hover:text-primary-500"
 						href="/pipelines"
 						rel="noreferrer"
 					>
 						Pipelines
 					</a>
-					<a
-						class="btn btn-sm hover:variant-ghost-primary rounded-sm"
-						href="/docs"
-						rel="noreferrer"
-					>
+					<a class="btn btn-sm rounded-md hover:text-primary-500" href="/docs" rel="noreferrer">
 						Documentation
 					</a>
 					<a
-						class="btn btn-sm hover:variant-ghost-primary rounded-sm"
+						class="btn btn-sm rounded-md hover:text-primary-500"
 						href="/user/login"
 						rel="noreferrer">{data.user ? 'Logout' : 'Login'}</a
 					>
 				</div>
-				<LightSwitch rounded="rounded-full" />
+				<LightSwitch rounded="rounded-md" class="shadow-lg" />
 			</svelte:fragment>
 		</AppBar>
 	</svelte:fragment>
@@ -136,5 +135,3 @@
 		</footer>
 	</svelte:fragment>
 </AppShell>
-
-

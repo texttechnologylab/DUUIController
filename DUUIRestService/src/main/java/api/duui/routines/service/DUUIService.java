@@ -87,12 +87,12 @@ public class DUUIService extends Thread {
 
     private String processId() {
         if (_process == null) return null;
-        return _process.getString("id");
+        return _process.getString("oid");
     }
 
     private String pipelineId() {
         if (_pipeline == null) return null;
-        return _pipeline.getString("id");
+        return _pipeline.getString("oid");
     }
 
     private String userId() {
@@ -151,7 +151,7 @@ public class DUUIService extends Thread {
                         DUUIProcessController.setProgress(processId(), _composer.getProgress());
                         DUUIProcessController.updateDocuments(processId(), _composer.getDocuments());
                         _pipeline.getList("components", Document.class).forEach(
-                            component -> DUUIComponentController.setStatus(component.getString("id"), getComponentStatusFromLog(component, _composer))
+                            component -> DUUIComponentController.setStatus(component.getString("oid"), getComponentStatusFromLog(component, _composer))
                         );
                     }
                 },
@@ -378,14 +378,20 @@ public class DUUIService extends Thread {
         System.out.println(exception.getMessage());
         System.out.println("--------------------------------------------------------");
 
-        _exception = exception;
-        DUUIProcessController.setError(processId(), exception.getMessage());
+        if (exception.getMessage().startsWith("temp\\duui") && exception instanceof NoSuchFieldException) {
+            DUUIProcessController.setError(processId(), "Writing output failed because all documents failed during processing.");
+        } else {
+            _exception = exception;
+            DUUIProcessController.setError(processId(), exception.getMessage());
+        }
+
 
         if (_active) {
             Application.metrics.get("failed_processes").incrementAndGet();
             Application.metrics.get("active_processes").decrementAndGet();
             DUUIProcessController.setStatus(processId(), "Failed");
         }
+
 
         DUUIProcessController.setFinishTime(processId(), Instant.now().toEpochMilli());
         DUUIProcessController.setFinished(processId(), true);
@@ -399,8 +405,18 @@ public class DUUIService extends Thread {
         }
 
         if (_composer != null) {
-            DUUIProcessController.updateLog(processId(), _composer.getLog());
             DUUIProcessController.setProgress(processId(), _composer.getProgress());
+
+            _composer.getDocuments().stream().filter(document ->
+                !document.getIsFinished() || document.getStatus().equalsIgnoreCase("running") || document.getStatus().equalsIgnoreCase("waiting")).forEach(document -> {
+
+                    document.setStatus("Failed");
+                    document.setError("Process failed before Document was fully processed.");
+                    document.setFinished(true);
+                    document.setProcessingEndTime();
+                }
+            );
+
             DUUIProcessController.updateDocuments(processId(), _composer.getDocuments());
         }
 

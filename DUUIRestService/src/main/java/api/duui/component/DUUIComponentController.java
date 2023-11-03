@@ -66,6 +66,7 @@ public class DUUIComponentController {
         component.put("settings", settings);
         component.put("pipeline_id", pipelineId);
         component.put("user_id", userId);
+        component.put("index", component.getInteger("index"));
 
         DUUIMongoDBStorage
             .getInstance()
@@ -211,5 +212,13 @@ public class DUUIComponentController {
             .getDatabase("duui")
             .getCollection("components")
             .findOneAndUpdate(Filters.eq(new ObjectId(id)), Updates.set("status", status));
+    }
+
+    public static void updateIndex(String id, int index) {
+        DUUIMongoDBStorage
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("components")
+            .findOneAndUpdate(Filters.eq(new ObjectId(id)), Updates.set("index", index));
     }
 }

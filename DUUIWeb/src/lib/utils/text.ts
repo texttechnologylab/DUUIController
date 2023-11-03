@@ -7,7 +7,7 @@ export const slugify = (text: string) =>
 		.replace(/^-+|-+$/g, '')
 
 export const toTitleCase = (text: string) => {
-	text[0].toUpperCase() + text.slice(1)
+	return text[0].toUpperCase() + text.slice(1)
 }
 
 export const dateToString = (date: Date) => {
@@ -40,7 +40,7 @@ export const equals = (first: string, second: string, ignoreCase: boolean = true
 
 export const includes = (first: string, second: string, ignoreCase: boolean = true) => {
 	if (!first) return true
-	
+
 	if (ignoreCase) {
 		return first.toLowerCase().includes(second.toLowerCase())
 	} else {

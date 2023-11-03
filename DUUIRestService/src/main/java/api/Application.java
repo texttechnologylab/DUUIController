@@ -168,6 +168,7 @@ public class Application {
         /* Pipelines */
 
         get("/pipelines/:id", DUUIPipelineController::findOne);
+        get("/pipelines", DUUIPipelineController::findTemplates);
         get("/pipelines/all/:user-id", DUUIPipelineController::findMany);
         get("/pipelines/:id/processes", DUUIProcessController::findMany);
 

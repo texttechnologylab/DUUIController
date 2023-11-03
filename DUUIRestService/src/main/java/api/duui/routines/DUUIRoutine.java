@@ -126,7 +126,7 @@ public class DUUIRoutine {
         throws IOException, UIMAException, SAXException, URISyntaxException, CompressorException {
         for (Document component : pipeline.getList("components", Document.class)) {
             composer.add(buildComponent(component));
-            DUUIComponentController.setStatus(component.getString("id"), "Idle");
+            DUUIComponentController.setStatus(component.getString("oid"), "Idle");
         }
     }
 

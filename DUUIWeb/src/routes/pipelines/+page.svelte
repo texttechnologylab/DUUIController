@@ -1,4 +1,7 @@
 <script lang="ts">
+	import ActionButton from '$lib/components/ActionButton.svelte'
+	import DriverIcon from '$lib/components/DriverIcon.svelte'
+	import { usedDrivers } from '$lib/duui/pipeline'
 	import { datetimeToString, includes } from '$lib/utils/text'
 	import {
 		faCheck,
@@ -26,7 +29,7 @@
 	let filteredPipelines = pipelines
 
 	let activeOnly: boolean = false
-	let isNew: boolean = true
+	let unused: boolean = false
 
 	$: {
 		filteredPipelines = pipelines.filter(
@@ -37,7 +40,7 @@
 			filteredPipelines = filteredPipelines.filter((pipeline) => pipeline.serviceStartTime !== 0)
 		}
 
-		filteredPipelines = filteredPipelines.filter((pipeline) => pipeline.timesUsed === 0 && isNew)
+		filteredPipelines = filteredPipelines.filter((pipeline) => pipeline.timesUsed === 0 || !unused)
 	}
 </script>
 
@@ -53,12 +56,11 @@
 			<span>Create</span>
 			<Fa icon={faPlus} />
 		</a>
-		<button class="btn rounded-md variant-soft-surface">
-			<Fa icon={faFileImport} />
-			<span>Import</span>
-			<!-- TODO: Dialog / Modal -->
-		</button>
-
+		<ActionButton
+			text="Import"
+			icon={faFileImport}
+			on:click={() => console.log('IMPORT NOT IMPLEMENTED')}
+		/>
 		<div class="flex items-center gap-4 ml-auto">
 			<input
 				class="input variant-soft-surface"
@@ -66,8 +68,8 @@
 				placeholder="Search..."
 				bind:value={searchText}
 			/>
-			<button class="chip rounded-md variant-soft-surface" on:click={() => (isNew = !isNew)}>
-				<Fa icon={isNew ? faCheck : faX} />
+			<button class="chip rounded-md variant-soft-surface" on:click={() => (unused = !unused)}>
+				<Fa icon={unused ? faCheck : faX} />
 				<span>New</span>
 			</button>
 			<button
@@ -83,22 +85,24 @@
 	<div class="grid gap-4 md:gap-8 md:grid-cols-2 lg:grid-cols-3 relative">
 		{#each filteredPipelines as pipeline}
 			<a
-				class="card grid gap-4 rounded-md shadow-lg p-4 items-start"
-				href="/pipelines/{pipeline.id}"
+				class="text-left variant-soft-surface p-4 hover:shadow-lg space-y-4 flex flex-col"
+				href="/pipelines/{pipeline.oid}"
 			>
-				<div class="flex items-center justify-between">
-					<p class="h4 break-words">{pipeline.name}</p>
+				<div class="flex items-center gap-4 justify-between">
+					<p class="text-lg font-bold">{pipeline.name}</p>
 					{#if pipeline.serviceStartTime !== 0}
 						<Fa icon={faWifi} class="text-success-400" />
 					{/if}
 				</div>
-				<div class="flex items-center justify-between">
+
+				<p class="grow">{pipeline.description}</p>
+				<div class="pt-4 flex items-center justify-between">
 					<p>{pipeline.components.length} Component(s)</p>
-					{#if pipeline.lastUsed}
-						<p>Last used: {datetimeToString(new Date(pipeline.lastUsed))}</p>
-					{:else}
-						<p>Last used: Never</p>
-					{/if}
+					<div class="flex items-center gap-4">
+						{#each usedDrivers(pipeline) as driver}
+							<DriverIcon {driver} />
+						{/each}
+					</div>
 				</div>
 			</a>
 		{/each}

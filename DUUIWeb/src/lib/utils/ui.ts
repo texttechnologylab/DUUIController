@@ -80,6 +80,8 @@ export const success = (message: string, duration: number = 4000): ToastSettings
 	return {
 		message: message,
 		timeout: duration,
+		hideDismiss: true,
+		hoverable: true,
 		background: 'variant-filled-success'
 	}
 }
@@ -88,6 +90,8 @@ export const info = (message: string, duration: number = 4000): ToastSettings =>
 	return {
 		message: message,
 		timeout: duration,
+		hideDismiss: true,
+		hoverable: true,
 		background: 'variant-filled-surface'
 	}
 }
