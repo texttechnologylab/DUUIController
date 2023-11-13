@@ -183,13 +183,17 @@ public class Application {
         /* Processes */
 
         get("/processes/:id", DUUIProcessController::findOne);
-        get("/processes/:id/documents", DUUIProcessController::findDocuments);
 
         post("/processes", DUUIProcessController::startOne);
 
         put("/processes/:id", DUUIProcessController::stopOne);
 
         delete("/processes/:id", DUUIProcessController::deleteOne);
+
+        /* Documents */
+
+        get("/documents", DUUIProcessController::findDocuments);
+
 
         /* Users */
 

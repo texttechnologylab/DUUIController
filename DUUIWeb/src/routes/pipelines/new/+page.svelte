@@ -10,9 +10,8 @@
 		faBookOpen,
 		faCheck,
 		faChevronRight,
-		faChevronUp,
-		faFileCircleCheck,
-		faPlus
+		faPlus,
+		faSearch
 	} from '@fortawesome/free-solid-svg-icons'
 	import { getModalStore, getToastStore } from '@skeletonlabs/skeleton'
 	import { dndzone, type DndEvent } from 'svelte-dnd-action'
@@ -21,15 +20,24 @@
 
 	import type { ModalComponent, ModalSettings } from '@skeletonlabs/skeleton'
 	import TemplateModal from './TemplateModal.svelte'
-	import { blankPipeline, usedDrivers, type DUUIPipeline } from '$lib/duui/pipeline'
+	import {
+		blankPipeline,
+		usedDrivers,
+		type DUUIPipeline,
+		getPipelineCategories
+	} from '$lib/duui/pipeline'
 	import { blankComponent, DUUIDrivers, type DUUIComponent } from '$lib/duui/component'
 	import { Api, makeApiCall } from '$lib/utils/api'
 	import { success } from '$lib/utils/ui'
-	import ActionButton from '$lib/components/ActionButton.svelte'
+	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import PipelineComponent from '$lib/components/PipelineComponent.svelte'
-	import IconButton from '$lib/components/IconButton.svelte'
+	import IconButton from '$lib/svelte/widgets/action/IconButton.svelte'
 	import { currentPipelineStore } from '$lib/store'
-	import SettingsMapper from '$lib/components/SettingsMapper.svelte'
+	import SettingsMapper from '$lib/svelte/widgets/input/SettingsMapper.svelte'
+	import { includes } from '$lib/utils/text'
+	import TextInput from '$lib/svelte/widgets/input/TextInput.svelte'
+	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
+	import CheckButton from '$lib/components/CheckButton.svelte'
 
 	export let data
 	let { templateComponents, templatePipelines } = data
@@ -43,6 +51,27 @@
 
 	let step: number = 0
 	const steps: string[] = ['Start', 'Pipeline', 'Components']
+
+	let startService: boolean = true
+
+	let searchText: string = ''
+	let filteredTemplatePipelines: DUUIPipeline[] = templatePipelines
+
+	$: {
+		filteredTemplatePipelines = templatePipelines.filter(
+			(pipeline: DUUIPipeline) =>
+				includes(
+					`${pipeline.name} ${pipeline.description} ${getPipelineCategories(pipeline)}`,
+					searchText
+				) || !searchText
+		)
+
+		// if (activeOnly) {
+		// 	filteredPipelines = filteredPipelines.filter((pipeline) => pipeline.serviceStartTime !== 0)
+		// }
+
+		// filteredPipelines = filteredPipelines.filter((pipeline) => pipeline.timesUsed === 0 || !unused)
+	}
 
 	const toastStore = getToastStore()
 
@@ -112,19 +141,25 @@
 		ref: ComponentModal
 	}
 
-	const showComponentModal = (component: DUUIComponent) => {
-		const modal: ModalSettings = {
-			type: 'component',
-			component: componentModal,
-			meta: { component: component }
-		}
-		modalStore.trigger(modal)
-	}
-
 	const addComponent = () => {
 		let c = blankComponent($currentPipelineStore.oid, $currentPipelineStore.components.length + 1)
-		$currentPipelineStore.components = [...$currentPipelineStore.components, c]
-		showComponentModal(c)
+		new Promise<boolean>((resolve) => {
+			const modal: ModalSettings = {
+				type: 'component',
+				component: componentModal,
+				meta: { component: c, new: true },
+				response: (r: boolean) => {
+					resolve(r)
+				}
+			}
+			modalStore.trigger(modal)
+		})
+			.then(async (accepted: boolean) => {
+				if (!accepted) return
+
+				$currentPipelineStore.components = [...$currentPipelineStore.components, c]
+			})
+			.catch((e) => console.log(e))
 	}
 
 	$: {
@@ -149,54 +184,66 @@
 			<ActionButton text="Back" icon={faArrowLeft} on:click={() => (step -= 1)} />
 		{/if}
 
-		<div class="steps flex items-center gap-4 mx-auto">
+		<div class="hidden md:flex items-center gap-4 md:gap-12 mx-auto">
 			{#each steps as s, index}
 				<div
-					class="flex items-center gap-4
-				{step > index ? 'text-success-400' : step < index ? 'text-stone-400' : ''}"
+					class="flex items-center gap-4 md:gap-12
+				{step > index ? 'dark:text-success-400' : step < index ? 'text-stone-400' : ''}"
 				>
 					<p>{s}</p>
 					<Fa class={index === steps.length - 1 ? 'hidden' : ''} icon={faChevronRight} />
 				</div>
 			{/each}
 		</div>
+		<p class="h3 mx-auto md:hidden">{steps[step]}</p>
+
 		{#if step < steps.length - 1}
 			<ActionButton
 				text="Continue"
 				icon={faArrowRight}
 				on:click={() => (step += 1)}
 				leftToRight={false}
+				_class={$currentPipelineStore.name === '' ? 'invisible' : 'visible'}
 			/>
 		{:else}
-			<ActionButton text="Complete" icon={faCheck} on:click={createPipeline} leftToRight={false} />
+			<ActionButton
+				text="Complete"
+				icon={faCheck}
+				on:click={createPipeline}
+				leftToRight={false}
+				_class={$currentPipelineStore.name === '' ? 'invisible' : 'visible'}
+			/>
 		{/if}
 	</div>
 
 	{#if step === 0}
-		<h2 class="h4">Choose a starting point</h2>
+		<div class="grid md:flex gap-4 items-center md:justify-between">
+			<h2 class="h4">Choose a starting point</h2>
+			<TextInput bind:value={searchText} icon={faSearch} placeholder="Search..." />
+		</div>
 		<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
 			<button
-				class="text-left variant-soft-surface p-4 hover:shadow-lg space-y-4 flex flex-col"
+				class="text-left hover:variant-glass shadow-lg dark:variant-soft-surface p-4 bg-surface-100 dark:hover:bg-surface-800 space-y-4 flex flex-col"
 				on:click={() => selectPipelineTemplate(blankPipeline())}
 			>
 				<p class="text-lg font-bold">Start from scratch</p>
 				<p class="grow">An empty Pipeline.</p>
-				<div class="pt-4 flex items-center justify-around">
+				<div class="pt-4 flex items-center justify-between gap-4">
 					{#each DUUIDrivers as driver}
 						<DriverIcon {driver} />
 					{/each}
 				</div>
 			</button>
-			{#each templatePipelines as pipeline}
+			{#each filteredTemplatePipelines as pipeline}
 				<button
-					class="text-left variant-soft-surface p-4 hover:shadow-lg space-y-4 flex flex-col"
+					class="text-left hover:variant-glass shadow-lg dark:variant-soft-surface p-4 bg-surface-100 dark:hover:bg-surface-800 space-y-4 flex flex-col"
 					on:click={() => selectPipelineTemplate(pipeline)}
 				>
 					<p class="text-lg font-bold">{pipeline.name}</p>
-					<p class="grow">{pipeline.description}</p>
-					<div class="pt-4 flex items-center justify-between">
+					<p class="grow min-h-[50px]">{pipeline.description}</p>
+					<div class="pt-4 flex items-center gap-4 justify-between">
 						<p>{pipeline.components.length} Component(s)</p>
-						<div class="flex items-center gap-4">
+						<div class="ml-auto flex items-center justify-between gap-4">
 							{#each usedDrivers(pipeline) as driver}
 								<DriverIcon {driver} />
 							{/each}
@@ -207,33 +254,36 @@
 		</div>
 	{:else if step === 1}
 		<div class="grid md:grid-cols-2 gap-4">
-			<div class="flex flex-col gap-4 variant-soft-surface rounded-md shadow-lg p-4">
-				<label class="label">
+			<div
+				class="flex flex-col gap-4 variant-soft-surface shadow-lg p-4 {$currentPipelineStore.name !==
+				''
+					? ''
+					: 'border-[1px] border-error-400'}"
+			>
+				<label class="label" for="pipeline-name">
 					<span>Name</span>
-					<input
-						bind:value={$currentPipelineStore.name}
-						class="border-2 input focus-within:outline-primary-400"
-						type="text"
-					/>
+					<TextInput bind:value={$currentPipelineStore.name} id="pipeline-name" />
 				</label>
 
-				<label class="label">
+				<label class="label" for="pipeline-description">
 					<span>Description</span>
-
-					<textarea
-						class="textarea border-2 input"
-						rows="4"
-						placeholder="Enter a description..."
+					<TextArea
+						rows={2}
 						bind:value={$currentPipelineStore.description}
+						id="pipeline-description"
 					/>
 				</label>
 			</div>
-			<div class="variant-soft-surface p-4 shadow-lg rounded-md">
+			<div class="variant-soft-surface p-4 shadow-lg">
 				<SettingsMapper bind:settings />
 			</div>
+			<CheckButton text="Start service when finished" bind:checked={startService} />
 		</div>
 	{:else if step === 2}
-		<div class="space-y-4 variant-soft-surface rounded-md shadow-lg p-4">
+		<div class="space-y-4 variant-soft-surface mx-auto shadow-lg p-4">
+			{#if $currentPipelineStore.components.length === 0}
+				<p>Add a Component to get Started</p>
+			{/if}
 			<ul
 				use:dndzone={{ items: $currentPipelineStore.components, dropTargetStyle: {} }}
 				on:consider={(event) => handleDndConsider(event)}

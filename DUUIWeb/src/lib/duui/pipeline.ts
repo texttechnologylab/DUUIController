@@ -9,7 +9,7 @@ export interface DUUIPipeline {
 	createdAt: number
 	serviceStartTime: number
 	timesUsed: number
-	lastUsed: number | null
+	lastUsed: number | undefined
 	settings: Object
 	userId: string | null // if null -> Template
 	components: DUUIComponent[]
@@ -23,13 +23,13 @@ export const blankPipeline = () =>
 		createdAt: Date.now(),
 		serviceStartTime: 0,
 		timesUsed: 0,
-		lastUsed: null,
+		lastUsed: 0,
 		settings: {},
 		userId: null,
 		components: []
 	}
 
-export const pipelineToJson = (pipeline: DUUIPipeline) => {
+export const pipelineToExportableJson = (pipeline: DUUIPipeline) => {
 	return {
 		name: pipeline.name,
 		description: pipeline.description,
@@ -38,12 +38,10 @@ export const pipelineToJson = (pipeline: DUUIPipeline) => {
 	}
 }
 
-export const usedDrivers = (pipeline: DUUIPipeline) => {
-	let drivers: Set<string> = new Set()
+export const usedDrivers = (pipeline: DUUIPipeline) =>
+	new Set(pipeline.components.map((c) => c.settings.driver))
 
-	for (let component of pipeline.components) {
-		drivers.add(component.settings.driver)
-	}
-
-	return drivers
+export const getPipelineCategories = (pipeline: DUUIPipeline) => {
+	const categories = pipeline.components.map((c) => c.categories.join(' ')).join(' ')
+	return categories
 }

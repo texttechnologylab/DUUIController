@@ -1,89 +1,230 @@
 <script lang="ts">
 	import '../app.postcss'
 	import Logo from '$lib/assets/Logo.svg'
-	import Logo_Light from '$lib/assets/Logo_Light.svg'
+	import Icon from '$lib/assets/favicon.svg'
+
 	import { AppShell, AppBar, LightSwitch } from '@skeletonlabs/skeleton'
 	import { Drawer, getDrawerStore } from '@skeletonlabs/skeleton'
 	import { Toast, type DrawerSettings } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
-	import { faGlobe, faBars } from '@fortawesome/free-solid-svg-icons'
+	import {
+		faGlobe,
+		faBars,
+		faLayerGroup,
+		faPlus,
+		faBookOpen,
+		faGears,
+		faNetworkWired,
+		faMap,
+		faArrowRightToBracket,
+		faUser,
+		faUserPlus,
+		faArrowRightFromBracket
+	} from '@fortawesome/free-solid-svg-icons'
 	import { faGithub } from '@fortawesome/free-brands-svg-icons'
 
 	import { initializeStores } from '@skeletonlabs/skeleton'
-	import { onNavigate } from '$app/navigation'
-	import SidebarNav from '$lib/components/SidebarNav.svelte'
+	import { goto, onNavigate } from '$app/navigation'
 	import { storePopup } from '@skeletonlabs/skeleton'
 
 	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom'
 	import ComponentEditor from '$lib/components/ComponentEditor.svelte'
 	import { Modal } from '@skeletonlabs/skeleton'
+	import Anchor from '$lib/svelte/widgets/action/Anchor.svelte'
+	import Sidebar from '$lib/svelte/widgets/navigation/Sidebar.svelte'
+	import Menu from '$lib/svelte/widgets/navigation/Menu.svelte'
+	import { Api, makeApiCall } from '$lib/utils/api'
+	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 
 	initializeStores()
 
 	const drawerStore = getDrawerStore()
+	const sidebarDrawer: DrawerSettings = {
+		id: 'sidebar',
+		width: 'w-full sm:w-[360px]',
+		rounded: 'rounded-none'
+	}
 
 	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow })
-
-	const openDocsMenu = () => {
-		const settings: DrawerSettings = {
-			id: 'docs',
-			width: 'max-w-fit',
-			border: 'border-r-2 border-surface-400',
-			bgBackdrop: 'variant-glass-surface'
-		}
-		drawerStore.open(settings)
-	}
 
 	onNavigate(() => {
 		drawerStore.close()
 	})
 
 	export let data
+	let { loggedIn } = data
+
+	const logout = async () => {
+		const response = await makeApiCall(Api.Logout, 'PUT', {})
+		if (response.ok) {
+			loggedIn = false
+			goto('/account/login')
+		}
+	}
 </script>
 
 <Modal />
 <Toast />
-<Drawer>
-	{#if $drawerStore.id === 'docs'}
-		<SidebarNav hidden={false} withNavigation={true} />
+<Drawer rounded="rounded-none">
+	{#if $drawerStore.id === 'sidebar'}
+		<Sidebar {loggedIn} />
 	{:else if $drawerStore.id === 'component'}
 		<ComponentEditor component={$drawerStore.meta.component} />
 	{/if}
 </Drawer>
 <!-- App Shell -->
-<AppShell>
+<AppShell class="dark:bg-surface-700">
 	<svelte:fragment slot="header">
 		<!-- App Bar -->
-		<AppBar gridColumns="grid-cols-3" slotDefault="place-self-center" slotTrail="place-content-end">
+		<AppBar shadow="shadow-lg dark:bg-surface-800" padding="p-4">
 			<svelte:fragment slot="lead">
-				<div class="grid grid-cols-2 items-center">
-					<button class="ml-auto lg:mr-auto btn-icon lg:hidden" on:click={() => openDocsMenu()}
-						><Fa size="lg" icon={faBars} /></button
-					>
-					<a href="/" class="hidden md:block text-xl font-mono font-bold uppercase">
-						<img src={Logo} class="max-h-10 variant-surface" alt="" /></a
-					>
+				<div class="flex items-center">
+					<button class="btn-icon md:hidden" on:click={() => drawerStore.open(sidebarDrawer)}>
+						<Fa icon={faBars} size="lg" />
+					</button>
+					<a href="/">
+						<img src={Logo} alt="The letters DUUI" class="hidden md:block max-h-8" />
+					</a>
 				</div>
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
-				<div class="hidden lg:flex items-center gap-4">
-					<a
-						class="btn btn-sm rounded-md hover:text-primary-500"
-						href="/pipelines"
-						rel="noreferrer"
+				<div class="hidden md:flex items-center gap-4">
+					<Menu
+						background="bg-primary-hover-token p-2 rounded-md"
+						name="Pipelines"
+						offset={32}
+						placement="bottom-end"
 					>
-						Pipelines
-					</a>
-					<a class="btn btn-sm rounded-md hover:text-primary-500" href="/docs" rel="noreferrer">
-						Documentation
-					</a>
-					<a
-						class="btn btn-sm rounded-md hover:text-primary-500"
-						href="/user/login"
-						rel="noreferrer">{data.user ? 'Logout' : 'Login'}</a
+						<svelte:fragment slot="title">
+							<span>Pipelines</span>
+						</svelte:fragment>
+						<svelte:fragment slot="content">
+							<div
+								class="flex flex-col text-left dark:bg-surface-600 dark:text-on-surface-token bg-surface-100 shadow-lg text-surface-800 p-4"
+							>
+								<Anchor
+									href="/pipelines"
+									icon={faLayerGroup}
+									text="Dashboard"
+									rounded="rounded-md"
+									_class="justify-start gap-8 bg-primary-hover-token"
+									variant=""
+								/>
+								<Anchor
+									href="/pipelines/new"
+									icon={faPlus}
+									text="Builder"
+									rounded="rounded-md"
+									_class="justify-start gap-8 bg-primary-hover-token"
+									variant=""
+								/>
+							</div>
+						</svelte:fragment>
+					</Menu>
+					<Menu
+						background="bg-primary-hover-token p-2 rounded-md"
+						name="Documentation"
+						offset={32}
+						placement="bottom-end"
 					>
+						<svelte:fragment slot="title">
+							<span>Documentation</span>
+						</svelte:fragment>
+						<svelte:fragment slot="content">
+							<div
+								class="flex flex-col text-left dark:bg-surface-600 dark:text-on-surface-token bg-surface-100 shadow-lg text-surface-800 p-4"
+							>
+								<Anchor
+									href="/documentation#quick-start"
+									icon={faBookOpen}
+									text="Quick Start"
+									rounded="rounded-md"
+									_class="justify-start gap-8 bg-primary-hover-token"
+									variant=""
+								/>
+								<Anchor
+									href="/documentation#composer"
+									icon={faGears}
+									text="Composer"
+									rounded="rounded-md"
+									_class="justify-start gap-8 bg-primary-hover-token"
+									variant=""
+								/>
+								<Anchor
+									href="/documentation#driver"
+									icon={faNetworkWired}
+									text="Driver"
+									rounded="rounded-md"
+									_class="justify-start gap-8 bg-primary-hover-token"
+									variant=""
+								/>
+								<Anchor
+									href="/documentation#component"
+									icon={faMap}
+									text="Component"
+									rounded="rounded-md"
+									_class="justify-start gap-8 bg-primary-hover-token"
+									variant=""
+								/>
+							</div>
+						</svelte:fragment>
+					</Menu>
+					<Menu
+						background="bg-primary-hover-token p-2 rounded-md"
+						name="Account"
+						offset={32}
+						placement="bottom-end"
+					>
+						<svelte:fragment slot="title">
+							<span>Account</span>
+						</svelte:fragment>
+						<svelte:fragment slot="content">
+							<div
+								class="flex flex-col text-left dark:bg-surface-600 dark:text-on-surface-token bg-surface-100 shadow-lg text-surface-800 p-4"
+							>
+								<Anchor
+									href="/account"
+									icon={faUser}
+									text="Profile"
+									rounded="rounded-md"
+									_class="justify-start gap-8 bg-primary-hover-token"
+									variant=""
+								/>
+								{#if !loggedIn}
+									<Anchor
+										href="/account/login"
+										icon={faArrowRightToBracket}
+										text="Login"
+										rounded="rounded-md"
+										_class="justify-start gap-8 bg-primary-hover-token"
+										variant=""
+									/>
+									<Anchor
+										href="/account/register"
+										icon={faUserPlus}
+										text="Register"
+										rounded="rounded-md"
+										_class="justify-start gap-8 bg-primary-hover-token"
+										variant=""
+									/>
+								{:else}
+									<ActionButton
+										on:click={logout}
+										icon={faArrowRightFromBracket}
+										text="Logout"
+										rounded="rounded-md"
+										_class="justify-start gap-8 bg-primary-hover-token"
+										variant=""
+									/>
+								{/if}
+							</div>
+						</svelte:fragment>
+					</Menu>
 				</div>
-				<LightSwitch rounded="rounded-md" class="shadow-lg" />
+				<a href="/">
+					<img src={Logo} alt="The letters DUUI" class="md:hidden block max-h-8 pr-4" />
+				</a>
+				<LightSwitch class="md:block hidden" />
 			</svelte:fragment>
 		</AppBar>
 	</svelte:fragment>
@@ -95,39 +236,33 @@
 	<svelte:fragment slot="pageFooter">
 		<footer id="page-footer" class="flex-none">
 			<div
-				class="page-footer bg-surface-50 dark:bg-surface-900 border-t border-surface-500/10 text-xs md:text-base"
+				class="page-footer bg-surface-50 dark:bg-surface-700 border-t border-surface-500 text-xs md:text-base"
 			>
 				<div class="w-full max-w-7xl mx-auto space-y-4 py-8">
 					<div class="flex flex-col md:flex-row justify-center space-y-8">
 						<div class="grid grid-cols-1 gap-4 place-items-center">
-							<img src={Logo} class="max-h-14" alt="" />
-							<p class="!text-sm opacity-80">
-								<span class="text-primary-400 font-bold">DUUI</span> - Lightweight NLP Framework
-							</p>
+							<img src={Logo} class="max-h-8" alt="" />
+							<p class="!text-sm opacity-80">Lightweight NLP Framework</p>
 						</div>
 					</div>
 					<div
 						class="flex flex-col md:flex-row justify-center items-center md:items-start space-y-4 md:space-y-0"
 					>
 						<div class="flex space-x-4">
-							<a
-								class="btn variant-soft"
+							<Anchor
+								icon={faGithub}
+								text="Github"
 								href="https://github.com/texttechnologylab/DUUIController"
 								target="_blank"
 								rel="noreferrer"
-							>
-								<Fa icon={faGithub} />
-								<span class="hidden md:inline-block ml-2">Github</span></a
-							>
-							<a
-								class="btn variant-soft"
+							/>
+							<Anchor
+								icon={faGlobe}
+								text="TTLab"
 								href="https://www.texttechnologylab.org/"
 								target="_blank"
 								rel="noreferrer"
-							>
-								<Fa icon={faGlobe} />
-								<span class="hidden md:inline-block ml-2">TTLab</span></a
-							>
+							/>
 						</div>
 					</div>
 				</div>

@@ -24,6 +24,7 @@ import static api.requests.validation.Validator.isNullOrEmpty;
 import static api.requests.validation.Validator.missingField;
 import static api.storage.DUUIMongoDBStorage.combineUpdates;
 import static api.storage.DUUIMongoDBStorage.mapObjectIdToString;
+import static com.mongodb.client.model.Sorts.ascending;
 
 public class DUUIComponentController {
 
@@ -199,6 +200,7 @@ public class DUUIComponentController {
                     .getDatabase("duui")
                     .getCollection("components")
                     .find(Filters.eq("pipeline_id", id))
+                    .sort(ascending("index"))
                     .spliterator(), false)
             .collect(Collectors.toList());
 

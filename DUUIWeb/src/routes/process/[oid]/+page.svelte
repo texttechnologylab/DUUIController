@@ -1,24 +1,25 @@
 <script lang="ts">
-	import { goto } from '$app/navigation'
-	import ActionButton from '$lib/components/ActionButton.svelte'
+	import { goto, invalidate, invalidateAll } from '$app/navigation'
+	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import DriverIcon from '$lib/components/DriverIcon.svelte'
-	import IconButton from '$lib/components/IconButton.svelte'
+	import IconButton from '$lib/svelte/widgets/action/IconButton.svelte'
 	import { API_URL } from '$lib/config.js'
 	import {
-		Input,
 		Output,
 		type DUUIDocument,
 		isCloudProvider,
-		getTotalDuration
+		getTotalDuration,
+		Input
 	} from '$lib/duui/io.js'
-	import { Status, isActive, statusNames } from '$lib/duui/monitor.js'
+	import { Status, isActive } from '$lib/duui/monitor.js'
 	import { processToSeachParams, type DUUIProcess } from '$lib/duui/process.js'
+	import ComboBox from '$lib/svelte/widgets/input/ComboBox.svelte'
+	import TextInput from '$lib/svelte/widgets/input/TextInput.svelte'
 	import { Api, makeApiCall } from '$lib/utils/api'
 	import { equals, formatFileSize, includes, progresAsPercent } from '$lib/utils/text.js'
-	import { formatMilliseconds, getDuration } from '$lib/utils/time.js'
+	import { formatMilliseconds } from '$lib/utils/time.js'
 	import {
 		documentStatusNames,
-		documentStatusNamesString,
 		getDocumentStatusIcon,
 		getStatusIcon,
 		info,
@@ -32,11 +33,10 @@
 		faArrowRight,
 		faArrowUpWideShort,
 		faCancel,
-		faEquals,
-		faFile,
 		faFileDownload,
 		faFileUpload,
 		faRefresh,
+		faSearch,
 		faTrash
 	} from '@fortawesome/free-solid-svg-icons'
 	import {
@@ -44,21 +44,25 @@
 		getToastStore,
 		ProgressBar,
 		type ModalComponent,
-		type ModalSettings,
-		type ToastSettings
+		type ModalSettings
 	} from '@skeletonlabs/skeleton'
 
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
+	import { page } from '$app/stores'
+	import Anchor from '$lib/svelte/widgets/action/Anchor.svelte'
+	import { browser } from '$app/environment'
 
 	export let data
 	const toastStore = getToastStore()
 
-	let { pipeline, process } = data
+	let { pipeline, process, documentQuery } = data
+
+	let documents: DUUIDocument[] = documentQuery.documents
+	let total: number = documentQuery.total
 
 	let progressPercent: number = 0
 
-	let documents: DUUIDocument[] = []
 	let tableHeader: string[] = ['Name', 'Progress', 'Status', 'File Size', 'Duration']
 
 	onMount(() => {
@@ -72,25 +76,29 @@
 				clearInterval(interval)
 			}
 
-			const documentResponse = await fetch(
-				API_URL +
-					'/processes/' +
-					process.oid +
-					`/documents?status=${statusFilter}&limit=${itemsPerPage}&offset=${itemsPerPage * page}`,
-				{
-					method: 'GET',
-					mode: 'cors'
-				}
+			const documentsResponse = await makeApiCall(
+				Api.Documents,
+				'GET',
+				{},
+				`oid=${process.oid}&limit=${itemsPerPage}&skip=${
+					pageIndex * itemsPerPage
+				}&sort=${sortMap.get(
+					sortIndex
+				)}&order=${sortOrder}&text=${searchText}&status=${statusFilters.join(';')}`
 			)
 
-			if (!documentResponse.ok || !isActive(process.status)) {
+			if (!documentsResponse.ok || !isActive(process.status)) {
 				clearInterval(interval)
 			}
 
+			const result = await documentsResponse.json()
+			documents = result.documents
+			total = result.total
+
 			const update: DUUIProcess = await response.json()
 
-			documents = (await documentResponse.json()).documents
 			process = update
+			maxPages = Math.ceil(total / itemsPerPage)
 
 			progressPercent = progresAsPercent(process.progress, process.documentNames.length)
 
@@ -123,7 +131,7 @@
 				type: 'confirm',
 				title: 'Delete Run',
 				buttonTextConfirm: 'Delete',
-				body: `Are you sure you want to delete this run?`,
+				body: `Are you sure you want to delete this process?`,
 				response: (r: boolean) => {
 					resolve(r)
 				}
@@ -140,15 +148,27 @@
 		})
 	}
 
+	const DROPBOX_URL: string = 'https://www.dropbox.com/home/Apps/Cedric%20Test%20App'
+
 	function getOutput(): string {
+		if (equals(process.output.target, Output.Minio)) {
+			return `http://192.168.2.122:9090/browser/${process.output.folder}`
+		}
+
 		if (equals(process.output.target, Output.Dropbox)) {
-			if (process.output.folder.startsWith('/')) {
-				return `https://www.dropbox.com/home/Apps/Cedric%20Test%20App${process.output.folder}`
-			} else {
-				return `https://www.dropbox.com/home/Apps/Cedric%20Test%20App/${process.output.folder}`
-			}
-		} else if (equals(process.output.target, Output.Minio)) {
-			return `http://127.0.0.1:9090/browser/${process.output.folder}`
+			return `${DROPBOX_URL}${process.output.folder}`
+		}
+
+		return ''
+	}
+
+	function getInput(): string {
+		if (equals(process.input.source, Input.Minio)) {
+			return `http://192.168.2.122:9090/browser/${process.input.folder}`
+		}
+
+		if (equals(process.input.source, Input.Dropbox)) {
+			return `${DROPBOX_URL}${process.input.folder}`
 		}
 
 		return ''
@@ -156,60 +176,82 @@
 
 	async function restart() {
 		goto(
-			`/process?pipeline=${pipeline.oid}
+			`/process?oid=${pipeline.oid}
 			&from=/process/${process.oid}
 			&${processToSeachParams(process)}`
 		)
 	}
 
-	let filteredDocuments: DUUIDocument[] = []
 	let searchText: string = ''
 
+	const sortMap: Map<number, string> = new Map([
+		[0, 'name'],
+		[1, 'progress'],
+		[2, 'status'],
+		[3, 'size'],
+		[4, 'duration']
+	])
+
+	let sortTerm: string = $page.url.searchParams.get('sort') || 'name'
+	let sortOrder: number = $page.url.searchParams.get('order') === '-1' ? -1 : 1
 	let sortIndex: number = 0
-	let sortOrder: number = 1
 
-	let page: number = 0
-	let itemsPerPage: number = 10
-	let maxPages: number = documents.length / itemsPerPage
-	let sortedDocuments: DUUIDocument[] = documents
-	let statusFilter: string = Status.Any
-
-	let maxProgress = pipeline.components.length + (isCloudProvider(process.output.target) ? 1 : 0)
-
-	$: {
-		if (documents.length > 0) {
-			filteredDocuments = documents.filter(
-				(d) =>
-					(includes(d.name, searchText) || searchText === '') &&
-					(equals(d.status, statusFilter) || statusFilter === '' || statusFilter === Status.Any)
-			)
-
-			sortedDocuments = filteredDocuments
-				.sort((a, b) => {
-					if (sortIndex === 1) return a.progress > b.progress ? sortOrder : -sortOrder
-					if (sortIndex === 2)
-						return documentStatusNamesString.indexOf(a.status) >
-							documentStatusNamesString.indexOf(b.status)
-							? sortOrder
-							: -sortOrder
-					if (sortIndex === 3) return a.size > b.size ? sortOrder : -sortOrder
-					if (sortIndex === 4)
-						return getTotalDuration(a) > getTotalDuration(b) ? sortOrder : -sortOrder
-					return a.name > b.name ? sortOrder : -sortOrder
-				})
-				.slice(itemsPerPage * page, itemsPerPage * (page + 1))
-
-			maxPages = Math.floor(filteredDocuments.length / itemsPerPage)
-			if (filteredDocuments.length % itemsPerPage === 0) maxPages -= 1
+	for (let value of sortMap.values()) {
+		if (value === sortTerm) {
+			sortIndex = ([...sortMap].find(([k, v]) => v === value) || [0])[0]
 		}
 	}
 
-	const incrementPage = () => {
-		page += 1
+	let itemsPerPage: number = Math.min(+($page.url.searchParams.get('limit') || '10'), 10)
+	let pageIndex: number = Math.max(
+		0,
+		Math.ceil(+($page.url.searchParams.get('skip') || '0') / itemsPerPage)
+	)
+
+	let maxPages: number = Math.ceil(total / itemsPerPage)
+
+	let statusFilters: string[] = [Status.Any]
+
+	let maxProgress = pipeline.components.length + (isCloudProvider(process.output.target) ? 1 : 0)
+
+	const incrementPage = async () => {
+		if (total <= (pageIndex + 1) * itemsPerPage) return
+		pageIndex += 1
+		updateResults(true)
 	}
 
-	const decrementPage = () => {
-		page -= 1
+	const decrementPage = async () => {
+		if (pageIndex === 0) return
+		pageIndex -= 1
+		updateResults(true)
+	}
+
+	const updateResults = async (navigation: boolean = false) => {
+		if (!browser) return
+		goto(
+			`/process/${process.oid}?limit=${itemsPerPage}&skip=${
+				pageIndex * itemsPerPage
+			}&sort=${sortMap.get(
+				sortIndex
+			)}&order=${sortOrder}&text=${searchText}&status=${statusFilters.join(';')}`
+		)
+
+		if (!navigation) {
+			pageIndex = 0
+		}
+
+		const documentsResponse = await makeApiCall(
+			Api.Documents,
+			'GET',
+			{},
+			`oid=${process.oid}&limit=${itemsPerPage}&skip=${pageIndex * itemsPerPage}&sort=${sortMap.get(
+				sortIndex
+			)}&order=${sortOrder}&text=${searchText}&status=${statusFilters.join(';')}`
+		)
+
+		const result = await documentsResponse.json()
+		documents = result.documents
+		total = result.total
 	}
 
 	const modalStore = getModalStore()
@@ -227,19 +269,22 @@
 		modalStore.trigger(modal)
 	}
 
-	$: {
-		const finishedDocuments = documents.filter((d) => equals(d.status, Status.Completed))
-		if (finishedDocuments.length > 0) {
-			console.log(
-				finishedDocuments.reduce((sum, current) => sum + current.processDuration, 0) /
-					finishedDocuments.length
-			)
-		}
-	}
-
 	const sortTable = (index: number) => {
 		sortOrder = sortIndex !== index ? 1 : (sortOrder *= -1)
 		sortIndex = index
+		updateResults()
+	}
+
+	$: {
+		const lastFilter: string | undefined = statusFilters.at(-1)
+
+		if (equals(lastFilter || '', Status.Any) || statusFilters.length === 0) {
+			statusFilters = [Status.Any]
+		} else {
+			statusFilters = statusFilters.filter((status) => !equals(status, Status.Any))
+		}
+
+		updateResults()
 	}
 </script>
 
@@ -254,61 +299,63 @@
 				class={equals(process.status, Status.Running) ? 'animate-spin-slow ' : ''}
 			/>
 			<p>{process.status}</p>
-			<!-- <p>{progressPercent} %</p> -->
 		</div>
 	</div>
 	<hr />
-	<div class="flex items-center justify-start gap-4">
-		<ActionButton
-			icon={faArrowLeft}
-			text="Back"
-			on:click={() => goto('/pipelines/' + pipeline.oid + '?tab=1')}
-		/>
-		{#if isCloudProvider(process.input.source)}
+	<div class="grid xl:flex items-center xl:justify-start gap-4">
+		<div class="xl:flex grid grid-cols-2 gap-4 items-center">
 			<ActionButton
-				text="Input"
-				icon={faFileDownload}
-				on:click={() => console.log('GO TO INPUT NOT IMPLEMENTED')}
+				icon={faArrowLeft}
+				text="Back"
+				on:click={() => goto('/pipelines/' + pipeline.oid + '?tab=2')}
 			/>
-		{/if}
-		{#if isCloudProvider(process.output.target) && equals(process.status, Status.Completed)}
-			<ActionButton
-				text="Output"
-				icon={faFileUpload}
-				on:click={() => console.log('GO TO OUTPUT NOT IMPLEMENTED')}
-			/>
-		{/if}
-		{#if !process.finished}
-			<ActionButton text="Cancel" icon={faCancel} on:click={cancelProcess} />
-		{:else}
-			<ActionButton text="Restart" icon={faRefresh} on:click={restart} />
-			<ActionButton text="Delete" icon={faTrash} on:click={deleteProcess} />
-		{/if}
-		<div class="items-center gap-4 hidden md:flex ml-auto">
-			<input
-				class="input border-1 rounded-md"
-				type="text"
-				placeholder="Search..."
-				bind:value={searchText}
-			/>
+			{#if isCloudProvider(process.input.source)}
+				<ActionButton text="Input" icon={faFileDownload} on:click={() => window.open(getInput())} />
+			{/if}
+			{#if isCloudProvider(process.output.target) && equals(process.status, Status.Completed)}
+				<ActionButton text="Output" icon={faFileUpload} on:click={() => window.open(getOutput())} />
+			{/if}
+			{#if !process.finished}
+				<ActionButton text="Cancel" icon={faCancel} on:click={cancelProcess} />
+			{:else}
+				<ActionButton text="Restart" icon={faRefresh} on:click={restart} />
+				<ActionButton text="Delete" icon={faTrash} on:click={deleteProcess} />
+			{/if}
+		</div>
 
-			<select bind:value={statusFilter} class="input">
-				{#each documentStatusNames as status}
-					<option value={status}>{status}</option>
-				{/each}
-			</select>
+		<div class="grid md:flex items-center gap-4 lg:ml-auto">
+			<TextInput
+				classes="grow"
+				bind:value={searchText}
+				placeholder="Search..."
+				icon={faSearch}
+				on:focusout={() => updateResults()}
+				on:keydown={(event) => {
+					if (equals(event.key, 'enter')) {
+						updateResults()
+					}
+				}}
+			/>
+			<ComboBox
+				id="status"
+				bind:values={statusFilters}
+				options={documentStatusNames}
+				multiple={true}
+				text="Status"
+				closeQuery="button"
+			/>
 		</div>
 	</div>
 	{#if process.error}
 		<p class="text-error-400 font-bold break-words">ERROR: {process.error}</p>
 	{/if}
-	<div class="overflow-hidden rounded-md border-[1px] border-surface-500">
+	<div class="overflow-hidden border-[1px] border-surface-700">
 		<div
 			class="header grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 variant-soft-surface"
 		>
 			{#each tableHeader as column, index}
 				<button
-					class="btn variant-soft-surface gap-4 justify-start items-center rounded-none p-4 text-left
+					class="btn variant-soft-surface gap-4 justify-start items-center rounded-none p-3 text-left
 					{[1].includes(index)
 						? 'hidden sm:inline-flex'
 						: [4].includes(index)
@@ -332,12 +379,12 @@
 			rounded="rounded-none"
 			meter="variant-filled-primary"
 		/>
-		<div class="rounded-md rounded-t-none overflow-hidden flex flex-col">
-			{#each sortedDocuments as document, index}
+		<div class="overflow-hidden flex flex-col">
+			{#each documents as document, index}
 				<button
-					class="btn rounded-none {index % 2 === 1 || sortedDocuments.length === 1
+					class="btn rounded-none {index % 2 === 1 || documents.length === 1
 						? 'variant-soft-surface'
-						: ''} hover:variant-soft-primary grid-cols-2 grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 p-4 text-left"
+						: ''} hover:variant-soft-primary grid-cols-2 grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 p-2 text-left"
 					on:click={() => showDocumentModal(document)}
 				>
 					<p>{document.name}</p>
@@ -366,25 +413,20 @@
 		</div>
 	</div>
 
-	<div
-		class="flex items-center justify-between gap-4 {documents.length <= itemsPerPage
-			? 'hidden'
-			: 'block'}"
-	>
-		<IconButton
-			icon={faArrowLeft}
-			_class={page > 0 ? 'inline-flex' : 'invisible'}
-			on:click={decrementPage}
-		/>
-		<IconButton
-			icon={faArrowRight}
-			_class={page < maxPages ? 'inline-flex' : 'invisible'}
-			on:click={incrementPage}
-		/>
+	<div class="flex items-center justify-center gap-4 variant-soft-surface mx-auto">
+		<IconButton rounded="rounded-none" icon={faArrowLeft} on:click={decrementPage} />
+		{#if total === 0}
+			<p>No results</p>
+		{:else}
+			<p>
+				{1 + pageIndex * itemsPerPage}-{Math.min((pageIndex + 1) * itemsPerPage, total)} of {total}
+			</p>
+		{/if}
+		<IconButton rounded="rounded-none" icon={faArrowRight} on:click={incrementPage} />
 	</div>
 
 	<div class="gap-4 grid items-start">
-		<div class="card shadow-lg rounded-md p-4 space-y-4">
+		<div class="variant-soft-surface shadow-lg p-4 space-y-4">
 			<h3 class="h3">Pipeline status</h3>
 
 			<hr />

@@ -5,16 +5,23 @@ export const Api = {
 	Services: '/pipelines/api/service',
 	Templates: '/pipelines/api/components',
 	Components: '/pipelines/api/components',
-	Processes: '/process/api'
+	Processes: '/process/api',
+	Documents: '/process/api/documents',
+	Logout: '/account/api'
 }
 
-export const makeApiCall = async (endpoint: string, method: string, body: Object) => {
+export const makeApiCall = async (
+	endpoint: string,
+	method: string,
+	body: Object,
+	searchParams: string = ''
+) => {
 	if (equals(method, 'GET')) {
-		return await fetch(endpoint, {
-			method: method
+		return await fetch(searchParams ? `${endpoint}?${searchParams}` : endpoint, {
+			method: method,
 		})
 	} else {
-		return await fetch(endpoint, {
+		return await fetch(searchParams ? `${endpoint}?${searchParams}` : endpoint, {
 			method: method,
 			body: JSON.stringify(body)
 		})

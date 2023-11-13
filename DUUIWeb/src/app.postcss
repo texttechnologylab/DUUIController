@@ -8,16 +8,17 @@ body {
 	@apply h-full overflow-hidden;
 }
 
-/* rocket theme */
 @font-face {
-	font-family: 'Space Grotesk';
-	src: url('/fonts/SpaceGrotesk.ttf');
-	font-display: swap;
+	font-family: 'Montserrat';
+	src: url('/fonts/Montserrat.ttf');
 }
 
-:root [data-theme='custom-theme'] {
-	--theme-font-family-base: 'Space Grotesk', sans-serif;
-	--theme-font-family-heading: 'Space Grotesk', sans-serif;
+@font-face {
+	font-family: 'Open Sans';
+	src: url('/fonts/OpenSans.ttf');
 }
 
-
+:root [data-theme='theme'] {
+	--theme-font-family-base: 'Montserrat', sans-serif;
+	--theme-font-family-heading: 'Open Sans', sans-serif;
+}

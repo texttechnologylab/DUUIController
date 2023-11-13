@@ -1,29 +1,17 @@
 <script lang="ts">
-	import ActionButton from '$lib/components/ActionButton.svelte'
+	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import DriverIcon from '$lib/components/DriverIcon.svelte'
 	import { usedDrivers } from '$lib/duui/pipeline'
-	import { datetimeToString, includes } from '$lib/utils/text'
-	import {
-		faCheck,
-		faFileExport,
-		faFileImport,
-		faPlus,
-		faSearch,
-		faWifi,
-		faX
-	} from '@fortawesome/free-solid-svg-icons'
+	import Anchor from '$lib/svelte/widgets/action/Anchor.svelte'
+	import { includes } from '$lib/utils/text'
+	import { faFileImport, faPlus, faSearch, faWifi } from '@fortawesome/free-solid-svg-icons'
 
 	import Fa from 'svelte-fa'
+	import TextInput from '$lib/svelte/widgets/input/TextInput.svelte'
 
 	export let data
 
 	let { pipelines } = data
-
-	// pipelines.forEach(({ components }) => {
-	// 	components.forEach((component: DUUIComponent) => {
-	// 		$componentsStore = [...$componentsStore, component]
-	// 	})
-	// })
 
 	let searchText: string = ''
 	let filteredPipelines = pipelines
@@ -33,7 +21,7 @@
 
 	$: {
 		filteredPipelines = pipelines.filter(
-			(pipeline) => includes(pipeline.name, searchText) || !searchText
+			(pipeline) => includes(pipeline.name + ' ' + pipeline.description, searchText) || !searchText
 		)
 
 		if (activeOnly) {
@@ -51,34 +39,18 @@
 	<h1 class="h2">Pipelines</h1>
 	<hr />
 
-	<div class="flex items-center justify-between gap-4">
-		<a href="pipelines/new" class="btn variant-soft-surface">
-			<span>Create</span>
-			<Fa icon={faPlus} />
-		</a>
-		<ActionButton
-			text="Import"
-			icon={faFileImport}
-			on:click={() => console.log('IMPORT NOT IMPLEMENTED')}
-		/>
-		<div class="flex items-center gap-4 ml-auto">
-			<input
-				class="input variant-soft-surface"
-				type="text"
-				placeholder="Search..."
-				bind:value={searchText}
+	<div class="grid md:flex items-center md:justify-between gap-4">
+		<div class="flex items-center gap-4">
+			<Anchor href="/pipelines/new" icon={faPlus} text="Create" />
+			<ActionButton
+				text="Import"
+				icon={faFileImport}
+				on:click={() => console.log('IMPORT NOT IMPLEMENTED')}
 			/>
-			<button class="chip rounded-md variant-soft-surface" on:click={() => (unused = !unused)}>
-				<Fa icon={unused ? faCheck : faX} />
-				<span>New</span>
-			</button>
-			<button
-				class="chip rounded-md variant-soft-surface"
-				on:click={() => (activeOnly = !activeOnly)}
-			>
-				<Fa icon={activeOnly ? faCheck : faX} />
-				<span>Active</span>
-			</button>
+		</div>
+
+		<div class="md:ml-auto">
+			<TextInput bind:value={searchText} icon={faSearch} placeholder="Search..." />
 		</div>
 	</div>
 

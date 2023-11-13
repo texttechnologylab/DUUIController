@@ -2,7 +2,7 @@
 	import { v4 as uuidv4 } from 'uuid'
 	import { goto } from '$app/navigation'
 	import PipelineComponent from '$lib/components/PipelineComponent.svelte'
-	import { isEqual } from 'lodash'
+	import { isEqual, cloneDeep } from 'lodash'
 	import {
 		faArrowDownWideShort,
 		faArrowLeft,
@@ -33,66 +33,57 @@
 	import { page } from '$app/stores'
 	import { Api, makeApiCall } from '$lib/utils/api'
 	import { documentStatusNamesString, getStatusIcon, info, success } from '$lib/utils/ui'
-	import { pipelineToJson } from '$lib/duui/pipeline'
-	import ActionButton from '$lib/components/ActionButton.svelte'
+	import { pipelineToExportableJson } from '$lib/duui/pipeline'
+	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import type { DUUIComponent } from '$lib/duui/component'
 	import { Status } from '$lib/duui/monitor'
 	import type { DUUIProcess } from '$lib/duui/process'
 	import { markedForDeletionStore } from '$lib/store'
-	import SettingsMapper from '$lib/components/SettingsMapper.svelte'
+	import SettingsMapper from '$lib/svelte/widgets/input/SettingsMapper.svelte'
+	import TextInput from '$lib/svelte/widgets/input/TextInput.svelte'
+	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
 
 	export let data: PageServerData
 	let { pipeline, processes } = data
 
 	pipeline.components.forEach((c) => (c.id = uuidv4()))
-	pipeline.components.sort((a, b) => (a.index > b.index ? 1 : -1))
+
+	let pipelineCopy = cloneDeep(pipeline)
+
+	const modalStore = getModalStore()
+	const toastStore = getToastStore()
 
 	let startingService: boolean = false
 	let stoppingService: boolean = false
+
+	let settings: Map<string, string> = new Map(Object.entries(pipeline.settings))
 	let hasChanges: boolean = false
-	let settings: Map<string, string>
 
-	let name: string = pipeline.name
-	let description: string = pipeline.description
-	let componentsOrder: Map<number, string> = new Map(
-		pipeline.components.map((c) => [c.index, c.oid])
-	)
-
-	let components: DUUIComponent[] = pipeline.components
-
-	let tabSet: number = +($page.url.searchParams.get('tab') || 0)
-
-	let filteredProcesses: DUUIProcess[] = []
+	let tableHeader: string[] = ['Started At', 'IO', '# Documents', 'Progress', 'Status', 'Duration']
 
 	let sortIndex: number = 0
 	let sortOrder: number = 1
 
 	let pageIndex: number = 0
 	let itemsPerPage: number = 10
-	let maxPages: number = processes.length / itemsPerPage
+	let numberOfPages: number = processes.length / itemsPerPage
+
+	let filteredProcesses: DUUIProcess[] = []
 	let sortedProcessses: DUUIProcess[] = processes
 	let statusFilter: string = Status.Any
 
-	let tableHeader: string[] = ['Started At', 'IO', '# Documents', 'Progress', 'Status', 'Duration']
-
-	let flipDurationMs = 300
+	let tabSet: number = +($page.url.searchParams.get('tab') || 0)
 
 	const handleDndConsider = (event: CustomEvent<DndEvent<DUUIComponent>>) => {
-		pipeline.components = event.detail.items
-		pipeline.components = [...pipeline.components]
+		pipeline.components = [...event.detail.items]
 	}
 
 	const handleDndFinalize = (event: CustomEvent<DndEvent<DUUIComponent>>) => {
-		pipeline.components = event.detail.items
-		pipeline.components = [...pipeline.components]
+		pipeline.components = [...event.detail.items]
 		pipeline.components.forEach(
 			(c) => (c.index = pipeline.components.map((c) => c.oid).indexOf(c.oid))
 		)
-		console.log(pipeline.components.map((c) => c.name + ': ' + c.index))
 	}
-
-	const modalStore = getModalStore()
-	const toastStore = getToastStore()
 
 	const updatePipeline = async () => {
 		pipeline.settings = Object.fromEntries(settings.entries())
@@ -104,10 +95,7 @@
 
 		if (response.ok) {
 			toastStore.trigger(success('Changes saved successfully'))
-			name = pipeline.name
-			description = pipeline.description
-			components = pipeline.components
-			componentsOrder = new Map(pipeline.components.map((c) => [c.index, c.oid]))
+			pipelineCopy = cloneDeep(pipeline)
 		}
 
 		for (let oid of $markedForDeletionStore) {
@@ -161,7 +149,9 @@
 		if (response.ok) {
 			const json = await response.json()
 			pipeline.serviceStartTime = json.serviceStartTime
-			toastStore.trigger(info(`Service ${pipeline.name} has been started`))
+			pipelineCopy.serviceStartTime = json.serviceStartTime
+
+			toastStore.trigger(success(`Service ${pipeline.name} has been started`))
 		}
 
 		startingService = false
@@ -175,6 +165,8 @@
 
 		if (response.ok) {
 			pipeline.serviceStartTime = 0
+			pipelineCopy.serviceStartTime = 0
+
 			toastStore.trigger(info(`Service ${pipeline.name} has been stopped`))
 		}
 
@@ -182,7 +174,9 @@
 	}
 
 	function exportPipeline() {
-		const blob = new Blob([JSON.stringify(pipelineToJson(pipeline))], { type: 'application/json' })
+		const blob = new Blob([JSON.stringify(pipelineToExportableJson(pipeline))], {
+			type: 'application/json'
+		})
 		const url = URL.createObjectURL(blob)
 		const anchor = document.createElement('a')
 		anchor.href = url
@@ -194,31 +188,15 @@
 	}
 
 	const discardChanges = () => {
-		pipeline.name = name
-		pipeline.description = description
-		pipeline.components = components
-		pipeline.components.forEach(
-			(c) => (c.index = pipeline.components.map((c) => c.oid).indexOf(c.oid))
-		)
-		componentsOrder = new Map(pipeline.components.map((c) => [c.index, c.oid]))
+		pipeline = cloneDeep(pipelineCopy)
 		settings = new Map(Object.entries(pipeline.settings))
 	}
 
 	$: {
-		hasChanges =
-			name !== pipeline.name ||
-			description !== pipeline.description ||
-			components.length != pipeline.components.length
-
-		for (let component of pipeline.components) {
-			if (component.oid !== componentsOrder.get(component.index)) {
-				hasChanges = true
-				break
-			}
-		}
+		hasChanges = !isEqual(pipeline, pipelineCopy)
 
 		if (settings) {
-			hasChanges ||= !isEqual(Object.fromEntries(settings), pipeline.settings)
+			hasChanges ||= !isEqual(Object.fromEntries(settings.entries()), pipeline.settings)
 		}
 	}
 
@@ -248,8 +226,8 @@
 				})
 				.slice(itemsPerPage * pageIndex, itemsPerPage * (pageIndex + 1))
 
-			maxPages = Math.floor(filteredProcesses.length / itemsPerPage)
-			if (filteredProcesses.length % itemsPerPage === 0) maxPages -= 1
+			numberOfPages = Math.floor(filteredProcesses.length / itemsPerPage)
+			if (filteredProcesses.length % itemsPerPage === 0) numberOfPages -= 1
 		}
 	}
 
@@ -260,68 +238,71 @@
 </script>
 
 <div class="container h-full flex-col mx-auto flex gap-4 md:my-8">
-	<div class="flex items-end justify-between gap-4">
+	<div class="flex items-center md:items-end justify-between gap-4">
 		<h1 class="h2">{pipeline.name}</h1>
-		<div class="flex items-center justify-between">
+		<div class="hidden md:flex items-center justify-between">
 			{#if pipeline.lastUsed}
 				<p>Last used: {datetimeToString(new Date(pipeline.lastUsed))}</p>
 			{:else}
 				<p>Last used: Never</p>
 			{/if}
 		</div>
+		{#if pipeline.serviceStartTime !== 0}
+			<Fa icon={faWifi} class="md:hidden text-success-400" />
+		{/if}
 	</div>
 	<hr />
-	<div class="flex items-center justify-start gap-4">
+	<div class="grid grid-cols-2 md:grid-cols-3 lg:flex items-center justify-start gap-4">
 		<ActionButton text="Back" icon={faArrowLeft} on:click={() => goto('/pipelines')} />
 		<ActionButton text="Export" icon={faFileExport} on:click={exportPipeline} />
 		<ActionButton text="Copy" icon={faCopy} on:click={copyPipeline} />
 		<ActionButton text="Delete" icon={faTrash} on:click={deletePipeline} />
-		<ActionButton
-			text="New Run"
-			icon={faPlus}
-			on:click={() => goto('/process?pipeline=' + pipeline.oid)}
-		/>
-		{#if hasChanges}
-			<ActionButton text="Save changes" icon={faFileCircleCheck} on:click={updatePipeline} />
-			<ActionButton text="Discard changes" icon={faFileCircleXmark} on:click={discardChanges} />
-		{/if}
 
-		<button class="btn rounded-md variant-soft-surface ml-auto" on:click={manageService}>
-			{#if startingService}
-				<p>Instantiating</p>
-				<Fa icon={faHourglassStart} class="animate-pulse" />
-			{:else if stoppingService}
-				<p>Shutting Down</p>
-				<Fa icon={faHourglassEnd} class="animate-pulse" />
-			{:else}
-				<p>{pipeline.serviceStartTime !== 0 ? 'Online' : 'Offline'}</p>
-				<Fa
-					icon={faWifi}
-					class={pipeline.serviceStartTime === 0 ? 'text-error-400' : 'text-success-400'}
-				/>
-			{/if}
-		</button>
+		{#if startingService}
+			<ActionButton
+				icon={faHourglassStart}
+				text="Starting Service"
+				_class="lg:ml-auto col-span-2"
+			/>
+		{:else if stoppingService}
+			<ActionButton icon={faHourglassEnd} text="Stopping Service" _class="lg:ml-auto col-span-2" />
+		{:else if pipeline.serviceStartTime === 0}
+			<ActionButton
+				icon={faWifi}
+				text="Offline"
+				on:click={manageService}
+				_class="lg:ml-auto col-span-2"
+			/>
+		{:else}
+			<ActionButton
+				icon={faWifi}
+				text="Online"
+				on:click={manageService}
+				variant="variant-soft-success"
+				_class="lg:ml-auto col-span-2"
+			/>
+		{/if}
 	</div>
 
-	<div class="variant-soft-surface rounded-md shadow-lg">
-		<TabGroup active="variant-filled-surface" border="none" rounded="rounded-md">
+	<div class="variant-soft-surface shadow-lg">
+		<TabGroup active="variant-filled-primary" border="none" rounded="rounded-none">
 			<Tab bind:group={tabSet} name="settings" value={0}>
-				<div class="flex items-center gap-4">
+				<div class="flex items-center gap-2">
 					<Fa icon={faGears} />
 					<span>Settings</span>
 				</div>
 			</Tab>
 
 			<Tab bind:group={tabSet} name="components" value={1}
-				><div class="flex items-center gap-4">
+				><div class="flex items-center gap-2">
 					<Fa icon={faMap} />
 					<span>Components</span>
 				</div></Tab
 			>
 			<Tab bind:group={tabSet} name="processes" value={2}
-				><div class="flex items-center gap-4">
+				><div class="flex items-center gap-2">
 					<Fa icon={faLayerGroup} />
-					<span>Runs</span>
+					<span>Processes</span>
 				</div></Tab
 			>
 		</TabGroup>
@@ -329,33 +310,28 @@
 
 	{#if tabSet === 0}
 		<div class="grid md:grid-cols-2 gap-4">
-			<div class="flex flex-col gap-4 variant-soft-surface rounded-md shadow-lg p-4">
-				<label class="label">
+			<div class="flex flex-col gap-4 variant-soft-surface shadow-lg p-4">
+				<label class="label" for="pipeline-name">
 					<span>Name</span>
-					<input
-						bind:value={pipeline.name}
-						class="border-2 input focus-within:outline-primary-400"
-						type="text"
-					/>
+					<TextInput id="pipeline-name" bind:value={pipeline.name} />
 				</label>
 
-				<label class="label">
+				<label class="label" for="pipeline-description">
 					<span>Description</span>
-
-					<textarea
-						class="textarea border-2 input"
-						rows="4"
-						placeholder="Enter a description..."
+					<TextArea
+						id="pipeline-description"
+						placeholder="Description"
 						bind:value={pipeline.description}
+						rows={2}
 					/>
 				</label>
 			</div>
-			<div class="variant-soft-surface p-4 shadow-lg rounded-md">
+			<div class="variant-soft-surface p-4 shadow-lg rounded-none">
 				<SettingsMapper bind:settings />
 			</div>
 		</div>
 	{:else if tabSet === 1}
-		<div class="space-y-4 variant-soft-surface rounded-md shadow-lg p-4">
+		<div class="space-y-4 variant-soft-surface mx-auto shadow-lg p-4">
 			<ul
 				use:dndzone={{ items: pipeline.components, dropTargetStyle: {} }}
 				on:consider={(event) => handleDndConsider(event)}
@@ -363,7 +339,7 @@
 				class="grid gap-4"
 			>
 				{#each pipeline.components as component (component.id)}
-					<div animate:flip={{ duration: flipDurationMs }}>
+					<div animate:flip={{ duration: 300 }}>
 						<PipelineComponent
 							{component}
 							on:update={updatePipeline}
@@ -378,22 +354,19 @@
 			</ul>
 		</div>
 	{:else if tabSet === 2}
-		<!-- TODO: Custom table -->
-		<!-- 
-		<Table
-			class="md:block rounded-md shadow-lg variant-soft-surface"
-			source={tableData}
-			interactive
-			on:selected={(event) => goto('/process/' + event.detail[0].oid)}
-		/> -->
-
-		<div class="overflow-hidden rounded-md border-[1px] border-surface-500">
+		<ActionButton
+			text="New Process"
+			icon={faPlus}
+			_class="mr-auto"
+			on:click={() => goto('/process?oid=' + pipeline.oid)}
+		/>
+		<div class="overflow-hidden border-[1px] border-surface-700">
 			<div
-				class="header grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 variant-soft-surface border-b-4 border-primary-500"
+				class="header grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 variant-glassdark:variant-soft-surface border-b-4 border-primary-500"
 			>
 				{#each tableHeader as column, index}
 					<button
-						class="btn variant-soft-surface gap-4 justify-start items-center rounded-none p-4 text-left
+						class="btn variant-soft-surface gap-4 justify-start items-center rounded-none p-3 text-left
 						 {[3].includes(index)
 							? 'hidden sm:inline-flex'
 							: [2].includes(index)
@@ -411,13 +384,13 @@
 				{/each}
 			</div>
 
-			<div class="rounded-md rounded-t-none overflow-hidden flex flex-col">
+			<div class=" overflow-hidden flex flex-col">
 				{#each sortedProcessses as process, index}
 					<button
 						class="btn rounded-none {index % 2 === 1 || sortedProcessses.length === 1
 							? 'variant-soft-surface'
-							: ''} hover:variant-soft-primary grid-cols-2 grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8 p-4 text-left"
-						on:click={() => goto('/process/' + process.oid)}
+							: ''} hover:variant-soft-primary grid-cols-2 grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8 p-2 text-left"
+						on:click={() => goto(`/process/${process.oid}?limit=10&skip=0`)}
 					>
 						<p>{datetimeToString(new Date(process.startTime))}</p>
 						<p class="hidden lg:block">{process.input.source} / {process.output.target}</p>
@@ -440,6 +413,18 @@
 					</button>
 				{/each}
 			</div>
+		</div>
+	{/if}
+
+	{#if hasChanges}
+		<div class="flex items-center gap-4">
+			<ActionButton
+				text="Save changes"
+				icon={faFileCircleCheck}
+				on:click={updatePipeline}
+				variant="variant-soft-success"
+			/>
+			<ActionButton text="Discard changes" icon={faFileCircleXmark} on:click={discardChanges} />
 		</div>
 	{/if}
 </div>

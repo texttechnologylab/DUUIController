@@ -7,9 +7,9 @@
 </script>
 
 <button
-	class="btn variant-ghost-{checked
+	class="btn variant-soft-{checked
 		? 'success'
-		: 'surface'} p-4 rounded-md shadow-lg flex justify-between items-center text-left"
+		: 'surface'} p-4 shadow-lg rounded-none flex justify-between items-center text-left"
 	on:click={() => (checked = !checked)}
 >
 	<span>{text}</span>

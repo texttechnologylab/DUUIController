@@ -4,17 +4,20 @@
 
 	export let icon: IconDefinition
 	export let text: string
-	export let variant: string = 'variant-soft-surface'
+	export let variant: string = 'dark:variant-soft-primary variant-filled-primary'
+	export let rounded: string = 'rounded-none'
 	export let _class: string = ''
 	export let leftToRight: boolean = true
+	export let tabindex: number = 0
+	export let disabled: boolean = false
 </script>
 
-<button on:click class="{_class} btn rounded-md {variant}">
+<button {tabindex} on:click class="btn {rounded} {variant} {_class}" {disabled}>
 	{#if leftToRight}
 		<Fa {icon} />
-		<span class="hidden md:block">{text}</span>
+		<span>{text}</span>
 	{:else}
-		<span class="hidden md:block">{text}</span>
+		<span>{text}</span>
 		<Fa {icon} />
 	{/if}
 </button>

@@ -1,7 +1,7 @@
 import type { CustomThemeConfig } from '@skeletonlabs/tw-plugin'
 
 export const Theme: CustomThemeConfig = {
-	name: 'custom-theme',
+	name: 'theme',
 	properties: {
 		// =~= Theme Properties =~=
 		'--theme-font-family-base': `system-ui`,
@@ -86,16 +86,16 @@ export const Theme: CustomThemeConfig = {
 		'--color-error-700': '163 62 59', // #a33e3b
 		'--color-error-800': '130 50 47', // #82322f
 		'--color-error-900': '106 41 39', // #6a2927
-		// surface | #444444 
-		"--color-surface-50": "227 227 227", // #e3e3e3
-		"--color-surface-100": "218 218 218", // #dadada
-		"--color-surface-200": "208 208 208", // #d0d0d0
-		"--color-surface-300": "180 180 180", // #b4b4b4
-		"--color-surface-400": "124 124 124", // #7c7c7c
-		"--color-surface-500": "68 68 68", // #444444
-		"--color-surface-600": "61 61 61", // #3d3d3d
-		"--color-surface-700": "51 51 51", // #333333
-		"--color-surface-800": "41 41 41", // #292929
-		"--color-surface-900": "33 33 33", // #212121
+		// surface | #292929
+		'--color-surface-50': '255 255 255', // #ffffff
+		'--color-surface-100': '244 244 244', // #f2f2f2
+		'--color-surface-200': '202 202 202', // #cacaca
+		'--color-surface-300': '169 169 169', // #a9a9a9
+		'--color-surface-400': '105 105 105', // #696969
+		'--color-surface-500': '41 41 41', // #292929
+		'--color-surface-600': '37 37 37', // #252525
+		'--color-surface-700': '31 31 31', // #1f1f1f
+		'--color-surface-800': '25 25 25', // #191919
+		'--color-surface-900': '20 20 20' // #141414
 	}
 }

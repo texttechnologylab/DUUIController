@@ -11,6 +11,7 @@ import api.requests.validation.PipelineValidator;
 import api.requests.validation.RequestValidator;
 import api.requests.validation.UserValidator;
 import api.storage.DUUIMongoDBStorage;
+import com.google.common.collect.Iterables;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.*;
 import org.bson.Document;
@@ -23,6 +24,7 @@ import spark.Response;
 import java.net.UnknownHostException;
 import java.time.Instant;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -68,8 +70,17 @@ public class DUUIProcessController {
         }
 
         mapObjectIdToString(process);
+        process.put("count", documentCount(id));
         response.status(200);
         return process.toJson();
+    }
+
+    private static long documentCount(String id) {
+        return DUUIMongoDBStorage
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("documents")
+            .countDocuments(Filters.eq("process_id", id));
     }
 
     public static String findMany(Request request, Response response) {
@@ -220,18 +231,59 @@ public class DUUIProcessController {
     }
 
     public static String findDocuments(Request request, Response response) {
-        String id = request.params(":id");
+        String oid = request.queryParams("oid");
+        if (isNullOrEmpty(oid)) return missingField(response, "oid");
 
-        List<Document> documents = StreamSupport.stream(
-            DUUIMongoDBStorage
+        int limit = Integer.parseInt(request.queryParamOrDefault("limit", "0"));
+        int skip = Integer.parseInt(request.queryParamOrDefault("skip", "0"));
+
+        String sort = request.queryParamOrDefault("sort", "name");
+        int order = Integer.parseInt(request.queryParamOrDefault("order", "1"));
+
+        String text = request.queryParamOrDefault("text", "");
+        List<String> statusFilters = List.of(request.queryParamOrDefault("status", "Any").split(";"));
+
+        FindIterable<Document> result;
+
+        if (!statusFilters.contains("Any")) {
+
+            result = DUUIMongoDBStorage
                 .getInstance()
                 .getDatabase("duui")
                 .getCollection("documents")
-                .find(Filters.eq("process_id", id))
-                .spliterator(), false).toList();
+                .find(Filters.and(
+                    new Document("name", Pattern.compile(text, Pattern.CASE_INSENSITIVE)),
+                    Filters.eq("process_id", oid),
+                    Filters.in("status", statusFilters)
+                ));
+        } else {
+            result = DUUIMongoDBStorage
+                .getInstance()
+                .getDatabase("duui")
+                .getCollection("documents")
+                .find(Filters.and(
+                    new Document("name", Pattern.compile(text, Pattern.CASE_INSENSITIVE)),
+                    Filters.eq("process_id", oid)
+                ));
+        }
+
+        long count = Iterables.size(result);
+
+        if (limit != 0) {
+            result = result.limit(limit);
+        }
+
+        if (skip != 0) {
+            result = result.skip(skip);
+        }
+
+        result = result.sort(order == 1 ? Sorts.ascending(sort) : Sorts.descending(sort));
+
+        List<Document> documents = StreamSupport.stream(result.spliterator(), false).toList();
+        documents.forEach(DUUIMongoDBStorage::mapObjectIdToString);
 
         response.status(200);
-        return new Document("documents", documents).toJson();
+        return new Document("documents", documents).append("total", count).toJson();
     }
 
     public static void updateDocuments(String id, Set<DUUIDocument> documents) {

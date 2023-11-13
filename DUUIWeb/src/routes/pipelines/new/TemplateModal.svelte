@@ -1,7 +1,7 @@
 <script lang="ts">
-	import ActionButton from '$lib/components/ActionButton.svelte'
+	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import DriverIcon from '$lib/components/DriverIcon.svelte'
-	import IconButton from '$lib/components/IconButton.svelte'
+	import IconButton from '$lib/svelte/widgets/action/IconButton.svelte'
 	import type { DUUIComponent } from '$lib/duui/component'
 	import { Api, makeApiCall } from '$lib/utils/api'
 	import { includes } from '$lib/utils/text'

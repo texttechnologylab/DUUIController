@@ -3,16 +3,10 @@
 	import { createEventDispatcher } from 'svelte'
 
 	import { faFilePen } from '@fortawesome/free-solid-svg-icons'
-	import {
-		getModalStore,
-		type ModalComponent,
-		type ModalSettings
-	} from '@skeletonlabs/skeleton'
+	import { getModalStore, type ModalComponent, type ModalSettings } from '@skeletonlabs/skeleton'
 	import type { DUUIComponent } from '$lib/duui/component'
-	import IconButton from './IconButton.svelte'
+	import IconButton from '../svelte/widgets/action/IconButton.svelte'
 	import ComponentModal from './ComponentModal.svelte'
-		const dispatcher = createEventDispatcher()
-
 	export let component: DUUIComponent
 
 	const modalStore = getModalStore()
@@ -32,15 +26,15 @@
 </script>
 
 <li
-	class="variant-soft-surface rounded-md shadow-lg flex flex-col gap-4 px-4 py-2 pointer-events-none"
+	class="dark:variant-filled-surface variant-glass shadow-lg flex flex-col gap-4 px-4 py-2 pointer-events-none"
 >
-	<div class="flex justify-between gap-2 items-center">
+	<div class="flex justify-between gap-4 md:gap-32 items-center">
 		<div class="md:flex md:items-center grid gap-4">
 			<DriverIcon driver={component.settings.driver} />
 			<p class="md:h4 grow text-sm">{component.name}</p>
 		</div>
 		<IconButton
-			_class="pointer-events-auto"
+			_class="pointer-events-auto pl-1"
 			variant="variant-soft-primary"
 			rounded="rounded-full"
 			icon={faFilePen}

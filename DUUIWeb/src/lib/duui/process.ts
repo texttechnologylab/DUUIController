@@ -16,6 +16,7 @@ export interface DUUIProcess {
 	finished: boolean
 	setupDuration: number
 	instantiationDuration: number
+	count: number
 }
 
 export const progressMaximum = (process: DUUIProcess, pipeline: DUUIPipeline) => {
