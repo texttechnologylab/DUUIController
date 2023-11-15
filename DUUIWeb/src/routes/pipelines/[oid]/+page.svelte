@@ -42,6 +42,7 @@
 	import SettingsMapper from '$lib/svelte/widgets/input/SettingsMapper.svelte'
 	import TextInput from '$lib/svelte/widgets/input/TextInput.svelte'
 	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
+	import Text from '$lib/svelte/widgets/input/Text.svelte'
 
 	export let data: PageServerData
 	let { pipeline, processes } = data
@@ -106,14 +107,17 @@
 	const deletePipeline = async () => {
 		new Promise<boolean>((resolve) => {
 			const modal: ModalSettings = {
-				type: 'confirm',
-				title: 'Delete Pipeline',
-				buttonTextConfirm: 'Delete',
-				body: `Are you sure you want to delete ${pipeline.name}?`,
+				type: 'component',
+				component: 'deleteModal',
+				meta: {
+					title: 'Delete Pipeline',
+					body: `Are you sure you want to delete ${pipeline.name}?`
+				},
 				response: (r: boolean) => {
 					resolve(r)
 				}
 			}
+
 			modalStore.trigger(modal)
 		}).then(async (accepted: boolean) => {
 			if (!accepted) return
@@ -251,7 +255,7 @@
 			<Fa icon={faWifi} class="md:hidden text-success-400" />
 		{/if}
 	</div>
-	<hr />
+	<hr class="bg-surface-400/20 h-[1px] !border-0 rounded " />
 	<div class="grid grid-cols-2 md:grid-cols-3 lg:flex items-center justify-start gap-4">
 		<ActionButton text="Back" icon={faArrowLeft} on:click={() => goto('/pipelines')} />
 		<ActionButton text="Export" icon={faFileExport} on:click={exportPipeline} />
@@ -284,8 +288,12 @@
 		{/if}
 	</div>
 
-	<div class="variant-soft-surface shadow-lg">
-		<TabGroup active="variant-filled-primary" border="none" rounded="rounded-none">
+	<div class="bg-surface-100 dark:variant-soft-surface shadow-lg">
+		<TabGroup
+			active="dark:variant-soft-primary variant-filled-primary"
+			border="none"
+			rounded="rounded-none"
+		>
 			<Tab bind:group={tabSet} name="settings" value={0}>
 				<div class="flex items-center gap-2">
 					<Fa icon={faGears} />
@@ -310,28 +318,20 @@
 
 	{#if tabSet === 0}
 		<div class="grid md:grid-cols-2 gap-4">
-			<div class="flex flex-col gap-4 variant-soft-surface shadow-lg p-4">
-				<label class="label" for="pipeline-name">
-					<span>Name</span>
-					<TextInput id="pipeline-name" bind:value={pipeline.name} />
-				</label>
-
-				<label class="label" for="pipeline-description">
-					<span>Description</span>
-					<TextArea
-						id="pipeline-description"
-						placeholder="Description"
-						bind:value={pipeline.description}
-						rows={2}
-					/>
-				</label>
+			<div class="flex flex-col gap-4 bg-surface-100 dark:variant-soft-surface shadow-lg p-4">
+				<Text label="Name" name="pipeline-name" bind:value={pipeline.name} />
+				<TextArea
+					label="Description"
+					name="pipeline-description"
+					bind:value={pipeline.description}
+				/>
 			</div>
-			<div class="variant-soft-surface p-4 shadow-lg rounded-none">
+			<div class="bg-surface-100 dark:variant-soft-surface p-4 shadow-lg rounded-none">
 				<SettingsMapper bind:settings />
 			</div>
 		</div>
 	{:else if tabSet === 1}
-		<div class="space-y-4 variant-soft-surface mx-auto shadow-lg p-4">
+		<div class="container space-y-4 bg-surface-100 dark:variant-soft-surface mx-auto shadow-lg p-4">
 			<ul
 				use:dndzone={{ items: pipeline.components, dropTargetStyle: {} }}
 				on:consider={(event) => handleDndConsider(event)}
@@ -360,13 +360,13 @@
 			_class="mr-auto"
 			on:click={() => goto('/process?oid=' + pipeline.oid)}
 		/>
-		<div class="overflow-hidden border-[1px] border-surface-700">
+		<div class="overflow-hidden border-[1px] border-surface-200 dark:border-surface-500">
 			<div
-				class="header grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 variant-glassdark:variant-soft-surface border-b-4 border-primary-500"
+				class="header grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 bg-surface-100 dark:variant-soft-surface border-b-4 border-primary-500"
 			>
 				{#each tableHeader as column, index}
 					<button
-						class="btn variant-soft-surface gap-4 justify-start items-center rounded-none p-3 text-left
+						class="btn bg-surface-100 dark:variant-soft-surface gap-4 justify-start items-center rounded-none p-3 text-left
 						 {[3].includes(index)
 							? 'hidden sm:inline-flex'
 							: [2].includes(index)
@@ -388,15 +388,15 @@
 				{#each sortedProcessses as process, index}
 					<button
 						class="btn rounded-none {index % 2 === 1 || sortedProcessses.length === 1
-							? 'variant-soft-surface'
-							: ''} hover:variant-soft-primary grid-cols-2 grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8 p-2 text-left"
+							? 'bg-surface-100 dark:variant-soft-surface'
+							: ''} dark:hover:variant-soft-primary hover:variant-filled-primary grid-cols-2 grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8 p-2 text-left"
 						on:click={() => goto(`/process/${process.oid}?limit=10&skip=0`)}
 					>
 						<p>{datetimeToString(new Date(process.startTime))}</p>
 						<p class="hidden lg:block">{process.input.source} / {process.output.target}</p>
 						<p class="hidden md:block text-center">{process.documentNames.length}</p>
 						<p class="hidden sm:flex items-center gap-4">
-							<span>{(process.progress / process.documentNames.length) * 100} %</span>
+							<span>{(process.progress / process.documentNames.length) * 100 || 0} %</span>
 							<span>{process.progress} / {process.documentNames.length}</span>
 						</p>
 						<p class="flex justify-start items-center gap-4">

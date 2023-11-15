@@ -95,3 +95,12 @@ export const info = (message: string, duration: number = 4000): ToastSettings =>
 		background: 'variant-filled-surface'
 	}
 }
+
+export const scrollIntoView = (id: string) => {
+	const el = document.querySelector(`#${id}`)
+	if (!el) return
+
+	el.scrollIntoView({
+		behavior: 'smooth'
+	})
+}

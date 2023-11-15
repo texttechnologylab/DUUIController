@@ -1,5 +1,3 @@
-import { redirect } from '@sveltejs/kit'
-
 export async function PUT({ request, cookies, locals }) {
 	cookies.set('session', '', {
 		path: '/',

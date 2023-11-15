@@ -217,9 +217,8 @@ public class DUUIProcessController {
         if (activeProcess == null) {
             DUUIProcessController.setStatus(id, "Canceled");
             DUUIProcessController.setFinished(id, true);
-            DUUIProcessController.setFinishTime(id, new Date().toInstant().toEpochMilli());
         } else {
-            String pipelineId = activeProcess.getPipeline().getObjectId("_id").toString();
+            String pipelineId = activeProcess.getPipeline().getString("oid");
             if (DUUIPipelineController.pipelineIsActive(pipelineId)) {
                 DUUIService service = DUUIPipelineController.getService(pipelineId);
                 service.cancelProcess();

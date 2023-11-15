@@ -6,7 +6,7 @@
 	import { getModalStore, type ModalComponent, type ModalSettings } from '@skeletonlabs/skeleton'
 	import type { DUUIComponent } from '$lib/duui/component'
 	import IconButton from '../svelte/widgets/action/IconButton.svelte'
-	import ComponentModal from './ComponentModal.svelte'
+	import ComponentModal from '../svelte/widgets/modal/Component.svelte'
 	export let component: DUUIComponent
 
 	const modalStore = getModalStore()

@@ -13,7 +13,7 @@
 	} from '$lib/duui/io.js'
 	import { Status, isActive } from '$lib/duui/monitor.js'
 	import { processToSeachParams, type DUUIProcess } from '$lib/duui/process.js'
-	import ComboBox from '$lib/svelte/widgets/input/ComboBox.svelte'
+	import ComboBox from '$lib/svelte/widgets/input/Select.svelte'
 	import TextInput from '$lib/svelte/widgets/input/TextInput.svelte'
 	import { Api, makeApiCall } from '$lib/utils/api'
 	import { equals, formatFileSize, includes, progresAsPercent } from '$lib/utils/text.js'
@@ -52,6 +52,9 @@
 	import { page } from '$app/stores'
 	import Anchor from '$lib/svelte/widgets/action/Anchor.svelte'
 	import { browser } from '$app/environment'
+	import Select from '$lib/svelte/widgets/input/Select.svelte'
+	import Text from '$lib/svelte/widgets/input/Text.svelte'
+	import Search from '$lib/svelte/widgets/input/Search.svelte'
 
 	export let data
 	const toastStore = getToastStore()
@@ -128,10 +131,12 @@
 	const deleteProcess = async () => {
 		new Promise<boolean>((resolve) => {
 			const modal: ModalSettings = {
-				type: 'confirm',
-				title: 'Delete Run',
-				buttonTextConfirm: 'Delete',
-				body: `Are you sure you want to delete this process?`,
+				type: 'component',
+				component: 'deleteModal',
+				meta: {
+					title: 'Delete process',
+					body: 'Are you sure you want to delete this process?'
+				},
 				response: (r: boolean) => {
 					resolve(r)
 				}
@@ -301,9 +306,9 @@
 			<p>{process.status}</p>
 		</div>
 	</div>
-	<hr />
+	<hr class="bg-surface-400/20 h-[1px] !border-0 rounded " />
 	<div class="grid xl:flex items-center xl:justify-start gap-4">
-		<div class="xl:flex grid grid-cols-2 gap-4 items-center">
+		<div class="xl:flex grid grid-cols-2 sm:grid-cols-3 gap-4 items-center">
 			<ActionButton
 				icon={faArrowLeft}
 				text="Back"
@@ -324,9 +329,8 @@
 		</div>
 
 		<div class="grid md:flex items-center gap-4 lg:ml-auto">
-			<TextInput
-				classes="grow"
-				bind:value={searchText}
+			<Search
+				bind:query={searchText}
 				placeholder="Search..."
 				icon={faSearch}
 				on:focusout={() => updateResults()}
@@ -336,26 +340,24 @@
 					}
 				}}
 			/>
-			<ComboBox
-				id="status"
-				bind:values={statusFilters}
+			<Select
+				label="Status"
+				name="Status"
+				bind:selected={statusFilters}
 				options={documentStatusNames}
-				multiple={true}
-				text="Status"
-				closeQuery="button"
 			/>
 		</div>
 	</div>
 	{#if process.error}
 		<p class="text-error-400 font-bold break-words">ERROR: {process.error}</p>
 	{/if}
-	<div class="overflow-hidden border-[1px] border-surface-700">
+	<div class="overflow-hidden border-[1px] border-surface-200 dark:border-surface-500">
 		<div
-			class="header grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 variant-soft-surface"
+			class="header grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 bg-surface-100 dark:variant-soft-surface"
 		>
 			{#each tableHeader as column, index}
 				<button
-					class="btn variant-soft-surface gap-4 justify-start items-center rounded-none p-3 text-left
+					class="btn bg-surface-100 dark:variant-soft-surface gap-4 justify-start items-center rounded-none p-3 text-left
 					{[1].includes(index)
 						? 'hidden sm:inline-flex'
 						: [4].includes(index)
@@ -384,7 +386,7 @@
 				<button
 					class="btn rounded-none {index % 2 === 1 || documents.length === 1
 						? 'variant-soft-surface'
-						: ''} hover:variant-soft-primary grid-cols-2 grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 p-2 text-left"
+						: ''} dark:hover:variant-soft-primary hover:variant-filled-primary grid-cols-2 grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 p-2 text-left"
 					on:click={() => showDocumentModal(document)}
 				>
 					<p>{document.name}</p>
@@ -414,7 +416,12 @@
 	</div>
 
 	<div class="flex items-center justify-center gap-4 variant-soft-surface mx-auto">
-		<IconButton rounded="rounded-none" icon={faArrowLeft} on:click={decrementPage} />
+		<IconButton
+			rounded="rounded-none"
+			icon={faArrowLeft}
+			on:click={decrementPage}
+			variant="dark:variant-soft-primary variant-filled-primary"
+		/>
 		{#if total === 0}
 			<p>No results</p>
 		{:else}
@@ -422,14 +429,19 @@
 				{1 + pageIndex * itemsPerPage}-{Math.min((pageIndex + 1) * itemsPerPage, total)} of {total}
 			</p>
 		{/if}
-		<IconButton rounded="rounded-none" icon={faArrowRight} on:click={incrementPage} />
+		<IconButton
+			rounded="rounded-none"
+			variant="dark:variant-soft-primary variant-filled-primary"
+			icon={faArrowRight}
+			on:click={incrementPage}
+		/>
 	</div>
 
 	<div class="gap-4 grid items-start">
-		<div class="variant-soft-surface shadow-lg p-4 space-y-4">
+		<div class="bg-surface-100 dark:variant-soft-surface shadow-lg p-4 space-y-4">
 			<h3 class="h3">Pipeline status</h3>
 
-			<hr />
+			<hr class="bg-surface-400/20 h-[1px] !border-0 rounded " />
 			{#each pipeline.components as component}
 				<div class="flex gap-4 items-center p-4">
 					<DriverIcon driver={component.settings.driver} />

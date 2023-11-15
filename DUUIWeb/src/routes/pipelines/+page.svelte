@@ -37,7 +37,7 @@
 </svelte:head>
 <div class="container h-full mx-auto flex flex-col space-y-4 md:my-8">
 	<h1 class="h2">Pipelines</h1>
-	<hr />
+	<hr class="bg-surface-400/20 h-[1px] !border-0 rounded " />
 
 	<div class="grid md:flex items-center md:justify-between gap-4">
 		<div class="flex items-center gap-4">
@@ -57,7 +57,7 @@
 	<div class="grid gap-4 md:gap-8 md:grid-cols-2 lg:grid-cols-3 relative">
 		{#each filteredPipelines as pipeline}
 			<a
-				class="text-left variant-soft-surface p-4 hover:shadow-lg space-y-4 flex flex-col"
+				class="text-left hover:variant-glass bg-surface-100 dark:variant-soft-surface dark:hover:bg-surface-800 p-4 shadow-lg space-y-4 flex flex-col"
 				href="/pipelines/{pipeline.oid}"
 			>
 				<div class="flex items-center gap-4 justify-between">

@@ -7,9 +7,15 @@
 		Input,
 		isCloudProvider
 	} from '$lib/duui/io'
+	import Anchor from '$lib/svelte/widgets/action/Anchor.svelte'
 	import { equals, formatFileSize } from '$lib/utils/text'
 	import { formatMilliseconds } from '$lib/utils/time'
-	import { faCheckDouble, faX } from '@fortawesome/free-solid-svg-icons'
+	import {
+		faCheckDouble,
+		faFileDownload,
+		faFileUpload,
+		faX
+	} from '@fortawesome/free-solid-svg-icons'
 	import { getModalStore } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
 
@@ -63,8 +69,8 @@
 </script>
 
 {#if $modalStore[0]}
-	<div class="container mx-auto max-w-2xl">
-		<div class="space-y-8 card shadow-lg rounded-md p-4">
+	<div class="w-modal">
+		<div class="border-[1px] space-y-8 card rounded-none shadow-lg p-4 border-surface-400/20">
 			<div class="flex justify-start items-center gap-8">
 				{#if document.error}
 					<Fa icon={faX} size="2x" />
@@ -81,33 +87,29 @@
 			{/if}
 
 			<div class="grid grid-cols-2 gap-4 text-center">
-				<p class="variant-soft-surface rounded-md p-2">
+				<p class="border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 p-2">
 					Decode {formatMilliseconds(document.decodeDuration)}
 				</p>
-				<p class="variant-soft-surface rounded-md p-2">
+				<p class="border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 p-2">
 					Deserialize {formatMilliseconds(document.deserializeDuration)}
 				</p>
-				<p class="variant-soft-surface rounded-md p-2">
+				<p class="border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 p-2">
 					Wait {formatMilliseconds(document.waitDuration)}
 				</p>
-				<p class="variant-soft-surface rounded-md p-2">
+				<p class="border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 p-2">
 					Process {formatMilliseconds(document.processDuration)}
 				</p>
-				<p class="variant-soft-surface rounded-md p-2 col-span-2">
+				<p class="border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 p-2 col-span-2">
 					Total {formatMilliseconds(totalDuration)}
 				</p>
 			</div>
 
 			<div class="flex justify-center gap-4 text-center">
 				{#if isCloudProvider(input.source)}
-					<a href={URLIn} target="_blank" class="btn variant-ghost-primary rounded-md"
-						>Source File</a
-					>
+					<Anchor text="Source File" target="_blank" href={URLIn} icon={faFileDownload} />
 				{/if}
 				{#if isCloudProvider(output.target)}
-					<a href={URLOut} target="_blank" class="btn variant-ghost-primary rounded-md"
-						>Target File</a
-					>
+					<Anchor text="Target File" target="_blank" href={URLOut} icon={faFileUpload} />
 				{/if}
 			</div>
 		</div>

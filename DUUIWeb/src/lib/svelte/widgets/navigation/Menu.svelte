@@ -6,14 +6,14 @@
 
 	export let placement: Placement = 'bottom-start'
 	export let background: string = ''
-	export let name: string
-	export let offset: number = 12
+	export let label: string
+	export let offset: number = 8
 
 	export let closeQuery: string = 'a[href]'
 
 	const menu: PopupSettings = {
 		event: 'click',
-		target: name,
+		target: label,
 		placement: placement,
 		closeQuery: closeQuery,
 		middleware: {
@@ -30,6 +30,6 @@
 	<Fa icon={faChevronDown} />
 </button>
 
-<div data-popup={name}>
+<div data-popup={label}>
 	<slot name="content" />
 </div>

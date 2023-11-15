@@ -1,13 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
-	import CheckButton from '$lib/components/CheckButton.svelte'
+	import CheckButton from '$lib/svelte/widgets/action/CheckButton.svelte'
 	import { API_URL } from '$lib/config.js'
 	import {
-		Input,
 		InputFileExtensions,
 		InputSources,
-		Output,
 		OutputFileExtensions,
 		OutputTargets,
 		isCloudProvider,
@@ -18,12 +16,13 @@
 	} from '$lib/duui/io.js'
 	import { needsAuthorization } from '$lib/duui/user.js'
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
-	import ComboBox from '$lib/svelte/widgets/input/ComboBox.svelte'
 	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
 	import TextInput from '$lib/svelte/widgets/input/TextInput.svelte'
 	import { equals } from '$lib/utils/text.js'
-	import { faCancel, faCheck, faClose } from '@fortawesome/free-solid-svg-icons'
-	import Fa from 'svelte-fa'
+	import { faArrowLeft, faCancel, faCheck } from '@fortawesome/free-solid-svg-icons'
+	import Dropdown from '$lib/svelte/widgets/input/Dropdown.svelte'
+	import Text from '$lib/svelte/widgets/input/Text.svelte'
+	import Checkbox from '$lib/svelte/widgets/input/Checkbox.svelte'
 
 	export let data
 	let { dbxAuthorized, session, dbxURL } = data
@@ -103,98 +102,99 @@
 
 <div class="container h-full flex-col mx-auto flex gap-4 md:my-8">
 	<h1 class="h2">New Process</h1>
-	<hr />
+	<hr class="bg-surface-400/20 h-[1px] !border-0 rounded " />
 	<div class="items-center justify-between gap-4 hidden md:flex">
 		<ActionButton
 			tabindex={0}
 			text="Cancel"
-			icon={faCancel}
-			variant="variant-soft-error"
+			icon={faArrowLeft}
+			variant="dark:variant-soft-error variant-filled-error"
 			on:click={() => goto(onCancelURL)}
 		/>
 		<ActionButton
-			text="Complete"
+			text="Start"
 			icon={faCheck}
-			variant="variant-soft-success"
+			variant="dark:variant-soft-success variant-filled-success"
 			on:click={createProcess}
 			leftToRight={false}
 			_class={isValidIO(input, output) ? 'visible' : 'invisible'}
 		/>
 	</div>
+	<div
+		class="bg-surface-100 dark:variant-soft-surface p-4 shadow-lg grid md:grid-cols-3 lg:grid-cols-4 gap-4"
+	>
+		<Checkbox label="Enable Notifications" name="notification" bind:checked={notify} />
+
+		{#if isCloudProvider(input.source) || isCloudProvider(output.target)}
+			<Checkbox label="Find Documents recursively" name="recursive" bind:checked={recursive} />
+		{/if}
+
+		{#if isCloudProvider(output.target)}
+			<Checkbox label="Check Target for Documents" name="check-target" bind:checked={checkTarget} />
+		{/if}
+	</div>
 	<div class="grid md:grid-cols-2 gap-4">
-		<div
-			class="variant-soft-surface p-4 shadow-lg space-y-4 {isValidInput(input)
-				? ''
-				: 'border-[1px] border-error-400'}"
-		>
+		<div class="bg-surface-100 dark:variant-soft-surface p-4 shadow-lg space-y-4">
 			<h2 class="h3">Input</h2>
 			<div class="grid grid-cols-2 gap-4">
-				<label class="label space-y-2 flex flex-col" for="source">
-					<span>Source</span>
-					<ComboBox id="source" options={InputSources} bind:value={inputSource} />
-				</label>
-				<label class="label space-y-2 flex flex-col" for="input-extension">
-					<span>File extension</span>
-					<ComboBox
-						id="input-extension"
-						options={InputFileExtensions}
-						bind:value={inputFileExtension}
-					/>
-				</label>
+				<Dropdown label="Source" options={InputSources} bind:value={inputSource} />
+				<Dropdown
+					label="File extension"
+					name="input-extension"
+					options={InputFileExtensions}
+					bind:value={inputFileExtension}
+				/>
 			</div>
 
 			{#if equals(inputSource, 'Text')}
-				<label class="col-span-2 label space-y-2" for="content">
-					<span>Document Text</span>
-					<TextArea id="content" bind:value={inputContent} rows={2} />
-				</label>
+				<TextArea
+					label="Document Text"
+					name="content"
+					error={inputContent === '' ? 'Text cannot be empty' : ''}
+					bind:value={inputContent}
+				/>
 			{:else if equals(input.source, 'minio')}
-				<label class="col-span-2 label space-y-2" for="input-folder">
-					<span class={inputBucketIsValid.length > 0 ? 'text-error-400' : ''}
-						>Bucket name {inputBucketIsValid}</span
-					>
-					<TextInput id="input-folder" bind:value={inputFolder} />
-				</label>
+				<Text
+					label="Bucket name"
+					error={inputBucketIsValid}
+					name="Bucket name"
+					bind:value={inputFolder}
+				/>
 			{:else}
-				<label class="col-span-2 label space-y-2" for="input-folder">
-					<span>Path to folder</span>
-					<TextInput id="input-folder" bind:value={inputFolder} />
-				</label>
+				<Text
+					label="Folder"
+					error={inputFolder === '' ? 'Folder cannot be empty' : ''}
+					name="Bucket name"
+					bind:value={inputFolder}
+				/>
 			{/if}
 		</div>
 
-		<div
-			class="variant-soft-surface p-4 shadow-lg space-y-4 {isValidOutput(output)
-				? ''
-				: 'border-[1px] border-error-400'}"
-		>
+		<div class="bg-surface-100 dark:variant-soft-surface p-4 shadow-lg space-y-4">
 			<h2 class="h3 col-span-2">Output</h2>
 			<div class="grid grid-cols-2 gap-4">
-				<label class="label space-y-2 flex flex-col" for="target">
-					<span>Target</span>
-					<ComboBox id="target" options={OutputTargets} bind:value={outputTarget} />
-				</label>
-				<label class="label space-y-2 flex flex-col" for="output-extension">
-					<span>File extension</span>
-					<ComboBox
-						id="output-extension"
-						options={OutputFileExtensions}
-						bind:value={outputFileExtension}
-					/>
-				</label>
+				<Dropdown label="Target" options={OutputTargets} bind:value={outputTarget} />
+				<Dropdown
+					label="File extension"
+					name="output-extension"
+					options={OutputFileExtensions}
+					bind:value={outputFileExtension}
+				/>
 			</div>
 			{#if equals(output.target, 'minio')}
-				<label class="label space-y-2" for="output-folder">
-					<span class={outputBucketIsValid.length > 0 ? 'text-error-400' : ''}
-						>Bucket name {outputBucketIsValid}</span
-					>
-					<TextInput id="output-folder" bind:value={outputFolder} />
-				</label>
+				<Text
+					label="Bucket name"
+					error={outputBucketIsValid}
+					name="output-folder"
+					bind:value={outputFolder}
+				/>
 			{:else if equals(output.target, 'dropbox')}
-				<label class="label space-y-2" for="output-folder">
-					<span>Path to folder</span>
-					<TextInput id="output-folder" bind:value={outputFolder} />
-				</label>
+				<Text
+					label="Folder"
+					name="output-folder"
+					error={outputFolder === '' ? 'Folder cannot be empty' : ''}
+					bind:value={outputFolder}
+				/>
 			{/if}
 		</div>
 
@@ -204,17 +204,7 @@
 			</a>
 		{/if}
 	</div>
-	<div class="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
-		<CheckButton text="Enable Notifications" bind:checked={notify} />
 
-		{#if isCloudProvider(outputTarget)}
-			<CheckButton text="Check Target for Documents" bind:checked={checkTarget} />
-		{/if}
-
-		{#if isCloudProvider(input.source) || isCloudProvider(output.target)}
-			<CheckButton text="Find Documents recursively" bind:checked={recursive} />
-		{/if}
-	</div>
 	<div class="items-center justify-between gap-4 flex md:hidden">
 		<ActionButton
 			tabindex={0}
@@ -224,124 +214,11 @@
 			on:click={() => goto(onCancelURL)}
 		/>
 		<ActionButton
-			text="Complete"
+			text="Start"
 			icon={faCheck}
 			variant="variant-soft-success"
 			on:click={createProcess}
 			leftToRight={false}
 		/>
 	</div>
-
-	<!-- <Stepper
-		on:complete={submitProcess}
-		buttonCompleteLabel="Start"
-		class="max-w-5xl mx-auto p-4"
-		active="rounded-full variant-filled px-4"
-		badge="rounded-full variant-filled-primary"
-	>
-		<Step locked={!isValidIO(input, output)}>
-			<svelte:fragment slot="header">Input & Output</svelte:fragment>
-			<div class=" grid md:grid-cols-2 gap-4">
-				<div class="card rounded-md p-4 flex gap-4 flex-col">
-					<h3 class="h3">Input</h3>
-					<label class="label space-y-2">
-						<span>Source</span>
-						<select class="select border-2" bind:value={inputSource}>
-							{#each InputSources as source}
-								<option value={source}>{source}</option>
-							{/each}
-						</select>
-					</label>
-					{#if equals(inputSource, 'Text')}
-						<label class="label space-y-2">
-							<span>Document Text</span>
-							<textarea
-								class="textarea border-2"
-								rows="4"
-								placeholder="Enter the document text"
-								bind:value={inputContent}
-							/>
-						</label>
-					{:else}
-						{#if equals(input.source, 'minio')}
-							<label class="label space-y-2">
-								<div class="flex items-center gap-2">
-									<span class={!inputBucketIsValid ? 'text-error-400' : ''}>Bucket Name</span>
-									<div class="[&>*]:pointer-events-none" use:popup={s3NamingPopup}>
-										<Fa icon={faQuestionCircle} />
-									</div>
-								</div>
-								<input class="input border-2" type="text" bind:value={inputFolder} />
-							</label>
-						{:else}
-							<label class="label space-y-2">
-								<span>Path to folder</span>
-								<input class="input border-2" type="text" bind:value={inputFolder} />
-							</label>
-						{/if}
-
-						<label class="label space-y-2">
-							<span>File extension</span>
-							<select class="select border-2 input" bind:value={inputFileExtension}>
-								{#each InputFileExtensions as extension}
-									<option value={extension}>{extension}</option>
-								{/each}
-							</select>
-						</label>
-					{/if}
-				</div>
-				<div class="card rounded-md p-4 flex gap-4 flex-col">
-					<h3 class="h3">Output</h3>
-					<label class="label space-y-2">
-						<span>Target</span>
-						<select class="select border-2" bind:value={outputTarget}>
-							{#each OutputTargets as target}
-								<option value={target}>{target}</option>
-							{/each}
-						</select>
-					</label>
-					{#if isCloudProvider(outputTarget)}
-						{#if equals(output.target, 'minio')}
-							<label class="label space-y-2">
-								<div class="flex items-center gap-2">
-									<span class={!outputBucketIsValid ? 'text-error-400' : ''}>Bucket Name</span>
-									<div class="[&>*]:pointer-events-none" use:popup={s3NamingPopup}>
-										<Fa icon={faQuestionCircle} />
-									</div>
-								</div>
-								<input class="input border-2" type="text" bind:value={outputFolder} />
-							</label>
-						{:else}
-							<label class="label space-y-2">
-								<span>Path to folder</span>
-								<input class="input border-2" type="text" bind:value={outputFolder} />
-							</label>
-						{/if}
-					{/if}
-					{#if !equals(outputTarget, 'none')}
-						<label class="label space-y-2">
-							<span>File extension</span>
-							<select class="select border-2 input" bind:value={outputFileExtension}>
-								{#each OutputFileExtensions as extension}
-									<option value={extension}>{extension}</option>
-								{/each}
-							</select>
-						</label>
-					{/if}
-				</div>
-			</div>
-			<svelte:fragment slot="navigation">
-				<ActionButton
-					text="Cancel"
-					variant="variant-soft-error"
-					icon={faCancel}
-					on:click={() => goto(onCancelURL)}
-				/>
-			</svelte:fragment>
-		</Step>
-		<Step locked={!dbxAuthorized && needsAuthorization(inputSource, outputTarget)}>
-			<svelte:fragment slot="header">Settings</svelte:fragment>
-			
-		</Step>
-	</Stepper> -->
 </div>

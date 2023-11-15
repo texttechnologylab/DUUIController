@@ -3,7 +3,7 @@
 	import Logo from '$lib/assets/Logo.svg'
 	import Icon from '$lib/assets/favicon.svg'
 
-	import { AppShell, AppBar, LightSwitch } from '@skeletonlabs/skeleton'
+	import { AppShell, AppBar, LightSwitch, type ModalComponent } from '@skeletonlabs/skeleton'
 	import { Drawer, getDrawerStore } from '@skeletonlabs/skeleton'
 	import { Toast, type DrawerSettings } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
@@ -35,6 +35,7 @@
 	import Menu from '$lib/svelte/widgets/navigation/Menu.svelte'
 	import { Api, makeApiCall } from '$lib/utils/api'
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
+	import DeleteModal from '$lib/svelte/widgets/modal/DeleteModal.svelte'
 
 	initializeStores()
 
@@ -61,9 +62,13 @@
 			goto('/account/login')
 		}
 	}
+
+	const modalRegistry: Record<string, ModalComponent> = {
+		deleteModal: { ref: DeleteModal }
+	}
 </script>
 
-<Modal />
+<Modal components={modalRegistry} />
 <Toast />
 <Drawer rounded="rounded-none">
 	{#if $drawerStore.id === 'sidebar'}
@@ -90,9 +95,9 @@
 			<svelte:fragment slot="trail">
 				<div class="hidden md:flex items-center gap-4">
 					<Menu
-						background="bg-primary-hover-token p-2 rounded-md"
-						name="Pipelines"
-						offset={32}
+						background="bg-primary-hover-token p-2"
+						label="Pipelines"
+						offset={24}
 						placement="bottom-end"
 					>
 						<svelte:fragment slot="title">
@@ -100,13 +105,12 @@
 						</svelte:fragment>
 						<svelte:fragment slot="content">
 							<div
-								class="flex flex-col text-left dark:bg-surface-600 dark:text-on-surface-token bg-surface-100 shadow-lg text-surface-800 p-4"
+								class="flex flex-col shadow-lg border-[1px] bg-white dark:bg-surface-600 border-surface-400/20"
 							>
 								<Anchor
 									href="/pipelines"
 									icon={faLayerGroup}
 									text="Dashboard"
-									rounded="rounded-md"
 									_class="justify-start gap-8 bg-primary-hover-token"
 									variant=""
 								/>
@@ -114,7 +118,6 @@
 									href="/pipelines/new"
 									icon={faPlus}
 									text="Builder"
-									rounded="rounded-md"
 									_class="justify-start gap-8 bg-primary-hover-token"
 									variant=""
 								/>
@@ -122,9 +125,9 @@
 						</svelte:fragment>
 					</Menu>
 					<Menu
-						background="bg-primary-hover-token p-2 rounded-md"
-						name="Documentation"
-						offset={32}
+						background="bg-primary-hover-token p-2"
+						label="Documentation"
+						offset={24}
 						placement="bottom-end"
 					>
 						<svelte:fragment slot="title">
@@ -132,13 +135,12 @@
 						</svelte:fragment>
 						<svelte:fragment slot="content">
 							<div
-								class="flex flex-col text-left dark:bg-surface-600 dark:text-on-surface-token bg-surface-100 shadow-lg text-surface-800 p-4"
+								class="flex flex-col shadow-lg border-[1px] bg-white dark:bg-surface-600 border-surface-400/20"
 							>
 								<Anchor
 									href="/documentation#quick-start"
 									icon={faBookOpen}
 									text="Quick Start"
-									rounded="rounded-md"
 									_class="justify-start gap-8 bg-primary-hover-token"
 									variant=""
 								/>
@@ -146,7 +148,6 @@
 									href="/documentation#composer"
 									icon={faGears}
 									text="Composer"
-									rounded="rounded-md"
 									_class="justify-start gap-8 bg-primary-hover-token"
 									variant=""
 								/>
@@ -154,7 +155,6 @@
 									href="/documentation#driver"
 									icon={faNetworkWired}
 									text="Driver"
-									rounded="rounded-md"
 									_class="justify-start gap-8 bg-primary-hover-token"
 									variant=""
 								/>
@@ -162,7 +162,6 @@
 									href="/documentation#component"
 									icon={faMap}
 									text="Component"
-									rounded="rounded-md"
 									_class="justify-start gap-8 bg-primary-hover-token"
 									variant=""
 								/>
@@ -170,9 +169,9 @@
 						</svelte:fragment>
 					</Menu>
 					<Menu
-						background="bg-primary-hover-token p-2 rounded-md"
-						name="Account"
-						offset={32}
+						background="bg-primary-hover-token p-2"
+						label="Account"
+						offset={24}
 						placement="bottom-end"
 					>
 						<svelte:fragment slot="title">
@@ -180,13 +179,12 @@
 						</svelte:fragment>
 						<svelte:fragment slot="content">
 							<div
-								class="flex flex-col text-left dark:bg-surface-600 dark:text-on-surface-token bg-surface-100 shadow-lg text-surface-800 p-4"
+								class="flex flex-col shadow-lg border-[1px] bg-white dark:bg-surface-600 border-surface-400/20"
 							>
 								<Anchor
 									href="/account"
 									icon={faUser}
 									text="Profile"
-									rounded="rounded-md"
 									_class="justify-start gap-8 bg-primary-hover-token"
 									variant=""
 								/>
@@ -203,7 +201,6 @@
 										href="/account/register"
 										icon={faUserPlus}
 										text="Register"
-										rounded="rounded-md"
 										_class="justify-start gap-8 bg-primary-hover-token"
 										variant=""
 									/>
@@ -212,7 +209,6 @@
 										on:click={logout}
 										icon={faArrowRightFromBracket}
 										text="Logout"
-										rounded="rounded-md"
 										_class="justify-start gap-8 bg-primary-hover-token"
 										variant=""
 									/>
@@ -236,7 +232,7 @@
 	<svelte:fragment slot="pageFooter">
 		<footer id="page-footer" class="flex-none">
 			<div
-				class="page-footer bg-surface-50 dark:bg-surface-700 border-t border-surface-500 text-xs md:text-base"
+				class="page-footer bg-surface-50 dark:bg-surface-700 border-t border-surface-400/20 text-xs md:text-base"
 			>
 				<div class="w-full max-w-7xl mx-auto space-y-4 py-8">
 					<div class="flex flex-col md:flex-row justify-center space-y-8">

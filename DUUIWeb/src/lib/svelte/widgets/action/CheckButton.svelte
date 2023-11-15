@@ -7,7 +7,7 @@
 </script>
 
 <button
-	class="btn variant-soft-{checked
+	class="btn variant-filled-{checked ?  'success' : ''} dark:variant-soft-{checked
 		? 'success'
 		: 'surface'} p-4 shadow-lg rounded-none flex justify-between items-center text-left"
 	on:click={() => (checked = !checked)}

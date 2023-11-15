@@ -40,11 +40,11 @@ export enum Output {
 	None = 'None'
 }
 
-export const InputSources: string[] = ['Dropbox', 'Minio', 'Text'] // Option to upload files first?
+export const InputSources: string[] = ['Dropbox', 'Minio', 'Text']
 
 export const InputFileExtensions: string[] = ['.txt', '.xmi', '.json', '.gz']
 
-export const OutputTargets: string[] = ['Dropbox', 'Minio', 'None'] // File
+export const OutputTargets: string[] = ['Dropbox', 'Minio', 'None']
 
 export const OutputFileExtensions: string[] = ['.txt', '.xmi']
 
@@ -86,41 +86,41 @@ export const isValidOutput = (output: DUUIDocumentOutput) => {
 
 export const isValidS3BucketName = (bucket: string) => {
 	if (bucket.length < 3 || bucket.length > 63)
-		return 'must be between 3 (min) and 63 (max) characters long.'
+		return 'Bucket name must be between 3 (min) and 63 (max) characters long'
 
 	// Check valid characters and starting/ending with a letter or number
 	if (!/^[a-zA-Z0-9]/.test(bucket) || !/[a-zA-Z0-9]$/.test(bucket)) {
-		return 'must begin and end with a letter or number.'
+		return 'Bucket name must begin and end with a letter or number'
 	}
 
 	// Check for valid characters (lowercase letters, numbers, dots, hyphens)
 	if (!/^[a-z0-9.-]+$/.test(bucket)) {
-		return 'can consist only of lowercase letters, numbers, dots (.), and hyphens (-).'
+		return 'Bucket name can consist only of lowercase letters, numbers, dots (.), and hyphens (-)'
 	}
 
 	// Check for adjacent periods
 	if (/\.\./.test(bucket)) {
-		return 'must not contain two adjacent periods.'
+		return 'Bucket name must not contain two adjacent periods'
 	}
 
 	// Check for IP address format
 	if (/^\d+\.\d+\.\d+\.\d+$/.test(bucket)) {
-		return 'must not be formatted as an IP address (for example, 192.168.5.4).'
+		return 'Bucket name must not be formatted as an IP address (for example, 192.168.5.4)'
 	}
 
 	// Check for prefix xn--
 	if (bucket.startsWith('xn--')) {
-		return 'must not start with the prefix xn--.'
+		return 'Bucket name must not start with the prefix xn--'
 	}
 
 	// Check for prohibited prefixes
 	if (bucket.startsWith('sthree-') || bucket.startsWith('sthree-configurator')) {
-		return 'must not start with the prefix sthree- or sthree-configurator.'
+		return 'Bucket name must not start with the prefix sthree- or sthree-configurator'
 	}
 
 	// Check for reserved suffixes
 	if (bucket.endsWith('-s3alias') || bucket.endsWith('--ol-s3')) {
-		return 'must not end with the suffix -s3alias or --ol-ss3.'
+		return 'Bucket name must not end with the suffix -s3alias or --ol-ss3'
 	}
 
 	return ''

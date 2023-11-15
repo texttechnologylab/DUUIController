@@ -47,12 +47,11 @@
 			href="/"
 			icon={faHome}
 			text="Home"
-			rounded="rounded-md"
 			_class="items-center flex justify-start block gap-8 bg-primary-hover-token"
 			variant=""
 		/>
 		<Accordion spacing="space-y-4">
-			<AccordionItem rounded="rounded-md">
+			<AccordionItem rounded="rounded-none">
 				<svelte:fragment slot="summary">Pipelines</svelte:fragment>
 				<svelte:fragment slot="content">
 					<div class="flex flex-col text-left">
@@ -60,7 +59,6 @@
 							href="/pipelines"
 							icon={faLayerGroup}
 							text="Dashboard"
-							rounded="rounded-md"
 							_class="justify-start gap-8 bg-primary-hover-token"
 							variant=""
 						/>
@@ -69,14 +67,13 @@
 							icon={faPlus}
 							size="lg"
 							text="Builder"
-							rounded="rounded-md"
 							_class="justify-start gap-8 bg-primary-hover-token"
 							variant=""
 						/>
 					</div>
 				</svelte:fragment>
 			</AccordionItem>
-			<AccordionItem>
+			<AccordionItem rounded="rounded-none">
 				<svelte:fragment slot="summary">Documentation</svelte:fragment>
 				<svelte:fragment slot="content">
 					<div class="flex flex-col text-left">
@@ -84,7 +81,6 @@
 							href="/documentation#quick-start"
 							icon={faBookOpen}
 							text="Quick Start"
-							rounded="rounded-md"
 							_class="justify-start gap-8 bg-primary-hover-token"
 							variant=""
 						/>
@@ -92,7 +88,6 @@
 							href="/documentation#composer"
 							icon={faGears}
 							text="Composer"
-							rounded="rounded-md"
 							_class="justify-start gap-8 bg-primary-hover-token"
 							variant=""
 						/>
@@ -100,7 +95,6 @@
 							href="/documentation#driver"
 							icon={faNetworkWired}
 							text="Driver"
-							rounded="rounded-md"
 							_class="justify-start gap-8 bg-primary-hover-token"
 							variant=""
 						/>
@@ -108,14 +102,13 @@
 							href="/documentation#component"
 							icon={faMap}
 							text="Component"
-							rounded="rounded-md"
 							_class="justify-start gap-8 bg-primary-hover-token"
 							variant=""
 						/>
 					</div>
 				</svelte:fragment>
 			</AccordionItem>
-			<AccordionItem rounded="rounded-md">
+			<AccordionItem rounded="rounded-none">
 				<svelte:fragment slot="summary">Account</svelte:fragment>
 				<svelte:fragment slot="content">
 					<div class="flex flex-col text-left">
@@ -123,7 +116,6 @@
 							href="/account"
 							icon={faUser}
 							text="Profile"
-							rounded="rounded-md"
 							_class="justify-start gap-8 bg-primary-hover-token"
 							variant=""
 						/>
@@ -132,7 +124,6 @@
 								href="/account/login"
 								icon={faArrowRightToBracket}
 								text="Login"
-								rounded="rounded-md"
 								_class="justify-start gap-8 bg-primary-hover-token"
 								variant=""
 							/>
@@ -140,7 +131,6 @@
 								href="/account/login?register=true"
 								icon={faUserPlus}
 								text="Register"
-								rounded="rounded-md"
 								_class="justify-start gap-6 bg-primary-hover-token"
 								variant=""
 							/>
@@ -149,7 +139,6 @@
 								on:click={logout}
 								icon={faArrowRightFromBracket}
 								text="Logout"
-								rounded="rounded-md"
 								_class="justify-start gap-8 bg-primary-hover-token"
 								variant=""
 							/>

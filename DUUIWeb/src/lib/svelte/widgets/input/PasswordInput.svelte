@@ -18,7 +18,7 @@
 	{/if}
 	{#if icon}
 		<div
-			class="pl-4 flex items-center bg-transparent focus:ring-0 variant-soft-surface focus-within:border-primary-500 border-[1px] border-surface-600"
+			class="pl-4 flex items-center bg-transparent focus:ring-0 variant-soft-surface focus-within:border-primary-500 border-[1px] border-surface-200 dark:border-surface-500"
 		>
 			<Fa {icon} />
 			<input
@@ -39,7 +39,7 @@
 			{required}
 			{name}
 			{id}
-			class="bg-transparent focus:ring-0 variant-soft-surface focus-within:border-primary-500 border-[1px] border-surface-600"
+			class="bg-transparent focus:ring-0 variant-soft-surface focus-within:border-primary-500 border-[1px] border-surface-200 dark:border-surface-500"
 			{placeholder}
 			bind:value
 			on:keydown

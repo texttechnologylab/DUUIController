@@ -3,13 +3,12 @@
 	import DriverIcon from '$lib/components/DriverIcon.svelte'
 	import { cloneDeep } from 'lodash'
 	import { v4 as uuidv4 } from 'uuid'
-	import ComponentModal from '$lib/components/ComponentModal.svelte'
+	import ComponentModal from '$lib/svelte/widgets/modal/Component.svelte'
 	import {
+		faArrowDown,
 		faArrowLeft,
 		faArrowRight,
-		faBookOpen,
 		faCheck,
-		faChevronRight,
 		faPlus,
 		faSearch
 	} from '@fortawesome/free-solid-svg-icons'
@@ -31,13 +30,22 @@
 	import { success } from '$lib/utils/ui'
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import PipelineComponent from '$lib/components/PipelineComponent.svelte'
-	import IconButton from '$lib/svelte/widgets/action/IconButton.svelte'
 	import { currentPipelineStore } from '$lib/store'
 	import SettingsMapper from '$lib/svelte/widgets/input/SettingsMapper.svelte'
 	import { includes } from '$lib/utils/text'
 	import TextInput from '$lib/svelte/widgets/input/TextInput.svelte'
 	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
-	import CheckButton from '$lib/components/CheckButton.svelte'
+	import CheckButton from '$lib/svelte/widgets/action/CheckButton.svelte'
+	import ComponentTemplates from './ComponentTemplates.svelte'
+	import { fly } from 'svelte/transition'
+	import Text from '$lib/svelte/widgets/input/Text.svelte'
+	import Password from '$lib/svelte/widgets/input/Password.svelte'
+	import Checkbox from '$lib/svelte/widgets/input/Checkbox.svelte'
+	import Number from '$lib/svelte/widgets/input/Number.svelte'
+	import Dropdown from '$lib/svelte/widgets/input/Dropdown.svelte'
+	import ComboBox from '$lib/svelte/widgets/input/Select.svelte'
+	import Select from '$lib/svelte/widgets/input/Select.svelte'
+	import Search from '$lib/svelte/widgets/input/Search.svelte'
 
 	export let data
 	let { templateComponents, templatePipelines } = data
@@ -65,12 +73,6 @@
 					searchText
 				) || !searchText
 		)
-
-		// if (activeOnly) {
-		// 	filteredPipelines = filteredPipelines.filter((pipeline) => pipeline.serviceStartTime !== 0)
-		// }
-
-		// filteredPipelines = filteredPipelines.filter((pipeline) => pipeline.timesUsed === 0 || !unused)
 	}
 
 	const toastStore = getToastStore()
@@ -127,6 +129,13 @@
 		})
 	}
 
+	const addTemplate = (template: DUUIComponent) => {
+		$currentPipelineStore.components = [
+			...$currentPipelineStore.components,
+			{ ...template, id: uuidv4() }
+		]
+	}
+
 	const selectPipelineTemplate = (template: DUUIPipeline) => {
 		$currentPipelineStore = cloneDeep(template)
 		$currentPipelineStore.oid = uuidv4()
@@ -171,20 +180,26 @@
 
 <div class="container h-full flex-col mx-auto flex gap-4 md:my-8">
 	{#if step === 0}
-		<h1 class="h2">New Pipeline</h1>
+		<h1 class="h2">Choose a starting point</h1>
 	{:else}
 		<h1 class="h2">{$currentPipelineStore.name || 'New Pipeline'}</h1>
 	{/if}
 
-	<hr />
-	<div class="flex items-center justify-start gap-4">
+	<hr class="bg-surface-400/20 h-[1px] !border-0 rounded " />
+	<div class="grid grid-cols-2 md:flex items-center justify-between gap-4">
 		{#if step === 0}
 			<ActionButton text="Back" icon={faArrowLeft} on:click={() => goto('/pipelines')} />
+			<Search
+				style="row-start-2 col-span-2"
+				bind:query={searchText}
+				icon={faSearch}
+				placeholder="Search..."
+			/>
 		{:else}
 			<ActionButton text="Back" icon={faArrowLeft} on:click={() => (step -= 1)} />
 		{/if}
 
-		<div class="hidden md:flex items-center gap-4 md:gap-12 mx-auto">
+		<!-- <div class="hidden md:flex items-center gap-4 md:gap-12 mx-auto">
 			{#each steps as s, index}
 				<div
 					class="flex items-center gap-4 md:gap-12
@@ -195,7 +210,7 @@
 				</div>
 			{/each}
 		</div>
-		<p class="h3 mx-auto md:hidden">{steps[step]}</p>
+		<p class="h3 mx-auto md:hidden">{steps[step]}</p> -->
 
 		{#if step < steps.length - 1}
 			<ActionButton
@@ -209,6 +224,8 @@
 			<ActionButton
 				text="Complete"
 				icon={faCheck}
+				disabled={$currentPipelineStore.components.length === 0}
+				variant="variant-filled-success dark:variant-soft-success"
 				on:click={createPipeline}
 				leftToRight={false}
 				_class={$currentPipelineStore.name === '' ? 'invisible' : 'visible'}
@@ -217,13 +234,9 @@
 	</div>
 
 	{#if step === 0}
-		<div class="grid md:flex gap-4 items-center md:justify-between">
-			<h2 class="h4">Choose a starting point</h2>
-			<TextInput bind:value={searchText} icon={faSearch} placeholder="Search..." />
-		</div>
-		<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+		<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4" in:fly={{ x: 300 }} out:fly={{ x: -200 }}>
 			<button
-				class="text-left hover:variant-glass shadow-lg dark:variant-soft-surface p-4 bg-surface-100 dark:hover:bg-surface-800 space-y-4 flex flex-col"
+				class="text-left shadow-lg p-4 hover:variant-glass bg-surface-100 dark:variant-soft-surface dark:hover:bg-surface-800 space-y-4 flex flex-col"
 				on:click={() => selectPipelineTemplate(blankPipeline())}
 			>
 				<p class="text-lg font-bold">Start from scratch</p>
@@ -253,182 +266,78 @@
 			{/each}
 		</div>
 	{:else if step === 1}
-		<div class="grid md:grid-cols-2 gap-4">
-			<div
-				class="flex flex-col gap-4 variant-soft-surface shadow-lg p-4 {$currentPipelineStore.name !==
-				''
-					? ''
-					: 'border-[1px] border-error-400'}"
-			>
-				<label class="label" for="pipeline-name">
-					<span>Name</span>
-					<TextInput bind:value={$currentPipelineStore.name} id="pipeline-name" />
-				</label>
+		<div in:fly={{ x: 300 }} out:fly={{ x: -200 }} class="space-y-4">
+			<div class="bg-surface-100 dark:variant-soft-surface p-4 shadow-lg grid md:grid-cols-3 gap-4">
+				<Checkbox
+					label="Start service when finished"
+					name="start-service"
+					bind:checked={startService}
+				/>
+			</div>
+			<div class="grid md:grid-cols-2 gap-4">
+				<div
+					class="flex flex-col gap-4 bg-surface-100 dark:variant-soft-surface shadow-lg p-4 {$currentPipelineStore.name !==
+					''
+						? ''
+						: 'border-[1px] border-error-400'}"
+				>
+					<Text label="Name" name="pipeline-name" bind:value={$currentPipelineStore.name} />
 
-				<label class="label" for="pipeline-description">
-					<span>Description</span>
 					<TextArea
-						rows={2}
 						bind:value={$currentPipelineStore.description}
-						id="pipeline-description"
+						label="Description"
+						name="pipeline-description"
 					/>
-				</label>
+				</div>
+				<div class="bg-surface-100 dark:variant-soft-surface p-4 shadow-lg">
+					<SettingsMapper bind:settings />
+				</div>
 			</div>
-			<div class="variant-soft-surface p-4 shadow-lg">
-				<SettingsMapper bind:settings />
-			</div>
-			<CheckButton text="Start service when finished" bind:checked={startService} />
 		</div>
 	{:else if step === 2}
-		<div class="space-y-4 variant-soft-surface mx-auto shadow-lg p-4">
-			{#if $currentPipelineStore.components.length === 0}
-				<p>Add a Component to get Started</p>
-			{/if}
-			<ul
-				use:dndzone={{ items: $currentPipelineStore.components, dropTargetStyle: {} }}
-				on:consider={(event) => handleDndConsider(event)}
-				on:finalize={(event) => handleDndFinalize(event)}
-				class="grid gap-4"
+		<div in:fly={{ x: 300 }} out:fly={{ x: -200 }} class="space-y-4">
+			<div
+				class="container space-y-4 bg-surface-100 dark:variant-soft-surface mx-auto shadow-lg p-4"
 			>
-				{#each $currentPipelineStore.components as component (component.id)}
-					<div animate:flip={{ duration: flipDurationMs }}>
-						<PipelineComponent
-							{component}
-							on:delete={(event) => {
-								$currentPipelineStore.components = $currentPipelineStore.components.filter(
-									(c) => c !== event.detail.component
-								)
-							}}
-						/>
-					</div>
-				{/each}
-			</ul>
-			<div class="mx-auto flex items-center gap-4 justify-center">
-				<IconButton
-					icon={faPlus}
-					rounded="rounded-full"
-					variant="variant-soft-primary"
-					on:click={addComponent}
+				{#if $currentPipelineStore.components.length === 0}
+					<p class="text-center h4">Add a Component to get Started</p>
+				{/if}
+				<ul
+					use:dndzone={{ items: $currentPipelineStore.components, dropTargetStyle: {} }}
+					on:consider={(event) => handleDndConsider(event)}
+					on:finalize={(event) => handleDndFinalize(event)}
+					class="grid gap-4"
+				>
+					{#each $currentPipelineStore.components as component (component.id)}
+						<div animate:flip={{ duration: flipDurationMs }}>
+							<PipelineComponent
+								{component}
+								on:delete={(event) => {
+									$currentPipelineStore.components = $currentPipelineStore.components.filter(
+										(c) => c !== event.detail.component
+									)
+								}}
+							/>
+						</div>
+					{/each}
+				</ul>
+				<div class="mx-auto flex items-center gap-4 justify-center">
+					<ActionButton
+						text="Add"
+						icon={faPlus}
+						variant="variant-filled-primary dark:variant-soft-primary"
+						on:click={addComponent}
+					/>
+				</div>
+				<p class="text-center">Or choose a template</p>
+				<Fa class="mx-auto" icon={faArrowDown} size="2x" />
+			</div>
+			<div id="templates">
+				<ComponentTemplates
+					components={templateComponents}
+					on:select={(event) => addTemplate(event.detail.component)}
 				/>
-				<IconButton icon={faBookOpen} rounded="rounded-full" on:click={showTemplateModal} />
 			</div>
 		</div>
 	{/if}
-
-	<!-- <Stepper
-		buttonBack="AAA"
-		on:complete={createPipeline}
-		active="rounded-full variant-filled-primary px-4"
-		badge="rounded-full variant-filled"
-	>
-		<Step locked={pipeline.components.length === 0}>
-			<svelte:fragment slot="header">Build Components</svelte:fragment>
-
-			<div
-				class="grid lg:grid-cols-3 gap-4 {pipeline.components.length === 0
-					? 'grid-cols-1'
-					: 'md:grid-cols-2'}"
-			>
-				{#if pipeline.components.length > 0}
-					<aside
-						class="rounded-md shadow-lg space-y-4 self-start row-start-2 md:row-start-1 md:col-start-3 md:col-span-1"
-					>
-						<ul
-							use:dndzone={{ items: pipeline.components, dropTargetStyle: {} }}
-							on:consider={(event) => handleDndConsider(event)}
-							on:finalize={(event) => handleDndFinalize(event)}
-							class="grid gap-4 self-stretch"
-						>
-							{#each pipeline.components as component (component.id)}
-								<div
-									class="flex items-center justify-start gap-4 card p-4 rounded-md shadow-lg"
-									animate:flip={{ duration: flipDurationMs }}
-								>
-									<DriverIcon driver={component.settings.driver} />
-									<p>{component.name}</p>
-									<button
-										class="btn-icon pointer-events-auto ml-auto variant-soft-primary"
-										on:click={() => {
-											if (editing && $componentStore.id === component.id) {
-												editing = false
-											} else {
-												editing = true
-												$componentStore = { ...component }
-											}
-										}}
-									>
-										<Fa icon={faEdit} />
-									</button>
-								</div>
-							{/each}
-						</ul>
-					</aside>
-				{/if}
-
-				{#if editing}
-					<div class="card rounded-md shadow-lg md:col-span-2">
-						<ComponentBuilder
-							on:remove={deleteComponent}
-							deleteButton={pipeline.components.map((c) => c.id).includes($componentStore.id)}
-						/>
-
-						<div class="grid grid-cols-2 gap-4 p-4">
-							<button class="btn variant-filled-success shadow-lg" on:click={saveComponent}>
-								<span>Save</span>
-							</button>
-							<button class="btn variant-filled-error shadow-lg" on:click={() => (editing = false)}>
-								<span>Cancel</span>
-							</button>
-						</div>
-					</div>
-				{:else}
-					<div
-						class="container h-full flex-col flex gap-8 justify-center card rounded-md shadow-lg p-4"
-					>
-						{#if !editing}
-							{#if pipeline.components.length === 0}
-								<p class="h3 text-center">Start by adding a Component</p>
-							{/if}
-
-							<div class="mx-auto grid gap-4">
-								<button
-									class="btn text-sm md:text-base variant-filled-primary rounded-md shadow-lg"
-									on:click={editNewComponent}
-								>
-									<span>Custom Component</span>
-									<Fa icon={faPlus} />
-								</button>
-								<button
-									class="btn text-sm md:text-base variant-ghost-primary rounded-md shadow-lg"
-									on:click={showTemplateModal}
-								>
-									<span>Template Component</span>
-									<Fa icon={faBookOpen} />
-								</button>
-							</div>{/if}
-					</div>
-				{/if}
-			</div>
-			<svelte:fragment slot="navigation">
-				<ActionButton
-					icon={faCancel}
-					text="Cancel"
-					variant="variant-soft-error"
-					on:click={() => goto('/pipelines')}
-				/>
-			</svelte:fragment>
-		</Step>
-		<Step buttonBack="btn rounded-md variant-soft-surface">
-			<svelte:fragment slot="header">Choose a name for your Pipeline</svelte:fragment>
-			<label class="label">
-				<span>Name</span>
-				<input
-					bind:value={pipeline.name}
-					class="input focus-within:outline-primary-400"
-					type="text"
-				/>
-			</label>
-		</Step>
-		<form bind:this={createForm} action="?/create" />
-	</Stepper> -->
 </div>

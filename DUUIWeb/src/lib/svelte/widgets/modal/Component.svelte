@@ -1,10 +1,10 @@
 <script lang="ts">
-	import ActionButton from '../svelte/widgets/action/ActionButton.svelte'
+	import ActionButton from '../action/ActionButton.svelte'
 	import { DUUIDrivers, type DUUIComponent } from '$lib/duui/component'
 	import { getModalStore, getToastStore, type ModalSettings } from '@skeletonlabs/skeleton'
 	import { isEqual } from 'lodash'
 
-	import IconButton from '../svelte/widgets/action/IconButton.svelte'
+	import IconButton from '../action/IconButton.svelte'
 	import { faClose, faFilePen, faTrash } from '@fortawesome/free-solid-svg-icons'
 	import { toTitleCase } from '$lib/utils/text'
 	import { createEventDispatcher } from 'svelte'
@@ -12,11 +12,15 @@
 	import { success } from '$lib/utils/ui'
 	import { makeApiCall, Api } from '$lib/utils/api'
 	import TextInput from '$lib/svelte/widgets/input/TextInput.svelte'
-	import ComboBox from '$lib/svelte/widgets/input/ComboBox.svelte'
+	import ComboBox from '$lib/svelte/widgets/input/Select.svelte'
 	import Fa from 'svelte-fa'
 	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
 	import SettingsMapper from '$lib/svelte/widgets/input/SettingsMapper.svelte'
-	import DriverIcon from './DriverIcon.svelte'
+	import DriverIcon from '../../../components/DriverIcon.svelte'
+	import Text from '$lib/svelte/widgets/input/Text.svelte'
+	import Select from '$lib/svelte/widgets/input/Select.svelte'
+	import Dropdown from '$lib/svelte/widgets/input/Dropdown.svelte'
+	import Chips from '$lib/svelte/widgets/input/Chips.svelte'
 
 	const dispatcher = createEventDispatcher()
 	const modalStore = getModalStore()
@@ -33,7 +37,7 @@
 	let parameters: Map<string, string>
 	let options: Map<string, string>
 
-	let categories: string[] = [...component.categories, 'A', 'B']
+	let categories: string[] = [...component.categories]
 	let chipText: string = ''
 
 	const toastStore = getToastStore()
@@ -42,6 +46,7 @@
 		$currentPipelineStore.components = $currentPipelineStore.components.filter(
 			(c) => c.oid !== component.oid
 		)
+
 		$markedForDeletionStore.push(component.oid)
 		modalStore.close()
 	}
@@ -123,61 +128,24 @@
 
 {#if $modalStore[0]}
 	<div class="card rounded-none items-start justify-start shadow-lg container max-w-5xl">
-		<header class="flex flex-col">
-			<div class="flex justify-between items-center shadow-lg p-4">
-				<DriverIcon {driver} />
-				<h3 class="h3">{name}</h3>
-				<IconButton icon={faClose} on:click={() => modalStore.close()} rounded="rounded-full" />
-			</div>
-		</header>
+		<div class="flex justify-between items-center p-4">
+			<DriverIcon {driver} />
+			<h3 class="h3">{name}</h3>
+			<IconButton icon={faClose} on:click={() => modalStore.close()} rounded="rounded-full" variant="variant-glass" />
+		</div>
+		<hr class="bg-surface-400/20 h-[1px] !border-0 rounded " />
 
 		<div class="grid md:grid-cols-2 gap-4 p-4">
 			<div class="space-y-4">
-				<div class="space-y-4">
-					<TextInput name="name" placeholder="Name" bind:value={name} />
-					<ComboBox id="driver" name="driver" options={DUUIDrivers} bind:value={driver} />
-					<TextInput name="target" placeholder="Target" bind:value={target} />
-				</div>
-
-				<div class="space-y-1">
-					<span class="uppercase text-xs tracking-widest">Categories</span>
-					<div
-						class="flex flex-col focus:ring-0 focus-within:border-primary-500 border-[1px] border-surface-500"
-					>
-						<input
-							class="{categories.length > 0
-								? ' ring-0'
-								: ''} border-none appearance-none ring-0 bg-transparent focus:ring-0 outline-none"
-							type="text"
-							bind:value={chipText}
-							placeholder="Category"
-							on:keypress={(event) => {
-								if (event.key === 'Enter') {
-									addCategory()
-								}
-							}}
-						/>
-						<div class={categories.length === 0 ? 'invisible' : 'flex flex-wrap gap-2 p-2'}>
-							{#each categories as category}
-								<!-- svelte-ignore a11y-no-static-element-interactions -->
-								<button class="chip variant-glass-primary" on:click={() => removeCategory(category)}
-									><span>
-										{category}
-									</span>
-									<Fa icon={faClose} size="xs" />
-								</button>
-							{/each}
-						</div>
-					</div>
-				</div>
+				<Text label="Name" name="name" bind:value={name} />
+				<Dropdown label="Driver" name="driver" options={DUUIDrivers} bind:value={driver} />
+				<Text label="Target" name="target" bind:value={target} />
 			</div>
-
-			<div class="space-y-4">
-				<SettingsMapper />
-			</div>
-			<TextArea name="Description" rows={4} classes="md:col-span-2" />
+			<SettingsMapper />
+			<Chips label="Categories" bind:values={component.categories} style="md:col-span-2"  />
+			<TextArea label="Description" name="description" style="md:col-span-2" />
 		</div>
-		<hr />
+		<hr class="bg-surface-400/20 h-[1px] !border-0 rounded " />
 
 		<footer class="flex flex-col">
 			<div class="flex justify-between items-center shadow-lg p-4">

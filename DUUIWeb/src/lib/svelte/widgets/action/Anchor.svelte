@@ -11,13 +11,12 @@
 	export let rounded: string = 'rounded-none'
 	export let target: string = ''
 	export let rel: string = ''
-	export let size: string = "md"
-
+	export let size: string = 'md'
 </script>
 
 <a {href} {rel} {target} class="btn {rounded} {variant} {_class}">
 	{#if leftToRight}
-		<Fa {icon} {size} />
+		<Fa class="w-4" {icon} {size} />
 		{#if text !== ''}
 			<span>{text}</span>
 		{/if}
@@ -25,6 +24,6 @@
 		{#if text !== ''}
 			<span>{text}</span>
 		{/if}
-		<Fa {icon} {size} />
+		<Fa class="w-4" {icon} {size} />
 	{/if}
 </a>
