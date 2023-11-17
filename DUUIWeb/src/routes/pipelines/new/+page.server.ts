@@ -8,7 +8,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 			method: 'GET',
 			mode: 'cors',
 			headers: {
-				session: cookies.get('session') || ''
+				authorization: cookies.get('session') || ''
 			}
 		})
 		return await result.json()
@@ -19,7 +19,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 			method: 'GET',
 			mode: 'cors',
 			headers: {
-				session: cookies.get('session') || ''
+				authorization: cookies.get('session') || ''
 			}
 		})
 		return await result.json()

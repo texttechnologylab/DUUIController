@@ -5,14 +5,14 @@ import type { DUUIPipeline } from '$lib/duui/pipeline'
 
 export const load: PageServerLoad = async ({ fetch, locals, cookies }) => {
 	if (!locals.user) {
-		throw redirect(300, '/user/login')
+		throw redirect(300, '/user/auth/login')
 	}
 	const loadPipelines = async (): Promise<{ pipelines: DUUIPipeline[] }> => {
-		const result = await fetch(API_URL + '/pipelines/all/' + locals.user.id, {
+		const result = await fetch(API_URL + '/pipelines/all/' + locals.user.oid, {
 			method: 'GET',
 			mode: 'cors',
 			headers: {
-				session: cookies.get('session') || ''
+				authorization: cookies.get('session') || ''
 			}
 		})
 		return await result.json()

@@ -2,7 +2,7 @@
 	import type { IconDefinition } from '@fortawesome/free-solid-svg-icons'
 	import Fa from 'svelte-fa'
 
-	export let icon: IconDefinition
+	export let icon: IconDefinition | null = null
 	export let text: string
 	export let variant: string = 'dark:variant-soft-primary variant-filled-primary'
 	export let rounded: string = 'rounded-none'
@@ -12,12 +12,16 @@
 	export let disabled: boolean = false
 </script>
 
-<button {tabindex} on:click class="btn {rounded} {variant} {_class}" {disabled}>
+<button data-sveltekit-preload-data="hover" {tabindex} on:click class="btn {rounded} {variant} {_class}" {disabled}>
 	{#if leftToRight}
-		<Fa {icon} />
+		{#if icon}
+			<Fa {icon} />
+		{/if}
 		<span>{text}</span>
 	{:else}
 		<span>{text}</span>
-		<Fa {icon} />
+		{#if icon}
+			<Fa {icon} />
+		{/if}
 	{/if}
 </button>

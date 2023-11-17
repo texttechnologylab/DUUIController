@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { equals } from '$lib/utils/text'
+	import { equals, toTitleCase } from '$lib/utils/text'
 	import type { Placement } from '@floating-ui/dom'
 	import { faCheck, faChevronDown, type IconDefinition } from '@fortawesome/free-solid-svg-icons'
 	import { ListBox, ListBoxItem, popup, type PopupSettings } from '@skeletonlabs/skeleton'
@@ -32,7 +32,7 @@
 		class="flex justify-between items-center gap-2 px-3 py-2 leading-6 border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 dark:border-surface-400/20"
 		use:popup={dropdown}
 	>
-		<span>{value}</span>
+		<span>{toTitleCase(value)}</span>
 		<Fa {icon} />
 	</button>
 </div>

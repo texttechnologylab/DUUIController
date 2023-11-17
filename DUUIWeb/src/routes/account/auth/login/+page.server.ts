@@ -2,15 +2,30 @@ import { fail, redirect } from '@sveltejs/kit'
 import type { Actions, PageServerLoad } from './$types'
 import bcrypt from 'bcrypt'
 import { API_URL } from '$lib/config'
+import { storage } from '$lib/store'
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, url }) => {
+	if (url.searchParams.get('logout') === 'true') {
+		storage.set({
+			session: '',
+			user: {
+				oid: '',
+				authorization: '',
+				email: '',
+				role: 'user',
+				preferences: {},
+				connections: {}
+			}
+		})
+	}
+	
 	return {
 		user: locals.user
 	}
 }
 
 export const actions: Actions = {
-	async login({ cookies, request }) {
+	async login({ cookies, request, url }) {
 		const data = await request.formData()
 		const email = data.get('email')
 		const password = data.get('password')
@@ -21,13 +36,13 @@ export const actions: Actions = {
 			})
 		}
 
-		const response = await fetch(API_URL + '/users/' + email, {
+		const response = await fetch(`${API_URL}/users/${email}`, {
 			method: 'GET',
 			mode: 'cors'
 		})
 
 		const user = await response.json()
-		if (user['message'] === 'User not found') {
+		if (user.status === 404) {
 			return fail(400, {
 				error: 'Invalid credentials.'
 			})
@@ -39,7 +54,7 @@ export const actions: Actions = {
 			})
 		}
 
-		const userUpdate = await fetch(API_URL + '/users', {
+		const userUpdate = await fetch(`${API_URL}/users`, {
 			method: 'PUT',
 			mode: 'cors',
 			body: JSON.stringify({
@@ -58,10 +73,12 @@ export const actions: Actions = {
 			maxAge: 60 * 60 * 24 * 30
 		})
 
-		throw redirect(302, '/pipelines')
+		const redirectURL = data.get('redirect')?.toString() || '/account/user/profile'
+
+		throw redirect(302, redirectURL)
 	},
 
-	async register({ request }) {
+	async register({ request, cookies, locals }) {
 		const data = await request.formData()
 		const email = data.get('email')
 
@@ -73,8 +90,7 @@ export const actions: Actions = {
 		const user = await response.json()
 
 		if (user['message'] !== 'User not found') {
-			// return fail(400, {user: true})
-			throw redirect(302, '/user/login?email=' + email) // might be unsecure?
+			throw redirect(302, '/account/auth/login?register=true&message=This email address is invalid')
 		}
 
 		const password1 = data.get('password1')
@@ -94,17 +110,30 @@ export const actions: Actions = {
 
 		const encryptedPassword = await bcrypt.hash(password1.toString(), 10)
 
-		await fetch(API_URL + '/users', {
+		const session = crypto.randomUUID()
+
+		const created = await fetch(`${API_URL}/users`, {
 			method: 'POST',
 			mode: 'cors',
 			body: JSON.stringify({
 				email: email,
 				password: encryptedPassword,
-				session: crypto.randomUUID(),
+				session: session,
 				role: 'user'
 			})
 		})
 
-		throw redirect(303, '/user/login')
+		if (created.ok) {
+			cookies.set('session', session, {
+				path: '/',
+				httpOnly: true,
+				sameSite: 'strict',
+				secure: process.env.NODE_ENV === 'production',
+				maxAge: 60 * 60 * 24 * 30
+			})
+
+			throw redirect(302, '/account/user/profile')
+		}
+		throw redirect(303, '/account/user/login')
 	}
 }

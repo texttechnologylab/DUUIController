@@ -1,31 +1,30 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
-	import CheckButton from '$lib/svelte/widgets/action/CheckButton.svelte'
-	import { API_URL } from '$lib/config.js'
 	import {
+		Input,
 		InputFileExtensions,
 		InputSources,
+		Output,
 		OutputFileExtensions,
 		OutputTargets,
 		isCloudProvider,
 		isValidIO,
-		isValidInput,
-		isValidOutput,
 		isValidS3BucketName
 	} from '$lib/duui/io.js'
-	import { needsAuthorization } from '$lib/duui/user.js'
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
-	import TextInput from '$lib/svelte/widgets/input/TextInput.svelte'
 	import { equals } from '$lib/utils/text.js'
-	import { faArrowLeft, faCancel, faCheck } from '@fortawesome/free-solid-svg-icons'
+	import { faArrowLeft, faCancel, faCheck, faLink } from '@fortawesome/free-solid-svg-icons'
 	import Dropdown from '$lib/svelte/widgets/input/Dropdown.svelte'
 	import Text from '$lib/svelte/widgets/input/Text.svelte'
 	import Checkbox from '$lib/svelte/widgets/input/Checkbox.svelte'
+	import { Api, makeApiCall } from '$lib/utils/api.js'
+	import { fly } from 'svelte/transition'
+	import Fa from 'svelte-fa'
 
 	export let data
-	let { dbxAuthorized, session, dbxURL } = data
+	let { user } = data
 
 	let inputSource: string = $page.url.searchParams.get('input-source') || 'Text'
 	let inputFolder: string = $page.url.searchParams.get('input-folder') || '/input/sample_txt'
@@ -57,14 +56,16 @@
 		$page.url.searchParams.get('from') ||
 		`/pipelines/${$page.url.searchParams.get('oid') || ''}?tab=2`
 
+	let starting: boolean = false
 	const createProcess = async () => {
-		let response = await fetch(API_URL + '/processes', {
-			method: 'POST',
-			mode: 'cors',
-			headers: {
-				session: session || ''
-			},
-			body: JSON.stringify({
+		if (starting) {
+			return
+		}
+		starting = true
+		const response = await makeApiCall(
+			Api.Processes,
+			'POST',
+			JSON.stringify({
 				pipeline_id: $page.url.searchParams.get('oid'),
 				input: {
 					source: inputSource,
@@ -83,11 +84,11 @@
 					recursive: recursive
 				}
 			})
-		})
+		)
 
-		let run = await response.json()
+		let process = await response.json()
 		if (response.ok) {
-			goto('/process/' + run.oid)
+			goto('/process/' + process.oid)
 		}
 	}
 
@@ -98,11 +99,26 @@
 		inputBucketIsValid = isValidS3BucketName(input.folder)
 		outputBucketIsValid = isValidS3BucketName(output.folder)
 	}
+
+	let needsDropboxAuthentication: boolean = false
+	let needsMinioAuthentication: boolean = false
+	let needsAuthentication: boolean = needsDropboxAuthentication || needsMinioAuthentication
+	$: {
+		needsDropboxAuthentication =
+			(!user.connections.dropbox && equals(inputSource, Input.Dropbox)) ||
+			(!user.connections.dropbox && equals(outputTarget, Output.Dropbox))
+
+		needsMinioAuthentication =
+			(!user.connections.minio && equals(inputSource, Input.Minio)) ||
+			(!user.connections.minio && equals(outputTarget, Output.Minio))
+
+		needsAuthentication = needsDropboxAuthentication || needsMinioAuthentication
+	}
 </script>
 
 <div class="container h-full flex-col mx-auto flex gap-4 md:my-8">
 	<h1 class="h2">New Process</h1>
-	<hr class="bg-surface-400/20 h-[1px] !border-0 rounded " />
+	<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
 	<div class="items-center justify-between gap-4 hidden md:flex">
 		<ActionButton
 			tabindex={0}
@@ -117,6 +133,7 @@
 			variant="dark:variant-soft-success variant-filled-success"
 			on:click={createProcess}
 			leftToRight={false}
+			disabled={needsAuthentication || starting}
 			_class={isValidIO(input, output) ? 'visible' : 'invisible'}
 		/>
 	</div>
@@ -197,13 +214,27 @@
 				/>
 			{/if}
 		</div>
-
-		{#if !dbxAuthorized && needsAuthorization(inputSource, outputTarget)}
-			<a href={dbxURL.toString()} target="_blank" class="btn variant-filled-primary">
-				Authenticate Dropbox
-			</a>
-		{/if}
 	</div>
+	{#if needsAuthentication}
+		<div
+			in:fly
+			class="bg-surface-100 dark:variant-soft-surface p-4 shadow-lg flex justify-center gap-4"
+		>
+			{#if needsDropboxAuthentication}
+				<a
+					href="/account/user/connections"
+					target="_blank"
+					class="btn rounded-none variant-ringed-primary"
+				>
+					<Fa icon={faLink} />
+					<span>Connect Dropbox</span>
+				</a>
+			{/if}
+			{#if needsMinioAuthentication}
+				<ActionButton text="Connect Minio" icon={faLink} />
+			{/if}
+		</div>
+	{/if}
 
 	<div class="items-center justify-between gap-4 flex md:hidden">
 		<ActionButton
@@ -216,7 +247,7 @@
 		<ActionButton
 			text="Start"
 			icon={faCheck}
-			variant="variant-soft-success"
+			variant="variant-villed-success dark:variant-soft-success"
 			on:click={createProcess}
 			leftToRight={false}
 		/>

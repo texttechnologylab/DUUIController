@@ -152,8 +152,25 @@ public class DUUIProcess extends Thread {
         JCas cas = null;
 
         String userId = _pipeline.getString("user_id");
-        IDUUIDataReader inputDataReader = DUUIProcessService.getDataReaderFromString(input.getSource(), userId);
-        IDUUIDataReader outputDataReader = input.sameAs(output) ? inputDataReader : DUUIProcessService.getDataReaderFromString(output.getTarget(), userId);
+        IDUUIDataReader inputDataReader;
+        IDUUIDataReader outputDataReader;
+
+        try {
+            inputDataReader = DUUIProcessService.getDataReaderFromString(input.getSource(), userId);
+
+        } catch (IllegalArgumentException e) {
+            onError(new RuntimeException("Missing Dropbox access token. Connect with Dropbox in your account settings."));
+            cancel();
+            return;
+        }
+
+        try {
+            outputDataReader = input.sameAs(output) ? inputDataReader : DUUIProcessService.getDataReaderFromString(output.getTarget(), userId);
+        } catch (Exception e) {
+            onError(e);
+            cancel();
+            return;
+        }
 
         AsyncCollectionReader collectionReader = null;
 
@@ -313,18 +330,15 @@ public class DUUIProcess extends Thread {
 
         if (_composer != null) {
             _composer.setShutdownAtomic(true);
-        }
-
-        if (_composer == null) {
+        } else {
             _service.cancel(false);
             DUUIProcessController.removeProcess(_id);
-
-            DUUIProcessController.setStatus(_id, "Canceled");
-            DUUIProcessController.setFinishTime(_id, Instant.now().toEpochMilli());
-            Application.metrics.get("cancelled_processes").incrementAndGet();
-            DUUIProcessController.setFinished(_id, true);
-            return;
         }
+
+        DUUIProcessController.setStatus(_id, "Canceled");
+        DUUIProcessController.setFinishTime(_id, Instant.now().toEpochMilli());
+        Application.metrics.get("cancelled_processes").incrementAndGet();
+        DUUIProcessController.setFinished(_id, true);
 
         while (!_composer.processingFinished()) {
             try {

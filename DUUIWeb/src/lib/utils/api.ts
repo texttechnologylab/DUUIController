@@ -7,18 +7,20 @@ export const Api = {
 	Components: '/pipelines/api/components',
 	Processes: '/process/api',
 	Documents: '/process/api/documents',
-	Logout: '/account/api'
+	Logout: '/account/api',
+	Authentication: '/account/api/auth',
+	Dropbox: '/account/api/dropbox'
 }
 
 export const makeApiCall = async (
 	endpoint: string,
 	method: string,
-	body: Object,
+	body: Object | undefined = undefined,
 	searchParams: string = ''
 ) => {
 	if (equals(method, 'GET')) {
 		return await fetch(searchParams ? `${endpoint}?${searchParams}` : endpoint, {
-			method: method,
+			method: method
 		})
 	} else {
 		return await fetch(searchParams ? `${endpoint}?${searchParams}` : endpoint, {

@@ -11,7 +11,7 @@ import {
 	faHourglass,
 	faQuestion,
 	faRefresh,
-	faX
+	faClose
 } from '@fortawesome/free-solid-svg-icons'
 import { equals } from './text'
 import { Status } from '$lib/duui/monitor'
@@ -57,7 +57,7 @@ export function getStatusIcon(status: string) {
 	if (equals(status, Status.Output)) return faFileUpload
 	if (equals(status, Status.Completed)) return faCheckDouble
 	if (equals(status, Status.Canceled)) return faCancel
-	if (equals(status, Status.Failed)) return faX
+	if (equals(status, Status.Failed)) return faClose
 
 	return faQuestion
 }
@@ -68,12 +68,12 @@ export const getDocumentStatusIcon = (document: DUUIDocument) => {
 	if (equals(document.status, Status.Decode)) return faFileCode
 	if (equals(document.status, Status.Deserialize)) return faFileArchive
 	if (equals(document.status, Status.Waiting)) return faHourglass
-	if (equals(document.status, Status.Canceled)) return document.error ? faX : faCancel
-	if (equals(document.status, Status.Output)) return document.error ? faX : faFileUpload
-	if (equals(document.status, Status.Failed)) return document.error ? faX : faCheck
-	if (equals(document.status, Status.Completed)) return document.error ? faX : faCheckDouble
+	if (equals(document.status, Status.Canceled)) return document.error ? faClose : faCancel
+	if (equals(document.status, Status.Output)) return document.error ? faClose : faFileUpload
+	if (equals(document.status, Status.Failed)) return document.error ? faClose : faCheck
+	if (equals(document.status, Status.Completed)) return document.error ? faClose : faCheckDouble
 
-	return document.error ? faX : document.finished ? faCheck : faRefresh
+	return document.error ? faClose : document.finished ? faCheck : faRefresh
 }
 
 export const success = (message: string, duration: number = 4000): ToastSettings => {

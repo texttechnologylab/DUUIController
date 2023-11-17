@@ -1,7 +1,6 @@
 <script lang="ts">
 	import '../app.postcss'
 	import Logo from '$lib/assets/Logo.svg'
-	import Icon from '$lib/assets/favicon.svg'
 
 	import { AppShell, AppBar, LightSwitch, type ModalComponent } from '@skeletonlabs/skeleton'
 	import { Drawer, getDrawerStore } from '@skeletonlabs/skeleton'
@@ -19,7 +18,9 @@
 		faArrowRightToBracket,
 		faUser,
 		faUserPlus,
-		faArrowRightFromBracket
+		faArrowRightFromBracket,
+		faLock,
+		faLink
 	} from '@fortawesome/free-solid-svg-icons'
 	import { faGithub } from '@fortawesome/free-brands-svg-icons'
 
@@ -36,6 +37,7 @@
 	import { Api, makeApiCall } from '$lib/utils/api'
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import DeleteModal from '$lib/svelte/widgets/modal/DeleteModal.svelte'
+	import { storage } from '$lib/store'
 
 	initializeStores()
 
@@ -54,13 +56,16 @@
 
 	export let data
 	let { loggedIn } = data
+	
+	$: loggedIn = $storage.session !== ''
+	
 
 	const logout = async () => {
 		const response = await makeApiCall(Api.Logout, 'PUT', {})
 		if (response.ok) {
 			loggedIn = false
-			goto('/account/login')
-		}
+			goto('/account/auth/login?logout=true')
+		}	
 	}
 
 	const modalRegistry: Record<string, ModalComponent> = {
@@ -181,16 +186,9 @@
 							<div
 								class="flex flex-col shadow-lg border-[1px] bg-white dark:bg-surface-600 border-surface-400/20"
 							>
-								<Anchor
-									href="/account"
-									icon={faUser}
-									text="Profile"
-									_class="justify-start gap-8 bg-primary-hover-token"
-									variant=""
-								/>
 								{#if !loggedIn}
 									<Anchor
-										href="/account/login"
+										href="/account/auth/login"
 										icon={faArrowRightToBracket}
 										text="Login"
 										rounded="rounded-md"
@@ -198,13 +196,34 @@
 										variant=""
 									/>
 									<Anchor
-										href="/account/register"
+										href="/account/auth/login?register=true"
 										icon={faUserPlus}
 										text="Register"
 										_class="justify-start gap-8 bg-primary-hover-token"
 										variant=""
 									/>
 								{:else}
+									<Anchor
+										href="/account/user/profile"
+										icon={faUser}
+										text="Profile"
+										_class="justify-start gap-8 bg-primary-hover-token"
+										variant=""
+									/>
+									<Anchor
+										href="/account/user/connections"
+										icon={faLink}
+										text="Connections"
+										_class="justify-start gap-8 bg-primary-hover-token"
+										variant=""
+									/>
+									<Anchor
+										href="/account/user/security"
+										icon={faLock}
+										text="Security"
+										_class="justify-start gap-8 bg-primary-hover-token"
+										variant=""
+									/>
 									<ActionButton
 										on:click={logout}
 										icon={faArrowRightFromBracket}

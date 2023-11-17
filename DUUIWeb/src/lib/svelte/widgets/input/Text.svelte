@@ -4,10 +4,12 @@
 	export let value: string = ''
 
 	export let required: boolean = false
+	export let readonly: boolean = false
 	export let error: string = ''
+	export let hidden: boolean = false
 </script>
 
-<label class="label flex flex-col">
+<label class="label flex flex-col {hidden ? 'hidden' : ''}">
 	<span class="uppercase text-xs tracking-widest">{label}</span>
 	{#if error}
 		<span class="pl-1 text-xs text-error-500">{error}</span>
@@ -20,5 +22,6 @@
 		{name}
 		bind:value
 		{required}
+		{readonly}
 	/>
 </label>

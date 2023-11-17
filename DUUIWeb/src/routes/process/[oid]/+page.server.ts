@@ -16,7 +16,7 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 			method: 'GET',
 			mode: 'cors',
 			headers: {
-				session: cookies.get('session') || ''
+				authorization: cookies.get('session') || ''
 			}
 		})
 		return await response.json()

@@ -22,7 +22,7 @@ export async function POST({ request, cookies, locals }) {
 	const dbx_access_token: string = token.result.access_token
 	const dbx_refresh_token: string = token.result.refresh_token
 
-	const response = await fetch(API_URL + '/users/' + user.id, {
+	const response = await fetch(API_URL + '/users/' + user.oid, {
 		method: 'PUT',
 		mode: 'cors',
 		body: JSON.stringify({
@@ -30,7 +30,7 @@ export async function POST({ request, cookies, locals }) {
 			dbx_refresh_token: dbx_refresh_token
 		}),
 		headers: {
-			session: cookies.get('session') || ''
+			authorization: cookies.get('session') || ''
 		}
 	})
 

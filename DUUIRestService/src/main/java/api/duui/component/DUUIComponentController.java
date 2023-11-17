@@ -18,8 +18,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static api.Application.queryIntElseDefault;
-import static api.requests.validation.UserValidator.isAuthorized;
-import static api.requests.validation.UserValidator.unauthorized;
+import static api.requests.validation.UserValidator.*;
 import static api.requests.validation.Validator.isNullOrEmpty;
 import static api.requests.validation.Validator.missingField;
 import static api.storage.DUUIMongoDBStorage.combineUpdates;
@@ -103,13 +102,13 @@ public class DUUIComponentController {
     }
 
     public static String findMany(Request request, Response response) {
-        String session = request.headers("session");
-        if (!isAuthorized(session, Role.USER)) return unauthorized(response);
+        String authorization = request.headers("authorization");
+
+        Document user = authenticate(authorization);
+        if (isNullOrEmpty(user)) return unauthorized(response);
 
         int limit = queryIntElseDefault(request, "limit", 0);
         int offset = queryIntElseDefault(request, "offset", 0);
-
-        Document user = DUUIUserController.getUserBySession(session);
 
         FindIterable<Document> components = DUUIMongoDBStorage
             .getInstance()

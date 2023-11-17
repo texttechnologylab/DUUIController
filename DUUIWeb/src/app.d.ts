@@ -4,9 +4,12 @@
 declare namespace App {
 	interface Locals {
 		user: {
-			id: string,
-			email: string,
+			preferences: any
+			connections: any
+			oid: string
+			email: string
 			role: string
+			authorization: string
 		}
 	}
 	// interface PageData {}

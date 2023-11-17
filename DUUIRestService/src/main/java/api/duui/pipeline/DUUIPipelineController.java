@@ -14,7 +14,6 @@ import org.bson.types.ObjectId;
 import spark.Request;
 import spark.Response;
 
-import javax.print.Doc;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import static api.Application.queryIntElseDefault;
+import static api.requests.validation.UserValidator.authenticate;
 import static api.requests.validation.UserValidator.unauthorized;
 import static api.requests.validation.Validator.isNullOrEmpty;
 import static api.requests.validation.Validator.missingField;
@@ -42,16 +42,14 @@ public class DUUIPipelineController {
     );
 
     public static String findOne(Request request, Response response) {
-        String session = request.headers("session");
-        String id = request.params(":id");
+        String authorization = request.headers("authorization");
 
-        Document pipeline = getPipelineById(id);
+        Document user = authenticate(authorization);
+        if (isNullOrEmpty(user)) return unauthorized(response);
+
+
+        Document pipeline = getPipelineById(request.params(":id"));
         if (pipeline == null) return PipelineValidator.pipelineNotFound(response);
-
-
-        if (!UserValidator.isAuthorized(session, pipeline.getString("user_id"))) {
-            return unauthorized(response);
-        }
 
         mapObjectIdToString(pipeline);
         response.status(200);
@@ -59,12 +57,10 @@ public class DUUIPipelineController {
     }
 
     public static String findMany(Request request, Response response) {
-        String session = request.headers("session");
-        Document user = DUUIUserController.getUserBySession(session);
+        String authorization = request.headers("authorization");
 
-        if (isNullOrEmpty(user)) {
-            return unauthorized(response);
-        }
+        Document user = authenticate(authorization);
+        if (isNullOrEmpty(user)) return unauthorized(response);
 
         int limit = queryIntElseDefault(request, "limit", 0);
         int offset = queryIntElseDefault(request, "offset", 0);
@@ -100,12 +96,10 @@ public class DUUIPipelineController {
     }
 
     public static String findTemplates(Request request, Response response) {
-        String session = request.headers("session");
-        Document user = DUUIUserController.getUserBySession(session);
+        String authorization = request.headers("authorization");
 
-        if (isNullOrEmpty(user)) {
-            return unauthorized(response);
-        }
+        Document user = authenticate(authorization);
+        if (isNullOrEmpty(user)) return unauthorized(response);
 
         int limit = queryIntElseDefault(request, "limit", 0);
         int offset = queryIntElseDefault(request, "offset", 0);
@@ -147,10 +141,9 @@ public class DUUIPipelineController {
         List<Document> components = body.getList("components", Document.class);
         if (components.isEmpty()) return missingField(response, "components");
 
-        String session = request.headers("session");
-        if (isNullOrEmpty(session)) return unauthorized(response);
+        String authorization = request.headers("authorization");
 
-        Document user = DUUIUserController.getUserBySession(session);
+        Document user = authenticate(authorization);
         if (isNullOrEmpty(user)) return unauthorized(response);
 
         Document pipeline = new Document("name", name)
@@ -193,6 +186,7 @@ public class DUUIPipelineController {
         String id = request.params(":id");
         Document update = Document.parse(request.body());
 
+
         DUUIMongoDBStorage
             .getInstance()
             .getDatabase("duui")
@@ -215,11 +209,10 @@ public class DUUIPipelineController {
     }
 
     public static String deleteOne(Request request, Response response) {
-        String session = request.headers("session");
-        if (session.isEmpty()) {
-            response.status(401);
-            return new Document("message", "Missing authorization header.").toJson();
-        }
+        String authorization = request.headers("authorization");
+
+        Document user = authenticate(authorization);
+        if (isNullOrEmpty(user)) return unauthorized(response);
 
         String id = request.params(":id");
 

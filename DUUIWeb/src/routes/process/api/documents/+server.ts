@@ -22,7 +22,7 @@ export async function GET({ url, cookies }) {
 			method: 'GET',
 			mode: 'cors',
 			headers: {
-				session: cookies.get('session') || ''
+				authorization: cookies.get('session') || ''
 			}
 		}
 	)

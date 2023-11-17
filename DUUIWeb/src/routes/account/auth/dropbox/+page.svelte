@@ -1,22 +1,18 @@
 <script lang="ts">
+	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
+	import { ProgressRadial } from '@skeletonlabs/skeleton'
 	import { onMount } from 'svelte'
-
-
-	let success: boolean = false
 
 	onMount(async () => {
 		let code = $page.url.searchParams.get('code')
 		if (code) {
-			const response = await fetch('/user/api/auth/dropbox/refresh', {
-				method: 'POST',
-				body: JSON.stringify({
-					code: code
-				})
+			goto(`/account/user/connections?code=${$page.url.searchParams.get('code')}`, {
+				invalidateAll: true
 			})
-			success = response.ok
 		}
 	})
 </script>
 
-<button class="btn variant-filled-primary"> {success ? 'Success' : 'Failed'} </button>
+<h1>Finishing connection...</h1>
+<ProgressRadial value={undefined} />

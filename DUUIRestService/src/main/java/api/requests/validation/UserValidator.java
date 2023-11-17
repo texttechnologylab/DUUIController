@@ -6,6 +6,8 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 import spark.Response;
 
+import static api.requests.validation.Validator.isNullOrEmpty;
+
 public class UserValidator {
 
     public static boolean isAuthorized(String session, Role minimumRole) {
@@ -32,7 +34,12 @@ public class UserValidator {
 
     public static String unauthorized(Response response) {
         response.status(401);
-        return new Document("message", "Unauthorized").toJson();
+        return new Document("message", "Missing authorization header. Generate an api key or log in to your account.").toJson();
+    }
+
+    public static String unauthorized(Response response, String message) {
+        response.status(401);
+        return new Document("message", message).toJson();
     }
 
     public static String expired(Response response) {
@@ -41,12 +48,23 @@ public class UserValidator {
     }
 
     public static String userNotFound(Response response) {
-        response.status(401);
+        response.status(404);
         return new Document("message", "User not found").toJson();
     }
 
     public static String missingAuthorization(Response response, String service) {
         response.status(404);
         return new Document("message", "Missing authorization for " + service).toJson();
+    }
+
+    public static Document authenticate(String authorization) {
+        if (isNullOrEmpty(authorization)) return null;
+
+        Document user = DUUIUserController.getUserByAuthorization(authorization);
+        if (isNullOrEmpty(user)) {
+            user = DUUIUserController.getUserBySession(authorization);
+        }
+
+        return user;
     }
 }

@@ -203,6 +203,7 @@ public class Application {
         get("/users/auth/dropbox/:id", DUUIUserController::dbxIsAuthorized);
 
         put("/users", DUUIUserController::updateSession);
+        put("/users/authorization", DUUIUserController::updateApiKey);
         put("/users/email/:id", DUUIUserController::updateEmail);
         put("/users/:id", DUUIUserController::updateUser);
         put("/users/reset-password", DUUIUserController::resetPassword);

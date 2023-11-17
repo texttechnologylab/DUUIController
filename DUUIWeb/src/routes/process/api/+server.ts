@@ -1,5 +1,22 @@
 import { API_URL } from '$lib/config'
 
+
+export async function POST({ request, cookies }) {
+	const data = await request.json()
+	
+
+	const response = await fetch(`${API_URL}/processes`, {
+		method: 'POST',
+		mode: 'cors',
+		body: data,
+		headers: {
+			authorization: cookies.get('session') || ''
+		}
+	})
+
+	return response
+}
+
 export async function PUT({ request, cookies }) {
 	const data = await request.json()
 
@@ -8,7 +25,7 @@ export async function PUT({ request, cookies }) {
 		mode: 'cors',
 		body: JSON.stringify(data),
 		headers: {
-			session: cookies.get('session') || ''
+			authorization: cookies.get('session') || ''
 		}
 	})
 
@@ -22,7 +39,7 @@ export async function DELETE({ request, cookies }) {
 		method: 'DELETE',
 		mode: 'cors',
 		headers: {
-			session: cookies.get('session') || ''
+			authorization: cookies.get('session') || ''
 		}
 	})
 

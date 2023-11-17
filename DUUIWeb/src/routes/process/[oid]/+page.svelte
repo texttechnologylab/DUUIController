@@ -400,11 +400,11 @@
 						<Fa
 							icon={getDocumentStatusIcon(document)}
 							size="lg"
-							class={equals(document.status, Status.Running)
+							class="{equals(document.status, Status.Running)
 								? 'animate-spin-slow'
 								: equals(document.status, Status.Waiting)
 								? 'animate-hourglass'
-								: ''}
+								: ''} w-6"
 						/>
 						<span>{document.status}</span>
 					</p>

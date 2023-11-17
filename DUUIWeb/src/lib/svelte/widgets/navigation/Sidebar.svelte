@@ -14,7 +14,11 @@
 		faPlus,
 		faMap,
 		faUser,
-		faUserPlus
+		faUserPlus,
+		faLock,
+
+		faLink
+
 	} from '@fortawesome/free-solid-svg-icons'
 	import { Accordion, AccordionItem, LightSwitch, getDrawerStore } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
@@ -30,7 +34,7 @@
 		const response = await makeApiCall(Api.Logout, 'PUT', {})
 		if (response.ok) {
 			loggedIn = false
-			goto('/account/login', { invalidateAll: true })
+			goto('/account/auth/login', { invalidateAll: true })
 		}
 	}
 </script>
@@ -112,29 +116,43 @@
 				<svelte:fragment slot="summary">Account</svelte:fragment>
 				<svelte:fragment slot="content">
 					<div class="flex flex-col text-left">
-						<Anchor
-							href="/account"
-							icon={faUser}
-							text="Profile"
-							_class="justify-start gap-8 bg-primary-hover-token"
-							variant=""
-						/>
 						{#if !loggedIn}
 							<Anchor
-								href="/account/login"
+								href="/account/auth/login"
 								icon={faArrowRightToBracket}
 								text="Login"
 								_class="justify-start gap-8 bg-primary-hover-token"
 								variant=""
 							/>
 							<Anchor
-								href="/account/login?register=true"
+								href="/account/auth/login?register=true"
 								icon={faUserPlus}
 								text="Register"
 								_class="justify-start gap-6 bg-primary-hover-token"
 								variant=""
 							/>
 						{:else}
+							<Anchor
+								href="/account/user/profile"
+								icon={faUser}
+								text="Profile"
+								_class="justify-start gap-8 bg-primary-hover-token"
+								variant=""
+							/>
+							<Anchor
+								href="/account/user/connections"
+								icon={faLink}
+								text="Connections"
+								_class="justify-start gap-8 bg-primary-hover-token"
+								variant=""
+							/>
+							<Anchor
+								href="/account/user/security"
+								icon={faLock}
+								text="Security"
+								_class="justify-start gap-8 bg-primary-hover-token"
+								variant=""
+							/>
 							<ActionButton
 								on:click={logout}
 								icon={faArrowRightFromBracket}

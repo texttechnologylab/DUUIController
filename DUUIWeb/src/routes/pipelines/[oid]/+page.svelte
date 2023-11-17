@@ -255,7 +255,7 @@
 			<Fa icon={faWifi} class="md:hidden text-success-400" />
 		{/if}
 	</div>
-	<hr class="bg-surface-400/20 h-[1px] !border-0 rounded " />
+	<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
 	<div class="grid grid-cols-2 md:grid-cols-3 lg:flex items-center justify-start gap-4">
 		<ActionButton text="Back" icon={faArrowLeft} on:click={() => goto('/pipelines')} />
 		<ActionButton text="Export" icon={faFileExport} on:click={exportPipeline} />
@@ -395,8 +395,10 @@
 						<p>{datetimeToString(new Date(process.startTime))}</p>
 						<p class="hidden lg:block">{process.input.source} / {process.output.target}</p>
 						<p class="hidden md:block text-center">{process.documentNames.length}</p>
-						<p class="hidden sm:flex items-center gap-4">
-							<span>{(process.progress / process.documentNames.length) * 100 || 0} %</span>
+						<p class="hidden sm:flex items-center justify-between gap-4">
+							<span
+								>{((process.progress / process.documentNames.length) * 100 || 0).toFixed(2)} %</span
+							>
 							<span>{process.progress} / {process.documentNames.length}</span>
 						</p>
 						<p class="flex justify-start items-center gap-4">

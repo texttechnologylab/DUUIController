@@ -8,7 +8,7 @@ export async function DELETE({ request, cookies }) {
 		method: 'DELETE',
 		mode: 'cors',
 		headers: {
-			session: cookies.get('session') || ''
+			authorization: cookies.get('session') || ''
 		}
 	})
 
@@ -23,7 +23,7 @@ export async function PUT({ request, cookies }) {
 		mode: 'cors',
 		body: JSON.stringify(data),
 		headers: {
-			session: cookies.get('session') || ''
+			authorization: cookies.get('session') || ''
 		}
 	})
 
@@ -38,7 +38,7 @@ export async function POST({ request, cookies }) {
 		mode: 'cors',
 		body: JSON.stringify(data),
 		headers: {
-			session: cookies.get('session') || ''
+			authorization: cookies.get('session') || ''
 		}
 	})
 

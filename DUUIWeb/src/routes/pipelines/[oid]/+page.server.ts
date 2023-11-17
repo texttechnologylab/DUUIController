@@ -3,14 +3,14 @@ import type { DUUIPipeline } from '$lib/duui/pipeline'
 import type { DUUIProcess } from '$lib/duui/process'
 import type { PageServerLoad } from './$types'
 
-export const load: PageServerLoad = async ({ params, cookies, url }) => {
+export const load: PageServerLoad = async ({ params, cookies, url, locals}) => {
 	
 	const loadPipeline = async (): Promise<DUUIPipeline> => {
 		const result = await fetch(API_URL + '/pipelines/' + params.oid, {
 			method: 'GET',
 			mode: 'cors',
 			headers: {
-				session: cookies.get('session') || ''
+				authorization: cookies.get('session') || ''
 			}
 		})
 		return await result.json()
@@ -28,7 +28,7 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 				method: 'GET',
 				mode: 'cors',
 				headers: {
-					session: cookies.get('session') || ''
+					authorization: cookies.get('session') || ''
 				}
 			}
 		)

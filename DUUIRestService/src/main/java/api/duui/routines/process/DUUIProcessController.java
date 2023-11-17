@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static api.Application.queryIntElseDefault;
+import static api.requests.validation.UserValidator.authenticate;
 import static api.requests.validation.UserValidator.unauthorized;
 import static api.requests.validation.Validator.isNullOrEmpty;
 import static api.requests.validation.Validator.missingField;
@@ -133,11 +134,10 @@ public class DUUIProcessController {
     }
 
     public static String startOne(Request request, Response response) {
-        String session = request.headers("session");
-        if (isNullOrEmpty(session)) return unauthorized(response);
+        String authorization = request.headers("authorization");
 
-        Document user = DUUIUserController.getUserBySession(session);
-        if (user == null) return UserValidator.userNotFound(response);
+        Document user = authenticate(authorization);
+        if (isNullOrEmpty(user)) return unauthorized(response);
 
         Document body = Document.parse(request.body());
         String pipelineId = body.getString("pipeline_id");

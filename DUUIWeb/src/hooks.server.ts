@@ -1,8 +1,14 @@
 import { API_URL } from '$lib/config'
+import { storage } from '$lib/store'
 import type { Handle } from '@sveltejs/kit'
+import { get } from 'svelte/store'
 
 export const handle: Handle = async ({ event, resolve }) => {
-	const session = event.cookies.get('session')
+	let session = event.cookies.get('session')
+
+	if (!session) {
+		session = get(storage).session
+	}
 
 	if (!session) {
 		return await resolve(event)
@@ -11,7 +17,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	let userResponse
 
 	try {
-		userResponse = await fetch(API_URL + '/users/auth/' + session, {
+		userResponse = await fetch(`${API_URL}/users/auth/${session}`, {
 			method: 'GET',
 			mode: 'cors'
 		})
@@ -21,12 +27,20 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	const user = await userResponse.json()
 
-	if (userResponse.status === 200) {
+	if (userResponse.ok) {
 		event.locals.user = {
-			id: user.oid,
-			email: user.email,
-			role: user.role
+			oid: user.oid,
+			email: user.email || '',
+			role: user.role,
+			authorization: user.authorization,
+			preferences: user.preferences,
+			connections: user.connections
 		}
+
+		storage.set({
+			session: session,
+			user: event.locals.user
+		})
 	}
 
 	return await resolve(event)
