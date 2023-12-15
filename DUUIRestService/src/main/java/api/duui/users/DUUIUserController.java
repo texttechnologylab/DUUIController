@@ -34,9 +34,7 @@ public class DUUIUserController {
 
     public static Document getDropboxCredentials(Document user) {
         Document projection = DUUIMongoDBStorage
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("users")
+            .Users()
             .find(Filters.eq(user.getObjectId("_id")))
             .projection(Projections.include("dropbox"))
             .first();
@@ -50,9 +48,7 @@ public class DUUIUserController {
 
     public static Document getMinioCredentials(Document user) {
         Document projection = DUUIMongoDBStorage
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("users")
+            .Users()
             .find(Filters.eq(user.getObjectId("_id")))
             .projection(Projections.include("minio"))
             .first();
@@ -66,36 +62,28 @@ public class DUUIUserController {
 
     public static Document getUserById(ObjectId id) {
         return DUUIMongoDBStorage
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("users")
+            .Users()
             .find(Filters.eq(id))
             .first();
     }
 
     public static Document getUserById(String id) {
         return DUUIMongoDBStorage
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("users")
+            .Users()
             .find(Filters.eq(new ObjectId(id)))
             .first();
     }
 
     public static Document getUserByEmail(String email) {
         return DUUIMongoDBStorage
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("users")
+            .Users()
             .find(Filters.eq("email", email))
             .first();
     }
 
     public static Document getUserByAuthorization(String authorization) {
         return DUUIMongoDBStorage
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("users")
+            .Users()
             .find(Filters.eq("key", authorization))
             .projection(Projections.exclude("password"))
             .first();
@@ -103,9 +91,7 @@ public class DUUIUserController {
 
     public static Document getUserBySession(String session) {
         return DUUIMongoDBStorage
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("users")
+            .Users()
             .find(Filters.eq("session", session))
             .projection(Projections.exclude("password"))
             .first();
@@ -113,9 +99,7 @@ public class DUUIUserController {
 
     public static Document getUserByResetToken(String token) {
         return DUUIMongoDBStorage
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("users")
+            .Users()
             .find(Filters.eq("password_reset_token", token))
             .projection(Projections.include("_id", "email", "reset_token_expiration"))
             .first();

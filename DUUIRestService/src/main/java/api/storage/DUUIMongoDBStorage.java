@@ -2,6 +2,7 @@ package api.storage;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Updates;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -46,6 +47,30 @@ public class DUUIMongoDBStorage {
             mongoClient = MongoClients.create(getConnectionURI());
         }
         return mongoClient;
+    }
+
+    public static MongoCollection<Document> Pipelines() {
+        return getInstance().getDatabase("duui").getCollection("pipelines");
+    }
+
+    public static MongoCollection<Document> Components() {
+        return getInstance().getDatabase("duui").getCollection("components");
+    }
+
+    public static MongoCollection<Document> Users() {
+        return getInstance().getDatabase("duui").getCollection("users");
+    }
+
+    public static MongoCollection<Document> Documents() {
+        return getInstance().getDatabase("duui").getCollection("documents");
+    }
+
+    public static MongoCollection<Document> Processses() {
+        return getInstance().getDatabase("duui").getCollection("processes");
+    }
+
+    public static MongoCollection<Document> Events() {
+        return getInstance().getDatabase("duui").getCollection("events");
     }
 
     public static Bson combineUpdates(Document update, List<String> allowedFields) {
