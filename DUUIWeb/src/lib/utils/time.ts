@@ -18,7 +18,7 @@ export const formatMilliseconds = (durationInMilliseconds: number) => {
 }
 
 export const getDuration = (start: number | undefined, end: number | undefined) => {
-	if (!start) return 0
+	if (!start) return formatMilliseconds(0)
 
 	if (!end) return formatMilliseconds(Math.ceil(Date.now() - start))
 

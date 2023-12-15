@@ -3,6 +3,8 @@ import type { DUUIComponent } from './component'
 import type { DUUIPipeline } from './pipeline'
 
 export interface DUUIStatusEvent {
+	oid: string
+	process_id: string
 	timestamp: number
 	sender: string
 	message: string

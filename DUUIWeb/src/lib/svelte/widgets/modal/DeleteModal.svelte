@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { faArrowLeft, faTrash } from '@fortawesome/free-solid-svg-icons'
+	import { faArrowLeft, faClose, faTrash } from '@fortawesome/free-solid-svg-icons'
 	import ActionButton from '../action/ActionButton.svelte'
 	import { getModalStore } from '@skeletonlabs/skeleton'
 
@@ -14,7 +14,7 @@
 	<div class="flex items-center gap-4 justify-end !mt-8">
 		<ActionButton
 			text="Cancel"
-			icon={faArrowLeft}
+			icon={faClose}
 			on:click={() => {
 				if ($modalStore[0].response) {
 					$modalStore[0]?.response(false)

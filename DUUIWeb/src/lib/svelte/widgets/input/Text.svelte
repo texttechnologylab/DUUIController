@@ -7,9 +7,10 @@
 	export let readonly: boolean = false
 	export let error: string = ''
 	export let hidden: boolean = false
+	export let style: string = ''
 </script>
 
-<label class="label flex flex-col {hidden ? 'hidden' : ''}">
+<label class="label flex flex-col {hidden ? 'hidden' : ''} {style}">
 	<span class="uppercase text-xs tracking-widest">{label}</span>
 	{#if error}
 		<span class="pl-1 text-xs text-error-500">{error}</span>
@@ -23,5 +24,6 @@
 		bind:value
 		{required}
 		{readonly}
+		on:keydown
 	/>
 </label>

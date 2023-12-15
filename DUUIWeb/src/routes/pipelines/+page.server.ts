@@ -8,7 +8,7 @@ export const load: PageServerLoad = async ({ fetch, locals, cookies }) => {
 		throw redirect(300, '/user/auth/login')
 	}
 	const loadPipelines = async (): Promise<{ pipelines: DUUIPipeline[] }> => {
-		const result = await fetch(API_URL + '/pipelines/all/' + locals.user.oid, {
+		const result = await fetch(API_URL + '/pipelines/user/all', {
 			method: 'GET',
 			mode: 'cors',
 			headers: {

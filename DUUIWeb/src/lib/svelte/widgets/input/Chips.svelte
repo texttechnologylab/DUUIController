@@ -1,7 +1,10 @@
 <script lang="ts">
-	import { toTitleCase } from '$lib/utils/text'
+	import { includesText, toTitleCase } from '$lib/utils/text'
 	import { faClose } from '@fortawesome/free-solid-svg-icons'
+	import { createEventDispatcher } from 'svelte'
 	import Fa from 'svelte-fa'
+
+	const dispatcher = createEventDispatcher()
 
 	export let label: string
 	export let values: string[]
@@ -10,14 +13,16 @@
 	let current: string = ''
 
 	const push = () => {
-		if (current.length > 0 && !values.includes(current)) {
+		if (current.length > 0 && !includesText(values, current)) {
 			values = [...values, toTitleCase(current)]
 		}
+		dispatcher('push', { text: current })
 		current = ''
 	}
 
 	const discard = (value: string) => {
 		values = values.filter((v) => v !== value)
+		dispatcher('discard', { text: value })
 	}
 </script>
 
@@ -43,7 +48,7 @@
 		<div class={values.length === 0 ? 'invisible' : 'flex flex-wrap gap-2 p-2'}>
 			{#each values as value}
 				<!-- svelte-ignore a11y-no-static-element-interactions -->
-				<button class="chip variant-glass-primary" on:click={() => discard(value)}
+				<button class="chip variant-soft-primary" on:click={() => discard(value)}
 					><span>
 						{value}
 					</span>

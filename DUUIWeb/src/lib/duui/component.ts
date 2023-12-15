@@ -7,6 +7,22 @@ export const DUUISwarmDriver = 'DUUISwarmDriver'
 export const DUUIUIMADriver = 'DUUIUIMADriver'
 export const DUUIKubernetsDriver = 'DUUIKubernetsDriver'
 
+export type DUUIDriver =
+	| 'DUUIRemoteDriver'
+	| 'DUUIDockerDriver'
+	| 'DUUISwarmDriver'
+	| 'DUUIUIMADriver'
+
+export type DUUIDriverFilter = DUUIDriver | 'All'
+export const DUUIDriverFilters = [
+	'All',
+	'DUUIRemoteDriver',
+	'DUUIDockerDriver',
+	'DUUISwarmDriver',
+	'DUUIUIMADriver',
+	'DUUIKubernetsDriver'
+]
+
 export const DUUIDrivers: string[] = [
 	DUUIRemoteDriver,
 	DUUIDockerDriver,
@@ -57,7 +73,6 @@ export const componentToJson = (component: DUUIComponent) => {
 		name: component.name,
 		categories: component.categories,
 		description: component.description,
-		status: component.status,
 		settings: component.settings,
 		index: component.index
 	}

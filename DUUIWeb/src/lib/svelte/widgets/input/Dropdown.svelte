@@ -5,7 +5,7 @@
 	import { ListBox, ListBoxItem, popup, type PopupSettings } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
 
-	export let label: string
+	export let label: string = ''
 	export let name: string = label
 
 	export let options: string[]
@@ -27,7 +27,9 @@
 </script>
 
 <div class="label flex flex-col">
-	<span class="uppercase text-xs tracking-widest">{label} </span>
+	{#if label}
+		<span class="uppercase text-xs tracking-widest">{label} </span>
+	{/if}
 	<button
 		class="flex justify-between items-center gap-2 px-3 py-2 leading-6 border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 dark:border-surface-400/20"
 		use:popup={dropdown}
@@ -38,7 +40,7 @@
 </div>
 
 <div
-	class="shadow-xl border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 dark:border-surface-400/20"
+	class="shadow-xl border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 dark:border-surface-400/20 z-10"
 	data-popup={name}
 >
 	<ListBox rounded="rounded-none" spacing="space-y-0">

@@ -74,18 +74,21 @@ public class DUUIProcessService {
             Document credentials = DUUIUserController.getDropboxCredentials(user);
             return new DUUIDropboxDataReader(
                 "Cedric Test App",
-                credentials.getString("dbx_access_token"),
-                credentials.getString("dbx_refresh_token")
+                credentials.getString("access_token"),
+                credentials.getString("refresh_token")
             );
         }
 
         if (type.equalsIgnoreCase("minio")) {
+            Document credentials = DUUIUserController.getMinioCredentials(user);
             return new DUUIMinioDataReader(
-                "http://192.168.2.122:9000",
-                "CaT2oM2jccCKj2bADziP",
-                "xDEwxY9ryUo9xovnbBcAFtLfXzKJvahvY1iIBCuM");
+                credentials.getString("endpoint"),
+                credentials.getString("access_key"),
+                credentials.getString("secret_key"));
         }
 
+//CaT2oM2jccCKj2bADziP
+//xDEwxY9ryUo9xovnbBcAFtLfXzKJvahvY1iIBCuM
         return null;
     }
 

@@ -10,9 +10,19 @@
 	export let leftToRight: boolean = true
 	export let tabindex: number = 0
 	export let disabled: boolean = false
+	export let visible: boolean = true
+	export let small: boolean = false
 </script>
 
-<button data-sveltekit-preload-data="hover" {tabindex} on:click class="btn {rounded} {variant} {_class}" {disabled}>
+<button
+	data-sveltekit-preload-data="hover"
+	{tabindex}
+	on:click
+	class="btn {small ? 'btn-sm' : ''} {visible
+		? 'visible'
+		: 'invisible'} {rounded} {variant} {_class}"
+	{disabled}
+>
 	{#if leftToRight}
 		{#if icon}
 			<Fa {icon} />

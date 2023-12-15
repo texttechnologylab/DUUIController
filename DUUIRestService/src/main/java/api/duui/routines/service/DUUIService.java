@@ -149,6 +149,7 @@ public class DUUIService extends Thread {
                 () -> {
                     if (_composer != null) {
                         DUUIProcessController.setProgress(processId(), _composer.getProgress());
+                        DUUIProcessController.updateTimeline(processId(), _composer.getLog());
                         DUUIProcessController.updateDocuments(processId(), _composer.getDocuments());
                         _pipeline.getList("components", Document.class).forEach(
                             component -> DUUIComponentController.setStatus(component.getString("oid"), getComponentStatusFromLog(component, _composer))
@@ -273,6 +274,7 @@ public class DUUIService extends Thread {
             _active = false;
             _idle = true;
             DUUIProcessController.updateDocuments(processId(), _composer.getDocuments());
+            DUUIProcessController.updateTimeline(processId(), _composer.getLog());
             DUUIProcessController.setProgress(processId(), _composer.getProgress());
             DUUIProcessController.removeProcess(processId());
             if (_interrupted) onShutdown(false);

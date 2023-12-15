@@ -9,7 +9,12 @@ declare namespace App {
 			oid: string
 			email: string
 			role: string
-			authorization: string
+			key: string
+			minio: {
+				access_key: string | null
+				secret_key: string | null
+				endpoint: string | null
+			}
 		}
 	}
 	// interface PageData {}

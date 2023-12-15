@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { goto, invalidate, invalidateAll } from '$app/navigation'
+	import { goto } from '$app/navigation'
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
-	import DriverIcon from '$lib/components/DriverIcon.svelte'
 	import IconButton from '$lib/svelte/widgets/action/IconButton.svelte'
 	import { API_URL } from '$lib/config.js'
 	import {
@@ -13,11 +12,9 @@
 	} from '$lib/duui/io.js'
 	import { Status, isActive } from '$lib/duui/monitor.js'
 	import { processToSeachParams, type DUUIProcess } from '$lib/duui/process.js'
-	import ComboBox from '$lib/svelte/widgets/input/Select.svelte'
-	import TextInput from '$lib/svelte/widgets/input/TextInput.svelte'
 	import { Api, makeApiCall } from '$lib/utils/api'
-	import { equals, formatFileSize, includes, progresAsPercent } from '$lib/utils/text.js'
-	import { formatMilliseconds } from '$lib/utils/time.js'
+	import { equals, formatFileSize, progresAsPercent } from '$lib/utils/text.js'
+	import { formatMilliseconds, getDuration } from '$lib/utils/time.js'
 	import {
 		documentStatusNames,
 		getDocumentStatusIcon,
@@ -33,6 +30,8 @@
 		faArrowRight,
 		faArrowUpWideShort,
 		faCancel,
+		faChevronLeft,
+		faChevronRight,
 		faFileDownload,
 		faFileUpload,
 		faRefresh,
@@ -50,16 +49,16 @@
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
 	import { page } from '$app/stores'
-	import Anchor from '$lib/svelte/widgets/action/Anchor.svelte'
 	import { browser } from '$app/environment'
 	import Select from '$lib/svelte/widgets/input/Select.svelte'
-	import Text from '$lib/svelte/widgets/input/Text.svelte'
 	import Search from '$lib/svelte/widgets/input/Search.svelte'
+	import Timeline from '$lib/svelte/widgets/timeline/Timeline.svelte'
+	import Label from '$lib/svelte/widgets/Label.svelte'
 
 	export let data
 	const toastStore = getToastStore()
 
-	let { pipeline, process, documentQuery } = data
+	let { pipeline, process, documentQuery, timeline } = data
 
 	let documents: DUUIDocument[] = documentQuery.documents
 	let total: number = documentQuery.total
@@ -70,7 +69,7 @@
 
 	onMount(() => {
 		async function updateProcess() {
-			const response = await fetch(API_URL + '/processes/' + process.oid, {
+			const response = await fetch(`${API_URL}/processes/${process.oid}`, {
 				method: 'GET',
 				mode: 'cors'
 			})
@@ -90,13 +89,20 @@
 				)}&order=${sortOrder}&text=${searchText}&status=${statusFilters.join(';')}`
 			)
 
-			if (!documentsResponse.ok || !isActive(process.status)) {
+			const timelineResponse = await fetch(`${API_URL}/processes/${process.oid}/timeline`, {
+				method: 'GET',
+				mode: 'cors'
+			})
+
+			if (!timelineResponse.ok || !documentsResponse.ok || !isActive(process.status)) {
 				clearInterval(interval)
 			}
 
 			const result = await documentsResponse.json()
 			documents = result.documents
 			total = result.total
+
+			timeline = (await timelineResponse.json()).timeline
 
 			const update: DUUIProcess = await response.json()
 
@@ -306,7 +312,8 @@
 			<p>{process.status}</p>
 		</div>
 	</div>
-	<hr class="bg-surface-400/20 h-[1px] !border-0 rounded " />
+
+	<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
 	<div class="grid xl:flex items-center xl:justify-start gap-4">
 		<div class="xl:flex grid grid-cols-2 sm:grid-cols-3 gap-4 items-center">
 			<ActionButton
@@ -357,7 +364,7 @@
 		>
 			{#each tableHeader as column, index}
 				<button
-					class="btn bg-surface-100 dark:variant-soft-surface gap-4 justify-start items-center rounded-none p-3 text-left
+					class="btn bg-surface-100 px-4 dark:variant-soft-surface gap-4 justify-start items-center rounded-none p-3 text-left
 					{[1].includes(index)
 						? 'hidden sm:inline-flex'
 						: [4].includes(index)
@@ -382,11 +389,13 @@
 			meter="variant-filled-primary"
 		/>
 		<div class="overflow-hidden flex flex-col">
-			{#each documents as document, index}
+			{#each documents as document}
 				<button
-					class="btn rounded-none {index % 2 === 1 || documents.length === 1
-						? 'variant-soft-surface'
-						: ''} dark:hover:variant-soft-primary hover:variant-filled-primary grid-cols-2 grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 p-2 text-left"
+					class="btn rounded-none px-4
+					first:border-t-0 border-t-[1px]
+					dark:border-t-surface-500 dark:hover:variant-soft-primary
+					hover:variant-filled-primary
+					grid-cols-2 grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 p-2 text-left"
 					on:click={() => showDocumentModal(document)}
 				>
 					<p>{document.name}</p>
@@ -415,12 +424,15 @@
 		</div>
 	</div>
 
-	<div class="flex items-center justify-center gap-4 variant-soft-surface mx-auto">
+	<div
+		class="flex items-center justify-center gap-4 bg-surface-100 dark:variant-soft-surface mx-auto
+			   border-[1px] border-surface-200 dark:border-surface-500"
+	>
 		<IconButton
+			_class="bg-transparent text-primary-500 border-r-[1px] border-surface-200 dark:border-surface-500 hover:variant-filled-primary"
 			rounded="rounded-none"
-			icon={faArrowLeft}
+			icon={faChevronLeft}
 			on:click={decrementPage}
-			variant="dark:variant-soft-primary variant-filled-primary"
 		/>
 		{#if total === 0}
 			<p>No results</p>
@@ -430,18 +442,51 @@
 			</p>
 		{/if}
 		<IconButton
+			_class="bg-transparent text-primary-500 border-l-[1px] border-surface-200 dark:border-surface-500 hover:variant-filled-primary"
 			rounded="rounded-none"
-			variant="dark:variant-soft-primary variant-filled-primary"
-			icon={faArrowRight}
+			icon={faChevronRight}
 			on:click={incrementPage}
 		/>
 	</div>
-
 	<div class="gap-4 grid items-start">
+		<div class="bg-surface-100 dark:variant-soft-surface shadow-lg p-4 space-y-4">
+			<h3 class="h3">Stats</h3>
+			<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
+			<Label name="Number of documents" value={'' + process.documentNames.length} />
+			<Label
+				name="Instantiation Duration"
+				value={formatMilliseconds(process.instantiationDuration)}
+			/>
+			<Label name="Process Duration" value={getDuration(process.startTime, process.endTime)} />
+			<Label
+				name="Average document process duration"
+				value={formatMilliseconds(
+					documents
+						.filter((d) => d.finished)
+						.map((d) => d.processDuration)
+						.reduce((total, num) => total + num, 0) / documents.filter((d) => d.finished).length
+				)}
+			/>
+			<Label
+				name="Slowest document process duration"
+				value={formatMilliseconds(
+					Math.max(...documents.filter((d) => d.finished).map((d) => d.processDuration))
+				)}
+			/>
+			<Label
+				name="Fastest document process duration"
+				value={formatMilliseconds(
+					Math.min(...documents.filter((d) => d.finished).map((d) => d.processDuration))
+				)}
+			/>
+		</div>
+	</div>
+
+	<!-- <div class="gap-4 grid items-start">
 		<div class="bg-surface-100 dark:variant-soft-surface shadow-lg p-4 space-y-4">
 			<h3 class="h3">Pipeline status</h3>
 
-			<hr class="bg-surface-400/20 h-[1px] !border-0 rounded " />
+			<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
 			{#each pipeline.components as component}
 				<div class="flex gap-4 items-center p-4">
 					<DriverIcon driver={component.settings.driver} />
@@ -452,5 +497,8 @@
 				</div>
 			{/each}
 		</div>
-	</div>
+	</div> -->
+	{#if timeline}
+		<Timeline startTime={process.startTime} events={timeline} />
+	{/if}
 </div>

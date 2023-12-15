@@ -1,5 +1,61 @@
+from __future__ import annotations
+from dataclasses import dataclass, field
+from enum import Enum, auto
+
 import json
 import requests
+
+
+class Driver(Enum):
+    UIMA = "DUUIUIMADriver"
+    Remote = "DUUIRemoteDriver"
+    Docker = "DUUIDockerDriver"
+    Swarm = "DUUISwarmDriver"
+
+
+@dataclass
+class DUUIPipeline:
+    name: str
+    components: list[DUUIComponent]
+    oid: str = ""
+    description: str = ""
+    createdAt: int = -1
+    serviceStartTime: int = -1
+    timesUsed: int = 0
+    lastUsed: int = -1
+    settings: dict = field(default_factory=dict)
+    user_id: str = ""
+
+
+class DUUIComponent:
+    def __init__(
+        self,
+        name: str,
+        settings: DUUIComponentSettings,
+        description: str = "",
+        categories: list[str] = None,
+    ) -> None:
+        self.oid: str = ""
+        self.id: str = ""
+        self.name: str = name
+        self.description: str = description
+        self.categories: list[str] = categories or []
+        self.status: str = "Unknown"
+        self.createdAt: int = -1
+        self.serviceStartTime: int = -1
+        self.timesUsed: int = 0
+        self.lastUsed: int = -1
+        self.settings: DUUIComponentSettings = settings
+        self.pipeline_id: str = ""
+        self.user_id: str = ""
+
+
+@dataclass
+class DUUIComponentSettings:
+    driver: Driver
+    target: str
+    options: dict = field(default_factory=dict)
+    parameters: dict = field(default_factory=dict)
 
 
 def load_pipeline(id: str) -> dict:
@@ -25,3 +81,9 @@ def create_pipeline(name: str, components: list[dict]) -> str:
         "http://192.168.2.122:2605/pipelines", data=json.dumps(pipeline)
     )
     return response.text
+
+
+if __name__ == "__main__":
+    settings = DUUIComponentSettings(Driver.Docker, "dohasdiosad")
+    component = DUUIComponent("Python", settings, "dasioudasdiuzasdasd", ["A", "B"])
+    pipeline = DUUIPipeline("Python", [component])

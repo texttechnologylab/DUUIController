@@ -80,9 +80,8 @@ export const success = (message: string, duration: number = 4000): ToastSettings
 	return {
 		message: message,
 		timeout: duration,
-		hideDismiss: true,
-		hoverable: true,
-		background: 'variant-filled-success'
+		classes:
+			'border-2 bg-white dark:bg-surface-600 dark:text-surface-200 shadow-lg !rounded-none border-success-500'
 	}
 }
 
@@ -90,9 +89,8 @@ export const info = (message: string, duration: number = 4000): ToastSettings =>
 	return {
 		message: message,
 		timeout: duration,
-		hideDismiss: true,
-		hoverable: true,
-		background: 'variant-filled-surface'
+		classes:
+			'border-2 bg-white dark:bg-surface-600 dark:text-surface-200 shadow-lg !rounded-none border-primary-500'
 	}
 }
 
@@ -104,3 +102,8 @@ export const scrollIntoView = (id: string) => {
 		behavior: 'smooth'
 	})
 }
+
+export const variantPrimary: string = 'variant-filled-primary dark:variant-soft-primary'
+export const variantGlassPrimary: string = 'variant-glass-primary'
+export const variantError: string = 'variant-filled-error dark:variant-soft-error'
+export const variantSuccess: string = 'variant-filled-success dark:variant-soft-success'

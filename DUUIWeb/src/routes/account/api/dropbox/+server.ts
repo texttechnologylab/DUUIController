@@ -27,8 +27,10 @@ export async function POST({ request, cookies, locals }) {
 		method: 'PUT',
 		mode: 'cors',
 		body: JSON.stringify({
-			dbx_access_token: dbx_access_token,
-			dbx_refresh_token: dbx_refresh_token
+			dropbox: {
+				access_token: dbx_access_token,
+				refresh_token: dbx_refresh_token
+			}
 		}),
 		headers: {
 			authorization: cookies.get('session') || ''
@@ -45,8 +47,10 @@ export async function DELETE({ request, cookies, locals }) {
 		method: 'PUT',
 		mode: 'cors',
 		body: JSON.stringify({
-			dbx_access_token: null,
-			dbx_refresh_token: null
+			dropbox: {
+				access_token: null,
+				refresh_token: null
+			}
 		}),
 		headers: {
 			authorization: cookies.get('session') || ''

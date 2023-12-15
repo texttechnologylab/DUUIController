@@ -74,7 +74,7 @@
 </script>
 
 <Modal components={modalRegistry} />
-<Toast />
+<Toast position="br"/>
 <Drawer rounded="rounded-none">
 	{#if $drawerStore.id === 'sidebar'}
 		<Sidebar {loggedIn} />

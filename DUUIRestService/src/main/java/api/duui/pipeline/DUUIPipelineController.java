@@ -3,6 +3,7 @@ package api.duui.pipeline;
 import api.duui.component.DUUIComponentController;
 import api.duui.routines.service.DUUIService;
 import api.duui.users.DUUIUserController;
+import api.duui.users.Role;
 import api.requests.validation.PipelineValidator;
 import api.requests.validation.UserValidator;
 import api.storage.DUUIMongoDBStorage;
@@ -34,11 +35,7 @@ public class DUUIPipelineController {
     private static final List<String> _fields = List.of(
         "name",
         "description",
-        "createdAt",
-        "serviceStartTime",
-        "timesUsed",
-        "settings",
-        "user_id"
+        "settings"
     );
 
     public static String findOne(Request request, Response response) {
@@ -62,8 +59,8 @@ public class DUUIPipelineController {
         Document user = authenticate(authorization);
         if (isNullOrEmpty(user)) return unauthorized(response);
 
-        int limit = queryIntElseDefault(request, "limit", 0);
-        int offset = queryIntElseDefault(request, "offset", 0);
+        int limit = Integer.parseInt(request.queryParamOrDefault("limit", "0"));
+        int skip = Integer.parseInt(request.queryParamOrDefault("skip", "0"));
 
         FindIterable<Document> documents = DUUIMongoDBStorage
             .getInstance()
@@ -73,13 +70,14 @@ public class DUUIPipelineController {
                 "user_id",
                 user.getObjectId("_id").toString()));
 
-        if (limit != 0) {
-            documents.limit(limit);
+        if (skip != 0) {
+            documents = documents.skip(skip);
         }
 
-        if (offset != 0) {
-            documents.skip(offset);
+        if (limit != 0) {
+            documents = documents.limit(limit);
         }
+
 
         List<Document> pipelines = new ArrayList<>();
         documents.into(pipelines);
@@ -186,7 +184,6 @@ public class DUUIPipelineController {
         String id = request.params(":id");
         Document update = Document.parse(request.body());
 
-
         DUUIMongoDBStorage
             .getInstance()
             .getDatabase("duui")
@@ -262,11 +259,10 @@ public class DUUIPipelineController {
     }
 
     public static String startService(Request request, Response response) {
-        String session = request.headers("session");
-        if (isNullOrEmpty(session)) return UserValidator.unauthorized(response);
+        String authorization = request.headers("authorization");
 
-        Document user = DUUIUserController.getUserBySession(session);
-        if (user == null) return UserValidator.userNotFound(response);
+        Document user = authenticate(authorization);
+        if (isNullOrEmpty(user)) return unauthorized(response);
 
         Document body = Document.parse(request.body());
         String id = body.getString("oid");
@@ -290,11 +286,10 @@ public class DUUIPipelineController {
     }
 
     public static String stopService(Request request, Response response) {
-        String session = request.headers("session");
-        if (isNullOrEmpty(session)) return UserValidator.unauthorized(response);
+        String authorization = request.headers("authorization");
 
-        Document user = DUUIUserController.getUserBySession(session);
-        if (user == null) return UserValidator.userNotFound(response);
+        Document user = authenticate(authorization);
+        if (isNullOrEmpty(user)) return unauthorized(response);
 
         Document body = Document.parse(request.body());
         String id = body.getString("oid");

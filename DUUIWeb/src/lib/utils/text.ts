@@ -48,6 +48,19 @@ export const includes = (first: string, second: string, ignoreCase: boolean = tr
 	}
 }
 
+export const includesText = (values: string[], text: string, ignoreCase: boolean = true) => {
+	if (!values) return false
+
+	if (ignoreCase) {
+		for (let value of values) {
+			if (equals(value, text)) return true
+		}
+		return false
+	} else {
+		return values.includes(text)
+	}
+}
+
 export const formatFileSize = (bytes: number, decimals: number = 0) => {
 	if (!bytes) {
 		return '0 B'

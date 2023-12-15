@@ -28,15 +28,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const user = await userResponse.json()
 
 	if (userResponse.ok) {
-		event.locals.user = {
-			oid: user.oid,
-			email: user.email || '',
-			role: user.role,
-			authorization: user.authorization,
-			preferences: user.preferences,
-			connections: user.connections
-		}
-
+		event.locals.user = user
+		
 		storage.set({
 			session: session,
 			user: event.locals.user

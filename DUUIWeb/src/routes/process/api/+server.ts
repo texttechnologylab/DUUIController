@@ -1,9 +1,19 @@
 import { API_URL } from '$lib/config'
 
+export async function GET({ request, cookies }) {
+	const response = await fetch(`${API_URL}/processes/123/timeline`, {
+		method: 'GET',
+		mode: 'cors',
+		headers: {
+			authorization: cookies.get('session') || ''
+		}
+	})
+
+	return response
+}
 
 export async function POST({ request, cookies }) {
 	const data = await request.json()
-	
 
 	const response = await fetch(`${API_URL}/processes`, {
 		method: 'POST',

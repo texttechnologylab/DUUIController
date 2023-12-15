@@ -26,8 +26,8 @@ export async function POST({ request, cookies, locals }) {
 		method: 'PUT',
 		mode: 'cors',
 		body: JSON.stringify({
-			dbx_access_token: dbx_access_token,
-			dbx_refresh_token: dbx_refresh_token
+			access_token: dbx_access_token,
+			refresh_token: dbx_refresh_token
 		}),
 		headers: {
 			authorization: cookies.get('session') || ''

@@ -20,8 +20,10 @@ const connect = async (code: string, oid: string, session: string) => {
 		method: 'PUT',
 		mode: 'cors',
 		body: JSON.stringify({
-			dbx_access_token: dbx_access_token,
-			dbx_refresh_token: dbx_refresh_token
+			dropbox: {
+				access_token: dbx_access_token,
+				refresh_token: dbx_refresh_token
+			}
 		}),
 		headers: {
 			authorization: session

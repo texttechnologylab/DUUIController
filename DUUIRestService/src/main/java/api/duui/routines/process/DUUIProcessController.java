@@ -4,12 +4,10 @@ import api.duui.document.DUUIDocumentInput;
 import api.duui.document.DUUIDocumentOutput;
 import api.duui.pipeline.DUUIPipelineController;
 import api.duui.routines.service.DUUIService;
-import api.duui.users.DUUIUserController;
 import api.requests.responses.MissingRequiredFieldResponse;
 import api.requests.responses.NotFoundResponse;
 import api.requests.validation.PipelineValidator;
 import api.requests.validation.RequestValidator;
-import api.requests.validation.UserValidator;
 import api.storage.DUUIMongoDBStorage;
 import com.google.common.collect.Iterables;
 import com.mongodb.client.FindIterable;
@@ -21,7 +19,6 @@ import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatusEve
 import spark.Request;
 import spark.Response;
 
-import java.net.UnknownHostException;
 import java.time.Instant;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -417,19 +414,46 @@ public class DUUIProcessController {
             .updateOne(Filters.eq(new ObjectId(id)), Updates.set("status", status));
     }
 
-    /*
-        Probably not a good idea for the future. Should be a separate Collection containing Documents
-     */
-    public static void updateLog(String id, List<DUUIStatusEvent> log) {
+    public static long timelineCount(String id) {
+        return DUUIMongoDBStorage
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("events")
+            .countDocuments(Filters.eq("process_id", id));
+    }
+
+    public static void updateTimeline(String id, List<DUUIStatusEvent> events) {
+        int start_index = (int) timelineCount(id);
+        List<DUUIStatusEvent> newEvents = events.subList(start_index, events.size());
+
+        if (newEvents.isEmpty()) {
+            return;
+        }
+
         DUUIMongoDBStorage
             .getInstance()
             .getDatabase("duui")
-            .getCollection("processes")
-            .updateOne(Filters.eq(new ObjectId(id)), Updates.set("log", log.stream().map(
-                (statusEvent) -> new Document("timestamp", statusEvent.getTimestamp())
-                    .append("sender", statusEvent.getSender())
-                    .append("message", statusEvent.getMessage())
-            ).collect(Collectors.toList())));
+            .getCollection("events")
+            .insertMany(newEvents.stream().map(event -> new Document(
+                "timestamp", event.getTimestamp())
+                .append("process_id", id)
+                .append("sender", event.getSender())
+                .append("message", event.getMessage())
+                .append("index", events.indexOf(event))
+            ).collect(Collectors.toList()));
+    }
+
+    public static List<Document> getTimeline(String process_id) {
+        FindIterable<Document> timeline = DUUIMongoDBStorage
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("events")
+            .find(Filters.eq("process_id", process_id));
+
+        List<Document> events = new ArrayList<>();
+        timeline.into(events);
+        events.forEach(DUUIMongoDBStorage::mapObjectIdToString);
+        return events;
     }
 
     public static void setProgress(String id, int progress) {
@@ -493,5 +517,11 @@ public class DUUIProcessController {
             .updateOne(
                 Filters.eq(new ObjectId(id)),
                 Updates.set("instantiationDuration", instantiationDuration));
+    }
+
+    public static String timeline(Request request, Response response) {
+        String id = request.params(":id");
+        response.status(200);
+        return new Document("timeline", getTimeline(id)).toJson();
     }
 }

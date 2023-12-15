@@ -20,9 +20,10 @@
 		<div class="flex flex-col items-center text-center lg:mb-0">
 			<div class="my-8 lg:my-16 space-y-4">
 				<h1 class="h1 !text-5xl max-w-[20ch] leading-loose">
-					Reproducible NLP-Analysis automated by
+					Natural Language Processing for Everyone
+					<!-- Reproducible NLP-Analysis automated by -->
 				</h1>
-				<img class="max-h-10 mx-auto" src={Logo} alt="" />
+				<!-- <img class="max-h-10 mx-auto" src={Logo} alt="" /> -->
 			</div>
 
 			<div class="grid md:grid-cols-2 gap-4 p-4">

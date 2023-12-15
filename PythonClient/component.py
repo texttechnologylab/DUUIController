@@ -13,14 +13,27 @@ def load_components() -> list[dict]:
 
 
 def update_component(id: str, new_component: dict) -> str:
-    response = requests.put(f"http://192.168.2.122:2605/components/{id}", data=json.dumps(new_component))
+    response = requests.put(
+        f"http://192.168.2.122:2605/components/{id}", data=json.dumps(new_component)
+    )
     return response.text
 
 
 def create_component(
-    name: str, categories: list[str], description: str, settings: Mapping, status: str = "None", pipeline_id: str = None, user_id: str = None
+    name: str,
+    categories: list[str],
+    description: str,
+    settings: Mapping,
+    status: str = "None",
+    pipeline_id: str = None,
+    user_id: str = None,
 ) -> dict:
-    if settings["driver"] not in ("DUUIRemoteDriver", "DUUIDockerDriver", "DUUISwarmDriver", "DUUIUIMADriver"):
+    if settings["driver"] not in (
+        "DUUIRemoteDriver",
+        "DUUIDockerDriver",
+        "DUUISwarmDriver",
+        "DUUIUIMADriver",
+    ):
         return f"Invalid driver <{settings.driver}>."
 
     if name == "":

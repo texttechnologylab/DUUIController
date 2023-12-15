@@ -6,8 +6,8 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Updates;
 import org.bson.Document;
-import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.DUUIMinioDataReader;
 import spark.Request;
 import spark.Response;
 
@@ -26,31 +26,42 @@ public class DUUIUserController {
     private static final List<String> _fields = List.of(
         "preferences",
         "session",
-        "authorization",
-        "dbx_access_token",
-        "dbx_refresh_token",
-        "minio_access_token"
+        "key",
+        "dropbox",
+        "minio"
     );
 
 
     public static Document getDropboxCredentials(Document user) {
-        return DUUIMongoDBStorage
+        Document projection = DUUIMongoDBStorage
             .getInstance()
             .getDatabase("duui")
             .getCollection("users")
             .find(Filters.eq(user.getObjectId("_id")))
-            .projection(Projections.include("dbx_refresh_token", "dbx_access_token"))
+            .projection(Projections.include("dropbox"))
             .first();
+
+        if (!isNullOrEmpty(projection)) {
+            return projection.get("dropbox", Document.class);
+        }
+
+        return new Document();
     }
 
     public static Document getMinioCredentials(Document user) {
-        return DUUIMongoDBStorage
+        Document projection = DUUIMongoDBStorage
             .getInstance()
             .getDatabase("duui")
             .getCollection("users")
             .find(Filters.eq(user.getObjectId("_id")))
-            .projection(Projections.include("minio_access_token"))
+            .projection(Projections.include("minio"))
             .first();
+
+        if (!isNullOrEmpty(projection)) {
+            return projection.get("minio", Document.class);
+        }
+
+        return new Document();
     }
 
     public static Document getUserById(ObjectId id) {
@@ -85,7 +96,7 @@ public class DUUIUserController {
             .getInstance()
             .getDatabase("duui")
             .getCollection("users")
-            .find(Filters.eq("authorization", authorization))
+            .find(Filters.eq("key", authorization))
             .projection(Projections.exclude("password"))
             .first();
     }
@@ -133,13 +144,11 @@ public class DUUIUserController {
         return user.toJson();
     }
 
-    public static String findOneBySession(Request request, Response response) {
-        String session = request.params(":session");
-        if (isNullOrEmpty(session))
-            return userNotFound(response);
+    public static String findOneByAuthorization(Request request, Response response) {
+        String authorization = request.params(":key");
+        Document user = authenticate(authorization);
 
-        Document user = getUserBySession(session);
-        if (user == null)
+        if (isNullOrEmpty(user))
             return userNotFound(response);
 
         user.put("connections", DUUIUserController.getConnectionsForUser(user));
@@ -170,7 +179,9 @@ public class DUUIUserController {
             .append("authorization", null)
             .append("dbx_access_token", null)
             .append("dbx_refresh_token", null)
-            .append("minio_access_token", null);
+            .append("minio_access_key", null)
+            .append("minio_secret_key", null)
+            .append("minio_endpoint", null);
 
         DUUIMongoDBStorage
             .getInstance()
@@ -217,9 +228,9 @@ public class DUUIUserController {
             .getCollection("users")
             .findOneAndUpdate(
                 Filters.eq(user.getObjectId("_id")),
-                Updates.set("authorization", key));
+                Updates.set("key", key));
 
-        return updateSuccess(response, "authorization");
+        return updateSuccess(response, "key");
     }
 
     public static String updateEmail(Request request, Response response) {
@@ -374,13 +385,21 @@ public class DUUIUserController {
     private static boolean isDropboxConnected(Document user) {
         Document credentials = DUUIUserController.getDropboxCredentials(user);
         if (isNullOrEmpty(credentials)) return false;
-        return credentials.getString("dbx_refresh_token") != null;
+        return credentials.getString("refresh_token") != null;
     }
 
     private static boolean isMinioConnected(Document user) {
         Document credentials = DUUIUserController.getMinioCredentials(user);
         if (isNullOrEmpty(credentials)) return false;
-        return credentials.getString("minio_access_token") != null;
+
+        String accessKey = credentials.getString("access_key");
+        if (isNullOrEmpty(accessKey)) return false;
+
+        String secretKey = credentials.getString("secret_key");
+        if (isNullOrEmpty(secretKey)) return false;
+
+        String endpoint = credentials.getString("endpoint");
+        return !isNullOrEmpty(endpoint);
     }
 
     private static Document getConnectionsForUser(String oid) {
@@ -392,4 +411,50 @@ public class DUUIUserController {
             .append("minio", isMinioConnected(user));
     }
 
+    public static String updateMinioCredentials(Request request, Response response) {
+        String id = request.params(":id");
+        Document body = Document.parse(request.body());
+        Document credentials = body.get("minio", Document.class);
+
+        String accessKey = credentials.getString("access_key");
+        if (isNullOrEmpty(accessKey)) return missingField(response, "access_key");
+
+        String secretKey = credentials.getString("secret_key");
+        if (isNullOrEmpty(secretKey)) return missingField(response, "secret_key");
+
+        String endpoint = credentials.getString("endpoint");
+        if (isNullOrEmpty(endpoint)) return missingField(response, "endpoint");
+
+        try {
+            DUUIMinioDataReader reader = new DUUIMinioDataReader(
+                endpoint,
+                accessKey,
+                secretKey);
+        } catch (Exception e) {
+            return fail(response, "Failed to connect with min.io");
+        }
+        Document update = new Document("minio",
+            new Document("endpoint", endpoint)
+                .append("access_key", accessKey)
+                .append("secret_key", secretKey)
+        );
+
+        DUUIMongoDBStorage
+            .getInstance()
+            .getDatabase("duui")
+            .getCollection("users")
+            .findOneAndUpdate(
+                Filters.eq(new ObjectId(id)),
+                combineUpdates(update, _fields)
+            );
+
+        response.status(200);
+        Document user = getUserById(id);
+        return user.toJson();
+    }
+
+    private static String fail(Response response, String message) {
+        response.status(500);
+        return new Document("message", message).toJson();
+    }
 }

@@ -123,7 +123,7 @@
 		<ActionButton
 			tabindex={0}
 			text="Cancel"
-			icon={faArrowLeft}
+			icon={faCancel}
 			variant="dark:variant-soft-error variant-filled-error"
 			on:click={() => goto(onCancelURL)}
 		/>
@@ -133,8 +133,7 @@
 			variant="dark:variant-soft-success variant-filled-success"
 			on:click={createProcess}
 			leftToRight={false}
-			disabled={needsAuthentication || starting}
-			_class={isValidIO(input, output) ? 'visible' : 'invisible'}
+			disabled={needsAuthentication || starting || !isValidIO(input, output)}
 		/>
 	</div>
 	<div
@@ -180,7 +179,11 @@
 			{:else}
 				<Text
 					label="Folder"
-					error={inputFolder === '' ? 'Folder cannot be empty' : ''}
+					error={inputFolder === ''
+						? 'Folder cannot be empty'
+						: !inputFolder.startsWith('/')
+						? 'Path should start with a /'
+						: ''}
 					name="Bucket name"
 					bind:value={inputFolder}
 				/>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { v4 as uuidv4 } from 'uuid'
 	import { goto } from '$app/navigation'
-	import PipelineComponent from '$lib/components/PipelineComponent.svelte'
+	import PipelineComponent from '$lib/svelte/widgets/duui/PipelineComponent.svelte'
 	import { isEqual, cloneDeep } from 'lodash'
 	import {
 		faArrowDownWideShort,
@@ -12,13 +12,22 @@
 		faFileCircleXmark,
 		faFileExport,
 		faGears,
+		faGlobe,
+		faHourglass,
 		faHourglassEnd,
+		faHourglassHalf,
 		faHourglassStart,
 		faLayerGroup,
 		faMap,
+		faPause,
+		faPlay,
 		faPlus,
+		faRefresh,
+		faSignal,
+		faSlash,
 		faTrash,
-		faWifi
+		faWifi,
+		faWifi3
 	} from '@fortawesome/free-solid-svg-icons'
 	import { type ModalSettings, getModalStore } from '@skeletonlabs/skeleton'
 	import { dndzone, type DndEvent } from 'svelte-dnd-action'
@@ -32,15 +41,21 @@
 	import { TabGroup, Tab } from '@skeletonlabs/skeleton'
 	import { page } from '$app/stores'
 	import { Api, makeApiCall } from '$lib/utils/api'
-	import { documentStatusNamesString, getStatusIcon, info, success } from '$lib/utils/ui'
+	import {
+		documentStatusNamesString,
+		getStatusIcon,
+		info,
+		success,
+		variantError,
+		variantSuccess
+	} from '$lib/utils/ui'
 	import { pipelineToExportableJson } from '$lib/duui/pipeline'
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import type { DUUIComponent } from '$lib/duui/component'
 	import { Status } from '$lib/duui/monitor'
 	import type { DUUIProcess } from '$lib/duui/process'
 	import { markedForDeletionStore } from '$lib/store'
-	import SettingsMapper from '$lib/svelte/widgets/input/SettingsMapper.svelte'
-	import TextInput from '$lib/svelte/widgets/input/TextInput.svelte'
+	import Mapper from '$lib/svelte/widgets/input/Mapper.svelte'
 	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
 	import Text from '$lib/svelte/widgets/input/Text.svelte'
 
@@ -77,6 +92,10 @@
 
 	const handleDndConsider = (event: CustomEvent<DndEvent<DUUIComponent>>) => {
 		pipeline.components = [...event.detail.items]
+
+		if (pipeline.components.length <= 1) {
+			pipelineCopy.components = cloneDeep(pipeline.components)
+		}
 	}
 
 	const handleDndFinalize = (event: CustomEvent<DndEvent<DUUIComponent>>) => {
@@ -84,6 +103,10 @@
 		pipeline.components.forEach(
 			(c) => (c.index = pipeline.components.map((c) => c.oid).indexOf(c.oid))
 		)
+
+		if (pipeline.components.length <= 1) {
+			pipelineCopy.components = cloneDeep(pipeline.components)
+		}
 	}
 
 	const updatePipeline = async () => {
@@ -147,7 +170,6 @@
 	const startService = async () => {
 		startingService = true
 		toastStore.trigger(info(`Starting Service ${pipeline.name}`))
-
 		let response = await makeApiCall(Api.Services, 'POST', pipeline)
 
 		if (response.ok) {
@@ -177,7 +199,7 @@
 		stoppingService = false
 	}
 
-	function exportPipeline() {
+	const exportPipeline = () => {
 		const blob = new Blob([JSON.stringify(pipelineToExportableJson(pipeline))], {
 			type: 'application/json'
 		})
@@ -269,20 +291,23 @@
 				_class="lg:ml-auto col-span-2"
 			/>
 		{:else if stoppingService}
-			<ActionButton icon={faHourglassEnd} text="Stopping Service" _class="lg:ml-auto col-span-2" />
+			<ActionButton
+				icon={faHourglass}
+				text="Stopping Service"
+				_class="lg:ml-auto col-span-2 animate-pulse"
+			/>
 		{:else if pipeline.serviceStartTime === 0}
 			<ActionButton
-				icon={faWifi}
-				text="Offline"
+				icon={faPlay}
+				text="Start Service"
 				on:click={manageService}
 				_class="lg:ml-auto col-span-2"
 			/>
 		{:else}
 			<ActionButton
-				icon={faWifi}
-				text="Online"
+				icon={faPause}
+				text="Stop Service"
 				on:click={manageService}
-				variant="variant-soft-success"
 				_class="lg:ml-auto col-span-2"
 			/>
 		{/if}
@@ -327,7 +352,12 @@
 				/>
 			</div>
 			<div class="bg-surface-100 dark:variant-soft-surface p-4 shadow-lg rounded-none">
-				<SettingsMapper bind:settings />
+				<Mapper
+					bind:map={settings}
+					on:update={(event) => {
+						pipeline.settings = Object.fromEntries(event.detail.map.entries())
+					}}
+				/>
 			</div>
 		</div>
 	{:else if tabSet === 1}
@@ -336,17 +366,16 @@
 				use:dndzone={{ items: pipeline.components, dropTargetStyle: {} }}
 				on:consider={(event) => handleDndConsider(event)}
 				on:finalize={(event) => handleDndFinalize(event)}
-				class="grid gap-4"
+				class="grid gap-4 max-w-5xl mx-auto"
 			>
 				{#each pipeline.components as component (component.id)}
 					<div animate:flip={{ duration: 300 }}>
 						<PipelineComponent
 							{component}
 							on:update={updatePipeline}
-							on:delete={(event) => {
-								pipeline.components = pipeline.components.filter(
-									(c) => c !== event.detail.component
-								)
+							on:deleteComponent={(event) => {
+								pipeline.components = pipeline.components.filter((c) => c.oid !== event.detail.oid)
+								pipelineCopy = cloneDeep(pipeline)
 							}}
 						/>
 					</div>
@@ -366,7 +395,7 @@
 			>
 				{#each tableHeader as column, index}
 					<button
-						class="btn bg-surface-100 dark:variant-soft-surface gap-4 justify-start items-center rounded-none p-3 text-left
+						class="btn bg-surface-100 px-4 dark:variant-soft-surface gap-4 justify-start items-center rounded-none p-3 text-left
 						 {[3].includes(index)
 							? 'hidden sm:inline-flex'
 							: [2].includes(index)
@@ -385,16 +414,15 @@
 			</div>
 
 			<div class=" overflow-hidden flex flex-col">
-				{#each sortedProcessses as process, index}
+				{#each sortedProcessses as process}
 					<button
-						class="btn rounded-none {index % 2 === 1 || sortedProcessses.length === 1
-							? 'bg-surface-100 dark:variant-soft-surface'
-							: ''} dark:hover:variant-soft-primary hover:variant-filled-primary grid-cols-2 grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8 p-2 text-left"
+						class="btn rounded-none first:border-t-0 border-t-[1px] px-4
+						dark:border-t-surface-500 dark:hover:variant-soft-primary hover:variant-filled-primary grid-cols-2 grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8 p-2 text-left"
 						on:click={() => goto(`/process/${process.oid}?limit=10&skip=0`)}
 					>
 						<p>{datetimeToString(new Date(process.startTime))}</p>
 						<p class="hidden lg:block">{process.input.source} / {process.output.target}</p>
-						<p class="hidden md:block text-center">{process.documentNames.length}</p>
+						<p class="hidden md:block">{process.documentNames.length}</p>
 						<p class="hidden sm:flex items-center justify-between gap-4">
 							<span
 								>{((process.progress / process.documentNames.length) * 100 || 0).toFixed(2)} %</span
@@ -409,7 +437,7 @@
 							/>
 							<span>{process.status}</span>
 						</p>
-						<p class="hidden lg:block text-center">
+						<p class="hidden lg:block">
 							{getDuration(process.startTime, process.endTime)}
 						</p>
 					</button>
@@ -424,9 +452,14 @@
 				text="Save changes"
 				icon={faFileCircleCheck}
 				on:click={updatePipeline}
-				variant="variant-soft-success"
+				variant={variantSuccess}
 			/>
-			<ActionButton text="Discard changes" icon={faFileCircleXmark} on:click={discardChanges} />
+			<ActionButton
+				variant={variantError}
+				text="Discard changes"
+				icon={faFileCircleXmark}
+				on:click={discardChanges}
+			/>
 		</div>
 	{/if}
 </div>

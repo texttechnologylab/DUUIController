@@ -169,7 +169,7 @@ public class Application {
 
         get("/pipelines/:id", DUUIPipelineController::findOne);
         get("/pipelines", DUUIPipelineController::findTemplates);
-        get("/pipelines/all/:user-id", DUUIPipelineController::findMany);
+        get("/pipelines/user/all", DUUIPipelineController::findMany);
         get("/pipelines/:id/processes", DUUIProcessController::findMany);
 
         post("/pipelines", DUUIPipelineController::insertOne);
@@ -183,6 +183,7 @@ public class Application {
         /* Processes */
 
         get("/processes/:id", DUUIProcessController::findOne);
+        get("/processes/:id/timeline", DUUIProcessController::timeline);
 
         post("/processes", DUUIProcessController::startOne);
 
@@ -198,7 +199,7 @@ public class Application {
         /* Users */
 
         get("/users/:email", DUUIUserController::findOneByEmail);
-        get("/users/auth/:session", DUUIUserController::findOneBySession);
+        get("/users/auth/:key", DUUIUserController::findOneByAuthorization);
 
         get("/users/auth/dropbox/:id", DUUIUserController::dbxIsAuthorized);
 
@@ -207,6 +208,7 @@ public class Application {
         put("/users/email/:id", DUUIUserController::updateEmail);
         put("/users/:id", DUUIUserController::updateUser);
         put("/users/reset-password", DUUIUserController::resetPassword);
+        put("/users/:id/minio", DUUIUserController::updateMinioCredentials);
 
         post("/users", DUUIUserController::insertOne);
         post("/users/recover-password", DUUIUserController::recoverPassword);

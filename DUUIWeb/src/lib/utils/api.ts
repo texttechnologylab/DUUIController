@@ -9,7 +9,8 @@ export const Api = {
 	Documents: '/process/api/documents',
 	Logout: '/account/api',
 	Authentication: '/account/api/auth',
-	Dropbox: '/account/api/dropbox'
+	Dropbox: '/account/api/dropbox',
+	Minio: '/account/api/minio'
 }
 
 export const makeApiCall = async (

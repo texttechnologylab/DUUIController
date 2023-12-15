@@ -51,9 +51,18 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 		return documentQuery
 	}
 
+	const loadTimeline = async () => {
+		const response = await fetch(`${API_URL}/processes/${process.oid}/timeline`)
+		const data = await response.json()
+		const { timeline } = data
+
+		return timeline
+	}
+
 	return {
 		process: process,
 		pipeline: loadPipeline(process),
-		documentQuery: loadDocuments()
+		documentQuery: loadDocuments(),
+		timeline: loadTimeline()
 	}
 }
