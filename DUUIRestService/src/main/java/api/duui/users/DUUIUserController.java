@@ -39,11 +39,12 @@ public class DUUIUserController {
             .projection(Projections.include("dropbox"))
             .first();
 
-        if (!isNullOrEmpty(projection)) {
-            return projection.get("dropbox", Document.class);
+        if (isNullOrEmpty(projection)) {
+            return new Document();
         }
 
-        return new Document();
+        return projection.get("dropbox", Document.class);
+
     }
 
     public static Document getMinioCredentials(Document user) {
@@ -53,11 +54,11 @@ public class DUUIUserController {
             .projection(Projections.include("minio"))
             .first();
 
-        if (!isNullOrEmpty(projection)) {
-            return projection.get("minio", Document.class);
+        if (isNullOrEmpty(projection)) {
+            return new Document();
         }
 
-        return new Document();
+        return projection.get("minio", Document.class);
     }
 
     public static Document getUserById(ObjectId id) {
