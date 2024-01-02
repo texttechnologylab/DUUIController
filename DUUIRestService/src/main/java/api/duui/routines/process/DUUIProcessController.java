@@ -305,6 +305,8 @@ public class DUUIProcessController {
                         Updates.set("decodeDuration", document.getDecodeDuration()),
                         Updates.set("deserializeDuration", document.getDeserializeDuration()),
                         Updates.set("waitDuration", document.getWaitDuration()),
+                        Updates.set("startTime", document.getStartTime()),
+                        Updates.set("endTime", document.getEndTime()),
                         Updates.set("processDuration", document.getProcessDuration() > 1000000000000L ? 0 : document.getProcessDuration())
                     ),
                     new UpdateOptions().upsert(true));
@@ -326,6 +328,10 @@ public class DUUIProcessController {
                     Updates.set("lastUsed", Instant.now().toEpochMilli()),
                     Updates.inc("timesUsed", 1))
             );
+    }
+
+    public static void updatePipelineStatus(String id) {
+
     }
 
     public static String getStatus(Request request, Response response) {

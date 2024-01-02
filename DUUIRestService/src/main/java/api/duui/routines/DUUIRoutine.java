@@ -1,8 +1,6 @@
 package api.duui.routines;
 
-import api.duui.component.DUUIComponent;
 import api.duui.component.DUUIComponentController;
-import api.duui.component.DUUIComponentService;
 import api.duui.users.DUUIUserController;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.uima.UIMAException;

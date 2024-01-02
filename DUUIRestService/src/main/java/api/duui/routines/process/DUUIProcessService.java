@@ -1,5 +1,6 @@
 package api.duui.routines.process;
 
+import api.duui.document.DUUIDocumentOutput;
 import api.duui.users.DUUIUserController;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.uima.UIMAException;
@@ -10,6 +11,7 @@ import org.bson.Document;
 import org.dkpro.core.io.xmi.XmiWriter;
 import org.junit.jupiter.params.aggregator.ArgumentAccessException;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.DUUIComposer;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.DUUIDocument;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.DUUIDropboxDataReader;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.DUUIMinioDataReader;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.IDUUIDataReader;
@@ -19,6 +21,7 @@ import org.xml.sax.SAXException;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -142,5 +145,15 @@ public class DUUIProcessService {
         }
         return directory.delete();
     }
+
+    public static void uploadDocument(IDUUIDataReader dataReader, DUUIDocument document, String outputFolder) throws IOException {
+        if (!document.getIsFinished() || document.isUploading()) return;
+
+        document.setUploading(true);
+        dataReader.writeFile(document, outputFolder);
+        document.setUploaded(true);
+        document.setUploading(false);
+    }
+
 
 }

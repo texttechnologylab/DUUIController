@@ -9,8 +9,8 @@ import api.storage.DUUIMongoDBStorage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.*;
@@ -29,7 +29,7 @@ import org.texttechnologylab.DockerUnifiedUIMAInterface.lua.DUUILuaContext;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.pipeline_storage.mongodb.DUUIMongoStorageBackend;
 
 
-import static api.duui.routines.DUUIRoutine.*;
+import static api.duui.routines.process.DUUIProcessService.*;
 import static org.texttechnologylab.DockerUnifiedUIMAInterface.io.AsyncCollectionReader.getFilesInDirectoryRecursive;
 
 public class DUUIProcess extends Thread {
@@ -45,6 +45,10 @@ public class DUUIProcess extends Thread {
     private final Document _user;
     private boolean _hasUIMADriver = false;
     private int _threadCount;
+    private String _outputFolder;
+    private IDUUIDataReader _outputDataReader;
+    private String _xmiWriterOutputPath;
+    private List<DUUIDocument> _outputDocuments = new ArrayList<>();
 
     public DUUIProcess(String id, Document pipeline, Document process, Document settings, Document user) {
         _id = id;
@@ -60,13 +64,29 @@ public class DUUIProcess extends Thread {
             .scheduleAtFixedRate(
                 () -> {
                     if (_composer != null) {
+                        if (_outputDataReader != null && _outputDocuments.isEmpty()) {
+                            try {
+                                try {
+                                    _outputDocuments = getFilesInDirectoryRecursive(_xmiWriterOutputPath);
+                                    _outputDataReader.writeFiles(_outputDocuments, _outputFolder);
+                                    _outputDocuments.forEach(
+                                        document -> {
+                                            File file = new File(document.getPath());
+                                            file.delete();
+                                        }
+                                    );
+                                    _outputDocuments.clear();
+                                } catch (NoSuchFileException ignored) {
+                                }
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
                         try {
                             DUUIProcessController.setProgress(_id, _composer.getProgress());
                             DUUIProcessController.updateTimeline(_id, _composer.getLog());
                             DUUIProcessController.updateDocuments(_id, _composer.getDocuments());
-                            _pipeline.getList("components", Document.class).forEach(
-                                component -> DUUIComponentController.setStatus(component.getString("oid"), getComponentStatusFromLog(component, _composer))
-                            );
+//                            DUUIProcessController.updatePipelineStatus(_id, _composer.getPipelineStatus());
                         } catch (Exception e) {
                             onError(e);
                         }
@@ -147,14 +167,14 @@ public class DUUIProcess extends Thread {
 
         DUUIDocumentInput input = new DUUIDocumentInput(_process.get("input", Document.class));
         DUUIDocumentOutput output = new DUUIDocumentOutput(_process.get("output", Document.class));
+        _outputFolder = output.getFolder();
 
-        String xmiWriterOutputPath = Paths.get("temp/duui", output.getFolder()).toString();
+        _xmiWriterOutputPath = Paths.get("temp/duui/%s".formatted(_id), output.getFolder()).toString();
 
         JCas cas = null;
 
         String userId = _pipeline.getString("user_id");
         IDUUIDataReader inputDataReader;
-        IDUUIDataReader outputDataReader;
 
         try {
             inputDataReader = DUUIProcessService.getDataReaderFromString(input.getSource(), userId);
@@ -166,7 +186,7 @@ public class DUUIProcess extends Thread {
         }
 
         try {
-            outputDataReader = input.sameAs(output) ? inputDataReader : DUUIProcessService.getDataReaderFromString(output.getTarget(), userId);
+            _outputDataReader = input.sameAs(output) ? inputDataReader : DUUIProcessService.getDataReaderFromString(output.getTarget(), userId);
         } catch (Exception e) {
             onError(e);
             cancel();
@@ -197,7 +217,7 @@ public class DUUIProcess extends Thread {
                     .withInputDataReader(inputDataReader)
                     .withTargetDirectory(output.getFolder())
                     .withTargetFileExtension(output.getFileExtension())
-                    .withOutputDataReader(outputDataReader)
+                    .withOutputDataReader(_outputDataReader)
                     .withAddMetadata(true)
                     .withSortBySize(false)
                     .withCheckTarget(_settings.getBoolean("checkTarget", false))
@@ -205,6 +225,9 @@ public class DUUIProcess extends Thread {
                     .build(_composer);
 
                 DUUIProcessController.setDocumentNames(_id, collectionReader.getDocumentNames());
+                // TODO: Exit if no documents are there.
+                if (collectionReader.getDocumentCount() == 0)
+                    onError(new IllegalArgumentException("No documents."));
 
                 _threadCount = Math.min(5, collectionReader.getDocumentCount());
                 _composer.withWorkers(_threadCount);
@@ -224,7 +247,7 @@ public class DUUIProcess extends Thread {
             setupComponents(_composer, _pipeline);
 
             if (output.isCloudProvider()) {
-                addXmiWriter(xmiWriterOutputPath, output.getFileExtension());
+                addXmiWriter(_xmiWriterOutputPath, output.getFileExtension());
             }
 
             if (input.isText()) {
@@ -283,10 +306,10 @@ public class DUUIProcess extends Thread {
                 DUUIProcessController.setProgress(_id, _pipeline.getList("components", Document.class).size());
             }
 
-            if (output.isCloudProvider() && outputDataReader != null && !_composer.getDocuments().isEmpty()) {
+            if (output.isCloudProvider() && _outputDataReader != null && !_composer.getDocuments().isEmpty()) {
                 DUUIProcessController.setStatus(_id, "Output");
-                List<DUUIDocument> documents = getFilesInDirectoryRecursive(xmiWriterOutputPath);
-                outputDataReader.writeFiles(documents, output.getFolder());
+                List<DUUIDocument> documents = getFilesInDirectoryRecursive(_xmiWriterOutputPath);
+                _outputDataReader.writeFiles(documents, output.getFolder());
             }
 
         } catch (Exception e) {
@@ -301,7 +324,7 @@ public class DUUIProcess extends Thread {
 
         DUUIProcessController.setFinishTime(_id, new Date().toInstant().toEpochMilli());
 
-        if (DUUIProcessService.deleteTempOutputDirectory(new File(xmiWriterOutputPath))) {
+        if (DUUIProcessService.deleteTempOutputDirectory(new File(_xmiWriterOutputPath))) {
             _composer.addStatus("Clean up complete");
         }
         DUUIProcessController.setFinished(_id, true);

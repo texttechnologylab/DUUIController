@@ -2,10 +2,7 @@ package api.duui.pipeline;
 
 import api.duui.component.DUUIComponentController;
 import api.duui.routines.service.DUUIService;
-import api.duui.users.DUUIUserController;
-import api.duui.users.Role;
 import api.requests.validation.PipelineValidator;
-import api.requests.validation.UserValidator;
 import api.storage.DUUIMongoDBStorage;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
@@ -195,7 +192,7 @@ public class DUUIPipelineController {
         if (!isNullOrEmpty(components)) {
             for (Document component : components) {
                 DUUIComponentController
-                    .updateIndex(
+                    .setIndex(
                         component.getString("oid"),
                         components.indexOf(component));
             }
