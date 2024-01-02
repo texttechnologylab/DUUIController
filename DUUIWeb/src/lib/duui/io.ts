@@ -12,6 +12,8 @@ export interface DUUIDocument {
 	waitDuration: number
 	processDuration: number
 	size: number
+	startTime: number
+	endTime: number
 }
 
 export interface DUUIDocumentInput {

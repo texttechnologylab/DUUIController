@@ -1,5 +1,4 @@
 <script lang="ts">
-	import Logo from '$lib/assets/Logo.svg'
 	import {
 		faArrowsAltH,
 		faBookOpen,
@@ -11,7 +10,8 @@
 	} from '@fortawesome/free-solid-svg-icons'
 	import Card from '$lib/components/containers/Card.svelte'
 	import Anchor from '$lib/svelte/widgets/action/Anchor.svelte'
-</script>
+	import TimelineV2 from '$lib/svelte/widgets/timeline/TimelineV2.svelte'
+	</script>
 
 <div class="dark:bg-surface-700 container h-full mx-auto flex justify-center items-center">
 	<div

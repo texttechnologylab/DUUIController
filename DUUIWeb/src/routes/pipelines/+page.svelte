@@ -59,7 +59,8 @@
 <svelte:head>
 	<title>Pipelines</title>
 </svelte:head>
-<div class="container h-full mx-auto flex flex-col space-y-4 md:my-8">
+
+<div class="container h-full mx-auto flex flex-col gap-4 md:my-8">
 	<h1 class="h2">Pipelines</h1>
 	<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
 

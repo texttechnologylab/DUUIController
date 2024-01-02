@@ -29,7 +29,6 @@
 		Tab
 	} from '@skeletonlabs/skeleton'
 	import { createEventDispatcher } from 'svelte'
-	import Fa from 'svelte-fa'
 
 	export let component: DUUIComponent
 
@@ -105,7 +104,9 @@
 	>
 		<div class="md:flex md:items-center grid gap-4">
 			<DriverIcon driver={component.settings.driver} />
-			<p class="md:h4 grow text-sm">{component.name}</p>
+			{#if !expanded}
+				<p class="md:h4 grow">{component.name}</p>
+			{/if}
 		</div>
 
 		<IconButton
@@ -180,8 +181,8 @@
 			<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
 
 			<footer class="bg-surface-50/100 dark:bg-surface-900/25">
-				<div class="flex justify-between items-center px-4 py-2">
-					<div>
+				<div class="flex flex-wrap items-center px-4 py-2 gap-4">
+					{#if hasChanges}
 						<ActionButton
 							visible={hasChanges && !isNew}
 							variant={variantSuccess}
@@ -196,7 +197,7 @@
 							icon={faFileCircleXmark}
 							on:click={discardChanges}
 						/>
-					</div>
+					{/if}
 
 					<ActionButton
 						text={isNew ? 'Remove' : 'Delete'}

@@ -31,8 +31,8 @@
 	}
 </script>
 
-<div class="md.grid md:grid-cols-3 md:gap-4 space-y-4 items-start">
-	<div class="space-y-4">
+<div class=" space-y-4 items-start">
+	<div class="gap-4 grid md:grid-cols-2">
 		<Text
 			label="Key"
 			name="key"
@@ -58,34 +58,30 @@
 			}}
 		/>
 	</div>
-
-	<div class="label col-span-2">
-		<p class="uppercase text-xs tracking-widest">{label}</p>
-		<div
-			class="border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 min-h-[120px] flex flex-wrap gap-2 p-2 items-start"
-		>
-			{#each map.entries() as [_key, _value]}
-				<div class="chip variant-soft-primary py-0">
-					<button
-						class="space-x-4 py-2"
-						on:click={() => {
-							key = _key
-							value = _value
-						}}
-					>
-						<span class="border-r-2 border-r-primary-500/20 dark:border-r-primary-200/20 pr-4"
-							>{_key}</span
+	{#if map.size > 0}
+		<div class="label col-span-2">
+			<p class="uppercase text-xs tracking-widest">{label}</p>
+			<div
+				class="border-[1px] bg-gray dark:bg-surface-800 border-surface-400/20 flex flex-wrap gap-2 p-2 items-start"
+			>
+				{#each map.entries() as [_key, _value]}
+					<div class="chip variant-soft-primary gap-2">
+						<button
+							class="flex flex-col items-start"
+							on:click={() => {
+								key = _key
+								value = _value
+							}}
 						>
-						<span
-							class="border-r-2 border-r-primary-500/20 dark:border-r-primary-200/20 pr-4 font-bold"
-							>{_value}</span
-						>
-					</button>
-					<button class="px-4 py-2" on:click={() => deleteKey(_key)}>
-						<Fa icon={faClose} size="xs" />
-					</button>
-				</div>
-			{/each}
+							<span>{_key}</span>
+							<span class="font-bold">{_value}</span>
+						</button>
+						<button class="self-center" on:click={() => deleteKey(_key)}>
+							<Fa icon={faClose} />
+						</button>
+					</div>
+				{/each}
+			</div>
 		</div>
-	</div>
+	{/if}
 </div>

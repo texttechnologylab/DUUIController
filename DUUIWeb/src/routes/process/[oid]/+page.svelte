@@ -32,8 +32,12 @@
 		faCancel,
 		faChevronLeft,
 		faChevronRight,
+		faCopy,
 		faFileDownload,
+		faFileExport,
 		faFileUpload,
+		faPause,
+		faPlay,
 		faRefresh,
 		faSearch,
 		faTrash
@@ -43,7 +47,9 @@
 		getToastStore,
 		ProgressBar,
 		type ModalComponent,
-		type ModalSettings
+		type ModalSettings,
+		type PopupSettings,
+		popup
 	} from '@skeletonlabs/skeleton'
 
 	import { onMount } from 'svelte'
@@ -52,8 +58,9 @@
 	import { browser } from '$app/environment'
 	import Select from '$lib/svelte/widgets/input/Select.svelte'
 	import Search from '$lib/svelte/widgets/input/Search.svelte'
-	import Timeline from '$lib/svelte/widgets/timeline/Timeline.svelte'
 	import Label from '$lib/svelte/widgets/Label.svelte'
+	import TimelineV2 from '$lib/svelte/widgets/timeline/TimelineV2.svelte'
+	import SpeedDial from '$lib/svelte/widgets/navigation/SpeedDial.svelte'
 
 	export let data
 	const toastStore = getToastStore()
@@ -286,6 +293,8 @@
 		updateResults()
 	}
 
+	let expandedIndex: number | undefined = undefined
+
 	$: {
 		const lastFilter: string | undefined = statusFilters.at(-1)
 
@@ -298,6 +307,20 @@
 		updateResults()
 	}
 </script>
+
+<SpeedDial>
+	<svelte:fragment slot="content">
+		<IconButton icon={faArrowLeft} on:click={() => goto('/pipelines/' + pipeline.oid + '?tab=2')} />
+		<IconButton icon={faFileDownload} on:click={() => window.open(getInput())} />
+		<IconButton icon={faFileUpload} on:click={() => window.open(getOutput())} />
+		{#if !process.finished}
+			<IconButton icon={faCancel} on:click={cancelProcess} />
+		{:else}
+			<IconButton icon={faRefresh} on:click={restart} />
+			<IconButton icon={faTrash} on:click={deleteProcess} />
+		{/if}
+	</svelte:fragment>
+</SpeedDial>
 
 <div class="container h-full flex-col mx-auto flex gap-4 md:my-8">
 	<div class="flex items-end justify-between gap-4">
@@ -315,7 +338,7 @@
 
 	<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
 	<div class="grid xl:flex items-center xl:justify-start gap-4">
-		<div class="xl:flex grid grid-cols-2 sm:grid-cols-3 gap-4 items-center">
+		<div class="hidden lg:flex md:grid md:grid-cols-3 gap-4 items-center">
 			<ActionButton
 				icon={faArrowLeft}
 				text="Back"
@@ -358,7 +381,7 @@
 	{#if process.error}
 		<p class="text-error-400 font-bold break-words">ERROR: {process.error}</p>
 	{/if}
-	<div class="overflow-hidden border-[1px] border-surface-200 dark:border-surface-500">
+	<div class="overflow-hidden border-[1px] border-surface-200 dark:border-surface-500 shadow-lg">
 		<div
 			class="header grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 bg-surface-100 dark:variant-soft-surface"
 		>
@@ -389,13 +412,13 @@
 			meter="variant-filled-primary"
 		/>
 		<div class="overflow-hidden flex flex-col">
-			{#each documents as document}
+			{#each documents as document, index}
 				<button
-					class="btn rounded-none px-4
+					class="btn rounded-none
 					first:border-t-0 border-t-[1px]
 					dark:border-t-surface-500 dark:hover:variant-soft-primary
 					hover:variant-filled-primary
-					grid-cols-2 grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 p-2 text-left"
+					grid-cols-2 grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 p-3 px-4 text-left"
 					on:click={() => showDocumentModal(document)}
 				>
 					<p>{document.name}</p>
@@ -448,37 +471,42 @@
 			on:click={incrementPage}
 		/>
 	</div>
-	<div class="gap-4 grid items-start">
-		<div class="bg-surface-100 dark:variant-soft-surface shadow-lg p-4 space-y-4">
-			<h3 class="h3">Stats</h3>
-			<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
-			<Label name="Number of documents" value={'' + process.documentNames.length} />
-			<Label
-				name="Instantiation Duration"
-				value={formatMilliseconds(process.instantiationDuration)}
-			/>
-			<Label name="Process Duration" value={getDuration(process.startTime, process.endTime)} />
-			<Label
-				name="Average document process duration"
-				value={formatMilliseconds(
-					documents
-						.filter((d) => d.finished)
-						.map((d) => d.processDuration)
-						.reduce((total, num) => total + num, 0) / documents.filter((d) => d.finished).length
-				)}
-			/>
-			<Label
-				name="Slowest document process duration"
-				value={formatMilliseconds(
-					Math.max(...documents.filter((d) => d.finished).map((d) => d.processDuration))
-				)}
-			/>
-			<Label
-				name="Fastest document process duration"
-				value={formatMilliseconds(
-					Math.min(...documents.filter((d) => d.finished).map((d) => d.processDuration))
-				)}
-			/>
+	<TimelineV2 {process} {documents} />
+
+	<div
+		class="gap-4 grid items-start border-[1px] border-surface-200 dark:border-surface-500 shadow-lg"
+	>
+		<div class="p-4">
+			<h2 class="h2 p-4">Statistics</h2>
+			<div class="p-4">
+				<Label name="Number of documents" value={'' + process.documentNames.length} />
+				<Label
+					name="Instantiation Duration"
+					value={formatMilliseconds(process.instantiationDuration)}
+				/>
+				<Label name="Process Duration" value={getDuration(process.startTime, process.endTime)} />
+				<Label
+					name="Average document process duration"
+					value={formatMilliseconds(
+						documents
+							.filter((d) => d.finished)
+							.map((d) => d.processDuration)
+							.reduce((total, num) => total + num, 0) / documents.filter((d) => d.finished).length
+					)}
+				/>
+				<Label
+					name="Slowest document process duration"
+					value={formatMilliseconds(
+						Math.max(...documents.filter((d) => d.finished).map((d) => d.processDuration))
+					)}
+				/>
+				<Label
+					name="Fastest document process duration"
+					value={formatMilliseconds(
+						Math.min(...documents.filter((d) => d.finished).map((d) => d.processDuration))
+					)}
+				/>
+			</div>
 		</div>
 	</div>
 
@@ -498,7 +526,4 @@
 			{/each}
 		</div>
 	</div> -->
-	{#if timeline}
-		<Timeline startTime={process.startTime} events={timeline} />
-	{/if}
 </div>

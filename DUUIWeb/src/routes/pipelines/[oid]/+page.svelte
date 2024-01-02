@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { v4 as uuidv4 } from 'uuid'
-	import { goto } from '$app/navigation'
+	import { goto, invalidateAll } from '$app/navigation'
 	import PipelineComponent from '$lib/svelte/widgets/duui/PipelineComponent.svelte'
 	import { isEqual, cloneDeep } from 'lodash'
 	import {
@@ -12,10 +12,7 @@
 		faFileCircleXmark,
 		faFileExport,
 		faGears,
-		faGlobe,
 		faHourglass,
-		faHourglassEnd,
-		faHourglassHalf,
 		faHourglassStart,
 		faLayerGroup,
 		faMap,
@@ -23,11 +20,8 @@
 		faPlay,
 		faPlus,
 		faRefresh,
-		faSignal,
-		faSlash,
 		faTrash,
-		faWifi,
-		faWifi3
+		faWifi
 	} from '@fortawesome/free-solid-svg-icons'
 	import { type ModalSettings, getModalStore } from '@skeletonlabs/skeleton'
 	import { dndzone, type DndEvent } from 'svelte-dnd-action'
@@ -58,6 +52,8 @@
 	import Mapper from '$lib/svelte/widgets/input/Mapper.svelte'
 	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
 	import Text from '$lib/svelte/widgets/input/Text.svelte'
+	import SpeedDial from '$lib/svelte/widgets/navigation/SpeedDial.svelte'
+	import IconButton from '$lib/svelte/widgets/action/IconButton.svelte'
 
 	export let data: PageServerData
 	let { pipeline, processes } = data
@@ -154,10 +150,15 @@
 	}
 
 	const copyPipeline = async () => {
-		let response = await makeApiCall(Api.Pipelines, 'POST', pipeline)
+		let response = await makeApiCall(Api.Pipelines, 'POST', {
+			...pipeline,
+			name: pipeline.name + ' - Copy'
+		})
+
 		if (response.ok) {
 			const data = await response.json()
 			toastStore.trigger(info('Pipeline copied successfully'))
+			invalidateAll()
 			goto(`/pipelines/${data.oid}`, { invalidateAll: true, replaceState: true })
 		}
 	}
@@ -263,6 +264,30 @@
 	}
 </script>
 
+<SpeedDial>
+	<svelte:fragment slot="content">
+		<IconButton icon={faArrowLeft} on:click={() => goto('/pipelines')} />
+		<IconButton icon={faFileExport} on:click={exportPipeline} />
+		<IconButton icon={faCopy} on:click={copyPipeline} />
+		<IconButton icon={faTrash} on:click={deletePipeline} />
+		{#if startingService || stoppingService}
+			<IconButton icon={faRefresh} _class="lg:ml-auto col-span-2 animate-spin-slow" />
+		{:else if pipeline.serviceStartTime === 0}
+			<IconButton icon={faPlay} on:click={manageService} _class="lg:ml-auto col-span-2 pl-1" />
+		{:else}
+			<IconButton
+				icon={faPause}
+				on:click={manageService}
+				_class="lg:ml-auto col-span-2 variant-filled-success dark:variant-soft-success pl"
+			/>
+		{/if}
+	</svelte:fragment>
+</SpeedDial>
+
+<svelte:head>
+	<title>{pipeline.name}</title>
+</svelte:head>
+
 <div class="container h-full flex-col mx-auto flex gap-4 md:my-8">
 	<div class="flex items-center md:items-end justify-between gap-4">
 		<h1 class="h2">{pipeline.name}</h1>
@@ -278,7 +303,7 @@
 		{/if}
 	</div>
 	<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
-	<div class="grid grid-cols-2 md:grid-cols-3 lg:flex items-center justify-start gap-4">
+	<div class="hidden md:grid grid-cols-2 md:grid-cols-3 lg:flex items-center justify-start gap-4">
 		<ActionButton text="Back" icon={faArrowLeft} on:click={() => goto('/pipelines')} />
 		<ActionButton text="Export" icon={faFileExport} on:click={exportPipeline} />
 		<ActionButton text="Copy" icon={faCopy} on:click={copyPipeline} />
@@ -313,28 +338,29 @@
 		{/if}
 	</div>
 
-	<div class="bg-surface-100 dark:variant-soft-surface shadow-lg">
+	<div class="bg-surface-100 dark:variant-soft-surface shadow-lg text-sm md:text-base">
 		<TabGroup
 			active="dark:variant-soft-primary variant-filled-primary"
 			border="none"
 			rounded="rounded-none"
+			justify="grid grid-cols-3"
 		>
 			<Tab bind:group={tabSet} name="settings" value={0}>
-				<div class="flex items-center gap-2">
-					<Fa icon={faGears} />
+				<div class="flex items-center justify-center gap-2">
+					<Fa class="hidden md:block" icon={faGears} />
 					<span>Settings</span>
 				</div>
 			</Tab>
 
 			<Tab bind:group={tabSet} name="components" value={1}
-				><div class="flex items-center gap-2">
-					<Fa icon={faMap} />
+				><div class="flex items-center justify-center gap-2">
+					<Fa class="hidden md:block" icon={faMap} />
 					<span>Components</span>
 				</div></Tab
 			>
 			<Tab bind:group={tabSet} name="processes" value={2}
-				><div class="flex items-center gap-2">
-					<Fa icon={faLayerGroup} />
+				><div class="flex items-center justify-center gap-2">
+					<Fa class="hidden md:block" icon={faLayerGroup} />
 					<span>Processes</span>
 				</div></Tab
 			>
@@ -416,8 +442,8 @@
 			<div class=" overflow-hidden flex flex-col">
 				{#each sortedProcessses as process}
 					<button
-						class="btn rounded-none first:border-t-0 border-t-[1px] px-4
-						dark:border-t-surface-500 dark:hover:variant-soft-primary hover:variant-filled-primary grid-cols-2 grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8 p-2 text-left"
+						class="btn rounded-none first:border-t-0 border-t-[1px]
+						dark:border-t-surface-500 dark:hover:variant-soft-primary hover:variant-filled-primary grid-cols-2 grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8 p-3 px-4 text-left"
 						on:click={() => goto(`/process/${process.oid}?limit=10&skip=0`)}
 					>
 						<p>{datetimeToString(new Date(process.startTime))}</p>

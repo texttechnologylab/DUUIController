@@ -108,7 +108,7 @@
 			<div class="flex justify-between items-center px-4 py-2">
 				<ActionButton text="Create" icon={faFilePen} on:click={createComponent} />
 				<ActionButton
-					text="Remove"
+					text="Cancel"
 					icon={faTrash}
 					variant="dark:variant-soft-error variant-filled-error"
 					on:click={modalStore.close}

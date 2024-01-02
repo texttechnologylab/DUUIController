@@ -8,8 +8,10 @@
 	export let body: string = $modalStore[0].meta['body'] || 'Are you sure?'
 </script>
 
-<div class="z-50 card p-4 items-start justify-start rounded-none shadow-lg space-y-2 w-modal">
-	<p class="h4">{title}</p>
+<div
+	class="z-50 border-2 bg-white dark:bg-surface-700 shadow-lg border-surface-400/20 p-4 items-start justify-start rounded-none space-y-2 w-modal"
+>
+	<p class="h3">{title}</p>
 	<p>{body}</p>
 	<div class="flex items-center gap-4 justify-end !mt-8">
 		<ActionButton

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto } from '$app/navigation'
+	import { goto, invalidateAll } from '$app/navigation'
 	import DriverIcon from '$lib/components/DriverIcon.svelte'
 	import { cloneDeep } from 'lodash'
 	import { v4 as uuidv4 } from 'uuid'
@@ -10,6 +10,7 @@
 		faArrowRight,
 		faCancel,
 		faCheck,
+		faCopy,
 		faPlus,
 		faSearch
 	} from '@fortawesome/free-solid-svg-icons'
@@ -27,7 +28,7 @@
 	} from '$lib/duui/pipeline'
 	import { blankComponent, DUUIDrivers, type DUUIComponent } from '$lib/duui/component'
 	import { Api, makeApiCall } from '$lib/utils/api'
-	import { success, variantError, variantSuccess } from '$lib/utils/ui'
+	import { info, success, variantError, variantSuccess } from '$lib/utils/ui'
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import PipelineComponent from '$lib/svelte/widgets/duui/PipelineComponent.svelte'
 	import { currentPipelineStore } from '$lib/store'
@@ -36,13 +37,11 @@
 	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
 	import ComponentTemplates from './ComponentTemplates.svelte'
 	import Text from '$lib/svelte/widgets/input/Text.svelte'
-	import Checkbox from '$lib/svelte/widgets/input/Checkbox.svelte'
 	import Search from '$lib/svelte/widgets/input/Search.svelte'
-	import IconButton from '$lib/svelte/widgets/action/IconButton.svelte'
 	import { page } from '$app/stores'
 
 	export let data
-	let { templateComponents, templatePipelines } = data
+	let { templateComponents, templatePipelines, userPipelines } = data
 	const isImport: boolean = $page.url.searchParams.get('import') === 'true'
 
 	templateComponents = templateComponents.map((c) => {
@@ -61,7 +60,6 @@
 			component.pipelineId = $currentPipelineStore.oid
 			component.status = ''
 		})
-		console.log($currentPipelineStore)
 	}
 
 	let settings: Map<string, string>
@@ -158,6 +156,17 @@
 			.catch((e) => console.log(e))
 	}
 
+	const copyUserPipeline = async (pipeline: DUUIPipeline) => {
+		$currentPipelineStore = cloneDeep(pipeline)
+		$currentPipelineStore.oid = uuidv4()
+		$currentPipelineStore.components = $currentPipelineStore.components.map((c) => {
+			return { ...c, id: uuidv4(), index: $currentPipelineStore.components.indexOf(c) }
+		})
+
+		goto('/pipelines/new?step=2')
+		step = 1
+	}
+
 	$: {
 		if (settings) {
 			$currentPipelineStore.settings = settings
@@ -173,19 +182,32 @@
 	<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
 	<div class="flex items-center justify-between gap-4">
 		{#if step === 0}
-			<IconButton variant={variantError} icon={faCancel} on:click={() => goto('/pipelines')} />
+			<ActionButton
+				text="Cancel"
+				variant={variantError}
+				icon={faCancel}
+				on:click={() => goto('/pipelines')}
+			/>
 		{:else}
-			<IconButton variant={variantError} icon={faArrowLeft} on:click={() => (step -= 1)} />
+			<ActionButton
+				text="Back"
+				variant={variantError}
+				icon={faArrowLeft}
+				on:click={() => (step -= 1)}
+			/>
 		{/if}
 
 		{#if step < steps.length - 1}
-			<IconButton
+			<ActionButton
+				text="Next"
+				leftToRight={false}
 				icon={faArrowRight}
 				on:click={() => (step += 1)}
 				_class={$currentPipelineStore.name === '' ? 'invisible' : 'visible'}
 			/>
 		{:else if step === steps.length - 1}
-			<IconButton
+			<ActionButton
+				text="Create"
 				icon={faCheck}
 				disabled={$currentPipelineStore.components.length === 0}
 				variant={variantSuccess}
@@ -197,7 +219,7 @@
 
 	{#if step === 0}
 		<div class="space-y-4">
-			<div class="grid md:grid-cols-3">
+			<div class="grid grid-cols-2 gap-4">
 				<button
 					class="pipeline-card grid grid-rows-3 items-start text-left shadow-lg p-4 hover:variant-glass bg-surface-100 dark:variant-soft-surface dark:hover:bg-surface-800 space-y-4"
 					on:click={() => selectPipelineTemplate(blankPipeline())}
@@ -214,6 +236,22 @@
 						{/each}
 					</div>
 				</button>
+				<!-- TODO -->
+				<button
+					class="pipeline-card grid grid-rows-3 items-start text-left shadow-lg p-4 hover:variant-glass bg-surface-100 dark:variant-soft-surface dark:hover:bg-surface-800 space-y-4"
+					on:click={() => copyUserPipeline(blankPipeline())} 
+				>
+					<div class="flex items-center gap-4 justify-between">
+						<p class="text-lg font-bold">Start from a Copy</p>
+					</div>
+
+					<p class="row-span-2 max-w-[50ch]">
+						Copy an existing Pipeline of yours and start making changes from there.
+					</p>
+					<div class="flex items-center justify-end gap-4 text-primary-500">
+						<Fa icon={faCopy} size="2x" />
+					</div>
+				</button>
 			</div>
 
 			<div class="md:mt-16 items-start justify-start rounded-none container">
@@ -227,7 +265,7 @@
 					/>
 				</div>
 				<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
-				<div class="grid sm:grid-cols-2 md:grid-cols-3 gap-4 py-4">
+				<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4 py-4">
 					{#each filteredTemplatePipelines as pipeline}
 						<button
 							class="pipeline-card text-left hover:variant-glass shadow-lg dark:variant-soft-surface p-4 bg-surface-100 dark:hover:bg-surface-800 space-y-4 flex flex-col"
@@ -281,7 +319,7 @@
 		<div class="space-y-4">
 			<div
 				bind:this={componentContainer}
-				class="container space-y-4 bg-surface-100 dark:variant-soft-surface mx-auto shadow-lg p-4 md:p-16"
+				class="container space-y-8 bg-surface-100 dark:variant-soft-surface mx-auto shadow-lg p-4 md:p-16"
 			>
 				{#if $currentPipelineStore.components.length === 0}
 					<p class="text-center h4">Add a Component to get Started</p>
@@ -316,7 +354,7 @@
 					/>
 				</div>
 				<p class="text-center">Or choose a template</p>
-				<Fa class="mx-auto" icon={faArrowDown} size="2x" />
+				<Fa class="mx-auto text-surface-400" icon={faArrowDown} size="3x" />
 			</div>
 			<div id="templates">
 				<ComponentTemplates

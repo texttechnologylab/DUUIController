@@ -16,6 +16,7 @@
 	const toggleVisibility = () => {
 		hidden = !hidden
 		input.type = hidden ? 'password' : 'text'
+		input.readOnly = hidden
 	}
 </script>
 

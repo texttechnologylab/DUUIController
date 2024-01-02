@@ -57,7 +57,7 @@
 		</div>
 	</div>
 	<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
-	<div class="grid sm:grid-cols-2 md:grid-cols-3 gap-4 py-4">
+	<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4 py-4">
 		{#each filteredComponents as component (component.oid)}
 			<button
 				class="component-card text-left p-4 hover:variant-glass bg-surface-100 dark:variant-soft-surface dark:hover:bg-surface-800 shadow-lg space-y-4 grid grid-rows-3 items-start"

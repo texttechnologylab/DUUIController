@@ -8,7 +8,7 @@ def as_json(json_dict: dict) -> str:
     return json.dumps(json_dict, indent=2, ensure_ascii=False)
 
 
-class DUUI:
+class DUUIClient:
     api_key: str
 
     class Pipelines:
@@ -16,7 +16,7 @@ class DUUI:
         def find_one(id: str) -> dict:
             response = requests.get(
                 f"http://192.168.2.122:2605/pipelines/{id}",
-                headers={"authorization": DUUI.api_key},
+                headers={"authorization": DUUIClient.api_key},
             )
             return as_json(response.json())
 
@@ -24,7 +24,7 @@ class DUUI:
         def find_many(limit: int = 0, skip: int = 0) -> dict:
             response = requests.get(
                 f"http://192.168.2.122:2605/pipelines/user/all?limit={limit}&skip={skip}",
-                headers={"authorization": DUUI.api_key},
+                headers={"authorization": DUUIClient.api_key},
             )
             return as_json(response.json()["pipelines"])
 
@@ -33,7 +33,7 @@ class DUUI:
             response = requests.put(
                 f"http://192.168.2.122:2605/pipelines/{id}",
                 data=json.dumps(data),
-                headers={"authorization": DUUI.api_key},
+                headers={"authorization": DUUIClient.api_key},
             )
             return as_json(response.json())
 
@@ -48,18 +48,18 @@ class DUUI:
                         "components": pipeline.components,
                     }
                 ),
-                headers={"authorization": DUUI.api_key},
+                headers={"authorization": DUUIClient.api_key},
             )
 
             return as_json(response.json())
 
     def __init__(self, api_key: str) -> None:
-        DUUI.api_key = api_key
+        DUUIClient.api_key = api_key
 
 
 if __name__ == "__main__":
     key = "vmHSSFXaW6xaHtf84um7XugNorNAM60PJRJkb3kAjtZ0Dz5NiA46BNRKgAycVsbdH+pqvuhIIF+OU02A3yvv0Q=="
-    client = DUUI(key)
+    client = DUUIClient(key)
 
     pipeline = client.Pipelines.find_one("653f8f749f717510ec2e9767")
     print(pipeline)

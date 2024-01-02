@@ -38,6 +38,7 @@
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import DeleteModal from '$lib/svelte/widgets/modal/DeleteModal.svelte'
 	import { storage } from '$lib/store'
+	import { fly } from 'svelte/transition'
 
 	initializeStores()
 
@@ -56,16 +57,15 @@
 
 	export let data
 	let { loggedIn } = data
-	
+
 	$: loggedIn = $storage.session !== ''
-	
 
 	const logout = async () => {
 		const response = await makeApiCall(Api.Logout, 'PUT', {})
 		if (response.ok) {
 			loggedIn = false
 			goto('/account/auth/login?logout=true')
-		}	
+		}
 	}
 
 	const modalRegistry: Record<string, ModalComponent> = {
@@ -74,7 +74,7 @@
 </script>
 
 <Modal components={modalRegistry} />
-<Toast position="br"/>
+<Toast position="br" />
 <Drawer rounded="rounded-none">
 	{#if $drawerStore.id === 'sidebar'}
 		<Sidebar {loggedIn} />
@@ -110,22 +110,28 @@
 						</svelte:fragment>
 						<svelte:fragment slot="content">
 							<div
-								class="flex flex-col shadow-lg border-[1px] bg-white dark:bg-surface-600 border-surface-400/20"
+								class="shadow-lg border-[1px] bg-white dark:bg-surface-600 border-surface-400/20"
 							>
-								<Anchor
-									href="/pipelines"
-									icon={faLayerGroup}
-									text="Dashboard"
-									_class="justify-start gap-8 bg-primary-hover-token"
-									variant=""
-								/>
-								<Anchor
-									href="/pipelines/new"
-									icon={faPlus}
-									text="Builder"
-									_class="justify-start gap-8 bg-primary-hover-token"
-									variant=""
-								/>
+								<div class="p-4 space-y-4">
+									<p class="font-bold">Manage</p>
+									<div class="flex flex-col text-left gap-2">
+										<a
+											href="/pipelines"
+											class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
+											>Dashboard</a
+										>
+										<a
+											href="/pipelines/new"
+											class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
+											>Create</a
+										>
+										<a
+											href="/pipelines/statistics"
+											class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
+											>Statistics</a
+										>
+									</div>
+								</div>
 							</div>
 						</svelte:fragment>
 					</Menu>
@@ -140,36 +146,67 @@
 						</svelte:fragment>
 						<svelte:fragment slot="content">
 							<div
-								class="flex flex-col shadow-lg border-[1px] bg-white dark:bg-surface-600 border-surface-400/20"
+								class="grid grid-cols-2 gap-8 shadow-lg border-[1px] bg-white dark:bg-surface-600 border-surface-400/20"
 							>
-								<Anchor
-									href="/documentation#quick-start"
-									icon={faBookOpen}
-									text="Quick Start"
-									_class="justify-start gap-8 bg-primary-hover-token"
-									variant=""
-								/>
-								<Anchor
-									href="/documentation#composer"
-									icon={faGears}
-									text="Composer"
-									_class="justify-start gap-8 bg-primary-hover-token"
-									variant=""
-								/>
-								<Anchor
-									href="/documentation#driver"
-									icon={faNetworkWired}
-									text="Driver"
-									_class="justify-start gap-8 bg-primary-hover-token"
-									variant=""
-								/>
-								<Anchor
-									href="/documentation#component"
-									icon={faMap}
-									text="Component"
-									_class="justify-start gap-8 bg-primary-hover-token"
-									variant=""
-								/>
+								<div class="p-4 space-y-4">
+									<p class="font-bold">Framework</p>
+									<div class="flex flex-col text-left gap-2">
+										<a
+											href="/documentation#introduction"
+											class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
+											>Introduction</a
+										>
+										<a
+											href="/documentation#composer"
+											class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
+											>Composer</a
+										>
+
+										<a
+											href="/documentation#driver"
+											class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
+											>Driver</a
+										>
+
+										<a
+											href="/documentation#component"
+											class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
+											>Component</a
+										>
+										<a
+											href="/documentation#document"
+											class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
+											>Document</a
+										>
+										<a
+											href="/documentation#process"
+											class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
+											>Process</a
+										>
+									</div>
+								</div>
+								<div class="p-4 space-y-4">
+									<p class="font-bold">API</p>
+									<div class="flex flex-col text-left gap-2">
+										<a
+											href="/documentation/api#web"
+											class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
+											>Web</a
+										>
+
+										<a
+											href="/documentation/api#java"
+											class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
+											>Java</a
+										>
+
+										<a
+											href="/documentation/api#python"
+											class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
+											>Python</a
+										>
+									</div>
+								</div>
 							</div>
 						</svelte:fragment>
 					</Menu>
@@ -183,6 +220,60 @@
 							<span>Account</span>
 						</svelte:fragment>
 						<svelte:fragment slot="content">
+							<div
+								class="grid grid-cols-2 shadow-lg border-[1px] bg-white dark:bg-surface-600 border-surface-400/20"
+							>
+								{#if loggedIn}
+									<div class="p-4 space-y-4">
+										<p class="font-bold">User</p>
+										<div class="flex flex-col text-left gap-2">
+											<a
+												href="/account/user/profile"
+												class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
+												>Profile</a
+											>
+											<a
+												href="/account/user/profile"
+												class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
+												>Connections</a
+											>
+											<a
+												href="/account/user/profile"
+												class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
+												>Security</a
+											>
+										</div>
+									</div>
+								{/if}
+
+								<div class="p-4 space-y-4">
+									<p class="font-bold">Authentication</p>
+									<div class="flex flex-col text-left gap-2">
+										{#if !loggedIn}
+											<a
+												href="/account/auth/login"
+												class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
+												>Login</a
+											>
+											<a
+												href="/account/auth/login?register=true"
+												class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
+												>Register</a
+											>
+										{:else}
+											<a
+												on:click={logout}
+												href="/account/auth/login"
+												class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
+												>Logout</a
+											>
+										{/if}
+									</div>
+								</div>
+							</div>
+						</svelte:fragment>
+
+						<svelte:fragment>
 							<div
 								class="flex flex-col shadow-lg border-[1px] bg-white dark:bg-surface-600 border-surface-400/20"
 							>

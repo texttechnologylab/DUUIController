@@ -23,7 +23,7 @@
 </script>
 
 <button
-	class="{background} cursor-pointer inline-flex text-sm transition-colors items-center gap-2"
+	class="{background} text-sm transition-colors items-center btn"
 	use:popup={menu}
 >
 	<slot name="title" />

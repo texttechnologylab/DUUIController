@@ -8,7 +8,7 @@
 		isCloudProvider
 	} from '$lib/duui/io'
 	import Anchor from '$lib/svelte/widgets/action/Anchor.svelte'
-	import { equals, formatFileSize } from '$lib/utils/text'
+	import { datetimeToString, equals, formatFileSize } from '$lib/utils/text'
 	import { formatMilliseconds } from '$lib/utils/time'
 	import {
 		faCheckDouble,
@@ -87,6 +87,12 @@
 			{/if}
 
 			<div class="grid grid-cols-2 gap-4 text-center">
+				<p class="border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 p-2">
+					Start {datetimeToString(new Date(document.startTime))}
+				</p>
+				<p class="border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 p-2">
+					End {datetimeToString(new Date(document.endTime))}
+				</p>
 				<p class="border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 p-2">
 					Decode {formatMilliseconds(document.decodeDuration)}
 				</p>
