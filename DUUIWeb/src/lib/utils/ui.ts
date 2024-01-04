@@ -94,6 +94,15 @@ export const info = (message: string, duration: number = 4000): ToastSettings =>
 	}
 }
 
+export const error = (message: string, duration: number = 4000): ToastSettings => {
+	return {
+		message: message,
+		timeout: duration,
+		classes:
+			'border-2 bg-white dark:bg-surface-600 dark:text-surface-200 shadow-lg !rounded-none border-error-500'
+	}
+}
+
 export const scrollIntoView = (id: string) => {
 	const el = document.querySelector(`#${id}`)
 	if (!el) return

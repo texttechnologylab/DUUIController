@@ -39,6 +39,7 @@
 	import DeleteModal from '$lib/svelte/widgets/modal/DeleteModal.svelte'
 	import { storage } from '$lib/store'
 	import { fly } from 'svelte/transition'
+	import MenuItem from '$lib/svelte/widgets/navigation/MenuItem.svelte'
 
 	initializeStores()
 
@@ -83,22 +84,22 @@
 	{/if}
 </Drawer>
 <!-- App Shell -->
-<AppShell class="dark:bg-surface-700">
+<AppShell class="dark:bg-surface-700 ">
 	<svelte:fragment slot="header">
 		<!-- App Bar -->
-		<AppBar shadow="shadow-lg dark:bg-surface-800" padding="p-4">
+		<AppBar shadow="shadow-lg dark:bg-surface-900">
 			<svelte:fragment slot="lead">
 				<div class="flex items-center">
-					<button class="btn-icon md:hidden" on:click={() => drawerStore.open(sidebarDrawer)}>
+					<button class="btn-icon lg:hidden" on:click={() => drawerStore.open(sidebarDrawer)}>
 						<Fa icon={faBars} size="lg" />
 					</button>
 					<a href="/">
-						<img src={Logo} alt="The letters DUUI" class="hidden md:block max-h-8" />
+						<img src={Logo} alt="The letters DUUI" class="hidden lg:block max-h-8" />
 					</a>
 				</div>
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
-				<div class="hidden md:flex items-center gap-4">
+				<div class="hidden lg:flex items-center gap-4">
 					<Menu
 						background="bg-primary-hover-token p-2"
 						label="Pipelines"
@@ -109,223 +110,100 @@
 							<span>Pipelines</span>
 						</svelte:fragment>
 						<svelte:fragment slot="content">
-							<div
-								class="shadow-lg border-[1px] bg-white dark:bg-surface-600 border-surface-400/20"
-							>
-								<div class="p-4 space-y-4">
-									<p class="font-bold">Manage</p>
-									<div class="flex flex-col text-left gap-2">
-										<a
-											href="/pipelines"
-											class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
-											>Dashboard</a
-										>
-										<a
-											href="/pipelines/new"
-											class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
-											>Create</a
-										>
-										<a
-											href="/pipelines/statistics"
-											class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
-											>Statistics</a
-										>
-									</div>
-								</div>
-							</div>
+							<MenuItem href="/pipelines" title="Dashboard" info="View and import Pipelines" />
+							<MenuItem
+								href="/pipelines/editor"
+								title="Editor"
+								info="Create Pipelines from sratch or using one of many Templates"
+							/>
+							<MenuItem
+								href="/pipelines/statistics"
+								title="Statistics"
+								info="View Statistics for your Pipelines and their usage"
+							/>
 						</svelte:fragment>
 					</Menu>
-					<Menu
-						background="bg-primary-hover-token p-2"
-						label="Documentation"
-						offset={24}
-						placement="bottom-end"
-					>
+					<Menu label="Documentation" offset={24} placement="bottom-end">
 						<svelte:fragment slot="title">
 							<span>Documentation</span>
 						</svelte:fragment>
 						<svelte:fragment slot="content">
-							<div
-								class="grid grid-cols-2 gap-8 shadow-lg border-[1px] bg-white dark:bg-surface-600 border-surface-400/20"
-							>
-								<div class="p-4 space-y-4">
-									<p class="font-bold">Framework</p>
-									<div class="flex flex-col text-left gap-2">
-										<a
-											href="/documentation#introduction"
-											class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
-											>Introduction</a
-										>
-										<a
-											href="/documentation#composer"
-											class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
-											>Composer</a
-										>
-
-										<a
-											href="/documentation#driver"
-											class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
-											>Driver</a
-										>
-
-										<a
-											href="/documentation#component"
-											class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
-											>Component</a
-										>
-										<a
-											href="/documentation#document"
-											class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
-											>Document</a
-										>
-										<a
-											href="/documentation#process"
-											class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
-											>Process</a
-										>
-									</div>
-								</div>
-								<div class="p-4 space-y-4">
-									<p class="font-bold">API</p>
-									<div class="flex flex-col text-left gap-2">
-										<a
-											href="/documentation/api#web"
-											class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
-											>Web</a
-										>
-
-										<a
-											href="/documentation/api#java"
-											class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
-											>Java</a
-										>
-
-										<a
-											href="/documentation/api#python"
-											class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
-											>Python</a
-										>
-									</div>
-								</div>
-							</div>
+							<MenuItem
+								href="/documentation#introduction"
+								title="Introduction"
+								info="Quick overview over the most important features of DUUI"
+							/>
+							<MenuItem href="/documentation#composer" title="Composer" />
+							<MenuItem href="/documentation#driver" title="Driver" />
+							<MenuItem href="/documentation#component" title="Component" />
+							<MenuItem href="/documentation#document" title="Document" />
+							<MenuItem href="/documentation#process" title="Process" />
 						</svelte:fragment>
 					</Menu>
-					<Menu
-						background="bg-primary-hover-token p-2"
-						label="Account"
-						offset={24}
-						placement="bottom-end"
-					>
+
+					<Menu label="API Reference" offset={24} placement="bottom-end">
 						<svelte:fragment slot="title">
-							<span>Account</span>
+							<span>API Reference</span>
 						</svelte:fragment>
 						<svelte:fragment slot="content">
-							<div
-								class="grid grid-cols-2 shadow-lg border-[1px] bg-white dark:bg-surface-600 border-surface-400/20"
-							>
-								{#if loggedIn}
-									<div class="p-4 space-y-4">
-										<p class="font-bold">User</p>
-										<div class="flex flex-col text-left gap-2">
-											<a
-												href="/account/user/profile"
-												class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
-												>Profile</a
-											>
-											<a
-												href="/account/user/profile"
-												class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
-												>Connections</a
-											>
-											<a
-												href="/account/user/profile"
-												class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
-												>Security</a
-											>
-										</div>
-									</div>
-								{/if}
-
-								<div class="p-4 space-y-4">
-									<p class="font-bold">Authentication</p>
-									<div class="flex flex-col text-left gap-2">
-										{#if !loggedIn}
-											<a
-												href="/account/auth/login"
-												class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
-												>Login</a
-											>
-											<a
-												href="/account/auth/login?register=true"
-												class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
-												>Register</a
-											>
-										{:else}
-											<a
-												on:click={logout}
-												href="/account/auth/login"
-												class="transition-colors hover:text-primary-500 text-left rounded-none text-sm"
-												>Logout</a
-											>
-										{/if}
-									</div>
-								</div>
-							</div>
-						</svelte:fragment>
-
-						<svelte:fragment>
-							<div
-								class="flex flex-col shadow-lg border-[1px] bg-white dark:bg-surface-600 border-surface-400/20"
-							>
-								{#if !loggedIn}
-									<Anchor
-										href="/account/auth/login"
-										icon={faArrowRightToBracket}
-										text="Login"
-										rounded="rounded-md"
-										_class="justify-start gap-8 bg-primary-hover-token"
-										variant=""
-									/>
-									<Anchor
-										href="/account/auth/login?register=true"
-										icon={faUserPlus}
-										text="Register"
-										_class="justify-start gap-8 bg-primary-hover-token"
-										variant=""
-									/>
-								{:else}
-									<Anchor
-										href="/account/user/profile"
-										icon={faUser}
-										text="Profile"
-										_class="justify-start gap-8 bg-primary-hover-token"
-										variant=""
-									/>
-									<Anchor
-										href="/account/user/connections"
-										icon={faLink}
-										text="Connections"
-										_class="justify-start gap-8 bg-primary-hover-token"
-										variant=""
-									/>
-									<Anchor
-										href="/account/user/security"
-										icon={faLock}
-										text="Security"
-										_class="justify-start gap-8 bg-primary-hover-token"
-										variant=""
-									/>
-									<ActionButton
-										on:click={logout}
-										icon={faArrowRightFromBracket}
-										text="Logout"
-										_class="justify-start gap-8 bg-primary-hover-token"
-										variant=""
-									/>
-								{/if}
-							</div>
+							<MenuItem
+								href="/documentation/api#web"
+								title="Web"
+								info="Help for navigating and using DUUI Web"
+							/>
+							<MenuItem
+								href="/documentation/api#java"
+								title="Python"
+								info="Tutorials and examples for using DUUI with Python"
+							/>
+							<MenuItem
+								href="/documentation/api#python"
+								title="Java"
+								info="Tutorials and examples for using DUUI with Java"
+							/>
 						</svelte:fragment>
 					</Menu>
+					{#if loggedIn}
+						<Menu label="Account" offset={24} placement="bottom-end">
+							<svelte:fragment slot="title">
+								<span>Account</span>
+							</svelte:fragment>
+							<svelte:fragment slot="content">
+								<MenuItem
+									href="/account/user/profile"
+									title="Profile"
+									info="Manage your Account settings and information"
+								/>
+								<MenuItem
+									href="/account/user/connections"
+									title="Connections"
+									info="Manage the Connections to different Data Sources as well as your API Key"
+								/>
+								<MenuItem
+									href="/account/user/security"
+									title="Security"
+									info="Make decisions regarding the security of your Account and Data."
+								/>
+							</svelte:fragment>
+						</Menu>
+					{:else}
+						<Menu label="Authentication" offset={24} placement="bottom-end">
+							<svelte:fragment slot="title">
+								<span>Authentication</span>
+							</svelte:fragment>
+							<svelte:fragment slot="content">
+								<MenuItem href="/account/auth/login" title="Login" />
+								<MenuItem href="/account/auth/login?register=true" title="Register" />
+							</svelte:fragment>
+						</Menu>
+					{/if}
+
+					<ActionButton
+						on:click={logout}
+						icon={faArrowRightFromBracket}
+						text="Logout"
+						variant="hover:text-primary-500 transition-colors flex-row-reverse gap-2 px-0"
+					/>
 				</div>
 				<a href="/">
 					<img src={Logo} alt="The letters DUUI" class="md:hidden block max-h-8 pr-4" />

@@ -9,8 +9,6 @@
 	import { isEqual, cloneDeep } from 'lodash'
 
 	import {
-		faChevronDown,
-		faChevronUp,
 		faFileCircleCheck,
 		faFileCircleXmark,
 		faFilePen,

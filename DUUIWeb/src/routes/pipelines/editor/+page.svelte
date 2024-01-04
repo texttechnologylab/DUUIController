@@ -41,8 +41,8 @@
 	import { page } from '$app/stores'
 
 	export let data
-	let { templateComponents, templatePipelines, userPipelines } = data
-	const isImport: boolean = $page.url.searchParams.get('import') === 'true'
+	let { templateComponents, templatePipelines } = data
+	const isImport: boolean = ($page.url.searchParams.get('import') || '') === 'true'
 
 	templateComponents = templateComponents.map((c) => {
 		return { ...c, id: uuidv4() }
@@ -54,6 +54,7 @@
 		$currentPipelineStore = blankPipeline()
 	} else {
 		step = 1
+
 		$currentPipelineStore.components.forEach((component) => {
 			component.oid = uuidv4()
 			component.id = uuidv4()
@@ -110,10 +111,10 @@
 	let componentContainer: HTMLDivElement
 
 	const addTemplate = (template: DUUIComponent) => {
-		$currentPipelineStore.components = [
-			...$currentPipelineStore.components,
-			{ ...template, id: uuidv4() }
-		]
+		const copyTemplate = cloneDeep(template)
+		copyTemplate.id = uuidv4()
+
+		$currentPipelineStore.components = [...$currentPipelineStore.components, copyTemplate]
 
 		if (componentContainer) {
 			componentContainer.scrollIntoView()
@@ -122,12 +123,14 @@
 
 	const selectPipelineTemplate = (template: DUUIPipeline) => {
 		$currentPipelineStore = cloneDeep(template)
+
 		$currentPipelineStore.oid = uuidv4()
 		$currentPipelineStore.components = $currentPipelineStore.components.map((c) => {
 			return { ...c, id: uuidv4(), index: $currentPipelineStore.components.indexOf(c) }
 		})
 
-		goto('/pipelines/new?step=2')
+		goto('/pipelines/editor?step=2')
+
 		step = 1
 	}
 
@@ -156,16 +159,16 @@
 			.catch((e) => console.log(e))
 	}
 
-	const copyUserPipeline = async (pipeline: DUUIPipeline) => {
-		$currentPipelineStore = cloneDeep(pipeline)
-		$currentPipelineStore.oid = uuidv4()
-		$currentPipelineStore.components = $currentPipelineStore.components.map((c) => {
-			return { ...c, id: uuidv4(), index: $currentPipelineStore.components.indexOf(c) }
-		})
+	// const copyUserPipeline = async (pipeline: DUUIPipeline) => {
+	// 	$currentPipelineStore = cloneDeep(pipeline)
+	// 	$currentPipelineStore.oid = uuidv4()
+	// 	$currentPipelineStore.components = $currentPipelineStore.components.map((c) => {
+	// 		return { ...c, id: uuidv4(), index: $currentPipelineStore.components.indexOf(c) }
+	// 	})
 
-		goto('/pipelines/new?step=2')
-		step = 1
-	}
+	// 	goto('/pipelines/editor?step=2')
+	// 	step = 1
+	// }
 
 	$: {
 		if (settings) {
@@ -237,9 +240,10 @@
 					</div>
 				</button>
 				<!-- TODO -->
+				<!-- on:click={() => copyUserPipeline(blankPipeline())}  -->
+				<!-- 
 				<button
 					class="pipeline-card grid grid-rows-3 items-start text-left shadow-lg p-4 hover:variant-glass bg-surface-100 dark:variant-soft-surface dark:hover:bg-surface-800 space-y-4"
-					on:click={() => copyUserPipeline(blankPipeline())} 
 				>
 					<div class="flex items-center gap-4 justify-between">
 						<p class="text-lg font-bold">Start from a Copy</p>
@@ -251,7 +255,7 @@
 					<div class="flex items-center justify-end gap-4 text-primary-500">
 						<Fa icon={faCopy} size="2x" />
 					</div>
-				</button>
+				</button> -->
 			</div>
 
 			<div class="md:mt-16 items-start justify-start rounded-none container">

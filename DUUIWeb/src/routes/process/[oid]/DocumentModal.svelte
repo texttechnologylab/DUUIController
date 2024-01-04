@@ -12,6 +12,7 @@
 	import { formatMilliseconds } from '$lib/utils/time'
 	import {
 		faCheckDouble,
+		faClose,
 		faFileDownload,
 		faFileUpload,
 		faX
@@ -73,7 +74,7 @@
 		<div class="border-[1px] space-y-8 card rounded-none shadow-lg p-4 border-surface-400/20">
 			<div class="flex justify-start items-center gap-8">
 				{#if document.error}
-					<Fa icon={faX} size="2x" />
+					<Fa icon={faClose} size="2x" />
 				{:else if document.finished}
 					<Fa icon={faCheckDouble} size="2x" />
 				{/if}

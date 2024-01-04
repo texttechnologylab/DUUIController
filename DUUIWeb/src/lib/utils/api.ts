@@ -10,15 +10,24 @@ export const Api = {
 	Logout: '/account/api',
 	Authentication: '/account/api/auth',
 	Dropbox: '/account/api/dropbox',
-	Minio: '/account/api/minio'
+	Minio: '/account/api/minio',
+	File: '/process/api/upload'
 }
 
 export const makeApiCall = async (
 	endpoint: string,
 	method: string,
-	body: Object | undefined = undefined,
-	searchParams: string = ''
+	body: Object | undefined | FormData = undefined,
+	searchParams: string = '',
+	formData: boolean = false
 ) => {
+	if (formData) {
+		return await fetch(searchParams ? `${endpoint}?${searchParams}` : endpoint, {
+			method: method,
+			body: body
+		})
+	}
+
 	if (equals(method, 'GET')) {
 		return await fetch(searchParams ? `${endpoint}?${searchParams}` : endpoint, {
 			method: method

@@ -14,9 +14,9 @@
 	export let size: string = 'md'
 </script>
 
-<a {href} {rel} {target} class="btn {rounded} {variant} {_class}">
+<a {href} {rel} {target} class="btn {rounded} {variant} {_class} ">
 	{#if leftToRight}
-		<Fa class="w-4" {icon} {size} />
+		<Fa class="w-4 " {icon} {size} />
 		{#if text !== ''}
 			<span>{text}</span>
 		{/if}

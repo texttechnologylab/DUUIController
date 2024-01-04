@@ -67,7 +67,7 @@
 							variant=""
 						/>
 						<Anchor
-							href="/pipelines/new"
+							href="/pipelines/editor"
 							icon={faPlus}
 							size="lg"
 							text="Builder"

@@ -496,15 +496,19 @@
 				/>
 				<Label
 					name="Slowest document process duration"
-					value={formatMilliseconds(
-						Math.max(...documents.filter((d) => d.finished).map((d) => d.processDuration))
-					)}
+					value={documents.filter((d) => d.finished).length === 0
+						? '-'
+						: formatMilliseconds(
+								Math.max(...documents.filter((d) => d.finished).map((d) => d.processDuration)) || 0
+						  )}
 				/>
 				<Label
 					name="Fastest document process duration"
-					value={formatMilliseconds(
-						Math.min(...documents.filter((d) => d.finished).map((d) => d.processDuration))
-					)}
+					value={documents.filter((d) => d.finished).length === 0
+						? '-'
+						: formatMilliseconds(
+								Math.min(...documents.filter((d) => d.finished).map((d) => d.processDuration))
+						  )}
 				/>
 			</div>
 		</div>

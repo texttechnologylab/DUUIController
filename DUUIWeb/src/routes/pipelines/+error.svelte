@@ -1,12 +1,7 @@
 <script lang="ts">
-	import { faPlus } from '@fortawesome/free-solid-svg-icons'
-	import Fa from 'svelte-fa'
+	import { page } from '$app/stores'
 </script>
 
-<div class="p-8 flex flex-col gap-4 h-full items-center">
-	<h2 class="h2">Could not load pipelines</h2>
-	<a href="pipelines/new" class="btn variant-filled-primary">
-		<span>Create new</span>
-		<Fa icon={faPlus} />
-	</a>
+<div class="card p-4 container mx-auto">
+	<p>{$page.error?.message}</p>
 </div>

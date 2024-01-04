@@ -26,20 +26,10 @@ export const load: PageServerLoad = async ({ cookies }) => {
 		return await result.json()
 	}
 
-	const fetchPipelines = async (): Promise<{ pipelines: DUUIPipeline[] }> => {
-		const result = await fetch(API_URL + '/pipelines/user/all', {
-			method: 'GET',
-			mode: 'cors',
-			headers: {
-				authorization: cookies.get('session') || ''
-			}
-		})
-		return await result.json()
-	}
+
 
 	return {
 		templateComponents: (await fetchComponentTemplates()).components,
 		templatePipelines: (await fetchPipelineTemplates()).pipelines,
-		userPipelines: (await fetchPipelineTemplates()).pipelines
 	}
 }

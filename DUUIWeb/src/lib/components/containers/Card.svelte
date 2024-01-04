@@ -5,14 +5,19 @@
 	export let title: string
 	export let content: string
 	export let icon: IconDefinition
-	export let classes: string = ""
+	export let classes: string = ''
 </script>
 
-<div class="shadow-lg border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 p-4 space-y-4 text-left {classes} min-h-[12rem]">
-	<div class="flex items-center justify-between">
-		<h3 class="h3 font-bold">{title}</h3>
-		<Fa size="2x" {icon} />
-	</div>
+<div
+	class=" border-surface-400/20
+	p-4 space-y-4
+	text-center md:text-left {classes}
+	flex flex-col justify-center md:items-start"
+>	
+
+	<Fa size="4x" {icon} class="text-primary-500 md:max-h-10 md:mb-4 hidden md:block" />
+	<Fa size="2x" {icon} class="text-primary-500 md:max-h-10 md:mb-4 md:hidden block" />
+	<h3 class="text-2xl font-bold">{title}</h3>
 	<p>{content}</p>
 	<slot />
 </div>

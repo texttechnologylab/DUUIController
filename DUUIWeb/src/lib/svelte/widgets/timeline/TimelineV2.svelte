@@ -86,7 +86,7 @@
 								? 'variant-glass-error'
 								: 'variant-glass-warning'} {index === hoverIndex
 								? '!bg-warning-500'
-								: ''} rounded-md text-sm my-1 text-transparent "
+								: ''} rounded-md text-sm my-1 text-transparent"
 							style="transform: translate({((document.startTime - process.startTime) /
 								(endTime - process.startTime)) *
 								container.clientWidth}px, 0); width: {calculateWidth(document)}"

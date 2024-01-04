@@ -28,7 +28,7 @@
 </script>
 
 <button
-	class="flex items-center gap-2 px-3 py-2 leading-6 border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 dark:border-surface-400/20"
+	class=" flex items-center gap-2 px-3 py-2 leading-6 border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 dark:border-surface-400/20"
 	use:popup={menu}
 >
 	<span class="grow text-left">{label}</span>
@@ -36,7 +36,7 @@
 </button>
 
 <div
-	class="shadow-lg border-[1px] bg-white dark:bg-surface-600 border-surface-400/20"
+	class="shadow-lg border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 z-50"
 	data-popup={name}
 >
 	<ListBox {name} multiple={true} class="grid grid-cols-{columns}" spacing="space-y-0">

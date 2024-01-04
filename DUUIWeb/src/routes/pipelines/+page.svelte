@@ -40,7 +40,7 @@
 		$currentPipelineStore.components = pipeline.components
 		$currentPipelineStore.settings = pipeline.settings
 
-		goto('/pipelines/new?import=true')
+		goto('/pipelines/editor?import=true')
 	}
 
 	$: {
@@ -66,7 +66,7 @@
 
 	<div class="grid md:flex items-center md:justify-between gap-4">
 		<div class="flex items-center gap-4">
-			<ActionButton on:click={() => goto('/pipelines/new')} icon={faPlus} text="Create" />
+			<ActionButton on:click={() => goto('/pipelines/editor')} icon={faPlus} text="Create" />
 			<FileButton
 				name="files"
 				bind:files={importFiles}

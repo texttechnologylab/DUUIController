@@ -32,21 +32,22 @@ export interface DUUIDocumentOutput {
 export enum Input {
 	Dropbox = 'Dropbox',
 	Minio = 'Minio',
-	Text = 'Text'
+	Text = 'Text',
+	LocalFile = 'Local File'
 }
 
 export enum Output {
 	Dropbox = 'Dropbox',
 	Minio = 'Minio',
-	Text = 'Text',
+	LocalFile = 'Local File',
 	None = 'None'
 }
 
-export const InputSources: string[] = ['Dropbox', 'Minio', 'Text']
+export const InputSources: string[] = ['Dropbox', 'Local File', 'Minio', 'Text']
 
-export const InputFileExtensions: string[] = ['.txt', '.xmi', '.json', '.gz']
+export const InputFileExtensions: string[] = ['.txt', '.xmi', '.gz']
 
-export const OutputTargets: string[] = ['Dropbox', 'Minio', 'None']
+export const OutputTargets: string[] = ['Dropbox', 'Local File', 'Minio', 'None']
 
 export const OutputFileExtensions: string[] = ['.txt', '.xmi']
 
@@ -54,13 +55,21 @@ export const isCloudProvider = (provider: string) => {
 	return equals(provider, 'dropbox') || equals(provider, 'minio')
 }
 
-export const isValidIO = (input: DUUIDocumentInput, output: DUUIDocumentOutput) => {
-	return isValidInput(input) && isValidOutput(output)
+export const isValidIO = (
+	input: DUUIDocumentInput,
+	output: DUUIDocumentOutput,
+	files: FileList
+) => {
+	return isValidInput(input, files) && isValidOutput(output)
 }
 
-export const isValidInput = (input: DUUIDocumentInput) => {
+export const isValidInput = (input: DUUIDocumentInput, files: FileList) => {
 	if (equals(input.source, Input.Text)) {
 		return input.content.length > 0
+	}
+
+	if (equals(input.source, Input.LocalFile)) {
+		return files?.length > 0
 	}
 
 	if (equals(input.source, Input.Minio)) {

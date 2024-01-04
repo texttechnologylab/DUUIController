@@ -36,16 +36,16 @@
 		filteredComponents = components.filter(
 			(component: DUUIComponent) =>
 				includes(
-					`${component.name} ${component.description} ${component.categories.join(' ')}`,
+					`${component.name} ${component.description} ${
+						component.settings.driver
+					} ${component.categories.join(' ')}`,
 					searchText
 				) || !searchText
 		)
-		
+
 		filter = filter
 		filteredComponents = filterByDriver()
 	}
-
-
 </script>
 
 <div class="md:mt-16 items-start justify-start rounded-none container">

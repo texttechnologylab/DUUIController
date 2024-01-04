@@ -3,9 +3,9 @@
 	import Fa from 'svelte-fa'
 	import { faChevronDown } from '@fortawesome/free-solid-svg-icons'
 	import { createEventDispatcher } from 'svelte'
-	import { componentStore } from '../../routes/pipelines/new/store'
+	import { componentStore } from '../../routes/pipelines/editor/store'
 	import { ListBox, ListBoxItem, popup, type PopupSettings } from '@skeletonlabs/skeleton'
-	import { driverTargetMap } from '../../routes/pipelines/new/toast'
+	import { driverTargetMap } from '../../routes/pipelines/editor/toast'
 	import { DUUIDrivers } from '$lib/duui/component'
 
 	const dispatcher = createEventDispatcher()

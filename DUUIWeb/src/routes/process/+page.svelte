@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
+	import { v4 as uuidv4 } from 'uuid'
 	import {
 		Input,
 		InputFileExtensions,
@@ -14,19 +15,29 @@
 	} from '$lib/duui/io.js'
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
-	import { equals } from '$lib/utils/text.js'
-	import { faArrowLeft, faCancel, faCheck, faLink } from '@fortawesome/free-solid-svg-icons'
+	import { equals, formatFileSize } from '$lib/utils/text.js'
+	import {
+		faArrowLeft,
+		faCancel,
+		faCheck,
+		faClose,
+		faLink
+	} from '@fortawesome/free-solid-svg-icons'
 	import Dropdown from '$lib/svelte/widgets/input/Dropdown.svelte'
 	import Text from '$lib/svelte/widgets/input/Text.svelte'
 	import Checkbox from '$lib/svelte/widgets/input/Checkbox.svelte'
 	import { Api, makeApiCall } from '$lib/utils/api.js'
 	import { fly } from 'svelte/transition'
 	import Fa from 'svelte-fa'
+	import { FileDropzone, getToastStore } from '@skeletonlabs/skeleton'
+	import { API_URL } from '$lib/config.js'
+	import { storage } from '$lib/store.js'
+	import { error, success } from '$lib/utils/ui.js'
 
 	export let data
 	let { user } = data
 
-	let inputSource: string = $page.url.searchParams.get('input-source') || 'Text'
+	let inputSource: string = $page.url.searchParams.get('input-source') || Input.LocalFile
 	let inputFolder: string = $page.url.searchParams.get('input-folder') || '/input/sample_txt'
 	let inputContent: string = $page.url.searchParams.get('input-content') || 'Hello World!'
 	let inputFileExtension: string = $page.url.searchParams.get('input-file-extension') || '.txt'
@@ -35,9 +46,12 @@
 	let outputFolder: string = $page.url.searchParams.get('output-folder') || ''
 	let outputFileExtension: string = $page.url.searchParams.get('output-file-extension') || '.txt'
 
+	const toastStore = getToastStore()
+
 	$: input = {
 		source: inputSource,
 		folder: inputFolder,
+		fileID: '',
 		content: inputContent,
 		fileExtension: inputFileExtension
 	}
@@ -47,6 +61,8 @@
 		folder: outputFolder,
 		fileExtension: outputFileExtension
 	}
+
+	let files: FileList
 
 	let notify: boolean = false
 	let checkTarget: boolean = false
@@ -62,6 +78,25 @@
 			return
 		}
 		starting = true
+
+		if (equals(input.source, Input.LocalFile)) {
+			const formData = new FormData()
+
+			formData.append('file', files[0])
+			const fileUpload = await makeApiCall(Api.File, 'POST', formData, '', true)
+
+			if (!fileUpload.ok) {
+				const errorMessge = await fileUpload.text()
+				toastStore.trigger(error('File upload failed. ' + errorMessge + ' '))
+				starting = false
+				return
+			}
+
+			const json = await fileUpload.json()
+			inputContent = json.content
+			inputFolder = files[0].name
+		}
+
 		const response = await makeApiCall(
 			Api.Processes,
 			'POST',
@@ -103,6 +138,7 @@
 	let needsDropboxAuthentication: boolean = false
 	let needsMinioAuthentication: boolean = false
 	let needsAuthentication: boolean = needsDropboxAuthentication || needsMinioAuthentication
+
 	$: {
 		needsDropboxAuthentication =
 			(!user.connections.dropbox && equals(inputSource, Input.Dropbox)) ||
@@ -133,7 +169,7 @@
 			variant="dark:variant-soft-success variant-filled-success"
 			on:click={createProcess}
 			leftToRight={false}
-			disabled={needsAuthentication || starting || !isValidIO(input, output)}
+			disabled={needsAuthentication || starting || !isValidIO(input, output, files)}
 		/>
 	</div>
 	<div
@@ -169,6 +205,25 @@
 					error={inputContent === '' ? 'Text cannot be empty' : ''}
 					bind:value={inputContent}
 				/>
+			{:else if equals(inputSource, Input.LocalFile)}
+				<div class="space-y-2">
+					{#if files}
+						<div class="flex justify-between items-center">
+							<p class="font-bold">Selected File</p>
+						</div>
+						<div>
+							<p class="text-sm">Name: {files[0].name}</p>
+							<p class="text-sm">Size: {formatFileSize(files[0].size)}</p>
+						</div>
+					{/if}
+					<FileDropzone
+						name="inputFile"
+						bind:files
+						accept={inputFileExtension}
+						multiple={false}
+						class="!border-solid !rounded-none !border bg-white dark:bg-surface-600 border-surface-400/20"
+					/>
+				</div>
 			{:else if equals(input.source, 'minio')}
 				<Text
 					label="Bucket name"

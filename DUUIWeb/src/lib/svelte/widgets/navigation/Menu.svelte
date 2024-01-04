@@ -5,7 +5,7 @@
 	import Fa from 'svelte-fa'
 
 	export let placement: Placement = 'bottom-start'
-	export let background: string = ''
+	export let background: string = 'hover:variant-filled-primary dark:hover:variant-soft-primary p-2'
 	export let label: string
 	export let offset: number = 8
 
@@ -22,14 +22,16 @@
 	}
 </script>
 
-<button
-	class="{background} text-sm transition-colors items-center btn"
-	use:popup={menu}
->
+<button class="{background} text-sm transition-colors items-center btn" use:popup={menu}>
 	<slot name="title" />
 	<Fa icon={faChevronDown} />
 </button>
 
-<div data-popup={label}>
-	<slot name="content" />
+<div
+	class="shadow-lg border-4 bg-white dark:bg-surface-600 border-surface-400/20"
+	data-popup={label}
+>
+	<div class="flex flex-col text-left">
+		<slot name="content" />
+	</div>
 </div>
