@@ -27,7 +27,6 @@ public class Application {
     private static OperatingSystemMXBean monitor;
     public static Map<String, AtomicLong> metrics = new HashMap<>();
     private static DUUIMetricsProvider _metricsProvider;
-    public static File uploadDir;
 
     private static void updateSystemMetrics() {
         long cpuLoad = (long) (monitor.getCpuLoad() * 100);
@@ -89,10 +88,6 @@ public class Application {
     public static void main(String[] args) {
         port(2605);
 
-        uploadDir = new File("upload");
-        uploadDir.mkdir(); // create the upload directory if it doesn't exist
-
-        staticFiles.externalLocation("upload");
 
         options(
             "/*",

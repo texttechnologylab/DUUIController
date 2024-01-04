@@ -6,7 +6,8 @@ public class DUUIMetricsProvider {
 
     private IDUUIMetricsProvider _provider;
 
-    private DUUIMetricsProvider() {}
+    private DUUIMetricsProvider() {
+    }
 
     public Map<String, Long> getMetrics() {
         return _provider.updateMetrics();
