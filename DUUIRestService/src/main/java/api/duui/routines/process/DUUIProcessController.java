@@ -1,5 +1,6 @@
 package api.duui.routines.process;
 
+import api.Application;
 import api.duui.document.DUUIDocumentInput;
 import api.duui.document.DUUIDocumentOutput;
 import api.duui.pipeline.DUUIPipelineController;
@@ -12,6 +13,7 @@ import api.storage.DUUIMongoDBStorage;
 import com.google.common.collect.Iterables;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.*;
+import org.apache.commons.io.IOUtils;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.DUUIDocument;
@@ -19,6 +21,16 @@ import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatusEve
 import spark.Request;
 import spark.Response;
 
+import javax.servlet.MultipartConfigElement;
+import javax.servlet.ServletException;
+import javax.servlet.http.Part;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -529,5 +541,21 @@ public class DUUIProcessController {
         String id = request.params(":id");
         response.status(200);
         return new Document("timeline", getTimeline(id)).toJson();
+    }
+
+    public static String uploadFile(Request request, Response response) throws ServletException, IOException {
+        String authorization = request.headers("authorization");
+        authenticate(authorization);
+        Document user = authenticate(authorization);
+        if (isNullOrEmpty(user)) return unauthorized(response);
+
+        request.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement("/temp"));
+        Part file = request.raw().getPart("file");
+        String result;
+        try (InputStream is = file.getInputStream()) {
+            result = IOUtils.toString(is, StandardCharsets.UTF_8);
+        }
+        response.status(200);
+        return new Document("content", result).toJson();
     }
 }

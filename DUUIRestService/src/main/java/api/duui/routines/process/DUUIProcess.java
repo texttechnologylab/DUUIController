@@ -195,7 +195,7 @@ public class DUUIProcess extends Thread {
 
         AsyncCollectionReader collectionReader = null;
 
-        if (input.isText()) {
+        if (!input.isCloudProvider()) {
             DUUIProcessController.setDocumentNames(_id, Set.of("Text"));
             DUUIProcessController.updateDocuments(
                 _id, Set.of(
@@ -208,7 +208,6 @@ public class DUUIProcess extends Thread {
                     )
                 )
             );
-
         } else {
             try {
                 collectionReader = new AsyncCollectionReader.Builder()
@@ -250,7 +249,7 @@ public class DUUIProcess extends Thread {
                 addXmiWriter(_xmiWriterOutputPath, output.getFileExtension());
             }
 
-            if (input.isText()) {
+            if (!input.isCloudProvider()) {
                 cas = JCasFactory.createText(input.getContent());
 
                 if (JCasUtil.select(cas, DocumentMetaData.class).isEmpty()) {
@@ -396,6 +395,5 @@ public class DUUIProcess extends Thread {
     public Document getPipeline() {
         return _pipeline;
     }
-
 
 }

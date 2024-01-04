@@ -10,6 +10,7 @@ import api.duui.users.DUUIUserController;
 import com.sun.management.OperatingSystemMXBean;
 import spark.Request;
 
+import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +27,7 @@ public class Application {
     private static OperatingSystemMXBean monitor;
     public static Map<String, AtomicLong> metrics = new HashMap<>();
     private static DUUIMetricsProvider _metricsProvider;
+    public static File uploadDir;
 
     private static void updateSystemMetrics() {
         long cpuLoad = (long) (monitor.getCpuLoad() * 100);
@@ -86,6 +88,11 @@ public class Application {
 
     public static void main(String[] args) {
         port(2605);
+
+        uploadDir = new File("upload");
+        uploadDir.mkdir(); // create the upload directory if it doesn't exist
+
+        staticFiles.externalLocation("upload");
 
         options(
             "/*",
@@ -186,6 +193,7 @@ public class Application {
         get("/processes/:id/timeline", DUUIProcessController::timeline);
 
         post("/processes", DUUIProcessController::startOne);
+        post("/processes/file", DUUIProcessController::uploadFile);
 
         put("/processes/:id", DUUIProcessController::stopOne);
 

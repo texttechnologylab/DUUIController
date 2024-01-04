@@ -59,4 +59,8 @@ public class DUUIDocumentInput {
     public boolean sameAs(DUUIDocumentOutput output) {
         return _source.equalsIgnoreCase(output.getTarget());
     }
+
+    public boolean isLocalFile() {
+        return _source.equalsIgnoreCase("local file");
+    }
 }
