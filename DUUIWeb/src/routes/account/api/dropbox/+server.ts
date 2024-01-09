@@ -33,7 +33,7 @@ export async function POST({ request, cookies, locals }) {
 			}
 		}),
 		headers: {
-			authorization: cookies.get('session') || ''
+			Authorization: cookies.get('session') || ''
 		}
 	})
 
@@ -53,7 +53,7 @@ export async function DELETE({ request, cookies, locals }) {
 			}
 		}),
 		headers: {
-			authorization: cookies.get('session') || ''
+			Authorization: cookies.get('session') || ''
 		}
 	})
 

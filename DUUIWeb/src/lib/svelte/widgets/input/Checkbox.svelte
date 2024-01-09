@@ -28,7 +28,9 @@
 
 <label class="flex {column ? 'flex-col-reverse' : ''} items-start gap-2">
 	<button on:click={() => (checked = !checked)}>
-		<div class="p-1 aspect-square border-[1px] bg-white dark:bg-surface-600 border-surface-400/20">
+		<div
+			class="rounded-md p-1 aspect-square border-[1px] bg-white dark:bg-surface-600 border-surface-400/20"
+		>
 			{#if iconUnchecked === null}
 				<Fa
 					icon={iconChecked}

@@ -1,5 +1,8 @@
 import { DropboxAuth } from 'dropbox'
 import type { PageServerLoad } from './$types'
+import { SERVER_API_KEY } from '$env/static/private'
+import { API_URL } from '$lib/config'
+import { fail } from '@sveltejs/kit'
 
 const dbxAuth = new DropboxAuth({
 	clientId: 'l2nw2ign2z8h9hg',
@@ -22,8 +25,20 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 		return response
 	}
 
+	const fetchProfile = async () => {
+		const response = await fetch(`${API_URL}/users/${locals.user?.oid}?key=${SERVER_API_KEY}`, {
+			method: 'GET',
+			mode: 'cors'
+		})
+
+		if (!response.ok) {
+			return fail(response.status, { messgage: response.statusText })
+		}
+		return await response.json()
+	}
+
 	return {
 		dropbBoxURL: getAuthURL(),
-		user: locals.user
+		user: (await fetchProfile()).user
 	}
 }

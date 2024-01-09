@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Text from '$lib/svelte/widgets/input/Text.svelte'
+	import Text from '$lib/svelte/widgets/input/TextInput.svelte'
 	import Checkbox from '$lib/svelte/widgets/input/Checkbox.svelte'
 	import Dropdown from '$lib/svelte/widgets/input/Dropdown.svelte'
 
@@ -22,7 +22,7 @@
 </script>
 
 {#if changed}
-	<div in:fly={{y: -50}}>
+	<div in:fly={{ y: -50 }}>
 		<ActionButton
 			text="Save changes"
 			variant="variant-filled-success dark:variant-soft-success"

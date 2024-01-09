@@ -8,7 +8,7 @@ export async function POST({ request, cookies }) {
 		mode: 'cors',
 		body: formData,
 		headers: {
-			authorization: cookies.get('session') || ''
+			Authorization: cookies.get('session') || ''
 		}
 	})
 

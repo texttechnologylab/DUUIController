@@ -15,7 +15,7 @@
 		<span class="pl-1 text-xs text-error-500">{error}</span>
 	{/if}
 	<textarea
-		class="border-[1px] bg-white dark:bg-surface-600 {error
+		class="rounded-md border-[1px] bg-white dark:bg-surface-600 {error
 			? 'border-error-500'
 			: 'border-surface-400/20'}"
 		{required}

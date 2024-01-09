@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto, invalidateAll } from '$app/navigation'
+	import { goto } from '$app/navigation'
 	import DriverIcon from '$lib/components/DriverIcon.svelte'
 	import { cloneDeep } from 'lodash'
 	import { v4 as uuidv4 } from 'uuid'
@@ -10,9 +10,10 @@
 		faArrowRight,
 		faCancel,
 		faCheck,
-		faCopy,
 		faPlus,
-		faSearch
+		faSearch,
+		faTrash,
+		faUpload
 	} from '@fortawesome/free-solid-svg-icons'
 	import { getModalStore, getToastStore } from '@skeletonlabs/skeleton'
 	import { dndzone, type DndEvent } from 'svelte-dnd-action'
@@ -36,12 +37,16 @@
 	import { includes } from '$lib/utils/text'
 	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
 	import ComponentTemplates from './ComponentTemplates.svelte'
-	import Text from '$lib/svelte/widgets/input/Text.svelte'
+	import Text from '$lib/svelte/widgets/input/TextInput.svelte'
 	import Search from '$lib/svelte/widgets/input/Search.svelte'
 	import { page } from '$app/stores'
+	import IconButton from '$lib/svelte/widgets/action/IconButton.svelte'
+	import SpeedDial from '$lib/svelte/widgets/navigation/SpeedDial.svelte'
 
 	export let data
-	let { templateComponents, templatePipelines } = data
+
+	let { templateComponents, templatePipelines, user } = data
+
 	const isImport: boolean = ($page.url.searchParams.get('import') || '') === 'true'
 
 	templateComponents = templateComponents.map((c) => {
@@ -106,6 +111,7 @@
 	}
 
 	let flipDurationMs = 300
+	let selectedTemplate: DUUIPipeline | null
 
 	const modalStore = getModalStore()
 	let componentContainer: HTMLDivElement
@@ -121,9 +127,15 @@
 		}
 	}
 
-	const selectPipelineTemplate = (template: DUUIPipeline) => {
-		$currentPipelineStore = cloneDeep(template)
+	const selectPipelineTemplate = (template: DUUIPipeline | null = null) => {
+		if (template === null) {
+			template = blankPipeline()
+			selectedTemplate = null
+		} else {
+			selectedTemplate = template
+		}
 
+		$currentPipelineStore = cloneDeep(template)
 		$currentPipelineStore.oid = uuidv4()
 		$currentPipelineStore.components = $currentPipelineStore.components.map((c) => {
 			return { ...c, id: uuidv4(), index: $currentPipelineStore.components.indexOf(c) }
@@ -159,31 +171,88 @@
 			.catch((e) => console.log(e))
 	}
 
-	// const copyUserPipeline = async (pipeline: DUUIPipeline) => {
-	// 	$currentPipelineStore = cloneDeep(pipeline)
-	// 	$currentPipelineStore.oid = uuidv4()
-	// 	$currentPipelineStore.components = $currentPipelineStore.components.map((c) => {
-	// 		return { ...c, id: uuidv4(), index: $currentPipelineStore.components.indexOf(c) }
-	// 	})
-
-	// 	goto('/pipelines/editor?step=2')
-	// 	step = 1
-	// }
-
 	$: {
 		if (settings) {
 			$currentPipelineStore.settings = settings
 		}
 	}
+
+	const uploadPipeline = async () => {
+		$currentPipelineStore.settings = Object.fromEntries(settings.entries())
+		const response = await makeApiCall(Api.Pipelines, 'POST', {
+			pipeline: $currentPipelineStore,
+			template: true
+		})
+
+		if (response.ok) {
+			toastStore.trigger(success('Pipeline uploaded successfully'))
+			goto(`/pipelines`)
+		}
+	}
+
+	const deletePipeline = async () => {
+		new Promise<boolean>((resolve) => {
+			const modal: ModalSettings = {
+				type: 'component',
+				component: 'deleteModal',
+				meta: {
+					title: 'Delete Template',
+					body: `Are you sure you want to delete the Template ${selectedTemplate?.name}?`
+				},
+				response: (r: boolean) => {
+					resolve(r)
+				}
+			}
+
+			modalStore.trigger(modal)
+		}).then(async (accepted: boolean) => {
+			if (!accepted) return
+
+			let response = await makeApiCall(Api.Pipelines, 'DELETE', { oid: selectedTemplate?.oid })
+			if (response.ok) {
+				goto('/pipelines')
+				toastStore.trigger(info('Template deleted successfully'))
+			}
+		})
+	}
 </script>
+
+<SpeedDial>
+	<svelte:fragment slot="content">
+		{#if step > 0}
+			<IconButton icon={faArrowLeft} on:click={() => (step -= 1)} />
+			{#if selectedTemplate && user?.role === 'admin'}
+				<IconButton icon={faTrash} on:click={deletePipeline} />
+			{/if}
+		{:else}
+			<IconButton icon={faCancel} on:click={() => goto('/pipelines')} />
+		{/if}
+		{#if step < 2}
+			<IconButton icon={faArrowRight} on:click={() => (step += 1)} />
+		{:else}
+			{#if user?.role === 'admin'}
+				<IconButton
+					icon={faUpload}
+					on:click={uploadPipeline}
+					disabled={$currentPipelineStore.components.length === 0}
+				/>
+			{/if}
+			<IconButton
+				icon={faCheck}
+				on:click={createPipeline}
+				disabled={$currentPipelineStore.components.length === 0}
+			/>
+		{/if}
+	</svelte:fragment>
+</SpeedDial>
 
 <div class="container h-full flex-col mx-auto flex gap-4 md:my-8">
 	<h1 class="h2">
 		{step === 0 ? 'Choose a starting point' : $currentPipelineStore.name || 'New Pipeline'}
 	</h1>
 
-	<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
-	<div class="flex items-center justify-between gap-4">
+	<hr class="bg-surface-400/20 h-[1px] !border-0 rounded-full" />
+	<div class="items-center justify-between gap-4 hidden md:flex">
 		{#if step === 0}
 			<ActionButton
 				text="Cancel"
@@ -198,6 +267,15 @@
 				icon={faArrowLeft}
 				on:click={() => (step -= 1)}
 			/>
+
+			{#if selectedTemplate && user?.role === 'admin'}
+				<ActionButton
+					text="Delete"
+					icon={faTrash}
+					on:click={deletePipeline}
+					variant="variant-filled-error dark:variant-soft-error"
+				/>
+			{/if}
 		{/if}
 
 		{#if step < steps.length - 1}
@@ -209,23 +287,38 @@
 				_class={$currentPipelineStore.name === '' ? 'invisible' : 'visible'}
 			/>
 		{:else if step === steps.length - 1}
-			<ActionButton
-				text="Create"
-				icon={faCheck}
-				disabled={$currentPipelineStore.components.length === 0}
-				variant={variantSuccess}
-				on:click={createPipeline}
-				_class={$currentPipelineStore.name === '' ? 'invisible' : 'visible'}
-			/>
+			<div class="flex items-center gap-4">
+				<ActionButton
+					text="Create"
+					icon={faCheck}
+					disabled={$currentPipelineStore.components.length === 0}
+					variant={variantSuccess}
+					on:click={createPipeline}
+					_class={$currentPipelineStore.name === '' ? 'invisible' : 'visible'}
+				/>
+				{#if user?.role === 'admin'}
+					<ActionButton
+						text="Publish as Template"
+						icon={faUpload}
+						disabled={$currentPipelineStore.components.length === 0}
+						variant={variantSuccess}
+						on:click={uploadPipeline}
+						_class={$currentPipelineStore.name === '' ? 'invisible' : 'visible'}
+					/>
+				{/if}
+			</div>
 		{/if}
 	</div>
 
 	{#if step === 0}
 		<div class="space-y-4">
-			<div class="grid grid-cols-2 gap-4">
+			<div class="grid md:grid-cols-3 gap-4">
 				<button
-					class="pipeline-card grid grid-rows-3 items-start text-left shadow-lg p-4 hover:variant-glass bg-surface-100 dark:variant-soft-surface dark:hover:bg-surface-800 space-y-4"
-					on:click={() => selectPipelineTemplate(blankPipeline())}
+					class="rounded-md pipeline-card grid grid-rows-3 items-start text-left
+					       border border-surface-200 dark:border-surface-500 overflow-hidden
+					 	   shadow-lg p-4 hover:variant-glass bg-surface-100 dark:variant-soft-surface
+					  	   dark:hover:bg-surface-800 space-y-4"
+					on:click={() => selectPipelineTemplate()}
 				>
 					<div class="flex items-center gap-4 justify-between">
 						<p class="text-lg font-bold">Start from scratch</p>
@@ -239,26 +332,9 @@
 						{/each}
 					</div>
 				</button>
-				<!-- TODO -->
-				<!-- on:click={() => copyUserPipeline(blankPipeline())}  -->
-				<!-- 
-				<button
-					class="pipeline-card grid grid-rows-3 items-start text-left shadow-lg p-4 hover:variant-glass bg-surface-100 dark:variant-soft-surface dark:hover:bg-surface-800 space-y-4"
-				>
-					<div class="flex items-center gap-4 justify-between">
-						<p class="text-lg font-bold">Start from a Copy</p>
-					</div>
-
-					<p class="row-span-2 max-w-[50ch]">
-						Copy an existing Pipeline of yours and start making changes from there.
-					</p>
-					<div class="flex items-center justify-end gap-4 text-primary-500">
-						<Fa icon={faCopy} size="2x" />
-					</div>
-				</button> -->
 			</div>
 
-			<div class="md:mt-16 items-start justify-start rounded-none container">
+			<div class="md:mt-16 items-start justify-start rounded-md container">
 				<div class="md:flex justify-between items-end py-4 space-y-4">
 					<h3 class="h3">Templates</h3>
 					<Search
@@ -268,11 +344,11 @@
 						placeholder="Search..."
 					/>
 				</div>
-				<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
+				<hr class="bg-surface-400/20 h-[1px] !border-0 rounded-full" />
 				<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4 py-4">
 					{#each filteredTemplatePipelines as pipeline}
 						<button
-							class="pipeline-card text-left hover:variant-glass shadow-lg dark:variant-soft-surface p-4 bg-surface-100 dark:hover:bg-surface-800 space-y-4 flex flex-col"
+							class="border border-surface-200 dark:border-surface-500 overflow-hidden rounded-md pipeline-card text-left hover:variant-glass shadow-lg dark:variant-soft-surface p-4 bg-surface-100 dark:hover:bg-surface-800 space-y-4 flex flex-col"
 							on:click={() => selectPipelineTemplate(pipeline)}
 						>
 							<p class="text-lg font-bold">{pipeline.name}</p>
@@ -292,13 +368,6 @@
 		</div>
 	{:else if step === 1}
 		<div class="space-y-4">
-			<!-- <div class="bg-surface-100 dark:variant-soft-surface p-4 shadow-lg grid md:grid-cols-3 gap-4">
-				<Checkbox
-					label="Start service when finished"
-					name="start-service"
-					bind:checked={startService}
-				/>
-			</div> -->
 			<div class="grid md:grid-cols-2 gap-4">
 				<div
 					class="flex flex-col gap-4 bg-surface-100 dark:variant-soft-surface shadow-lg p-4 {$currentPipelineStore.name !==
@@ -314,7 +383,7 @@
 						name="pipeline-description"
 					/>
 				</div>
-				<div class="bg-surface-100 dark:variant-soft-surface p-4 shadow-lg">
+				<div class="bg-surface-100 dark:variant-soft-surface p-4 shadow-lg relative">
 					<SettingsMapper bind:map={settings} />
 				</div>
 			</div>
@@ -323,7 +392,7 @@
 		<div class="space-y-4">
 			<div
 				bind:this={componentContainer}
-				class="container space-y-8 bg-surface-100 dark:variant-soft-surface mx-auto shadow-lg p-4 md:p-16"
+				class="rounded-md border border-surface-200 dark:border-surface-500 isolate container space-y-8 bg-surface-100 dark:variant-soft-surface mx-auto shadow-lg p-4 md:p-16"
 			>
 				{#if $currentPipelineStore.components.length === 0}
 					<p class="text-center h4">Add a Component to get Started</p>

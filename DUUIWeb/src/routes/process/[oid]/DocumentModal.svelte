@@ -15,10 +15,11 @@
 		faClose,
 		faFileDownload,
 		faFileUpload,
-		faX
+		faWarning
 	} from '@fortawesome/free-solid-svg-icons'
-	import { getModalStore } from '@skeletonlabs/skeleton'
+	import { getModalStore, type ConicStop, ConicGradient } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
+	import Chart from 'svelte-frappe-charts'
 
 	export let input: DUUIDocumentInput
 	export let output: DUUIDocumentOutput
@@ -67,14 +68,38 @@
 			width = container.offsetWidth
 		}
 	}
+
+	let data = {
+		labels: ['Decode', 'Deserialize', 'Wait', 'Process'],
+		datasets: [
+			{
+				values: [
+					document.decodeDuration,
+					document.deserializeDuration,
+					document.processDuration,
+					document.waitDuration
+				]
+			},
+			{
+				values: [
+					document.decodeDuration,
+					document.deserializeDuration,
+					document.processDuration,
+					document.waitDuration
+				]
+			}
+		]
+	}
 </script>
 
 {#if $modalStore[0]}
-	<div class="w-modal">
+	<div
+		class="rounded-md overflow-hidden border border-surface-200 dark:border-surface-500 shadow-lg mt-8 ap-4 grid items-start w-modal"
+	>
 		<div class="border-[1px] space-y-8 card rounded-none shadow-lg p-4 border-surface-400/20">
 			<div class="flex justify-start items-center gap-8">
 				{#if document.error}
-					<Fa icon={faClose} size="2x" />
+					<Fa icon={faWarning} size="2x" />
 				{:else if document.finished}
 					<Fa icon={faCheckDouble} size="2x" />
 				{/if}
@@ -84,8 +109,17 @@
 				{/if}
 			</div>
 			{#if document.error}
-				<p class="text-error-400">{document.error}</p>
+				<p class="text-center text-lg text-error-500 font-bold font-heading-token">
+					{document.error}
+				</p>
 			{/if}
+			<Chart
+				class="section-wrapper"
+				{data}
+				type="pie"
+				title="Processing Step Duration (ms)"
+				colors={['#006c98', '#4d98b7', '#006189', '#005172']}
+			/>
 
 			<div class="grid grid-cols-2 gap-4 text-center">
 				<p class="border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 p-2">

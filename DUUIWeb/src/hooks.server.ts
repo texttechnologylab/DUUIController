@@ -1,40 +1,36 @@
+import { SERVER_API_KEY } from '$env/static/private'
 import { API_URL } from '$lib/config'
-import { storage } from '$lib/store'
-import type { Handle } from '@sveltejs/kit'
-import { get } from 'svelte/store'
+import type { Handle, RequestEvent } from '@sveltejs/kit'
+
+const fetchUser = async (
+	session: string,
+	event: RequestEvent<Partial<Record<string, string>>, string | null>
+) => {
+	const response = await fetch(`${API_URL}/users/auth/?key=${SERVER_API_KEY}`, {
+		method: 'GET',
+		mode: 'cors',
+		headers: {
+			Authorization: session
+		}
+	})
+
+	if (response.ok) {
+		const json = await response.json()
+		event.locals.user = json.user
+	}
+}
 
 export const handle: Handle = async ({ event, resolve }) => {
-	let session = event.cookies.get('session')
+	const { cookies } = event
+	let session = cookies.get('session') || event.url.searchParams.get('state') || ''
 
-	if (!session) {
-		session = get(storage).session
+	if (session) {
+		try {
+			await fetchUser(session, event)
+		} catch (err) {}
 	}
 
-	if (!session) {
-		return await resolve(event)
-	}
-
-	let userResponse
-
-	try {
-		userResponse = await fetch(`${API_URL}/users/auth/${session}`, {
-			method: 'GET',
-			mode: 'cors'
-		})
-	} catch (e) {
-		return await resolve(event)
-	}
-
-	const user = await userResponse.json()
-
-	if (userResponse.ok) {
-		event.locals.user = user
-		
-		storage.set({
-			session: session,
-			user: event.locals.user
-		})
-	}
+	if (!event.locals.user) cookies.delete('session', { path: '/' })
 
 	return await resolve(event)
 }

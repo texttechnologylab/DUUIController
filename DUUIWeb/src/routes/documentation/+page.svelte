@@ -1,4 +1,7 @@
 <script>
+	import HLine from '$lib/svelte/widgets/navigation/HLine.svelte'
+	import { faArrowUp } from '@fortawesome/free-solid-svg-icons'
+	import Fa from 'svelte-fa'
 	import Block from './components/Block.svelte'
 </script>
 
@@ -17,6 +20,8 @@
 		</svelte:fragment>
 	</Block>
 
+	<HLine width="w-1/4  mx-auto" thickness={4} />
+
 	<Block id="composer">
 		<svelte:fragment>
 			<p>
@@ -28,6 +33,8 @@
 		</svelte:fragment>
 	</Block>
 
+	<HLine width="w-1/4  mx-auto" thickness={4} />
+
 	<Block id="driver">
 		<svelte:fragment>
 			<p>
@@ -37,6 +44,8 @@
 			</p>
 		</svelte:fragment>
 	</Block>
+
+	<HLine width="w-1/4  mx-auto" thickness={4} />
 
 	<Block id="component">
 		<svelte:fragment>
@@ -48,6 +57,8 @@
 		</svelte:fragment>
 	</Block>
 
+	<HLine width="w-1/4  mx-auto" thickness={4} />
+
 	<Block id="document">
 		<svelte:fragment>
 			<p>
@@ -57,6 +68,8 @@
 			</p>
 		</svelte:fragment>
 	</Block>
+
+	<HLine width="w-1/4  mx-auto" thickness={4} />
 
 	<Block id="process">
 		<svelte:fragment>
@@ -68,17 +81,19 @@
 		</svelte:fragment>
 	</Block>
 
+	<HLine width="w-1/4  mx-auto" thickness={4} />
+
 	<div class="">
 		<h2>IDEAS</h2>
-		<p>
-			Timeout: Define a timeout period, after which the task is marked as failure.
-			
-		</p>
-		<p>
-			Recover from failures: Recover only the failed tasks
-		</p>
-		<p>
-			Create new Pipeline from copy of existing one
-		</p>
+		<p>Timeout: Define a timeout period, after which the task is marked as failure.</p>
+		<p>Recover from failures: Recover only the failed tasks</p>
+		<p>Create new Pipeline from copy of existing one</p>
 	</div>
 </div>
+
+<a
+	href="/documentation#introduction"
+	class="btn-icon variant-filled-primary dark:variant-soft-primary rounded-full fixed bottom-8 right-8 z-50"
+>
+	<Fa icon={faArrowUp} size="lg" />
+</a>

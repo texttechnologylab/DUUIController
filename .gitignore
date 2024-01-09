@@ -35,3 +35,6 @@ PythonClient/token.txt
 
 node_modules
 tmp/duui
+
+Monitoring/*
+.env

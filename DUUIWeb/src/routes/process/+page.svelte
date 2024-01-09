@@ -16,28 +16,25 @@
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
 	import { equals, formatFileSize } from '$lib/utils/text.js'
-	import {
-		faArrowLeft,
-		faCancel,
-		faCheck,
-		faClose,
-		faLink
-	} from '@fortawesome/free-solid-svg-icons'
+	import { faCancel, faCheck, faExternalLink, faLink } from '@fortawesome/free-solid-svg-icons'
 	import Dropdown from '$lib/svelte/widgets/input/Dropdown.svelte'
-	import Text from '$lib/svelte/widgets/input/Text.svelte'
+	import Text from '$lib/svelte/widgets/input/TextInput.svelte'
 	import Checkbox from '$lib/svelte/widgets/input/Checkbox.svelte'
 	import { Api, makeApiCall } from '$lib/utils/api.js'
 	import { fly } from 'svelte/transition'
 	import Fa from 'svelte-fa'
 	import { FileDropzone, getToastStore } from '@skeletonlabs/skeleton'
-	import { API_URL } from '$lib/config.js'
-	import { storage } from '$lib/store.js'
 	import { error, success } from '$lib/utils/ui.js'
 
 	export let data
 	let { user } = data
 
-	let inputSource: string = $page.url.searchParams.get('input-source') || Input.LocalFile
+	const connections = {
+		dropbox: !!user.dropbox.access_token && !!user.dropbox.refresh_token,
+		minio: !!user.minio.endpoint && !!user.minio.access_key && !!user.minio.secret_key
+	}
+
+	let inputSource: string = $page.url.searchParams.get('input-source') || Input.Text
 	let inputFolder: string = $page.url.searchParams.get('input-folder') || '/input/sample_txt'
 	let inputContent: string = $page.url.searchParams.get('input-content') || 'Hello World!'
 	let inputFileExtension: string = $page.url.searchParams.get('input-file-extension') || '.txt'
@@ -141,12 +138,12 @@
 
 	$: {
 		needsDropboxAuthentication =
-			(!user.connections.dropbox && equals(inputSource, Input.Dropbox)) ||
-			(!user.connections.dropbox && equals(outputTarget, Output.Dropbox))
+			(!connections.dropbox && equals(inputSource, Input.Dropbox)) ||
+			(!connections.dropbox && equals(outputTarget, Output.Dropbox))
 
 		needsMinioAuthentication =
-			(!user.connections.minio && equals(inputSource, Input.Minio)) ||
-			(!user.connections.minio && equals(outputTarget, Output.Minio))
+			(!connections.minio && equals(inputSource, Input.Minio)) ||
+			(!connections.minio && equals(outputTarget, Output.Minio))
 
 		needsAuthentication = needsDropboxAuthentication || needsMinioAuthentication
 	}
@@ -187,7 +184,14 @@
 	</div>
 	<div class="grid md:grid-cols-2 gap-4">
 		<div class="bg-surface-100 dark:variant-soft-surface p-4 shadow-lg space-y-4">
-			<h2 class="h3">Input</h2>
+			<div class="flex items-center gap-4 justify-between">
+				<h2 class="h3">Input</h2>
+				{#if equals(input.source, 'dropbox')}
+					<a class="anchor" href="https://www.dropbox.com" target="_blank">
+						<Fa icon={faExternalLink} />
+					</a>
+				{/if}
+			</div>
 			<div class="grid grid-cols-2 gap-4">
 				<Dropdown label="Source" options={InputSources} bind:value={inputSource} />
 				<Dropdown

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import DriverIcon from '$lib/components/DriverIcon.svelte'
-	import Text from '../input/Text.svelte'
+	import Text from '../input/TextInput.svelte'
 	import TextArea from '../input/TextArea.svelte'
 	import Chips from '../input/Chips.svelte'
 	import Dropdown from '../input/Dropdown.svelte'
@@ -65,7 +65,24 @@
 	}
 
 	const onRemove = () => {
-		dispatcher('remove', { oid: component.oid })
+		new Promise<boolean>((resolve) => {
+			const modal: ModalSettings = {
+				type: 'component',
+				component: 'deleteModal',
+				meta: {
+					title: 'Remove Component',
+					body: `Are you sure you want to delete ${component.name}?`
+				},
+				response: (r: boolean) => {
+					resolve(r)
+				}
+			}
+
+			modalStore.trigger(modal)
+		}).then(async (accepted: boolean) => {
+			if (!accepted) return
+			dispatcher('remove', { oid: component.oid })
+		})
 	}
 
 	const onDelete = async () => {
@@ -94,10 +111,10 @@
 </script>
 
 <li
-	class="dark:variant-filled-surface variant-glass shadow-lg
+	class="rounded-md border border-surface-200 dark:border-surface-500 shadow-lg overflow-hidden
         {!expanded ? 'pointer-events-none ' : 'pointer-events-auto'}"
 >
-	<div
+	<header
 		class="flex justify-between gap-4 items-center px-4 py-2 bg-surface-50/100 dark:bg-surface-900/25"
 	>
 		<div class="md:flex md:items-center grid gap-4">
@@ -106,18 +123,25 @@
 				<p class="md:h4 grow">{component.name}</p>
 			{/if}
 		</div>
-
-		<IconButton
-			_class="pointer-events-auto pl-1"
-			variant="variant-soft-primary"
-			rounded="rounded-full"
-			icon={faFilePen}
-			on:click={() => (expanded = !expanded)}
-		/>
-	</div>
+		<div class=" flex-col-reverse gap-2 md:flex-row {expanded ? 'space-x-1' : 'flex'}">
+			<IconButton
+				_class="pointer-events-auto pl-1"
+				variant="variant-soft-primary"
+				rounded="rounded-full"
+				icon={faFilePen}
+				on:click={() => (expanded = !expanded)}
+			/>
+			<IconButton
+				_class="pointer-events-auto"
+				icon={faTrash}
+				variant={variantError}
+				on:click={() => (isNew ? onRemove() : onDelete())}
+			/>
+		</div>
+	</header>
 
 	{#if expanded}
-		<div class="rounded-none items-start justify-start pointer-events-auto">
+		<div class="rounded-md items-start justify-start pointer-events-auto">
 			<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
 
 			<div class="grid md:grid-cols-2 gap-4 p-4">
@@ -178,9 +202,9 @@
 			</div>
 			<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
 
-			<footer class="bg-surface-50/100 dark:bg-surface-900/25">
-				<div class="flex flex-wrap items-center px-4 py-2 gap-4">
-					{#if hasChanges}
+			{#if hasChanges}
+				<footer class="bg-surface-50/100 dark:bg-surface-900/25">
+					<div class="flex items-center justify-end px-4 py-2 gap-4">
 						<ActionButton
 							visible={hasChanges && !isNew}
 							variant={variantSuccess}
@@ -195,16 +219,9 @@
 							icon={faFileCircleXmark}
 							on:click={discardChanges}
 						/>
-					{/if}
-
-					<ActionButton
-						text={isNew ? 'Remove' : 'Delete'}
-						icon={faTrash}
-						variant={variantError}
-						on:click={() => (isNew ? onRemove() : onDelete())}
-					/>
-				</div>
-			</footer>
+					</div>
+				</footer>
+			{/if}
 		</div>
 	{/if}
 </li>

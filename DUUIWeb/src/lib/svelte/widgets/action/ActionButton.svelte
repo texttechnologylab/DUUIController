@@ -5,13 +5,14 @@
 	export let icon: IconDefinition | null = null
 	export let text: string
 	export let variant: string = 'dark:variant-soft-primary variant-filled-primary'
-	export let rounded: string = 'rounded-none'
+	export let rounded: string = ''
 	export let _class: string = ''
 	export let leftToRight: boolean = true
 	export let tabindex: number = 0
 	export let disabled: boolean = false
 	export let visible: boolean = true
 	export let small: boolean = false
+	export let autofocus: boolean = false
 </script>
 
 <button

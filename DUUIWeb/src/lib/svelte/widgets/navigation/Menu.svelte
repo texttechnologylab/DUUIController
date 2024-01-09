@@ -28,10 +28,10 @@
 </button>
 
 <div
-	class="shadow-lg border-4 bg-white dark:bg-surface-600 border-surface-400/20"
+	class="z-50 shadow-lg rounded-md border-2 bg-white dark:bg-surface-600 border-surface-400/20 overflow-hidden"
 	data-popup={label}
 >
-	<div class="flex flex-col text-left">
+	<div class="grid text-left py-2">
 		<slot name="content" />
 	</div>
 </div>

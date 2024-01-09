@@ -2,6 +2,7 @@ import { equals } from './text'
 
 export const Api = {
 	Pipelines: '/pipelines/api',
+	PipelineTemplates: '/pipelines/api/templates',
 	Services: '/pipelines/api/service',
 	Templates: '/pipelines/api/components',
 	Components: '/pipelines/api/components',
@@ -9,7 +10,7 @@ export const Api = {
 	Documents: '/process/api/documents',
 	Logout: '/account/api',
 	Authentication: '/account/api/auth',
-	Dropbox: '/account/api/dropbox',
+	Dropbox: '/auth/dropbox',
 	Minio: '/account/api/minio',
 	File: '/process/api/upload'
 }

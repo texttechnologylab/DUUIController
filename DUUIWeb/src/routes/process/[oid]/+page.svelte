@@ -27,17 +27,12 @@
 	import {
 		faArrowDownWideShort,
 		faArrowLeft,
-		faArrowRight,
 		faArrowUpWideShort,
 		faCancel,
 		faChevronLeft,
 		faChevronRight,
-		faCopy,
 		faFileDownload,
-		faFileExport,
 		faFileUpload,
-		faPause,
-		faPlay,
 		faRefresh,
 		faSearch,
 		faTrash
@@ -47,9 +42,7 @@
 		getToastStore,
 		ProgressBar,
 		type ModalComponent,
-		type ModalSettings,
-		type PopupSettings,
-		popup
+		type ModalSettings
 	} from '@skeletonlabs/skeleton'
 
 	import { onMount } from 'svelte'
@@ -59,8 +52,10 @@
 	import Select from '$lib/svelte/widgets/input/Select.svelte'
 	import Search from '$lib/svelte/widgets/input/Search.svelte'
 	import Label from '$lib/svelte/widgets/Label.svelte'
-	import TimelineV2 from '$lib/svelte/widgets/timeline/TimelineV2.svelte'
+	import Timeline from '$lib/svelte/widgets/timeline/Timeline.svelte'
 	import SpeedDial from '$lib/svelte/widgets/navigation/SpeedDial.svelte'
+	import Paginator from '$lib/svelte/widgets/navigation/Paginator.svelte'
+	// import { chart } from 'svelte-apexcharts'
 
 	export let data
 	const toastStore = getToastStore()
@@ -68,58 +63,65 @@
 	let { pipeline, process, documentQuery, timeline } = data
 
 	let documents: DUUIDocument[] = documentQuery.documents
-	let total: number = documentQuery.total
 
 	let progressPercent: number = 0
 
 	let tableHeader: string[] = ['Name', 'Progress', 'Status', 'File Size', 'Duration']
 
+	let paginationSettings: PaginationSettings = {
+		page: 0,
+		limit: 10,
+		total: documentQuery.count,
+		sizes: [5, 10, 20, 50]
+	}
+
+	let sort: Sort = {
+		by: 0,
+		order: 1
+	}
+
+	const sortMap: Map<number, string> = new Map([
+		[0, 'name'],
+		[1, 'progress'],
+		[2, 'status'],
+		[3, 'size'],
+		[4, 'duration']
+	])
+
+	let searchText: string = ''
+
+	let filter: string[] = [Status.Any]
+	let maxProgress = pipeline.components.length + (isCloudProvider(process.output.target) ? 1 : 0)
+
 	onMount(() => {
 		async function updateProcess() {
-			const response = await fetch(`${API_URL}/processes/${process.oid}`, {
-				method: 'GET',
-				mode: 'cors'
-			})
+			const response = await fetch(
+				`./api/update/${process.oid}
+				?limit=${paginationSettings.limit}
+				&skip=${paginationSettings.limit * paginationSettings.page}
+				&by=${sortMap.get(sort.by)}
+				&order=${sort.order}
+				&text=${searchText}
+				&filter=${filter.join(';')}`,
+				{
+					method: 'GET'
+				}
+			)
 
 			if (!response.ok || !isActive(process.status)) {
 				clearInterval(interval)
 			}
 
-			const documentsResponse = await makeApiCall(
-				Api.Documents,
-				'GET',
-				{},
-				`oid=${process.oid}&limit=${itemsPerPage}&skip=${
-					pageIndex * itemsPerPage
-				}&sort=${sortMap.get(
-					sortIndex
-				)}&order=${sortOrder}&text=${searchText}&status=${statusFilters.join(';')}`
-			)
+			const json = await response.json()
 
-			const timelineResponse = await fetch(`${API_URL}/processes/${process.oid}/timeline`, {
-				method: 'GET',
-				mode: 'cors'
-			})
-
-			if (!timelineResponse.ok || !documentsResponse.ok || !isActive(process.status)) {
-				clearInterval(interval)
-			}
-
-			const result = await documentsResponse.json()
-			documents = result.documents
-			total = result.total
-
-			timeline = (await timelineResponse.json()).timeline
-
-			const update: DUUIProcess = await response.json()
-
-			process = update
-			maxPages = Math.ceil(total / itemsPerPage)
+			process = json.process
+			timeline = json.timeline
 
 			progressPercent = progresAsPercent(process.progress, process.documentNames.length)
+			updateTable()
+
 
 			if (progressPercent > 100) progressPercent = 100
-
 			if (process.finished) {
 				clearInterval(interval)
 			}
@@ -200,76 +202,33 @@
 		)
 	}
 
-	let searchText: string = ''
+	const updateTable = async () => {
+		const lastFilter: string | undefined = filter.at(-1)
 
-	const sortMap: Map<number, string> = new Map([
-		[0, 'name'],
-		[1, 'progress'],
-		[2, 'status'],
-		[3, 'size'],
-		[4, 'duration']
-	])
-
-	let sortTerm: string = $page.url.searchParams.get('sort') || 'name'
-	let sortOrder: number = $page.url.searchParams.get('order') === '-1' ? -1 : 1
-	let sortIndex: number = 0
-
-	for (let value of sortMap.values()) {
-		if (value === sortTerm) {
-			sortIndex = ([...sortMap].find(([k, v]) => v === value) || [0])[0]
+		if (equals(lastFilter || '', Status.Any) || filter.length === 0) {
+			filter = [Status.Any]
+		} else {
+			filter = filter.filter((status) => !equals(status, Status.Any))
 		}
-	}
-
-	let itemsPerPage: number = Math.min(+($page.url.searchParams.get('limit') || '10'), 10)
-	let pageIndex: number = Math.max(
-		0,
-		Math.ceil(+($page.url.searchParams.get('skip') || '0') / itemsPerPage)
-	)
-
-	let maxPages: number = Math.ceil(total / itemsPerPage)
-
-	let statusFilters: string[] = [Status.Any]
-
-	let maxProgress = pipeline.components.length + (isCloudProvider(process.output.target) ? 1 : 0)
-
-	const incrementPage = async () => {
-		if (total <= (pageIndex + 1) * itemsPerPage) return
-		pageIndex += 1
-		updateResults(true)
-	}
-
-	const decrementPage = async () => {
-		if (pageIndex === 0) return
-		pageIndex -= 1
-		updateResults(true)
-	}
-
-	const updateResults = async (navigation: boolean = false) => {
-		if (!browser) return
-		goto(
-			`/process/${process.oid}?limit=${itemsPerPage}&skip=${
-				pageIndex * itemsPerPage
-			}&sort=${sortMap.get(
-				sortIndex
-			)}&order=${sortOrder}&text=${searchText}&status=${statusFilters.join(';')}`
+		const response = await fetch(
+			`./api/documents
+			?process_id=${process.oid}
+			&limit=${paginationSettings.limit}
+			&skip=${paginationSettings.page * paginationSettings.limit}
+			&by=${sortMap.get(sort.by)}
+			&text=${searchText}
+			&order=${sort.order}
+			&filter=${filter.join(';')}`,
+			{
+				method: 'GET'
+			}
 		)
 
-		if (!navigation) {
-			pageIndex = 0
-		}
+		const json = await response.json()
+		const data = json.result
 
-		const documentsResponse = await makeApiCall(
-			Api.Documents,
-			'GET',
-			{},
-			`oid=${process.oid}&limit=${itemsPerPage}&skip=${pageIndex * itemsPerPage}&sort=${sortMap.get(
-				sortIndex
-			)}&order=${sortOrder}&text=${searchText}&status=${statusFilters.join(';')}`
-		)
-
-		const result = await documentsResponse.json()
-		documents = result.documents
-		total = result.total
+		documents = data.documents
+		paginationSettings.total = data.count
 	}
 
 	const modalStore = getModalStore()
@@ -288,31 +247,22 @@
 	}
 
 	const sortTable = (index: number) => {
-		sortOrder = sortIndex !== index ? 1 : (sortOrder *= -1)
-		sortIndex = index
-		updateResults()
-	}
-
-	let expandedIndex: number | undefined = undefined
-
-	$: {
-		const lastFilter: string | undefined = statusFilters.at(-1)
-
-		if (equals(lastFilter || '', Status.Any) || statusFilters.length === 0) {
-			statusFilters = [Status.Any]
-		} else {
-			statusFilters = statusFilters.filter((status) => !equals(status, Status.Any))
-		}
-
-		updateResults()
+		sort.order = sort.by !== index ? 1 : sort.order === 1 ? -1 : 1
+		sort.by = index
+		updateTable()
 	}
 </script>
 
 <SpeedDial>
 	<svelte:fragment slot="content">
 		<IconButton icon={faArrowLeft} on:click={() => goto('/pipelines/' + pipeline.oid + '?tab=2')} />
-		<IconButton icon={faFileDownload} on:click={() => window.open(getInput())} />
-		<IconButton icon={faFileUpload} on:click={() => window.open(getOutput())} />
+		{#if isCloudProvider(process.input.source)}
+			<IconButton icon={faFileDownload} on:click={() => window.open(getInput())} />
+		{/if}
+		{#if isCloudProvider(process.output.target)}
+			<IconButton icon={faFileUpload} on:click={() => window.open(getOutput())} />
+		{/if}
+
 		{#if !process.finished}
 			<IconButton icon={faCancel} on:click={cancelProcess} />
 		{:else}
@@ -322,11 +272,11 @@
 	</svelte:fragment>
 </SpeedDial>
 
-<div class="container h-full flex-col mx-auto flex gap-4 md:my-8">
+<div class="container h-full flex-col mx-auto flex gap-4 md:my-8 pb-32 space">
 	<div class="flex items-end justify-between gap-4">
 		<h1 class="h2">{pipeline.name}</h1>
 
-		<div class="flex items-center gap-4 ml-auto">
+		<div class="flex items-center gap-2 ml-auto">
 			<Fa
 				icon={getStatusIcon(process.status)}
 				size="lg"
@@ -337,144 +287,131 @@
 	</div>
 
 	<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
-	<div class="grid xl:flex items-center xl:justify-start gap-4">
-		<div class="hidden lg:flex md:grid md:grid-cols-3 gap-4 items-center">
-			<ActionButton
-				icon={faArrowLeft}
-				text="Back"
-				on:click={() => goto('/pipelines/' + pipeline.oid + '?tab=2')}
-			/>
-			{#if isCloudProvider(process.input.source)}
-				<ActionButton text="Input" icon={faFileDownload} on:click={() => window.open(getInput())} />
-			{/if}
-			{#if isCloudProvider(process.output.target) && equals(process.status, Status.Completed)}
-				<ActionButton text="Output" icon={faFileUpload} on:click={() => window.open(getOutput())} />
-			{/if}
-			{#if !process.finished}
-				<ActionButton text="Cancel" icon={faCancel} on:click={cancelProcess} />
-			{:else}
-				<ActionButton text="Restart" icon={faRefresh} on:click={restart} />
-				<ActionButton text="Delete" icon={faTrash} on:click={deleteProcess} />
-			{/if}
-		</div>
+	<div class="space-y-4">
+		<div class="grid xl:flex items-center xl:justify-start gap-4">
+			<div class="hidden lg:flex md:grid md:grid-cols-3 gap-4 items-center">
+				<ActionButton
+					icon={faArrowLeft}
+					text="Back"
+					on:click={() => goto('/pipelines/' + pipeline.oid + '?tab=2')}
+				/>
+				{#if isCloudProvider(process.input.source)}
+					<ActionButton
+						text="Input"
+						icon={faFileDownload}
+						on:click={() => window.open(getInput())}
+					/>
+				{/if}
+				{#if isCloudProvider(process.output.target) && equals(process.status, Status.Completed)}
+					<ActionButton
+						text="Output"
+						icon={faFileUpload}
+						on:click={() => window.open(getOutput())}
+					/>
+				{/if}
+				{#if !process.finished}
+					<ActionButton text="Cancel" icon={faCancel} on:click={cancelProcess} />
+				{:else}
+					<ActionButton text="Restart" icon={faRefresh} on:click={restart} />
+					<ActionButton text="Delete" icon={faTrash} on:click={deleteProcess} />
+				{/if}
+			</div>
 
-		<div class="grid md:flex items-center gap-4 lg:ml-auto">
-			<Search
-				bind:query={searchText}
-				placeholder="Search..."
-				icon={faSearch}
-				on:focusout={() => updateResults()}
-				on:keydown={(event) => {
-					if (equals(event.key, 'enter')) {
-						updateResults()
-					}
-				}}
-			/>
-			<Select
-				label="Status"
-				name="Status"
-				bind:selected={statusFilters}
-				options={documentStatusNames}
-			/>
+			<div class="grid md:flex items-center gap-4 lg:ml-auto">
+				<Search
+					bind:query={searchText}
+					placeholder="Search..."
+					icon={faSearch}
+					on:focusout={() => updateTable()}
+					on:keydown={(event) => {
+						if (equals(event.key, 'enter')) {
+							updateTable()
+						}
+					}}
+				/>
+				<Select
+					label="Status"
+					name="Status"
+					on:change={updateTable}
+					bind:selected={filter}
+					options={documentStatusNames}
+				/>
+			</div>
 		</div>
-	</div>
-	{#if process.error}
-		<p class="text-error-400 font-bold break-words">ERROR: {process.error}</p>
-	{/if}
-	<div class="overflow-hidden border-[1px] border-surface-200 dark:border-surface-500 shadow-lg">
+		{#if process.error}
+			<p class="text-error-400 font-bold break-words">ERROR: {process.error}</p>
+		{/if}
 		<div
-			class="header grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 bg-surface-100 dark:variant-soft-surface"
+			class="rounded-md overflow-hidden border border-surface-200 dark:border-surface-500 shadow-lg"
 		>
-			{#each tableHeader as column, index}
-				<button
-					class="btn bg-surface-100 px-4 dark:variant-soft-surface gap-4 justify-start items-center rounded-none p-3 text-left
-					{[1].includes(index)
-						? 'hidden sm:inline-flex'
-						: [4].includes(index)
-						? 'hidden md:inline-flex'
-						: [3].includes(index)
-						? 'hidden lg:inline-flex'
-						: ''}"
-					on:click={() => sortTable(index)}
-				>
-					<span>{column}</span>
-					{#if sortIndex === index}
-						<Fa icon={sortOrder === -1 ? faArrowDownWideShort : faArrowUpWideShort} />
-					{/if}
-				</button>
-			{/each}
-		</div>
-		<ProgressBar
-			value={process.progress}
-			max={process.documentNames.length}
-			height="h-1"
-			rounded="rounded-none"
-			meter="variant-filled-primary"
-		/>
-		<div class="overflow-hidden flex flex-col">
-			{#each documents as document, index}
-				<button
-					class="btn rounded-none
+			<div
+				class="header grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 bg-surface-100 dark:variant-soft-surface"
+			>
+				{#each tableHeader as column, index}
+					<button
+						class="btn-sm md:text-base md:inline-flex bg-surface-100 px-4 dark:variant-soft-surface gap-4 justify-start items-center rounded-none p-3 text-left
+					{[4].includes(index)
+							? 'hidden md:inline-flex'
+							: [3].includes(index)
+							? 'hidden lg:inline-flex'
+							: ''}"
+						on:click={() => sortTable(index)}
+					>
+						<span>{column}</span>
+						{#if sort.by === index}
+							<Fa icon={sort.order === -1 ? faArrowDownWideShort : faArrowUpWideShort} />
+						{/if}
+					</button>
+				{/each}
+			</div>
+			<ProgressBar
+				value={process.progress}
+				max={process.documentNames.length}
+				height="h-1"
+				rounded="rounded-none"
+				meter="variant-filled-primary"
+			/>
+			<div class="overflow-hidden flex flex-col">
+				{#each documents as document}
+					<button
+						class="btn-sm text-xs md:text-base rounded-none
 					first:border-t-0 border-t-[1px]
 					dark:border-t-surface-500 dark:hover:variant-soft-primary
 					hover:variant-filled-primary
-					grid-cols-2 grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 p-3 px-4 text-left"
-					on:click={() => showDocumentModal(document)}
-				>
-					<p>{document.name}</p>
-					<p class="hidden sm:flex items-center gap-4">
-						<span
-							>{Math.round((Math.min(document.progress, maxProgress) / maxProgress) * 100)} %</span
-						>
-						<span>{Math.min(document.progress, maxProgress)} / {maxProgress}</span>
-					</p>
-					<p class="flex justify-start items-center gap-4">
-						<Fa
-							icon={getDocumentStatusIcon(document)}
-							size="lg"
-							class="{equals(document.status, Status.Running)
-								? 'animate-spin-slow'
-								: equals(document.status, Status.Waiting)
-								? 'animate-hourglass'
-								: ''} w-6"
-						/>
-						<span>{document.status}</span>
-					</p>
-					<p class="hidden lg:block">{formatFileSize(document.size)}</p>
-					<p class="hidden md:block">{formatMilliseconds(getTotalDuration(document))}</p>
-				</button>
-			{/each}
+					grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 p-3 px-4 text-left"
+						on:click={() => showDocumentModal(document)}
+					>
+						<p class="break-words">{document.name}</p>
+						<div class="md:flex items-center justify-start md:gap-4">
+							<p>{Math.round((Math.min(document.progress, maxProgress) / maxProgress) * 100)} %</p>
+							<p>{Math.min(document.progress, maxProgress)} / {maxProgress}</p>
+						</div>
+						<p class="flex justify-start items-center gap-2 md:gap-4">
+							<Fa
+								icon={getDocumentStatusIcon(document)}
+								size="lg"
+								class="{equals(document.status, Status.Running)
+									? 'animate-spin-slow'
+									: equals(document.status, Status.Waiting)
+									? 'animate-hourglass'
+									: ''} w-6"
+							/>
+							<span>{document.status}</span>
+						</p>
+						<p class="hidden lg:block">{formatFileSize(document.size)}</p>
+						<p class="hidden md:block">{formatMilliseconds(getTotalDuration(document))}</p>
+					</button>
+				{/each}
+			</div>
 		</div>
+
+		<Paginator bind:settings={paginationSettings} on:change={updateTable} />
 	</div>
 
-	<div
-		class="flex items-center justify-center gap-4 bg-surface-100 dark:variant-soft-surface mx-auto
-			   border-[1px] border-surface-200 dark:border-surface-500"
-	>
-		<IconButton
-			_class="bg-transparent text-primary-500 border-r-[1px] border-surface-200 dark:border-surface-500 hover:variant-filled-primary"
-			rounded="rounded-none"
-			icon={faChevronLeft}
-			on:click={decrementPage}
-		/>
-		{#if total === 0}
-			<p>No results</p>
-		{:else}
-			<p>
-				{1 + pageIndex * itemsPerPage}-{Math.min((pageIndex + 1) * itemsPerPage, total)} of {total}
-			</p>
-		{/if}
-		<IconButton
-			_class="bg-transparent text-primary-500 border-l-[1px] border-surface-200 dark:border-surface-500 hover:variant-filled-primary"
-			rounded="rounded-none"
-			icon={faChevronRight}
-			on:click={incrementPage}
-		/>
-	</div>
-	<TimelineV2 {process} {documents} />
+	<Timeline {process} {documents} />
 
 	<div
-		class="gap-4 grid items-start border-[1px] border-surface-200 dark:border-surface-500 shadow-lg"
+		class="rounded-md border-[1px] border-surface-200 dark:border-surface-500 shadow-lg grid items-start"
 	>
 		<div class="p-4">
 			<h2 class="h2 p-4">Statistics</h2>
@@ -513,21 +450,4 @@
 			</div>
 		</div>
 	</div>
-
-	<!-- <div class="gap-4 grid items-start">
-		<div class="bg-surface-100 dark:variant-soft-surface shadow-lg p-4 space-y-4">
-			<h3 class="h3">Pipeline status</h3>
-
-			<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
-			{#each pipeline.components as component}
-				<div class="flex gap-4 items-center p-4">
-					<DriverIcon driver={component.settings.driver} />
-					<div>
-						<p class="h4 grow">{component.name}</p>
-						<p class="h4">{component.status}</p>
-					</div>
-				</div>
-			{/each}
-		</div>
-	</div> -->
 </div>

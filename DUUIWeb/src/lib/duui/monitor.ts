@@ -11,6 +11,7 @@ export interface DUUIStatusEvent {
 }
 
 export const statusNames: string[] = [
+	'Any',
 	'Input',
 	'Setup',
 	'Running',

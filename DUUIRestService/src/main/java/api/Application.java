@@ -1,16 +1,18 @@
 package api;
 
 import api.duui.component.DUUIComponentController;
-import api.duui.routines.service.DUUIService;
-import api.metrics.DUUIMetricsProvider;
-import api.metrics.DUUIMongoMetricsProvider;
 import api.duui.pipeline.DUUIPipelineController;
 import api.duui.routines.process.DUUIProcessController;
+import api.duui.routines.service.DUUIService;
 import api.duui.users.DUUIUserController;
+import api.http.RequestUtils;
+import api.metrics.DUUIMetricsManager;
+import api.metrics.DUUIMetricsProvider;
+import api.metrics.DUUIMongoMetricsProvider;
+import api.metrics.DUUISystemMetricsProvider;
 import com.sun.management.OperatingSystemMXBean;
 import spark.Request;
 
-import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,9 +26,19 @@ import static spark.Spark.*;
 
 public class Application {
 
+    private static final DUUIMetricsManager metricsManager = new DUUIMetricsManager();
     private static OperatingSystemMXBean monitor;
     public static Map<String, AtomicLong> metrics = new HashMap<>();
     private static DUUIMetricsProvider _metricsProvider;
+
+    private static void setupMetrics() {
+        metricsManager.registerMetricsProvider(new DUUISystemMetricsProvider());
+        metricsManager.registerMetricsProvider(
+            new DUUIMongoMetricsProvider(
+                "duui_metrics",
+                "pipeline_document_perf"));
+
+    }
 
     private static void updateSystemMetrics() {
         long cpuLoad = (long) (monitor.getCpuLoad() * 100);
@@ -44,37 +56,6 @@ public class Application {
         }
     }
 
-    /*
-     *
-     *  GET    /pipelines/:id           - Retrieve a pipeline
-     *  GET    /pipelines/:id/processes - Retrieve all processes for a pipeline
-     *  GET    /pipelines               - Retrieve all pipelines                | ?: limit & offset
-     *
-     *  POST   /pipelines               - Create a pipeline                     | accepts json
-     *  PUT    /pipelines/:id           - Update a pipeline                     | accepts json
-     *  DELETE /pipelines/:id           - Delete a pipeline
-     *
-     *
-     *  GET    /components/:id          - Retrieve a component
-     *  GET    /components              - Retrieve all components               | ?: limit & offset
-     *
-     *  POST   /components              - Create a component                    | accepts json
-     *  PUT    /components/:id          - Update a component                    | accepts json
-     *  DELETE /components/:id          - Delete a component
-     *
-     *
-     *  GET    /processes/:id           - Retrieve all processes for a pipeline
-     *  GET    /processes/:id/status    - Retrieve the status of a process
-     *  GET    /processes/:id/progress  - Retrieve the progress of a process
-     *
-     *  POST   /processes               - Create a process                      | accepts json
-     *  PUT    /processes/:id           - Cancel a process
-     *
-     *  GET    /metrics                 - Retrieve metrics for the api
-     *
-     * */
-
-
     public static int queryIntElseDefault(
         Request request,
         String field,
@@ -86,48 +67,6 @@ public class Application {
     }
 
     public static void main(String[] args) {
-        port(2605);
-
-
-        options(
-            "/*",
-            (request, response) -> {
-                String accessControlRequestHeaders = request.headers(
-                    "Access-Control-Request-Headers"
-                );
-                if (accessControlRequestHeaders != null) {
-                    response.header(
-                        "Access-Control-Allow-Headers",
-                        accessControlRequestHeaders
-                    );
-                }
-
-                String accessControlRequestMethod = request.headers(
-                    "Access-Control-Request-Method"
-                );
-                if (accessControlRequestMethod != null) {
-                    response.header(
-                        "Access-Control-Allow-Methods",
-                        accessControlRequestMethod
-                    );
-                }
-                return "OK";
-            }
-        );
-
-        before((request, response) -> {
-            if (!request.url().endsWith("metrics")) {
-                metrics.get("http_requests_in_progress").incrementAndGet();
-            }
-
-            response.header("Access-Control-Allow-Origin", "*");
-        });
-
-        after((request, response) -> {
-            if (!request.url().endsWith("metrics")) {
-                metrics.get("http_requests_in_progress").decrementAndGet();
-            }
-        });
 
         monitor =
             ManagementFactory.getPlatformMXBean(
@@ -156,67 +95,126 @@ public class Application {
             metrics.put(entry.getKey(), new AtomicLong(entry.getValue()));
         }
 
+
+        port(2605);
+
+        options(
+            "/*",
+            (request, response) -> {
+                String accessControlRequestHeaders = request.headers(
+                    "Access-Control-Request-Headers"
+                );
+                if (accessControlRequestHeaders != null) {
+                    response.header(
+                        "Access-Control-Allow-Headers",
+                        accessControlRequestHeaders
+                    );
+                }
+
+                String accessControlRequestMethod = request.headers(
+                    "Access-Control-Request-Method"
+                );
+                if (accessControlRequestMethod != null) {
+                    response.header(
+                        "Access-Control-Allow-Methods",
+                        accessControlRequestMethod
+                    );
+                }
+                return "OK";
+            }
+        );
+
+        before((request, response) -> {
+//            if (!request.url().endsWith("metrics")) {
+//                metrics.get("http_requests_in_progress").incrementAndGet();
+//            }
+            response.header("Access-Control-Allow-Origin", "*");
+        });
+
+//        after((request, response) -> {
+//            if (!request.url().endsWith("metrics")) {
+//                metrics.get("http").get("http_requests_in_progress").decrementAndGet();
+//            }
+//        });
+
+        setupMetrics();
+
+        /* Users */
+
+        path("/users", () -> {
+            get("/:id", DUUIUserController::fetchUser);
+            post("", DUUIUserController::insertOne);
+            put("/:id", DUUIUserController::updateOne);
+            delete("/:id", DUUIUserController::deleteOne);
+
+            path("/auth", () -> {
+                get("/login/:email", DUUIUserController::fetchLoginCredentials);
+                get("/", DUUIUserController::authorizeUser);
+            });
+        });
+
+        get("/users/auth/dropbox/:id", DUUIUserController::dbxIsAuthorized);
+        put("/users/authorization", DUUIUserController::updateApiKey);
+        put("/users/reset-password", DUUIUserController::resetPassword);
+        put("/users/:id/minio", DUUIUserController::updateMinioCredentials);
+        post("/users/recover-password", DUUIUserController::recoverPassword);
+
         /* Components */
-
-        get("/components/:id", DUUIComponentController::findOne);
-        get("/components", DUUIComponentController::findMany);
-
-        post("/components", DUUIComponentController::insertOne);
-
-        put("/components/:id", DUUIComponentController::updateOne);
-
-        delete("/components/:id", DUUIComponentController::deleteOne);
+        path("/components", () -> {
+            before("/*", (request, response) -> {
+                boolean isAuthorized = RequestUtils.isAuthorized(request);
+                if (!isAuthorized) {
+                    halt(401, "Unauthorized");
+                }
+            });
+            get("/:id", DUUIComponentController::findOne);
+            get("", DUUIComponentController::findMany);
+            post("", DUUIComponentController::insertOne);
+            put("/:id", DUUIComponentController::updateOne);
+            delete("/:id", DUUIComponentController::deleteOne);
+        });
 
         /* Pipelines */
+        path("/pipelines", () -> {
+            before("/*", (request, response) -> {
+                boolean isAuthorized = RequestUtils.isAuthorized(request);
+                if (!isAuthorized) {
+                    halt(401, "Unauthorized");
+                }
+            });
+            get("/:id", DUUIPipelineController::findOne);
+            get("", DUUIPipelineController::findMany);
+            post("", DUUIPipelineController::insertOne);
+            put("/:id", DUUIPipelineController::updateOne);
+            put("/:id/start", DUUIPipelineController::startService);
+            put("/:id/stop", DUUIPipelineController::stopService);
+            delete("/:id", DUUIPipelineController::deleteOne);
+        });
 
-        get("/pipelines/:id", DUUIPipelineController::findOne);
-        get("/pipelines", DUUIPipelineController::findTemplates);
-        get("/pipelines/user/all", DUUIPipelineController::findMany);
-        get("/pipelines/:id/processes", DUUIProcessController::findMany);
-
-        post("/pipelines", DUUIPipelineController::insertOne);
-
-        put("/pipelines/:id", DUUIPipelineController::updateOne);
-        put("/pipelines/:id/start", DUUIPipelineController::startService);
-        put("/pipelines/:id/stop", DUUIPipelineController::stopService);
-
-        delete("/pipelines/:id", DUUIPipelineController::deleteOne);
 
         /* Processes */
+        path("/processes", () -> {
+            before("/*", (request, response) -> {
+                boolean isAuthorized = RequestUtils.isAuthorized(request);
+                if (!isAuthorized) {
+                    halt(401, "Unauthorized");
+                }
+            });
+            get("", DUUIProcessController::findMany);
+            get("/:id", DUUIProcessController::findOne);
+            post("", DUUIProcessController::startOne);
+            post("/file", DUUIProcessController::uploadFile);
+            put("/:id", DUUIProcessController::stopOne);
+            delete("/:id", DUUIProcessController::deleteOne);
+            get("/:id/timeline", DUUIProcessController::timeline);
 
-        get("/processes/:id", DUUIProcessController::findOne);
-        get("/processes/:id/timeline", DUUIProcessController::timeline);
+        });
 
-        post("/processes", DUUIProcessController::startOne);
-        post("/processes/file", DUUIProcessController::uploadFile);
-
-        put("/processes/:id", DUUIProcessController::stopOne);
-
-        delete("/processes/:id", DUUIProcessController::deleteOne);
 
         /* Documents */
 
         get("/documents", DUUIProcessController::findDocuments);
 
-
-        /* Users */
-
-        get("/users/:email", DUUIUserController::findOneByEmail);
-        get("/users/auth/:key", DUUIUserController::findOneByAuthorization);
-
-        get("/users/auth/dropbox/:id", DUUIUserController::dbxIsAuthorized);
-
-        put("/users", DUUIUserController::updateSession);
-        put("/users/authorization", DUUIUserController::updateApiKey);
-        put("/users/email/:id", DUUIUserController::updateEmail);
-        put("/users/:id", DUUIUserController::updateUser);
-        put("/users/reset-password", DUUIUserController::resetPassword);
-        put("/users/:id/minio", DUUIUserController::updateMinioCredentials);
-
-        post("/users", DUUIUserController::insertOne);
-        post("/users/recover-password", DUUIUserController::recoverPassword);
-
-        delete("/users/:id", DUUIUserController::deleteOne);
 
         get(
             "/metrics",
@@ -242,6 +240,13 @@ public class Application {
 
         Thread _shutdownHook = new Thread(() -> service.cancel(true));
         Runtime.getRuntime().addShutdownHook(_shutdownHook);
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> DUUIPipelineController.getServices().values().forEach(DUUIService::onApplicationShutdown)));
+        Runtime.getRuntime().addShutdownHook(
+            new Thread(
+                () -> DUUIPipelineController
+                    .getServices()
+                    .values()
+                    .forEach(DUUIService::onApplicationShutdown)
+            ));
     }
+
 }

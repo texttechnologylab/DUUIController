@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores'
+	import SpeedDial from '$lib/svelte/widgets/navigation/SpeedDial.svelte'
 	import { toTitleCase } from '$lib/utils/text'
 	import { faUser, faLink, faLock } from '@fortawesome/free-solid-svg-icons'
 	import Fa from 'svelte-fa'
@@ -8,49 +9,61 @@
 	$: section = $page.url.pathname.split('/').at(-1) || 'profile'
 </script>
 
-<div class=" relative h-full container mx-auto grid items-start">
-	<div class="md:flex md:py-4 gap-4">
-		<aside
-			class="h-full p-4 sticky top-0 md:top-4 flex flex-col gap-4 justify-start bg-white dark:bg-surface-700 md:w-modal-slim"
+<svelte:head>
+	<title>Account</title>
+</svelte:head>
+
+<SpeedDial>
+	<svelte:fragment slot="content">
+		<a href="/account/user/profile" class="btn variant-filled-primary p-4">
+			<Fa icon={faUser} />
+		</a>
+		<a href="/account/user/connections" class="btn variant-filled-primary p-4">
+			<Fa icon={faLink} />
+		</a>
+		<a href="/account/user/security" class="btn variant-filled-primary p-4">
+			<Fa icon={faLock} />
+		</a>
+	</svelte:fragment>
+</SpeedDial>
+
+<div class="p-4 md:py-8 container max-w-7xl mx-auto">
+	<div
+		class="hidden sticky top-8 md:grid grid-cols-3
+		 rounded-full overflow-hidden bg-surface-100 dark:variant-soft-surface z-[2]
+		  shadow-lg text-xs md:text-base"
+	>
+		<a
+			href="/account/user/profile"
+			class="flex items-center gap-4 justify-center p-2
+			 {section === 'profile' ? 'variant-filled-primary' : ''}"
 		>
-			<a
-				href="/account/user/profile"
-				class="bg-primary-hover-token flex items-center gap-4 md:gap-16 justify-between p-3 border-l-8 border-primary-500/50 {section ===
-				'profile'
-					? 'bg-primary-500/10'
-					: 'border-l-transparent'}"
-				on:click={() => (section = 'profile')}
-			>
-				<span>Profile</span>
-				<Fa icon={faUser} />
-			</a>
-			<a
-				href="/account/user/connections"
-				class="bg-primary-hover-token flex items-center gap-4 md:gap-16 justify-between p-3 border-l-8 border-primary-500/50 {section ===
-				'connections'
-					? 'bg-primary-500/10'
-					: 'border-l-transparent'}"
-				on:click={() => (section = 'connections')}
-			>
-				<span>Connections</span>
-				<Fa icon={faLink} />
-			</a>
-			<a
-				href="/account/user/security"
-				class="bg-primary-hover-token flex items-center gap-4 md:gap-16 justify-between p-3 border-l-8 border-primary-500/50 {section ===
-				'security'
-					? 'bg-primary-500/10'
-					: 'border-l-transparent'}"
-				on:click={() => (section = 'security')}
-			>
-				<span>Security</span>
-				<Fa icon={faLock} />
-			</a>
-		</aside>
-		<div class="p-4 space-y-4 w-full">
-			<h2 class="h2">{toTitleCase(section)}</h2>
-			<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
-			<slot />
-		</div>
+			<Fa icon={faUser} />
+			<span>Profile</span>
+		</a>
+
+		<a
+			href="/account/user/connections"
+			class="flex items-center gap-4 justify-center p-2
+			 {section === 'connections' ? 'variant-filled-primary' : ''}"
+		>
+			<Fa icon={faLink} />
+			<span>Connections</span>
+		</a>
+
+		<a
+			href="/account/user/security"
+			class="flex items-center gap-4 justify-center p-2
+			 {section === 'security' ? 'variant-filled-primary' : ''}"
+		>
+			<Fa icon={faLock} />
+			<span>Security</span>
+		</a>
+	</div>
+
+	<div class=" space-y-4 md:py-8 md:h-full">
+		<h1 class="h2">{toTitleCase(section)}</h1>
+		<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
+		<slot />
 	</div>
 </div>

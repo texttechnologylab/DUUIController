@@ -16,8 +16,13 @@
 		faUser,
 		faUserPlus,
 		faLock,
+		faLink,
+		faHammer,
 
-		faLink
+		faCloud,
+
+		faGear
+
 
 	} from '@fortawesome/free-solid-svg-icons'
 	import { Accordion, AccordionItem, LightSwitch, getDrawerStore } from '@skeletonlabs/skeleton'
@@ -68,9 +73,9 @@
 						/>
 						<Anchor
 							href="/pipelines/editor"
-							icon={faPlus}
+							icon={faHammer}
 							size="lg"
-							text="Builder"
+							text="Editor"
 							_class="justify-start gap-8 bg-primary-hover-token"
 							variant=""
 						/>
@@ -82,30 +87,16 @@
 				<svelte:fragment slot="content">
 					<div class="flex flex-col text-left">
 						<Anchor
-							href="/documentation#quick-start"
-							icon={faBookOpen}
-							text="Quick Start"
-							_class="justify-start gap-8 bg-primary-hover-token"
-							variant=""
-						/>
-						<Anchor
-							href="/documentation#composer"
+							href="/documentation"
 							icon={faGears}
-							text="Composer"
+							text="Docker Unified UIMA Interface"
 							_class="justify-start gap-8 bg-primary-hover-token"
 							variant=""
 						/>
 						<Anchor
-							href="/documentation#driver"
-							icon={faNetworkWired}
-							text="Driver"
-							_class="justify-start gap-8 bg-primary-hover-token"
-							variant=""
-						/>
-						<Anchor
-							href="/documentation#component"
-							icon={faMap}
-							text="Component"
+							href="/documentation/api"
+							icon={faCloud}
+							text="API Reference"
 							_class="justify-start gap-8 bg-primary-hover-token"
 							variant=""
 						/>

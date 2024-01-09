@@ -5,15 +5,15 @@ import api.storage.DUUIMongoDBStorage;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Updates;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.DUUIMinioDataReader;
 import spark.Request;
 import spark.Response;
 
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static api.requests.validation.UserValidator.*;
 import static api.requests.validation.Validator.*;
@@ -23,9 +23,20 @@ import static api.storage.DUUIMongoDBStorage.mapObjectIdToString;
 
 public class DUUIUserController {
 
-    private static final List<String> _fields = List.of(
-        "preferences",
+    private static final List<String> ALLOWED_FIELDS = List.of(
+        "email",
+        "role",
         "session",
+        "preferences",
+        "key",
+        "dropbox",
+        "minio"
+    );
+
+    private static final List<String> ALLOWED_UPDATES = List.of(
+        "role",
+        "session",
+        "preferences",
         "key",
         "dropbox",
         "minio"
@@ -72,6 +83,7 @@ public class DUUIUserController {
         return DUUIMongoDBStorage
             .Users()
             .find(Filters.eq(new ObjectId(id)))
+            .projection(Projections.include("email", "role", "session"))
             .first();
     }
 
@@ -86,7 +98,7 @@ public class DUUIUserController {
         return DUUIMongoDBStorage
             .Users()
             .find(Filters.eq("key", authorization))
-            .projection(Projections.exclude("password"))
+            .projection(Projections.exclude("password", "password_reset_token", "reset_token_expiration"))
             .first();
     }
 
@@ -94,7 +106,7 @@ public class DUUIUserController {
         return DUUIMongoDBStorage
             .Users()
             .find(Filters.eq("session", session))
-            .projection(Projections.exclude("password"))
+            .projection(Projections.exclude("password", "password_reset_token", "reset_token_expiration"))
             .first();
     }
 
@@ -140,10 +152,17 @@ public class DUUIUserController {
         mapObjectIdToString(user);
 
         response.status(200);
-        return user.toJson();
+        return new Document("user", user).toJson();
     }
 
     public static String insertOne(Request request, Response response) {
+        String key = request.queryParamOrDefault("key", "");
+
+        if (!validateServer(key)) {
+            response.status(401);
+            return "Unauthorized";
+        }
+
         Document body = Document.parse(request.body());
 
         String email = body.getString("email");
@@ -153,42 +172,40 @@ public class DUUIUserController {
         String password = body.getString("password");
         if (password.isEmpty())
             return missingField(response, "password");
-        String role = body.getString("role");
+
+        String role = (String) body.getOrDefault("role", "user");
 
         Document newUser = new Document("email", email)
             .append("password", password)
             .append("createdAt", new Date().toInstant().toEpochMilli())
-            .append("role", role.isEmpty() ? "user" : role)
+            .append("role", role)
             .append("preferences", new Document("tutorial", true).append("language", "english").append("notifications", false))
             .append("session", body.getOrDefault("session", null))
-            .append("authorization", null)
-            .append("dbx_access_token", null)
-            .append("dbx_refresh_token", null)
-            .append("minio_access_key", null)
-            .append("minio_secret_key", null)
-            .append("minio_endpoint", null);
+            .append("password_reset_token", null)
+            .append("reset_token_expiration", null)
+            .append("key", "")
+            .append("dropbox", new Document("access_token", null).append("refresh_token", null))
+            .append("minio", new Document("endpoint", null).append("access_key", null).append("secret_key", null));
 
         DUUIMongoDBStorage
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("users")
+            .Users()
             .insertOne(newUser);
 
         mapObjectIdToString(newUser);
         response.status(200);
-        return newUser.toJson();
+        return new Document("user", newUser).toJson();
     }
 
     public static String deleteOne(Request request, Response response) {
-        String authorization = request.headers("authorization");
+        String key = request.queryParamOrDefault("key", "");
 
-        Document user = authenticate(authorization);
-        if (isNullOrEmpty(user)) return unauthorized(response);
+        if (!validateServer(key)) {
+            response.status(401);
+            return "Unauthorized";
+        }
 
         DUUIMongoDBStorage
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("users")
+            .Users()
             .deleteOne(Filters.eq(new ObjectId(request.params(":id"))));
 
         response.status(201);
@@ -196,7 +213,7 @@ public class DUUIUserController {
     }
 
     public static String updateApiKey(Request request, Response response) {
-        String authorization = request.headers("authorization");
+        String authorization = request.headers("Authorization");
 
         Document user = authenticate(authorization);
         if (isNullOrEmpty(user)) return unauthorized(response);
@@ -219,7 +236,7 @@ public class DUUIUserController {
     }
 
     public static String updateEmail(Request request, Response response) {
-        String authorization = request.headers("authorization");
+        String authorization = request.headers("Authorization");
 
         Document user = authenticate(authorization);
         if (isNullOrEmpty(user)) return unauthorized(response);
@@ -240,6 +257,7 @@ public class DUUIUserController {
 
         return updateSuccess(response, "email");
     }
+
 
     public static String updateSession(Request request, Response response) {
         Document body = Document.parse(request.body());
@@ -340,7 +358,7 @@ public class DUUIUserController {
             .getCollection("users")
             .findOneAndUpdate(
                 Filters.eq(new ObjectId(id)),
-                combineUpdates(update, _fields)
+                combineUpdates(update, ALLOWED_FIELDS)
             );
 
 
@@ -430,7 +448,7 @@ public class DUUIUserController {
             .getCollection("users")
             .findOneAndUpdate(
                 Filters.eq(new ObjectId(id)),
-                combineUpdates(update, _fields)
+                combineUpdates(update, ALLOWED_FIELDS)
             );
 
         response.status(200);
@@ -441,5 +459,120 @@ public class DUUIUserController {
     private static String fail(Response response, String message) {
         response.status(500);
         return new Document("message", message).toJson();
+    }
+
+    public static String fetchLoginCredentials(Request request, Response response) {
+        String key = request.queryParamOrDefault("key", "");
+        if (!validateServer(key)) {
+            response.status(401);
+            return "Unauthorized";
+        }
+
+        String email = request.params("email");
+
+        Document credentials = DUUIMongoDBStorage
+            .Users()
+            .find(Filters.eq("email", email))
+            .projection(Projections.include("email", "password"))
+            .first();
+
+        if (isNullOrEmpty(credentials)) {
+            return userNotFound(response);
+        }
+
+        mapObjectIdToString(credentials);
+
+        response.status(200);
+        return new Document("credentials", credentials).toJson();
+    }
+
+    private static boolean validateServer(String key) {
+        Dotenv dotenv = Dotenv.load();
+        String SERVER_API_KEY = dotenv.get("SERVER_API_KEY");
+        return SERVER_API_KEY != null && SERVER_API_KEY.equals(key);
+    }
+
+    public static String updateOne(Request request, Response response) {
+        String key = request.queryParamOrDefault("key", "");
+
+        if (!validateServer(key)) {
+            response.status(401);
+            return "Unauthorized";
+        }
+
+        Document body = Document.parse(request.body());
+        String id = request.params(":id");
+
+        List<Bson> __updates = new ArrayList<>();
+
+        for (Map.Entry<String, Object> entry : body.entrySet()) {
+            if (!ALLOWED_UPDATES.contains(entry.getKey())) {
+                response.status(400);
+                return new Document("error", "Bad Request")
+                    .append("message",
+                        String.format("%s can not be updated. Allowed updates are %s.",
+                            entry.getKey(),
+                            String.join(", ", ALLOWED_UPDATES)
+                        )).toJson();
+            }
+
+            __updates.add(Updates.set(entry.getKey(), entry.getValue()));
+        }
+
+
+        Bson updates = __updates.isEmpty() ? new Document() : Updates.combine(__updates);
+
+        DUUIMongoDBStorage
+            .Users()
+            .findOneAndUpdate(Filters.eq(new ObjectId(id)), updates);
+
+        Document user = DUUIUserController.getUserById(id);
+        mapObjectIdToString(user);
+        return new Document("user", user).toJson();
+
+    }
+
+    public static String authorizeUser(Request request, Response response) {
+        String key = request.queryParamOrDefault("key", "");
+
+        if (!validateServer(key)) {
+            response.status(401);
+            return "Unauthorized";
+        }
+
+        String authorization = request.headers("Authorization");
+        Document user = authenticate(authorization);
+
+        if (isNullOrEmpty(user))
+            return userNotFound(response);
+
+        mapObjectIdToString(user);
+
+        response.status(200);
+        return new Document("user", user).toJson();
+    }
+
+    public static String fetchUser(Request request, Response response) {
+        String key = request.queryParamOrDefault("key", "");
+
+        if (!validateServer(key)) {
+            response.status(401);
+            return "Unauthorized";
+        }
+
+        String id = request.params(":id");
+        Document user = getUserProperties(id);
+        mapObjectIdToString(user);
+        return new Document("user", user).toJson();
+    }
+
+    private static Document getUserProperties(String id) {
+        return DUUIMongoDBStorage
+            .Users()
+            .find(Filters.eq(new ObjectId(id)))
+            .projection(
+                Projections.include("email", "session", "role", "preferences", "key", "dropbox", "minio")
+            )
+            .first();
     }
 }

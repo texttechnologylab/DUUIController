@@ -14,7 +14,8 @@ export default {
 		extend: {
 			animation: {
 				'spin-slow': 'spin 2s linear infinite',
-				hourglass: 'turn 4s linear infinite'
+				hourglass: 'turn 4s linear infinite',
+				'ping-once': 'ping 1s ease-in-out forwards'
 			},
 			keyframes: {
 				turn: {

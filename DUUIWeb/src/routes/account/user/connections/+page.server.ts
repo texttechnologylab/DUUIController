@@ -1,14 +1,16 @@
 import { API_URL } from '$lib/config'
-import { type Actions, error } from '@sveltejs/kit'
 import { DropboxAuth, DropboxResponse } from 'dropbox'
 import type { PageServerLoad } from './$types'
 
+import { fail } from '@sveltejs/kit'
+import { DROPBOX_CLIENT_ID, DROPBOX_CLIENT_SECRET, SERVER_API_KEY } from '$env/static/private'
+
 const dbxAuth = new DropboxAuth({
-	clientId: 'l2nw2ign2z8h9hg',
-	clientSecret: 'wqgejzv1xivdwki'
+	clientId: DROPBOX_CLIENT_ID,
+	clientSecret: DROPBOX_CLIENT_SECRET
 })
 
-const redirectURI = `http://localhost:5173/account/auth/dropbox`
+const redirectURI = `http://localhost:5173/account`
 
 const connect = async (code: string, oid: string, session: string) => {
 	const token: DropboxResponse<object> = await dbxAuth.getAccessTokenFromCode(redirectURI, code)
@@ -35,7 +37,7 @@ const connect = async (code: string, oid: string, session: string) => {
 
 export const load: PageServerLoad = async ({ url, cookies, locals }) => {
 	const code = url.searchParams.get('code')
-	if (code !== null) {
+	if (code !== null && locals.user) {
 		const update = await connect(code, locals.user.oid, cookies.get('session') || '')
 		if (update.ok) {
 			locals.user.connections.dropbox = true
@@ -55,7 +57,20 @@ export const load: PageServerLoad = async ({ url, cookies, locals }) => {
 		return response
 	}
 
+	const fetchProfile = async () => {
+		const response = await fetch(`${API_URL}/users/${locals.user?.oid}?key=${SERVER_API_KEY}`, {
+			method: 'GET',
+			mode: 'cors'
+		})
+
+		if (!response.ok) {
+			return fail(response.status, { messgage: response.statusText })
+		}
+		return await response.json()
+	}
+
 	return {
-		dropbBoxURL: getAuthURL()
+		dropbBoxURL: getAuthURL(),
+		user: (await fetchProfile()).user
 	}
 }

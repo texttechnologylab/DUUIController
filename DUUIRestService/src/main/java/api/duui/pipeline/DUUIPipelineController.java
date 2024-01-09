@@ -6,6 +6,7 @@ import api.requests.validation.PipelineValidator;
 import api.storage.DUUIMongoDBStorage;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.Updates;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -19,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 
 import static api.Application.queryIntElseDefault;
+import static api.http.RequestUtils.Limit;
+import static api.http.RequestUtils.Skip;
 import static api.requests.validation.UserValidator.authenticate;
 import static api.requests.validation.UserValidator.unauthorized;
 import static api.requests.validation.Validator.isNullOrEmpty;
@@ -36,7 +39,7 @@ public class DUUIPipelineController {
     );
 
     public static String findOne(Request request, Response response) {
-        String authorization = request.headers("authorization");
+        String authorization = request.headers("Authorization");
 
         Document user = authenticate(authorization);
         if (isNullOrEmpty(user)) return unauthorized(response);
@@ -51,33 +54,46 @@ public class DUUIPipelineController {
     }
 
     public static String findMany(Request request, Response response) {
-        String authorization = request.headers("authorization");
+        String authorization = request.headers("Authorization");
 
         Document user = authenticate(authorization);
         if (isNullOrEmpty(user)) return unauthorized(response);
 
-        int limit = Integer.parseInt(request.queryParamOrDefault("limit", "0"));
-        int skip = Integer.parseInt(request.queryParamOrDefault("skip", "0"));
+        int limit = Limit(request);
+        int skip = Skip(request);
 
-        FindIterable<Document> documents = DUUIMongoDBStorage
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("pipelines")
-            .find(Filters.eq(
-                "user_id",
-                user.getObjectId("_id").toString()));
+        String templates = request.queryParamOrDefault("templates", "false").toLowerCase();
 
-        if (skip != 0) {
-            documents = documents.skip(skip);
+        FindIterable<Document> documents;
+
+        if (user.getString("role").equalsIgnoreCase("admin")) {
+            documents = DUUIMongoDBStorage
+                .Pipelines()
+                .find(
+                    Filters.or(
+                        Filters.eq("user_id", user.getObjectId("_id").toString()),
+                        Filters.or(
+                            Filters.exists("user_id", false),
+                            Filters.eq("user_id", null))));
+        } else {
+            documents = DUUIMongoDBStorage
+                .Pipelines()
+                .find(
+                    templates.equals("true") ?
+                        Filters.or(
+                            Filters.exists("user_id", false),
+                            Filters.eq("user_id", null)) :
+                        Filters.eq(
+                            "user_id",
+                            user.getObjectId("_id").toString()
+                        ));
         }
 
-        if (limit != 0) {
-            documents = documents.limit(limit);
-        }
+        if (skip != 0) documents = documents.skip(skip);
+        if (limit != 0) documents = documents.limit(limit);
+        documents = documents.sort(Sorts.descending("user_id"));
 
-
-        List<Document> pipelines = new ArrayList<>();
-        documents.into(pipelines);
+        List<Document> pipelines = documents.into(new ArrayList<>());
 
         pipelines.forEach(pipeline -> {
             DUUIMongoDBStorage.mapObjectIdToString(pipeline);
@@ -90,44 +106,13 @@ public class DUUIPipelineController {
         return new Document("pipelines", pipelines).toJson();
     }
 
-    public static String findTemplates(Request request, Response response) {
-        String authorization = request.headers("authorization");
-
-        Document user = authenticate(authorization);
-        if (isNullOrEmpty(user)) return unauthorized(response);
-
-        int limit = queryIntElseDefault(request, "limit", 0);
-        int offset = queryIntElseDefault(request, "offset", 0);
-
-        FindIterable<Document> documents = DUUIMongoDBStorage
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("pipelines")
-            .find(Filters.exists("user_id", false));
-
-        if (limit != 0) {
-            documents.limit(limit);
-        }
-
-        if (offset != 0) {
-            documents.skip(offset);
-        }
-
-        List<Document> pipelines = new ArrayList<>();
-        documents.into(pipelines);
-
-        pipelines.forEach(pipeline -> {
-            DUUIMongoDBStorage.mapObjectIdToString(pipeline);
-            pipeline.put("components",
-                DUUIComponentController
-                    .getComponentsForPipeline(pipeline.getString("oid")));
-        });
-
-        response.status(200);
-        return new Document("pipelines", pipelines).toJson();
-    }
 
     public static String insertOne(Request request, Response response) {
+        String authorization = request.headers("Authorization");
+
+        Document user = authenticate(authorization);
+        if (isNullOrEmpty(user)) return unauthorized(response);
+
         Document body = Document.parse(request.body());
 
         String name = body.getString("name");
@@ -136,10 +121,7 @@ public class DUUIPipelineController {
         List<Document> components = body.getList("components", Document.class);
         if (components.isEmpty()) return missingField(response, "components");
 
-        String authorization = request.headers("authorization");
-
-        Document user = authenticate(authorization);
-        if (isNullOrEmpty(user)) return unauthorized(response);
+        String template = request.queryParamOrDefault("template", "false").toLowerCase();
 
         Document pipeline = new Document("name", name)
             .append("description", body.getString("description"))
@@ -147,12 +129,10 @@ public class DUUIPipelineController {
             .append("serviceStartTime", 0L)
             .append("settings", body.get("settings", Document.class))
             .append("timesUsed", 0)
-            .append("user_id", user.getObjectId("_id").toString());
+            .append("user_id", template.equals("true") ? null : user.getObjectId("_id").toString());
 
         DUUIMongoDBStorage
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("pipelines")
+            .Pipelines()
             .insertOne(pipeline);
 
         mapObjectIdToString(pipeline);
@@ -166,15 +146,12 @@ public class DUUIPipelineController {
         );
 
         DUUIMongoDBStorage
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("components")
+            .Components()
             .insertMany(components);
 
 
         response.status(201);
         return getPipelineById(id).toJson();
-
     }
 
     public static String updateOne(Request request, Response response) {
@@ -203,7 +180,7 @@ public class DUUIPipelineController {
     }
 
     public static String deleteOne(Request request, Response response) {
-        String authorization = request.headers("authorization");
+        String authorization = request.headers("Authorization");
 
         Document user = authenticate(authorization);
         if (isNullOrEmpty(user)) return unauthorized(response);
@@ -256,7 +233,7 @@ public class DUUIPipelineController {
     }
 
     public static String startService(Request request, Response response) {
-        String authorization = request.headers("authorization");
+        String authorization = request.headers("Authorization");
 
         Document user = authenticate(authorization);
         if (isNullOrEmpty(user)) return unauthorized(response);
@@ -283,7 +260,7 @@ public class DUUIPipelineController {
     }
 
     public static String stopService(Request request, Response response) {
-        String authorization = request.headers("authorization");
+        String authorization = request.headers("Authorization");
 
         Document user = authenticate(authorization);
         if (isNullOrEmpty(user)) return unauthorized(response);
@@ -336,6 +313,4 @@ public class DUUIPipelineController {
     public static boolean pipelineIsActive(String id) {
         return _services.containsKey(id);
     }
-
-
 }

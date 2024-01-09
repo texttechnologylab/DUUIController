@@ -16,11 +16,14 @@ export interface Session {
 	user: App.Locals['user']
 }
 
+export const userSession: Writable<User> = writable(undefined)
+
 export const storage: Writable<Session> = localStorageStore('session', {
 	session: '',
 	user: {
 		oid: '',
 		authorization: '',
+		session: '',
 		email: '',
 		role: 'user',
 		preferences: {},

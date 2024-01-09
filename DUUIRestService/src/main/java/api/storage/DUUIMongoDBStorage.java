@@ -5,6 +5,7 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -14,8 +15,8 @@ import java.util.stream.Collectors;
 public class DUUIMongoDBStorage {
 
     private static MongoClient mongoClient;
-    private static final String user = System.getenv("mongo_user");
-    private static final String pass = System.getenv("mongo_pass");
+    private static String user = System.getenv("mongo_user");
+    private static String pass = System.getenv("mongo_pass");
 
     public static void mapObjectIdToString(Document document) {
         try {
@@ -40,6 +41,9 @@ public class DUUIMongoDBStorage {
     }
 
     private DUUIMongoDBStorage() {
+        Dotenv dotenv = Dotenv.load();
+        user = dotenv.get("MONGO_DB_USERNAME");
+        pass = dotenv.get("MONGO_DB_PASSWORD");
     }
 
     public static MongoClient getInstance() {

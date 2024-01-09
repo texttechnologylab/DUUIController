@@ -34,7 +34,7 @@ public class UserValidator {
 
     public static String unauthorized(Response response) {
         response.status(401);
-        return new Document("message", "Missing authorization header. Generate an api key or log in to your account.").toJson();
+        return "Unauthorized";
     }
 
     public static String unauthorized(Response response, String message) {

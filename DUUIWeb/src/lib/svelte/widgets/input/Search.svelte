@@ -12,7 +12,8 @@
 	<div
 		class="{icon
 			? 'pl-3'
-			: ''} flex items-center border-[1px] focus-within:ring-1 focus-within:ring-[#2563eb] focus-within:border-[#2563eb] bg-white dark:bg-surface-600 border-surface-400/20"
+			: ''} rounded-md overflow-hidden flex items-center border-[1px] focus-within:ring-1 focus-within:ring-[#2563eb] focus-within:border-[#2563eb]
+			 bg-white dark:bg-surface-600 border-surface-400/20"
 	>
 		{#if icon}
 			<Fa {icon} />

@@ -46,20 +46,22 @@
 	import { pipelineToExportableJson } from '$lib/duui/pipeline'
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import type { DUUIComponent } from '$lib/duui/component'
-	import { Status } from '$lib/duui/monitor'
+	import { Status, statusNames } from '$lib/duui/monitor'
 	import type { DUUIProcess } from '$lib/duui/process'
 	import { markedForDeletionStore } from '$lib/store'
 	import Mapper from '$lib/svelte/widgets/input/Mapper.svelte'
 	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
-	import Text from '$lib/svelte/widgets/input/Text.svelte'
+	import Text from '$lib/svelte/widgets/input/TextInput.svelte'
 	import SpeedDial from '$lib/svelte/widgets/navigation/SpeedDial.svelte'
 	import IconButton from '$lib/svelte/widgets/action/IconButton.svelte'
+	import Paginator from '$lib/svelte/widgets/navigation/Paginator.svelte'
+	import Select from '$lib/svelte/widgets/input/Select.svelte'
 
 	export let data: PageServerData
-	let { pipeline, processes } = data
+	let { pipeline, processInfo } = data
+	let { processes, count } = processInfo
 
 	pipeline.components.forEach((c) => (c.id = uuidv4()))
-
 	let pipelineCopy = cloneDeep(pipeline)
 
 	const modalStore = getModalStore()
@@ -73,17 +75,29 @@
 
 	let tableHeader: string[] = ['Started At', 'IO', '# Documents', 'Progress', 'Status', 'Duration']
 
-	let sortIndex: number = 0
-	let sortOrder: number = 1
+	let sort: Sort = {
+		by: 0,
+		order: 1
+	}
 
-	let pageIndex: number = 0
-	let itemsPerPage: number = 10
-	let numberOfPages: number = processes.length / itemsPerPage
+	const sortMap: Map<number, string> = new Map([
+		[0, 'startTime'],
+		[1, 'input'],
+		[2, 'count'],
+		[3, 'progress'],
+		[4, 'status'],
+		[5, 'duration']
+	])
 
-	let filteredProcesses: DUUIProcess[] = []
+	let paginationSettings: PaginationSettings = {
+		page: 0,
+		limit: 10,
+		total: count,
+		sizes: [5, 10, 20, 50]
+	}
+
+	let filter: string[] = [Status.Any]
 	let sortedProcessses: DUUIProcess[] = processes
-	let statusFilter: string = Status.Any
-
 	let tabSet: number = +($page.url.searchParams.get('tab') || 0)
 
 	const handleDndConsider = (event: CustomEvent<DndEvent<DUUIComponent>>) => {
@@ -141,7 +155,11 @@
 		}).then(async (accepted: boolean) => {
 			if (!accepted) return
 
-			let response = await makeApiCall(Api.Pipelines, 'DELETE', { oid: pipeline.oid })
+			const response = await fetch(`./api`, {
+				method: 'DELETE',
+				body: JSON.stringify({ oid: pipeline.oid })
+			})
+
 			if (response.ok) {
 				goto('/pipelines')
 				toastStore.trigger(info('Pipeline deleted successfully'))
@@ -170,15 +188,12 @@
 
 	const startService = async () => {
 		startingService = true
-		toastStore.trigger(info(`Starting Service ${pipeline.name}`))
 		let response = await makeApiCall(Api.Services, 'POST', pipeline)
 
 		if (response.ok) {
 			const json = await response.json()
 			pipeline.serviceStartTime = json.serviceStartTime
 			pipelineCopy.serviceStartTime = json.serviceStartTime
-
-			toastStore.trigger(success(`Service ${pipeline.name} has been started`))
 		}
 
 		startingService = false
@@ -186,15 +201,12 @@
 
 	const stopService = async () => {
 		stoppingService = true
-		toastStore.trigger(info(`Stopping Service ${pipeline.name}`))
 
 		let response = await makeApiCall(Api.Services, 'PUT', pipeline)
 
 		if (response.ok) {
 			pipeline.serviceStartTime = 0
 			pipelineCopy.serviceStartTime = 0
-
-			toastStore.trigger(info(`Service ${pipeline.name} has been stopped`))
 		}
 
 		stoppingService = false
@@ -219,6 +231,67 @@
 		settings = new Map(Object.entries(pipeline.settings))
 	}
 
+	const sortProcesses = () => {
+		if (processes.length === 0) return processes
+		switch (sort.by) {
+			case 0:
+				return processes.sort((a, b) => (a.startTime > b.startTime ? -sort.order : sort.order))
+			case 1:
+				return processes.sort((a, b) =>
+					a.input.source > b.input.source ? sort.order : -sort.order
+				)
+			case 2:
+				return processes.sort((a, b) =>
+					a.documentNames.length > b.documentNames.length ? sort.order : -sort.order
+				)
+			case 3:
+				return processes.sort((a, b) => (a.progress > b.progress ? sort.order : -sort.order))
+			case 4:
+				return processes.sort((a, b) =>
+					documentStatusNamesString.indexOf(a.status) > documentStatusNamesString.indexOf(b.status)
+						? sort.order
+						: -sort.order
+				)
+			case 5:
+				return processes.sort((a, b) =>
+					getDuration(a.startTime, a.endTime) > getDuration(b.startTime, b.endTime)
+						? sort.order
+						: -sort.order
+				)
+			default:
+				return processes
+		}
+	}
+
+	const updateTable = async () => {
+		const lastFilter: string | undefined = filter.at(-1)
+
+		if (equals(lastFilter || '', Status.Any) || filter.length === 0) {
+			filter = [Status.Any]
+		} else {
+			filter = filter.filter((status) => !equals(status, Status.Any))
+		}
+
+		const response = await fetch(
+			`./api
+			?pipeline_id=${pipeline.oid}
+			&limit=${paginationSettings.limit}
+			&skip=${paginationSettings.page * paginationSettings.limit}
+			&by=${sortMap.get(sort.by)}
+			&order=${sort.order}
+			&filter=${filter.join(';')}`,
+			{
+				method: 'GET'
+			}
+		)
+
+		const json = await response.json()
+		const data = json.processInfo
+		processes = data.processes
+		count = data.count
+		sortedProcessses = processes
+	}
+
 	$: {
 		hasChanges = !isEqual(pipeline, pipelineCopy)
 
@@ -227,40 +300,10 @@
 		}
 	}
 
-	$: {
-		if (processes.length > 0) {
-			filteredProcesses = processes.filter(
-				(p) => equals(p.status, statusFilter) || statusFilter === '' || statusFilter === Status.Any
-			)
-
-			sortedProcessses = filteredProcesses
-				.sort((a, b) => {
-					if (sortIndex === 1) return a.input.source > b.input.source ? sortOrder : -sortOrder
-					if (sortIndex === 2)
-						return a.documentNames.length > b.documentNames.length ? sortOrder : -sortOrder
-					if (sortIndex === 3) return a.progress > b.progress ? sortOrder : -sortOrder
-					if (sortIndex === 4)
-						return documentStatusNamesString.indexOf(a.status) >
-							documentStatusNamesString.indexOf(b.status)
-							? sortOrder
-							: -sortOrder
-
-					if (sortIndex === 5)
-						return getDuration(a.startTime, a.endTime) > getDuration(b.startTime, b.endTime)
-							? sortOrder
-							: -sortOrder
-					return a.startTime > b.startTime ? -sortOrder : sortOrder
-				})
-				.slice(itemsPerPage * pageIndex, itemsPerPage * (pageIndex + 1))
-
-			numberOfPages = Math.floor(filteredProcesses.length / itemsPerPage)
-			if (filteredProcesses.length % itemsPerPage === 0) numberOfPages -= 1
-		}
-	}
-
 	const sortTable = (index: number) => {
-		sortOrder = sortIndex !== index ? 1 : (sortOrder *= -1)
-		sortIndex = index
+		sort.order = sort.by !== index ? 1 : sort.order === 1 ? -1 : 1
+		sort.by = index
+		updateTable()
 	}
 </script>
 
@@ -270,15 +313,16 @@
 		<IconButton icon={faFileExport} on:click={exportPipeline} />
 		<IconButton icon={faCopy} on:click={copyPipeline} />
 		<IconButton icon={faTrash} on:click={deletePipeline} />
+		<IconButton icon={faPlus} on:click={() => goto('/process?oid=' + pipeline.oid)} />
 		{#if startingService || stoppingService}
-			<IconButton icon={faRefresh} _class="lg:ml-auto col-span-2 animate-spin-slow" />
+			<IconButton icon={faRefresh} _class="lg:ml-auto col-span-2" />
 		{:else if pipeline.serviceStartTime === 0}
 			<IconButton icon={faPlay} on:click={manageService} _class="lg:ml-auto col-span-2 pl-1" />
 		{:else}
 			<IconButton
 				icon={faPause}
 				on:click={manageService}
-				_class="lg:ml-auto col-span-2 variant-filled-success dark:variant-soft-success pl"
+				_class="lg:ml-auto col-span-2 dark:variant-soft-success pl"
 			/>
 		{/if}
 	</svelte:fragment>
@@ -338,29 +382,31 @@
 		{/if}
 	</div>
 
-	<div class="bg-surface-100 dark:variant-soft-surface shadow-lg text-sm md:text-base">
+	<div
+		class="rounded-md overflow-hidden bg-surface-100 dark:variant-soft-surface shadow-lg text-xs md:text-base"
+	>
 		<TabGroup
 			active="dark:variant-soft-primary variant-filled-primary"
 			border="none"
 			rounded="rounded-none"
 			justify="grid grid-cols-3"
 		>
-			<Tab bind:group={tabSet} name="settings" value={0}>
-				<div class="flex items-center justify-center gap-2">
-					<Fa class="hidden md:block" icon={faGears} />
+			<Tab bind:group={tabSet} name="settings" value={0} flex="flex items-center justify-center">
+				<div class="flex flex-col md:flex-row items-center justify-center md:gap-2">
+					<Fa icon={faGears} />
 					<span>Settings</span>
 				</div>
 			</Tab>
 
-			<Tab bind:group={tabSet} name="components" value={1}
-				><div class="flex items-center justify-center gap-2">
-					<Fa class="hidden md:block" icon={faMap} />
+			<Tab bind:group={tabSet} name="components" value={1} flex="flex items-center justify-center"
+				><div class="flex flex-col md:flex-row items-center justify-center md:gap-2">
+					<Fa icon={faMap} />
 					<span>Components</span>
 				</div></Tab
 			>
-			<Tab bind:group={tabSet} name="processes" value={2}
-				><div class="flex items-center justify-center gap-2">
-					<Fa class="hidden md:block" icon={faLayerGroup} />
+			<Tab bind:group={tabSet} name="processes" value={2} flex="flex items-center justify-center"
+				><div class="flex flex-col md:flex-row items-center justify-center md:gap-2">
+					<Fa icon={faLayerGroup} />
 					<span>Processes</span>
 				</div></Tab
 			>
@@ -368,8 +414,10 @@
 	</div>
 
 	{#if tabSet === 0}
-		<div class="grid md:grid-cols-2 gap-4">
-			<div class="flex flex-col gap-4 bg-surface-100 dark:variant-soft-surface shadow-lg p-4">
+		<div class=" grid md:grid-cols-2 gap-4">
+			<div
+				class="rounded-md flex flex-col gap-4 bg-surface-100 dark:variant-soft-surface shadow-lg p-4"
+			>
 				<Text label="Name" name="pipeline-name" bind:value={pipeline.name} />
 				<TextArea
 					label="Description"
@@ -377,7 +425,7 @@
 					bind:value={pipeline.description}
 				/>
 			</div>
-			<div class="bg-surface-100 dark:variant-soft-surface p-4 shadow-lg rounded-none">
+			<div class="rounded-md bg-surface-100 dark:variant-soft-surface p-4 shadow-lg">
 				<Mapper
 					bind:map={settings}
 					on:update={(event) => {
@@ -409,22 +457,31 @@
 			</ul>
 		</div>
 	{:else if tabSet === 2}
-		<ActionButton
-			text="New Process"
-			icon={faPlus}
-			_class="mr-auto"
-			on:click={() => goto('/process?oid=' + pipeline.oid)}
-		/>
-		<div class="overflow-hidden border-[1px] border-surface-200 dark:border-surface-500">
+		<div class="grid md:flex items-center gap-4 justify-between">
+			<ActionButton
+				text="New Process"
+				icon={faPlus}
+				_class="mr-auto hidden md:inline-flex"
+				on:click={() => goto('/process?oid=' + pipeline.oid)}
+			/>
+			<Select
+				on:change={updateTable}
+				label="Status"
+				name="Status"
+				bind:selected={filter}
+				options={statusNames}
+			/>
+		</div>
+		<div
+			class="rounded-md overflow-hidden border border-surface-200 dark:border-surface-500 text-xs"
+		>
 			<div
-				class="header grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 bg-surface-100 dark:variant-soft-surface border-b-4 border-primary-500"
+				class="header grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 bg-surface-100 dark:variant-soft-surface border-b-4 border-primary-500"
 			>
 				{#each tableHeader as column, index}
 					<button
-						class="btn bg-surface-100 px-4 dark:variant-soft-surface gap-4 justify-start items-center rounded-none p-3 text-left
-						 {[3].includes(index)
-							? 'hidden sm:inline-flex'
-							: [2].includes(index)
+						class="btn-sm md:text-base md:inline-flex bg-surface-100 px-4 dark:variant-soft-surface gap-4 justify-start items-center rounded-none p-3 text-left
+						 {[2].includes(index)
 							? 'hidden md:inline-flex'
 							: [1, 5].includes(index)
 							? 'hidden lg:inline-flex'
@@ -432,8 +489,8 @@
 						on:click={() => sortTable(index)}
 					>
 						<span>{column}</span>
-						{#if sortIndex === index}
-							<Fa icon={sortOrder === -1 ? faArrowDownWideShort : faArrowUpWideShort} />
+						{#if sort.by === index}
+							<Fa icon={sort.order === -1 ? faArrowDownWideShort : faArrowUpWideShort} />
 						{/if}
 					</button>
 				{/each}
@@ -441,21 +498,22 @@
 
 			<div class=" overflow-hidden flex flex-col">
 				{#each sortedProcessses as process}
-					<button
-						class="btn rounded-none first:border-t-0 border-t-[1px]
-						dark:border-t-surface-500 dark:hover:variant-soft-primary hover:variant-filled-primary grid-cols-2 grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8 p-3 px-4 text-left"
-						on:click={() => goto(`/process/${process.oid}?limit=10&skip=0`)}
+					<a
+						href={`/process/${process.oid}?limit=10&skip=0`}
+						class="rounded-none first:border-t-0 border-t-[1px]
+						 dark:border-t-surface-500 dark:hover:variant-soft-primary hover:variant-filled-primary
+						 grid-cols-3 grid md:grid-cols-4 lg:grid-cols-6 gap-8 p-3 px-4 text-left text-xs md:text-base"
 					>
 						<p>{datetimeToString(new Date(process.startTime))}</p>
 						<p class="hidden lg:block">{process.input.source} / {process.output.target}</p>
 						<p class="hidden md:block">{process.documentNames.length}</p>
-						<p class="hidden sm:flex items-center justify-between gap-4">
-							<span
-								>{((process.progress / process.documentNames.length) * 100 || 0).toFixed(2)} %</span
-							>
-							<span>{process.progress} / {process.documentNames.length}</span>
-						</p>
-						<p class="flex justify-start items-center gap-4">
+						<div class="md:grid md:grid-cols-2 items-center justify-start md:gap-4">
+							<p>
+								{((process.progress / process.documentNames.length) * 100 || 0).toFixed(2)} %
+							</p>
+							<p>{process.progress} / {process.documentNames.length}</p>
+						</div>
+						<p class="flex justify-start items-center gap-2 md:gap-4">
 							<Fa
 								icon={getStatusIcon(process.status)}
 								size="lg"
@@ -466,10 +524,11 @@
 						<p class="hidden lg:block">
 							{getDuration(process.startTime, process.endTime)}
 						</p>
-					</button>
+					</a>
 				{/each}
 			</div>
 		</div>
+		<Paginator bind:settings={paginationSettings} on:change={updateTable} />
 	{/if}
 
 	{#if hasChanges}

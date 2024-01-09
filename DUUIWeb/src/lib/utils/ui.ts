@@ -11,7 +11,8 @@ import {
 	faHourglass,
 	faQuestion,
 	faRefresh,
-	faClose
+	faClose,
+	faWarning
 } from '@fortawesome/free-solid-svg-icons'
 import { equals } from './text'
 import { Status } from '$lib/duui/monitor'
@@ -57,7 +58,7 @@ export function getStatusIcon(status: string) {
 	if (equals(status, Status.Output)) return faFileUpload
 	if (equals(status, Status.Completed)) return faCheckDouble
 	if (equals(status, Status.Canceled)) return faCancel
-	if (equals(status, Status.Failed)) return faClose
+	if (equals(status, Status.Failed)) return faWarning
 
 	return faQuestion
 }
@@ -70,7 +71,7 @@ export const getDocumentStatusIcon = (document: DUUIDocument) => {
 	if (equals(document.status, Status.Waiting)) return faHourglass
 	if (equals(document.status, Status.Canceled)) return document.error ? faClose : faCancel
 	if (equals(document.status, Status.Output)) return document.error ? faClose : faFileUpload
-	if (equals(document.status, Status.Failed)) return document.error ? faClose : faCheck
+	if (equals(document.status, Status.Failed)) return document.error ? faWarning : faCheck
 	if (equals(document.status, Status.Completed)) return document.error ? faClose : faCheckDouble
 
 	return document.error ? faClose : document.finished ? faCheck : faRefresh

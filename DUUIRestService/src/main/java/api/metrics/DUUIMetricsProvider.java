@@ -10,7 +10,7 @@ public class DUUIMetricsProvider {
     }
 
     public Map<String, Long> getMetrics() {
-        return _provider.updateMetrics();
+        return _provider.getMetrics();
     }
 
     public static class Builder {

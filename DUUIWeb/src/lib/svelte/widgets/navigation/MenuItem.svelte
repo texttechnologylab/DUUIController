@@ -6,9 +6,9 @@
 
 <a
 	{href}
-	class="group space-y-1 transition-colors text-left text-sm rounded-none hover:variant-filled-primary dark:hover:variant-soft-primary p-4"
-	><span class="font-bold"> {title} </span>
+	class="rounded-none space-y-1 transition-colors text-left hover:variant-filled-primary dark:hover:variant-soft-primary p-3"
+	><span> {title} </span>
 	{#if info}
-		<p class="max-w-[40ch]">{info}</p>
+		<p class="max-w-[40ch] text-sm">{info}</p>
 	{/if}
 </a>

@@ -15,7 +15,7 @@
 </script>
 
 <aside
-	class="h-full !sticky top-0 flex flex-col gap-4 justify-start bg-white dark:bg-surface-700 md:w-modal-slim p-4"
+	class="h-screen sticky top-0 space-y-4 bg-surface-100 dark:bg-surface-700 md:w-modal-slim p-4"
 >
 	<!-- Introduction -->
 	<div class="space-y-4 p-4">
@@ -25,10 +25,10 @@
 				on:click={() => (selected = '#introduction')}
 				href="/documentation#introduction"
 				class="btn block text-left rounded-none
-                {selected === '#introduction' ? 'variant-filled-primary' : 'bg-primary-hover-token'}"
-				>Introduction</a
+                {selected === '#introduction'
+					? 'variant-filled-primary'
+					: 'bg-primary-hover-token'}">Introduction</a
 			>
-
 			<a
 				on:click={() => (selected = '#composer')}
 				href="/documentation#composer"
@@ -73,27 +73,44 @@
 		<p class="font-bold h3">API</p>
 		<div class="flex flex-col text-left">
 			<a
-				on:click={() => (selected = '/api#web')}
-				href="/documentation/api#web"
+				on:click={() => (selected = '/api#pipeline')}
+				href="/documentation/api#pipeline"
 				class="btn block text-left rounded-none
-                {selected === '/api#web' ? 'variant-filled-primary' : 'bg-primary-hover-token'}"
-				>Web</a
+                {selected === '/api#pipeline'
+					? 'variant-filled-primary'
+					: 'bg-primary-hover-token'}">Pipeline</a
 			>
 
 			<a
-				on:click={() => (selected = '/api#java')}
-				href="/documentation/api#java"
+				on:click={() => (selected = '/api#component')}
+				href="/documentation/api#component"
 				class="btn block text-left rounded-none
-                {selected === '/api#java' ? 'variant-filled-primary' : 'bg-primary-hover-token'}"
-				>Java</a
+                {selected === '/api#component'
+					? 'variant-filled-primary'
+					: 'bg-primary-hover-token'}">Component</a
 			>
 
 			<a
-				on:click={() => (selected = '/api#python')}
-				href="/documentation/api#python"
+				on:click={() => (selected = '/api#process')}
+				href="/documentation/api#process"
 				class=" btn block text-left rounded-none
-                {selected === '/api#python' ? 'variant-filled-primary' : 'bg-primary-hover-token'}"
-				>Python</a
+                {selected === '/api#process' ? 'variant-filled-primary' : 'bg-primary-hover-token'}"
+				>Process</a
+			>
+			<a
+				on:click={() => (selected = '/api#document')}
+				href="/documentation/api#document"
+				class=" btn block text-left rounded-none
+                {selected === '/api#document'
+					? 'variant-filled-primary'
+					: 'bg-primary-hover-token'}">Document</a
+			>
+			<a
+				on:click={() => (selected = '/api#event')}
+				href="/documentation/api#event"
+				class=" btn block text-left rounded-none
+                {selected === '/api#event' ? 'variant-filled-primary' : 'bg-primary-hover-token'}"
+				>Event</a
 			>
 		</div>
 	</div>

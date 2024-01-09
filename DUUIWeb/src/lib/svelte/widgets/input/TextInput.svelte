@@ -1,47 +1,29 @@
 <script lang="ts">
-	import type { IconDefinition } from '@fortawesome/free-solid-svg-icons'
-	import Fa from 'svelte-fa'
-
+	export let label: string = ""
+	export let name: string = ""
 	export let value: string = ''
-	export let placeholder: string = ''
-	export let icon: IconDefinition | undefined = undefined
-	export let classes: string = ''
 
-	export let id: string = ''
-	export let name: string = ''
 	export let required: boolean = false
+	export let readonly: boolean = false
+	export let error: string = ''
+	export let hidden: boolean = false
+	export let style: string = ''
 </script>
 
-<label class="{classes} flex flex-col justify-start gap-1">
-	{#if name}
-		<span class="uppercase text-xs tracking-widest">{name}</span>
+<label class="label flex flex-col {hidden ? 'hidden' : ''} {style}">
+	<span class="uppercase text-xs tracking-widest pl-2">{label}</span>
+	{#if error}
+		<span class="pl-1 text-xs text-error-500">{error}</span>
 	{/if}
-	{#if icon}
-		<div
-			class="pl-4 flex items-center bg-transparent focus:ring-0 variant-soft-surface focus-within:border-primary-500 border-[1px] border-surface-200 dark:border-surface-500"
-		>
-			<Fa {icon} />
-			<input
-				{required}
-				{name}
-				{id}
-				class="bg-transparent focus:ring-0 border-none focus-within:border-primary-500"
-				{placeholder}
-				bind:value
-				on:keydown
-				on:focusout
-			/>
-		</div>
-	{:else}
-		<input
-			{required}
-			{name}
-			{id}
-			class="bg-transparent focus:ring-0 variant-soft-surface focus-within:border-primary-500 border-[1px] border-surface-200 dark:border-surface-500"
-			{placeholder}
-			bind:value
-			on:keydown
-			on:focusout
-		/>
-	{/if}
+	<input
+		class="rounded-md overflow-hidden border bg-white dark:bg-surface-600 {error
+			? 'border-error-500'
+			: 'border-surface-400/20'}"
+		type="text"
+		{name}
+		bind:value
+		{required}
+		{readonly}
+		on:keydown
+	/>
 </label>

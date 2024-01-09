@@ -11,7 +11,7 @@ export interface DUUIPipeline {
 	timesUsed: number
 	lastUsed: number | undefined
 	settings: Object
-	userId: string | null // if null -> Template
+	user_id: string | null | undefined // if null -> Template
 	components: DUUIComponent[]
 }
 
@@ -25,7 +25,7 @@ export const blankPipeline = () =>
 		timesUsed: 0,
 		lastUsed: 0,
 		settings: {},
-		userId: null,
+		user_id: null,
 		components: []
 	}
 

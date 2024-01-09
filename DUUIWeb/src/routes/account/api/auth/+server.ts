@@ -24,7 +24,7 @@ export async function GET({ request, cookies, locals }) {
 			key: key
 		}),
 		headers: {
-			authorization: cookies.get('session') || ''
+			Authorization: cookies.get('session') || ''
 		}
 	})
 

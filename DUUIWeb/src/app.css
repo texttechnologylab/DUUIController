@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@tailwind variants;
+
+@layer base {
+	html {
+		scroll-behavior: smooth;
+	}
+
+}
+
+html,
+body {
+	@apply h-full overflow-hidden !scroll-smooth;
+}
+
+@font-face {
+	font-family: 'Open Sans';
+	src: url('/fonts/OpenSans.ttf');
+}
+
+@font-face {
+	font-family: 'Space Grotesk';
+	src: url('/fonts/SpaceGrotesk.ttf');
+}
+
+:root [data-theme='theme'] {
+	--theme-font-family-base: 'Open Sans', sans-serif;
+	--theme-font-family-heading: 'Space Grotesk', sans-serif;
+}
+
+.section-wrapper {
+	@apply rounded-md border border-surface-200 dark:border-surface-500 shadow-lg isolate overflow-hidden dark:bg-surface-900/70
+}
+
+.form-label {
+	@apply uppercase text-xs tracking-widest pl-2
+}
+
+.input-wrapper {
+	@apply rounded-md border border-surface-400/20 dark:border-surface-400/20 bg-white dark:bg-surface-600
+}

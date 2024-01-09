@@ -21,12 +21,12 @@
 </script>
 
 <label class="label flex flex-col {style}">
-	<span class="uppercase text-xs tracking-widest">{label}</span>
+	<span class="uppercase text-xs tracking-widest pl-2">{label}</span>
 	<div
-		class="flex items-center border-[1px] focus-within:ring-1 focus-within:ring-[#2563eb] focus-within:border-[#2563eb] bg-white dark:bg-surface-600 border-surface-400/20"
+		class="rounded-md flex items-center border-[1px] focus-within:ring-1 focus-within:ring-[#2563eb] focus-within:border-[#2563eb] bg-white dark:bg-surface-600 border-surface-400/20"
 	>
 		<input
-			class="bg-transparent border-0 grow focus-within:ring-0"
+			class="bg-transparent border-0 grow focus-within:ring-0 text-xs"
 			type="password"
 			{name}
 			bind:value
@@ -36,7 +36,7 @@
 		/>
 		<button
 			class="btn btn-sm bg-transparent appearance-none"
-			on:click|preventDefault={toggleVisibility}
+			on:click|preventDefault={toggleVisibility} tabindex="-1"
 		>
 			<Fa class="w-4 bg-transparent appearance-none" icon={hidden ? faEyeSlash : faEye} />
 		</button>

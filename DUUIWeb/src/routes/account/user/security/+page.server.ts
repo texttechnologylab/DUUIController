@@ -9,7 +9,7 @@ export const actions: Actions = {
 			method: 'DELETE',
 			mode: 'cors',
 			headers: {
-				authorization: cookies.get('session') || ''
+				Authorization: cookies.get('session') || ''
 			}
 		})
 

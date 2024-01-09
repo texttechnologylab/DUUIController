@@ -1,42 +1,48 @@
 import { API_URL } from '$lib/config'
+import { json, type RequestHandler } from '@sveltejs/kit'
 
-export async function GET({ url, cookies }) {
+export const GET: RequestHandler = async (event) => {
+	const { cookies } = event
+	const searchParams = event.url.searchParams
+
 	const keys: string[] = ['name', 'progress', 'status', 'size', 'duration']
 
-	let oid: string = url.searchParams.get('oid')
-	let limit: number = Math.min(+(url.searchParams.get('limit') || '10'), 10)
-	let skip: number = Math.max(0, +(url.searchParams.get('skip') || '0'))
-	let sort: string = url.searchParams.get('sort') || 'name'
+	let process_id: string = searchParams.get('process_id') || ''
+	let limit: number = Math.min(+(searchParams.get('limit') || '10'), 10)
+	let skip: number = Math.max(+(searchParams.get('skip') || '0'), 0)
+	let sort: string = searchParams.get('by') || 'name'
 	if (!keys.includes(sort)) {
 		sort = 'name'
 	}
 
-	let order: number = url.searchParams.get('order') === '1' ? 1 : -1
+	let order: number = searchParams.get('order') === '1' ? 1 : -1
 
-	let text: string = url.searchParams.get('text') || ''
-	let statusFilters: string = url.searchParams.get('status') || 'Any'
+	let text: string = searchParams.get('text') || ''
+	let filter: string = searchParams.get('filter') || 'Any'
 
-	const response = await fetch(
-		`${API_URL}/documents?oid=${oid}&limit=${limit}&skip=${skip}&sort=${sort}&order=${order}&text=${text}&status=${statusFilters}`,
-		{
-			method: 'GET',
-			mode: 'cors',
-			headers: {
-				authorization: cookies.get('session') || ''
+	const fetchDocuments = async () => {
+		const response = await fetch(
+			`${API_URL}/documents
+			?process_id=${process_id}
+			&limit=${limit}
+			&skip=${skip}
+			&by=${sort}
+			&order=${order}
+			&text=${text}
+			&filter=${filter}`,
+			{
+				method: 'GET',
+				mode: 'cors',
+				headers: {
+					Authorization: cookies.get('session') || ''
+				}
 			}
-		}
-	)
+		)
 
-	return response
+		return await response.json()
+	}
+
+	return json({
+		result: await fetchDocuments()
+	})
 }
-
-// const documentResponse = await fetch(
-// 	API_URL +
-// 		'/documents/' +
-// 		process.oid +
-// 		`/documents?status=${statusFilters}&limit=${itemsPerPage}&offset=${itemsPerPage * pageIndex}`,
-// 	{
-// 		method: 'GET',
-// 		mode: 'cors'
-// 	}
-// )

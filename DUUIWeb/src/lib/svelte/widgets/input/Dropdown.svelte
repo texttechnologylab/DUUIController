@@ -8,8 +8,8 @@
 	export let label: string = ''
 	export let name: string = label
 
-	export let options: string[]
-	export let value: string
+	export let options: string[] | number[]
+	export let value: string | number
 
 	export let icon: IconDefinition = faChevronDown
 	export let placement: Placement = 'bottom-end'
@@ -28,24 +28,22 @@
 
 <div class="label flex flex-col">
 	{#if label}
-		<span class="uppercase text-xs tracking-widest">{label} </span>
+		<span class="form-label">{label} </span>
 	{/if}
 	<button
-		class="flex justify-between items-center gap-2 px-3 py-2 leading-6 border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 dark:border-surface-400/20"
+		class="rounded-md flex justify-between items-center gap-2 px-3 py-2 leading-6 input-wrapper"
 		use:popup={dropdown}
 	>
-		<span>{toTitleCase(value)}</span>
+		<span>{toTitleCase('' + value)}</span>
 		<Fa {icon} />
 	</button>
 </div>
 
-<div
-	class="shadow-xl border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 dark:border-surface-400/20 z-10"
-	data-popup={name}
->
+<div class="input-wrapper shadow-lg z-10" data-popup={name}>
 	<ListBox rounded="rounded-none" spacing="space-y-0">
 		{#each options as option}
 			<ListBoxItem
+				on:change
 				bind:group={value}
 				{name}
 				value={option}
@@ -55,7 +53,7 @@
 				active="bg-primary-hover-token"
 			>
 				<svelte:fragment slot="lead">
-					<Fa class={equals(value, option) ? '' : 'text-transparent'} icon={faCheck} />
+					<Fa class={equals('' + value, '' + option) ? '' : 'text-transparent'} icon={faCheck} />
 				</svelte:fragment>
 				{option}
 			</ListBoxItem>

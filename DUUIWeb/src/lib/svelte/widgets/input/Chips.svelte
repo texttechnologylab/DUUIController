@@ -30,7 +30,7 @@
 	<span class="uppercase text-xs tracking-widest">{label}</span>
 
 	<div
-		class="flex flex-col border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 focus-within:ring-1 focus-within:ring-[#2563eb] focus-within:border-[#2563eb]"
+		class="rounded-md flex flex-col border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 focus-within:ring-1 focus-within:ring-[#2563eb] focus-within:border-[#2563eb]"
 	>
 		<input
 			class="{values.length > 0

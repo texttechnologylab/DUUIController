@@ -3,40 +3,42 @@ import type { DUUIPipeline } from '$lib/duui/pipeline'
 import type { DUUIProcess } from '$lib/duui/process'
 import type { PageServerLoad } from './$types'
 
-export const load: PageServerLoad = async ({ params, cookies, url, locals}) => {
-	
+export const load: PageServerLoad = async ({ params, cookies, url }) => {
 	const loadPipeline = async (): Promise<DUUIPipeline> => {
-		const result = await fetch(API_URL + '/pipelines/' + params.oid, {
+		const response = await fetch(`${API_URL}/pipelines/${params.oid}`, {
 			method: 'GET',
 			mode: 'cors',
 			headers: {
-				authorization: cookies.get('session') || ''
+				Authorization: cookies.get('session') || ''
 			}
 		})
-		return await result.json()
+
+		return await response.json()
 	}
 
-	const loadProcesses = async (): Promise<DUUIProcess[]> => {
+	const loadProcesses = async (): Promise<{ processes: DUUIProcess[]; count: number }> => {
 		const result = await fetch(
-			API_URL +
-				'/pipelines/' +
-				params.oid +
-				`/processes
-				?limit=${url.searchParams.get('limit') || 0}
+			`${API_URL}/processes?pipeline_id=${params.oid}
+				&limit=${url.searchParams.get('limit') || 10}
 				&offset=${url.searchParams.get('offset') || 0}`,
 			{
 				method: 'GET',
 				mode: 'cors',
 				headers: {
-					authorization: cookies.get('session') || ''
+					Authorization: cookies.get('session') || ''
 				}
 			}
 		)
-		return (await result.json()).processes
+
+		const json = await result.json()
+		return {
+			processes: json.processes,
+			count: json.count
+		}
 	}
 
 	return {
 		pipeline: loadPipeline(),
-		processes: loadProcesses()
+		processInfo: loadProcesses()
 	}
 }

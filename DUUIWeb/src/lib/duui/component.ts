@@ -31,6 +31,11 @@ export const DUUIDrivers: string[] = [
 	DUUIKubernetsDriver
 ]
 
+export type SvelteComponentWrapper = {
+	component: DUUIComponent
+	id: string
+}
+
 export interface DUUIComponent {
 	oid: string
 	id: string // Drag & Drop

@@ -2,30 +2,16 @@ import { fail, redirect } from '@sveltejs/kit'
 import type { Actions, PageServerLoad } from './$types'
 import bcrypt from 'bcrypt'
 import { API_URL } from '$lib/config'
-import { storage } from '$lib/store'
+import { SERVER_API_KEY } from '$env/static/private'
 
-export const load: PageServerLoad = async ({ locals, url }) => {
-	if (url.searchParams.get('logout') === 'true') {
-		storage.set({
-			session: '',
-			user: {
-				oid: '',
-				authorization: '',
-				email: '',
-				role: 'user',
-				preferences: {},
-				connections: {}
-			}
-		})
-	}
-	
+export const load: PageServerLoad = async ({ locals }) => {
 	return {
 		user: locals.user
 	}
 }
 
 export const actions: Actions = {
-	async login({ cookies, request, url }) {
+	async login({ cookies, request }) {
 		const data = await request.formData()
 		const email = data.get('email')
 		const password = data.get('password')
@@ -36,17 +22,18 @@ export const actions: Actions = {
 			})
 		}
 
-		const response = await fetch(`${API_URL}/users/${email}`, {
+		const response = await fetch(`${API_URL}/users/auth/login/${email}?key=${SERVER_API_KEY}`, {
 			method: 'GET',
 			mode: 'cors'
 		})
 
-		const user = await response.json()
-		if (user.status === 404) {
+		if (!response.ok) {
 			return fail(400, {
-				error: 'Invalid credentials.'
+				error: 'Unauthorized'
 			})
 		}
+
+		const { user } = await response.json()
 
 		if (!(await bcrypt.compare(password.toString(), user.password))) {
 			return fail(400, {
@@ -78,7 +65,7 @@ export const actions: Actions = {
 		throw redirect(302, redirectURL)
 	},
 
-	async register({ request, cookies, locals }) {
+	async register({ request, cookies }) {
 		const data = await request.formData()
 		const email = data.get('email')
 

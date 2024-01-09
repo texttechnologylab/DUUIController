@@ -6,7 +6,10 @@ import type { PageServerLoad } from './$types'
 export const load: PageServerLoad = async ({ params, cookies, url }) => {
 	const response = await fetch(`${API_URL}/processes/${params.oid}`, {
 		method: 'GET',
-		mode: 'cors'
+		mode: 'cors',
+		headers: {
+			Authorization: cookies.get('session') || ''
+		}
 	})
 
 	const process: DUUIProcess = await response.json()
@@ -16,7 +19,7 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 			method: 'GET',
 			mode: 'cors',
 			headers: {
-				authorization: cookies.get('session') || ''
+				Authorization: cookies.get('session') || ''
 			}
 		})
 		return await response.json()
@@ -27,22 +30,29 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 
 		let limit: number = Math.min(+(url.searchParams.get('limit') || '10'), 10)
 		let skip: number = Math.max(0, +(url.searchParams.get('skip') || '0'))
-		let sort: string = url.searchParams.get('sort') || 'name'
-		if (!keys.includes(sort)) {
-			sort = 'name'
+		let by: string = url.searchParams.get('by') || 'name'
+		if (!keys.includes(by)) {
+			by = 'name'
 		}
 
 		let order: number = url.searchParams.get('order') === '1' ? 1 : -1
 		let text: string = url.searchParams.get('text') || ''
-		let statusFilters: string = url.searchParams.get('status') || 'Any'
+		let filter: string = url.searchParams.get('filter') || 'Any'
 
 		const response = await fetch(
-			`${API_URL}/documents?oid=${params.oid}&limit=${limit}&skip=${skip}&sort=${sort}&order=${order}&text=${text}&status=${statusFilters}`,
+			`${API_URL}/documents
+			?process_id=${params.oid}
+			&limit=${limit}
+			&skip=${skip}
+			&by=${by}
+			&order=${order}
+			&text=${text}
+			&filter=${filter}`,
 			{
 				method: 'GET',
 				mode: 'cors',
 				headers: {
-					session: cookies.get('session') || ''
+					Authorization: cookies.get('session') || ''
 				}
 			}
 		)
@@ -52,7 +62,13 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 	}
 
 	const loadTimeline = async () => {
-		const response = await fetch(`${API_URL}/processes/${process.oid}/timeline`)
+		const response = await fetch(`${API_URL}/processes/${process.oid}/timeline`, {
+			method: 'GET',
+			mode: 'cors',
+			headers: {
+				Authorization: cookies.get('session') || ''
+			}
+		})
 		const data = await response.json()
 		const { timeline } = data
 

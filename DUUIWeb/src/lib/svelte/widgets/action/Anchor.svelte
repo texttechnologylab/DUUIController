@@ -8,7 +8,7 @@
 	export let variant: string = 'variant-ringed-primary'
 	export let _class: string = ''
 	export let leftToRight: boolean = true
-	export let rounded: string = 'rounded-none'
+	export let rounded: string = ''
 	export let target: string = ''
 	export let rel: string = ''
 	export let size: string = 'md'

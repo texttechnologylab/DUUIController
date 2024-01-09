@@ -14,10 +14,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static api.http.ApiRequest.Limit;
-import static api.http.ApiRequest.Skip;
-import static api.http.ApiResponse.notFound;
-import static api.http.ApiResponse.success;
+
+import static api.http.RequestUtils.Limit;
+import static api.http.RequestUtils.Skip;
+import static api.http.ResponseUtils.notFound;
+import static api.http.ResponseUtils.success;
 import static api.requests.validation.UserValidator.*;
 import static api.requests.validation.Validator.isNullOrEmpty;
 import static api.requests.validation.Validator.missingField;
@@ -38,8 +39,20 @@ public class DUUIComponentController {
         "index"
     );
 
+    /**
+     * Inserts a new Component into the Database. If no user_id or no pipeline_id is specified,
+     * it is asumed that this Component is a template. Authorization is required through an API key
+     * or a session in the browser.
+     * <p>
+     * REQUIRED FIELDS
+     * > name: String
+     *
+     * @param request
+     * @param response
+     * @return
+     */
     public static String insertOne(Request request, Response response) {
-        Document user = authenticate(request.headers("authorization"));
+        Document user = authenticate(request.headers("Authorization"));
         if (isNullOrEmpty(user)) return unauthorized(response);
 
         Document data = Document.parse(request.body());
@@ -76,7 +89,6 @@ public class DUUIComponentController {
             .Components()
             .find(Filters.eq(new ObjectId(id)))
             .first();
-
         if (isNullOrEmpty(component)) return notFound(response, "Component");
 
         mapObjectIdToString(component);
@@ -84,8 +96,7 @@ public class DUUIComponentController {
     }
 
     public static String findMany(Request request, Response response) {
-        String authorization = request.headers("authorization");
-
+        String authorization = request.headers("Authorization");
         Document user = authenticate(authorization);
         if (isNullOrEmpty(user)) return unauthorized(response);
 
@@ -102,9 +113,6 @@ public class DUUIComponentController {
                         Filters.eq("user_id", user.getObjectId("_id").toString())
                     )
                 ));
-
-        // No pipelineId -> template
-        // No userId or userId matches -> template for user or public
 
         if (limit != 0) components.limit(limit);
         if (skip != 0) components.skip(skip);

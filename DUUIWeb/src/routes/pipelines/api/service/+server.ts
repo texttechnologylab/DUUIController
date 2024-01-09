@@ -9,7 +9,7 @@ export async function POST({ request, cookies }) {
 		mode: 'cors',
 		body: JSON.stringify(data),
 		headers: {
-			authorization: cookies.get('session') || ''
+			Authorization: cookies.get('session') || ''
 		}
 	})
 
@@ -24,7 +24,7 @@ export async function PUT({ request, cookies }) {
 		mode: 'cors',
 		body: JSON.stringify(data),
 		headers: {
-			authorization: cookies.get('session') || ''
+			Authorization: cookies.get('session') || ''
 		}
 	})
 

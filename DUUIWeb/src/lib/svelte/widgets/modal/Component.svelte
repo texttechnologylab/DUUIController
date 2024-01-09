@@ -8,7 +8,7 @@
 	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
 	import Mapper from '$lib/svelte/widgets/input/Mapper.svelte'
 	import DriverIcon from '../../../components/DriverIcon.svelte'
-	import Text from '$lib/svelte/widgets/input/Text.svelte'
+	import Text from '$lib/svelte/widgets/input/TextInput.svelte'
 	import Dropdown from '$lib/svelte/widgets/input/Dropdown.svelte'
 	import Chips from '$lib/svelte/widgets/input/Chips.svelte'
 

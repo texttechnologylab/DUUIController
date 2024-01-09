@@ -12,5 +12,5 @@ export const handleLoginRedirect = (
 	url: URL,
 	message: string = 'You must be logged in to access this ressource.'
 ) => {
-	return `/account/auth/login?redirectTo=${url.pathname + url.search}&message=${message}`
+	return `/account/login?redirectTo=${url.pathname + url.search}&message=${message}`
 }

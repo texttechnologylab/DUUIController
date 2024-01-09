@@ -30,9 +30,9 @@ export async function POST({ request, cookies, locals }) {
 			refresh_token: dbx_refresh_token
 		}),
 		headers: {
-			authorization: cookies.get('session') || ''
+			Authorization: cookies.get('session') || ''
 		}
 	})
-
+	
 	return response
 }

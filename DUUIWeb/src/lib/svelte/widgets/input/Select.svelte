@@ -10,7 +10,7 @@
 	export let options: string[]
 
 	export let rows: number = 5
-	export let offset: number = 0
+	export let offset: number = 8
 
 	export let closeQuery: string = 'button'
 
@@ -28,7 +28,7 @@
 </script>
 
 <button
-	class=" flex items-center gap-2 px-3 py-2 leading-6 border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 dark:border-surface-400/20"
+	class=" rounded-md flex items-center gap-2 px-3 py-2 leading-6 border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 dark:border-surface-400/20"
 	use:popup={menu}
 >
 	<span class="grow text-left">{label}</span>
@@ -36,12 +36,13 @@
 </button>
 
 <div
-	class="shadow-lg border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 z-50"
+	class="overflow-hidden rounded-md shadow-lg border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 z-50"
 	data-popup={name}
 >
 	<ListBox {name} multiple={true} class="grid grid-cols-{columns}" spacing="space-y-0">
 		{#each options as option}
 			<ListBoxItem
+				on:change
 				bind:group={selected}
 				name={option}
 				value={option}

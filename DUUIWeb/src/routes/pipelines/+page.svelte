@@ -12,11 +12,10 @@
 	} from '@fortawesome/free-solid-svg-icons'
 
 	import Fa from 'svelte-fa'
-	import TextInput from '$lib/svelte/widgets/input/TextInput.svelte'
 	import { goto } from '$app/navigation'
 	import { FileButton } from '@skeletonlabs/skeleton'
 	import { currentPipelineStore } from '$lib/store.js'
-	import { blankComponent } from '$lib/duui/component.js'
+	import Search from '$lib/svelte/widgets/input/Search.svelte'
 
 	export let data
 
@@ -71,35 +70,32 @@
 				name="files"
 				bind:files={importFiles}
 				on:change={importPipeline}
-				button="btn variant-filled-primary dark:variant-soft-primary rounded-none"
+				button="btn variant-filled-primary dark:variant-soft-primary"
 				accept=".json"
 			>
 				<Fa icon={faFileImport} />
 				<span>Import</span>
 			</FileButton>
-			<!-- <ActionButton
-				text="Import"
-				icon={faFileImport}
-				on:click={imn}
-			/> -->
 		</div>
 
 		<div class="md:ml-auto">
-			<TextInput bind:value={searchText} icon={faSearch} placeholder="Search..." />
+			<Search bind:query={searchText} icon={faSearch} placeholder="Search..." />
 		</div>
 	</div>
 
 	<div class="grid gap-4 md:gap-8 md:grid-cols-2 lg:grid-cols-3 relative">
 		{#each filteredPipelines as pipeline}
 			<a
-				class="pipeline-card text-left hover:variant-glass bg-surface-100 dark:variant-soft-surface dark:hover:bg-surface-800 p-4 shadow-lg space-y-4
-				 grid grid-rows-4 items-start"
+				class="pipeline-card text-left hover:variant-glass
+				rounded-md border border-surface-200 dark:border-surface-500 shadow-lg overflow-hidden
+				bg-surface-100 dark:variant-soft-surface dark:hover:bg-surface-800 p-4 space-y-4
+				grid grid-rows-4 items-start"
 				href="/pipelines/{pipeline.oid}"
 			>
 				<div class="flex items-center gap-4 justify-between">
 					<h4 class="h4 font-bold">{pipeline.name}</h4>
-					{#if pipeline.serviceStartTime !== 0}
-						<Fa icon={faWifi} size="lg" class="text-success-500" />
+					{#if pipeline.user_id === null || pipeline.user_id === undefined}
+						<p class="badge variant-soft-tertiary">Template</p>
 					{/if}
 				</div>
 

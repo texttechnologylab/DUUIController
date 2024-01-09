@@ -309,6 +309,8 @@ public class DUUIProcess extends Thread {
                 DUUIProcessController.setStatus(_id, "Output");
                 List<DUUIDocument> documents = getFilesInDirectoryRecursive(_xmiWriterOutputPath);
                 _outputDataReader.writeFiles(documents, output.getFolder());
+            } else if (output.getTarget().equalsIgnoreCase("local file")) {
+
             }
 
         } catch (Exception e) {

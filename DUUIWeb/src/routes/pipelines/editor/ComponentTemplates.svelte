@@ -60,7 +60,7 @@
 	<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4 py-4">
 		{#each filteredComponents as component (component.oid)}
 			<button
-				class="component-card text-left p-4 hover:variant-glass bg-surface-100 dark:variant-soft-surface dark:hover:bg-surface-800 shadow-lg space-y-4 grid grid-rows-3 items-start"
+				class="rounded-md border border-surface-200 dark:border-surface-500 isolate component-card text-left p-4 hover:variant-glass bg-surface-100 dark:variant-soft-surface dark:hover:bg-surface-800 shadow-lg space-y-4 grid grid-rows-3 items-start"
 				on:click={() => onSelect(component)}
 			>
 				<div class="flex items-start justify-between gap-4">

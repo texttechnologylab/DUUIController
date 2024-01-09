@@ -21,21 +21,21 @@ public class DUUIMongoMetricsProvider implements IDUUIMetricsProvider {
     public DUUIMongoMetricsProvider(String database, String collection) {
         _database = database;
         _collection = collection;
-        metrics = new HashMap<>();
-
-        metrics.put("average_duration_serialize", 0L);
-        metrics.put("average_duration_deserialize", 0L);
-        metrics.put("average_duration_annotator", 0L);
-        metrics.put("average_duration_mutex_wait", 0L);
-        metrics.put("average_duration_total", 0L);
-        metrics.put("total_annotations", 0L);
-        metrics.put("maximum_document_size", 0L);
-        metrics.put("error_count", 0L);
+        metrics = new HashMap<String, Long>();
+//
+//        metrics.put("average_duration_serialize", new DUUIMetric());
+//        metrics.put("average_duration_deserialize", 0L);
+//        metrics.put("average_duration_annotator", 0L);
+//        metrics.put("average_duration_mutex_wait", 0L);
+//        metrics.put("average_duration_total", 0L);
+//        metrics.put("total_annotations", 0L);
+//        metrics.put("maximum_document_size", 0L);
+//        metrics.put("error_count", 0L);
 
     }
 
     @Override
-    public Map<String, Long> updateMetrics() {
+    public Map<String, Long> getMetrics() {
         Document _queryResult = DUUIMongoDBStorage.getInstance()
             .getDatabase(_database)
             .getCollection(_collection)
@@ -59,6 +59,11 @@ public class DUUIMongoMetricsProvider implements IDUUIMetricsProvider {
         metrics.put("average_duration_component", _queryResult.getDouble("average_duration_component").longValue());
         metrics.put("total_annotations", _queryResult.getLong("total_annotations"));
         return metrics;
+    }
+
+    @Override
+    public String getName() {
+        return "mongo_db";
     }
 
 
