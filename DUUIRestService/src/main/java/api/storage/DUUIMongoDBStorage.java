@@ -3,7 +3,6 @@ package api.storage;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.bson.Document;
@@ -15,8 +14,8 @@ import java.util.stream.Collectors;
 public class DUUIMongoDBStorage {
 
     private static MongoClient mongoClient;
-    private static String user = System.getenv("mongo_user");
-    private static String pass = System.getenv("mongo_pass");
+    private static String username;
+    private static String password;
 
     public static void mapObjectIdToString(Document document) {
         try {
@@ -36,17 +35,21 @@ public class DUUIMongoDBStorage {
 
     public static String getConnectionURI() {
         return "mongodb+srv://<user>:<password>@testcluster.727ylpr.mongodb.net/"
-            .replace("<user>", user)
-            .replace("<password>", pass);
+            .replace("<user>", username)
+            .replace("<password>", password);
     }
 
     private DUUIMongoDBStorage() {
-        Dotenv dotenv = Dotenv.load();
-        user = dotenv.get("MONGO_DB_USERNAME");
-        pass = dotenv.get("MONGO_DB_PASSWORD");
+
     }
 
     public static MongoClient getInstance() {
+        if (username == null || password == null) {
+            Dotenv dotenv = Dotenv.load();
+            username = dotenv.get("MONGO_DB_USERNAME");
+            password = dotenv.get("MONGO_DB_PASSWORD");
+        }
+
         if (mongoClient == null) {
             mongoClient = MongoClients.create(getConnectionURI());
         }

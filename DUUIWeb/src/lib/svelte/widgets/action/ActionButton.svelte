@@ -12,7 +12,6 @@
 	export let disabled: boolean = false
 	export let visible: boolean = true
 	export let small: boolean = false
-	export let autofocus: boolean = false
 </script>
 
 <button
