@@ -56,16 +56,6 @@ public class Application {
         }
     }
 
-    public static int queryIntElseDefault(
-        Request request,
-        String field,
-        int fallback
-    ) {
-        return request.queryParams(field) == null
-            ? fallback
-            : Integer.parseInt(request.queryParams(field));
-    }
-
     public static void main(String[] args) {
 
         monitor =
@@ -125,17 +115,20 @@ public class Application {
         );
 
         before((request, response) -> {
-//            if (!request.url().endsWith("metrics")) {
-//                metrics.get("http_requests_in_progress").incrementAndGet();
-//            }
-            response.header("Access-Control-Allow-Origin", "*");
+            if (!request.ip().equalsIgnoreCase("192.168.2.122")) {
+                halt(403, "Access Forbidden");
+            }
+            if (!request.url().endsWith("metrics")) {
+                metrics.get("http_requests_in_progress").incrementAndGet();
+            }
+            response.header("Access-Control-Allow-Origin", "192.168.2.122");
         });
 
-//        after((request, response) -> {
-//            if (!request.url().endsWith("metrics")) {
-//                metrics.get("http").get("http_requests_in_progress").decrementAndGet();
-//            }
-//        });
+        after((request, response) -> {
+            if (!request.url().endsWith("metrics")) {
+                metrics.get("http_requests_in_progress").decrementAndGet();
+            }
+        });
 
         setupMetrics();
 
@@ -206,14 +199,9 @@ public class Application {
             post("/file", DUUIProcessController::uploadFile);
             put("/:id", DUUIProcessController::stopOne);
             delete("/:id", DUUIProcessController::deleteOne);
-            get("/:id/timeline", DUUIProcessController::timeline);
-
+            get("/:id/events", DUUIProcessController::findEvents);
+            get("/:id/documents", DUUIProcessController::findDocuments);
         });
-
-
-        /* Documents */
-
-        get("/documents", DUUIProcessController::findDocuments);
 
 
         get(

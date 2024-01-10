@@ -4,6 +4,7 @@ import api.Application;
 import api.duui.component.DUUIComponentController;
 import api.duui.document.DUUIDocumentInput;
 import api.duui.document.DUUIDocumentOutput;
+import api.duui.document.IOType;
 import api.storage.DUUIMongoDBStorage;
 
 import java.io.File;
@@ -17,9 +18,11 @@ import java.util.*;
 import java.util.concurrent.*;
 
 import de.tudarmstadt.ukp.dkpro.core.api.metadata.type.DocumentMetaData;
+import org.apache.uima.cas.Feature;
 import org.apache.uima.fit.factory.JCasFactory;
 import org.apache.uima.fit.util.JCasUtil;
 import org.apache.uima.jcas.JCas;
+import org.apache.uima.jcas.cas.TOP;
 import org.bson.Document;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.DUUIComposer;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.*;
@@ -171,7 +174,7 @@ public class DUUIProcess extends Thread {
 
         _xmiWriterOutputPath = Paths.get("temp/duui/%s".formatted(_id), output.getFolder()).toString();
 
-        JCas cas = null;
+        JCas cas;
 
         String userId = _pipeline.getString("user_id");
         IDUUIDataReader inputDataReader;
@@ -245,7 +248,7 @@ public class DUUIProcess extends Thread {
             _hasUIMADriver = setupDrivers(_composer, _pipeline);
             setupComponents(_composer, _pipeline);
 
-            if (output.isCloudProvider()) {
+            if (output.isCloudProvider() || output.getTarget().equalsIgnoreCase(IOType.FILE.getName())) {
                 addXmiWriter(_xmiWriterOutputPath, output.getFileExtension());
             }
 
@@ -294,14 +297,6 @@ public class DUUIProcess extends Thread {
             _composer.shutdown();
 
             if (input.isText()) {
-
-                if (cas == null) {
-                    onError(new Exception("No Cas Object found"));
-                    return;
-                }
-                Set<String> annotations = new HashSet<>();
-                cas.getAnnotationIndex().forEach(annotation -> annotations.add(annotation.getClass().getSimpleName()));
-                annotations.forEach(annotation -> _composer.addStatus("Added annotation " + annotation));
                 DUUIProcessController.setProgress(_id, _pipeline.getList("components", Document.class).size());
             }
 
@@ -309,7 +304,7 @@ public class DUUIProcess extends Thread {
                 DUUIProcessController.setStatus(_id, "Output");
                 List<DUUIDocument> documents = getFilesInDirectoryRecursive(_xmiWriterOutputPath);
                 _outputDataReader.writeFiles(documents, output.getFolder());
-            } else if (output.getTarget().equalsIgnoreCase("local file")) {
+            } else if (output.getTarget().equalsIgnoreCase(IOType.FILE.getName())) {
 
             }
 

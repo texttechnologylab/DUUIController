@@ -17,7 +17,7 @@ import java.util.*;
 
 import static api.requests.validation.UserValidator.*;
 import static api.requests.validation.Validator.*;
-import static api.storage.DUUIMongoDBStorage.combineUpdates;
+import static api.storage.DUUIMongoDBStorage.mergeUpdates;
 import static api.storage.DUUIMongoDBStorage.mapObjectIdToString;
 
 
@@ -87,13 +87,6 @@ public class DUUIUserController {
             .first();
     }
 
-    public static Document getUserByEmail(String email) {
-        return DUUIMongoDBStorage
-            .Users()
-            .find(Filters.eq("email", email))
-            .first();
-    }
-
     public static Document getUserByAuthorization(String authorization) {
         return DUUIMongoDBStorage
             .Users()
@@ -116,43 +109,6 @@ public class DUUIUserController {
             .find(Filters.eq("password_reset_token", token))
             .projection(Projections.include("_id", "email", "reset_token_expiration"))
             .first();
-    }
-
-    public static String findOneById(Request request, Response response) {
-        Document user = getUserById(request.params(":id"));
-        if (user == null)
-            return userNotFound(response);
-
-        mapObjectIdToString(user);
-        response.status(200);
-        return user.toJson();
-    }
-
-    public static String findOneByEmail(Request request, Response response) {
-        Document user = getUserByEmail(request.params(":email"));
-
-        if (isNullOrEmpty(user)) {
-            return userNotFound(response);
-        }
-
-        mapObjectIdToString(user);
-
-        response.status(200);
-        return user.toJson();
-    }
-
-    public static String findOneByAuthorization(Request request, Response response) {
-        String authorization = request.params(":key");
-        Document user = authenticate(authorization);
-
-        if (isNullOrEmpty(user))
-            return userNotFound(response);
-
-        user.put("connections", DUUIUserController.getConnectionsForUser(user));
-        mapObjectIdToString(user);
-
-        response.status(200);
-        return new Document("user", user).toJson();
     }
 
     public static String insertOne(Request request, Response response) {
@@ -225,61 +181,14 @@ public class DUUIUserController {
             return missingField(response, "email");
 
         DUUIMongoDBStorage
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("users")
+            .Users()
             .findOneAndUpdate(
                 Filters.eq(user.getObjectId("_id")),
                 Updates.set("key", key));
 
-        return updateSuccess(response, "key");
+        return new Document("key", key).toJson();
     }
 
-    public static String updateEmail(Request request, Response response) {
-        String authorization = request.headers("Authorization");
-
-        Document user = authenticate(authorization);
-        if (isNullOrEmpty(user)) return unauthorized(response);
-
-        Document body = Document.parse(request.body());
-
-        String email = body.getString("email");
-        if (email.isEmpty())
-            return missingField(response, "email");
-
-        DUUIMongoDBStorage
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("users")
-            .findOneAndUpdate(
-                Filters.eq("_id", new ObjectId(request.params(":id"))),
-                Updates.set("email", email));
-
-        return updateSuccess(response, "email");
-    }
-
-
-    public static String updateSession(Request request, Response response) {
-        Document body = Document.parse(request.body());
-
-        String email = body.getString("email");
-        if (email.isEmpty())
-            return missingField(response, "email");
-
-        String session = body.getString("session");
-        if (session.isEmpty())
-            return missingField(response, "session");
-
-        DUUIMongoDBStorage
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("users")
-            .findOneAndUpdate(
-                Filters.eq("email", email),
-                Updates.set("session", session));
-
-        return new Document("email", email).append("session", session).toJson();
-    }
 
     public static String recoverPassword(Request request, Response response) {
         Document body = Document.parse(request.body());
@@ -306,7 +215,8 @@ public class DUUIUserController {
     }
 
     private static void sendPasswordResetEmail(String email, String passwordResetToken) {
-
+        // TODO: Implement this method
+        throw new UnsupportedOperationException("Not implemented yet");
     }
 
     public static String resetPassword(Request request, Response response) {
@@ -343,30 +253,6 @@ public class DUUIUserController {
             .append("email", user.getString("email")).toJson();
     }
 
-    public static boolean validateSession(String id, String session) {
-        Document user = getUserById(id);
-        return user != null && user.getString("session").equals(session);
-    }
-
-    public static String updateUser(Request request, Response response) {
-        String id = request.params(":id");
-        Document update = Document.parse(request.body());
-
-        DUUIMongoDBStorage
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("users")
-            .findOneAndUpdate(
-                Filters.eq(new ObjectId(id)),
-                combineUpdates(update, ALLOWED_FIELDS)
-            );
-
-
-        response.status(200);
-        Document user = getUserById(id);
-        return user.toJson();
-    }
-
     public static String dbxIsAuthorized(Request request, Response response) {
         String session = request.headers("session");
         if (!UserValidator.isAuthorized(session, Role.USER))
@@ -377,7 +263,8 @@ public class DUUIUserController {
             return userNotFound(response);
 
         if (!isDropboxConnected(user)) {
-            return missingAuthorization(response, "Dropbox");
+            response.status(401);
+            return "Unauthorized";
         }
 
         mapObjectIdToString(user);
@@ -389,29 +276,6 @@ public class DUUIUserController {
         Document credentials = DUUIUserController.getDropboxCredentials(user);
         if (isNullOrEmpty(credentials)) return false;
         return credentials.getString("refresh_token") != null;
-    }
-
-    private static boolean isMinioConnected(Document user) {
-        Document credentials = DUUIUserController.getMinioCredentials(user);
-        if (isNullOrEmpty(credentials)) return false;
-
-        String accessKey = credentials.getString("access_key");
-        if (isNullOrEmpty(accessKey)) return false;
-
-        String secretKey = credentials.getString("secret_key");
-        if (isNullOrEmpty(secretKey)) return false;
-
-        String endpoint = credentials.getString("endpoint");
-        return !isNullOrEmpty(endpoint);
-    }
-
-    private static Document getConnectionsForUser(String oid) {
-        return getConnectionsForUser(getUserById(oid));
-    }
-
-    private static Document getConnectionsForUser(Document user) {
-        return new Document("dropbox", isDropboxConnected(user))
-            .append("minio", isMinioConnected(user));
     }
 
     public static String updateMinioCredentials(Request request, Response response) {
@@ -429,12 +293,12 @@ public class DUUIUserController {
         if (isNullOrEmpty(endpoint)) return missingField(response, "endpoint");
 
         try {
-            DUUIMinioDataReader reader = new DUUIMinioDataReader(
+            new DUUIMinioDataReader(
                 endpoint,
                 accessKey,
                 secretKey);
         } catch (Exception e) {
-            return fail(response, "Failed to connect with min.io");
+            return new Document("message", "Failed to connect with min.io").toJson();
         }
         Document update = new Document("minio",
             new Document("endpoint", endpoint)
@@ -443,12 +307,10 @@ public class DUUIUserController {
         );
 
         DUUIMongoDBStorage
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("users")
+            .Users()
             .findOneAndUpdate(
                 Filters.eq(new ObjectId(id)),
-                combineUpdates(update, ALLOWED_FIELDS)
+                mergeUpdates(update, ALLOWED_FIELDS)
             );
 
         response.status(200);
@@ -456,10 +318,6 @@ public class DUUIUserController {
         return user.toJson();
     }
 
-    private static String fail(Response response, String message) {
-        response.status(500);
-        return new Document("message", message).toJson();
-    }
 
     public static String fetchLoginCredentials(Request request, Response response) {
         String key = request.headers("Authorization");

@@ -140,7 +140,7 @@
 </svelte:head>
 
 <div class="grid md:grid-cols-2 gap-4 max-w-7xl md:py-16">
-	<section class="section-wrapper p-8 space-y-4">
+	<section class="section-wrapper p-8 space-y-4 scroll-mt-4" id="profile">
 		<h2 class="h3 font-bold">Profile</h2>
 		<Text disabled label="Name" name="name" bind:value={name} />
 		<Text disabled label="E-Mail" name="email" bind:value={user.email} />
@@ -162,26 +162,12 @@
 		/>
 	</section>
 	<div class="grid gap-4">
-		<!-- <div class="grid grid-cols-3 justify-center items-center section-wrapper rounded-md text-sm">
 		<div
-			class="transition-colors hover:bg-surface-200/20 flex flex-col items-start justify-center gap-2 border-r p-4"
+			class="section-wrapper p-8 grid grid-rows-[auto_1fr_auto] gap-8 scroll-mt-4"
+			id="authorization"
 		>
-			
-		</div>
-		<div
-			class="transition-colors hover:bg-surface-200/20 flex flex-col items-start justify-center gap-2 border-r p-4"
-		>
-			<p class="font-bold">Source</p>
-		</div>
-		<div
-			class="transition-colors hover:bg-surface-200/20 flex flex-col items-start justify-center gap-2 p-4"
-		>
-			<p class="font-bold">Size</p>
-		</div>
-	</div> -->
-		<div class="section-wrapper p-8 grid grid-rows-[auto_1fr_auto] gap-8">
 			<h2 class="h3 font-bold">API Key</h2>
-			<div class=" space-y-8">
+			<div class="space-y-8">
 				{#if user.key}
 					<div class="space-y-2">
 						<Secret value={user.key} />
@@ -282,7 +268,7 @@
 			<div class="flex gap-4 justify-between">
 				<ActionButton
 					text={connections.minio ? 'Update' : 'Connect'}
-					icon={connections.minio ? faRefresh : faAdd}
+					icon={connections.minio ? faRefresh : faLink}
 					on:click={connectMinio}
 				/>
 				{#if connections.minio}

@@ -16,6 +16,7 @@
 	import { FileButton } from '@skeletonlabs/skeleton'
 	import { currentPipelineStore } from '$lib/store.js'
 	import Search from '$lib/svelte/widgets/input/Search.svelte'
+	import PipelineCard from '$lib/svelte/widgets/duui/PipelineCard.svelte'
 
 	export let data
 
@@ -88,13 +89,13 @@
 		<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
 
 		<div class="grid md:flex items-center md:justify-between gap-4 relative">
-			<div class="flex items-center gap-4">
+			<div class="grid grid-cols-2 md:flex items-center gap-4">
 				<ActionButton on:click={() => goto('/pipelines/editor')} icon={faPlus} text="Create" />
 				<FileButton
 					name="files"
 					bind:files={importFiles}
 					on:change={importPipeline}
-					button="btn variant-filled-primary dark:variant-soft-primary"
+					button="btn variant-filled-primary dark:variant-soft-primary w-full"
 					accept=".json"
 				>
 					<span>Import</span>
@@ -109,23 +110,11 @@
 
 		<div class="grid gap-4 md:gap-8 md:grid-cols-2 lg:grid-cols-3 relative">
 			{#each filteredPipelines as pipeline}
-				<a class="card-fancy grid grid-rows-[auto_1fr_80px]" href="/pipelines/{pipeline.oid}">
-					<div class="flex items-center gap-4 justify-between">
-						<h4 class="h4 font-bold">{pipeline.name}</h4>
-						{#if pipeline.user_id === null || pipeline.user_id === undefined}
-							<p class="badge variant-soft-tertiary">Template</p>
-						{/if}
-					</div>
-
-					<p class="row-span-2">{pipeline.description}</p>
-					<div class="pt-4 flex items-center justify-between self-end">
-						<p>{pipeline.components.length} Component(s)</p>
-						<div class="flex items-center gap-4">
-							{#each usedDrivers(pipeline) as driver}
-								<DriverIcon {driver} />
-							{/each}
-						</div>
-					</div>
+				<a
+					class="card-fancy grid grid-rows-[auto_1fr_80px] items-start"
+					href="/pipelines/{pipeline.oid}"
+				>
+					<PipelineCard {pipeline} />
 				</a>
 			{/each}
 		</div>

@@ -2,7 +2,6 @@ package api.duui.pipeline;
 
 import api.duui.component.DUUIComponentController;
 import api.duui.routines.service.DUUIService;
-import api.requests.validation.PipelineValidator;
 import api.storage.DUUIMongoDBStorage;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
@@ -19,23 +18,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static api.Application.queryIntElseDefault;
 import static api.http.RequestUtils.Limit;
 import static api.http.RequestUtils.Skip;
 import static api.requests.validation.UserValidator.authenticate;
 import static api.requests.validation.UserValidator.unauthorized;
 import static api.requests.validation.Validator.isNullOrEmpty;
 import static api.requests.validation.Validator.missingField;
-import static api.storage.DUUIMongoDBStorage.combineUpdates;
+import static api.storage.DUUIMongoDBStorage.mergeUpdates;
 import static api.storage.DUUIMongoDBStorage.mapObjectIdToString;
 
 public class DUUIPipelineController {
     private static final Map<String, DUUIService> _services = new HashMap<>();
 
-    private static final List<String> _fields = List.of(
+    private static final List<String> ALLOWED_UPDATES = List.of(
         "name",
         "description",
-        "settings"
+        "settings",
+        "tags",
+        "timesUsed",
+        "lastUsed"
     );
 
     public static String findOne(Request request, Response response) {
@@ -46,7 +47,10 @@ public class DUUIPipelineController {
 
 
         Document pipeline = getPipelineById(request.params(":id"));
-        if (pipeline == null) return PipelineValidator.pipelineNotFound(response);
+        if (pipeline == null) {
+            response.status(404);
+            return new Document("message", "No Pipeline found").toJson();
+        }
 
         mapObjectIdToString(pipeline);
         response.status(200);
@@ -129,7 +133,8 @@ public class DUUIPipelineController {
             .append("serviceStartTime", 0L)
             .append("settings", body.get("settings", Document.class))
             .append("timesUsed", 0)
-            .append("user_id", template.equals("true") ? null : user.getObjectId("_id").toString());
+            .append("user_id", template.equals("true") ? null : user.getObjectId("_id").toString())
+            .append("tags", List.of());
 
         DUUIMongoDBStorage
             .Pipelines()
@@ -159,11 +164,9 @@ public class DUUIPipelineController {
         Document update = Document.parse(request.body());
 
         DUUIMongoDBStorage
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("pipelines")
+            .Pipelines()
             .findOneAndUpdate(Filters.eq(new ObjectId(id)),
-                combineUpdates(update, _fields));
+                mergeUpdates(update, ALLOWED_UPDATES));
 
         List<Document> components = update.getList("components", Document.class);
         if (!isNullOrEmpty(components)) {
@@ -188,7 +191,10 @@ public class DUUIPipelineController {
         String id = request.params(":id");
 
         Document pipeline = getPipelineById(id);
-        if (pipeline == null) return PipelineValidator.pipelineNotFound(response);
+        if (pipeline == null) {
+            response.status(404);
+            return new Document("message", "No Pipeline found").toJson();
+        }
 
         if (_services.containsKey(id)) {
             _services.get(id).interrupt();

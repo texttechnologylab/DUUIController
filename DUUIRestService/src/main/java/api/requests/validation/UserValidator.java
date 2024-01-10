@@ -18,20 +18,6 @@ public class UserValidator {
         return userRole.ordinal() >= minimumRole.ordinal();
     }
 
-    public static boolean isAuthorized(String session, String id) {
-        Document user = DUUIUserController.getUserById(id);
-        if (user == null) return false;
-
-        return user.getString("session").equals(session);
-    }
-
-    public static boolean isAuthorized(String session, ObjectId id) {
-        Document user = DUUIUserController.getUserById(id);
-        if (user == null) return false;
-
-        return user.getString("session").equals(session);
-    }
-
     public static String unauthorized(Response response) {
         response.status(401);
         return "Unauthorized";
@@ -50,11 +36,6 @@ public class UserValidator {
     public static String userNotFound(Response response) {
         response.status(404);
         return new Document("message", "User not found").toJson();
-    }
-
-    public static String missingAuthorization(Response response, String service) {
-        response.status(404);
-        return new Document("message", "Missing authorization for " + service).toJson();
     }
 
     public static Document authenticate(String authorization) {

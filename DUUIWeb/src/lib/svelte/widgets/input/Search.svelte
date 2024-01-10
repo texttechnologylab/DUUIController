@@ -9,10 +9,7 @@
 </script>
 
 <label class="label flex flex-col {style}">
-	<div
-		class="{icon ? 'pl-3' : ''} flex items-center relative
-			 "
-	>
+	<div class="flex items-center relative">
 		{#if icon}
 			<Fa {icon} class="absolute right-4 top-1/2 -translate-y-1/2 text-surface-400" />
 		{/if}

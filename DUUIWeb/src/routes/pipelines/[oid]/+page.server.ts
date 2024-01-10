@@ -20,7 +20,9 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 		const result = await fetch(
 			`${API_URL}/processes?pipeline_id=${params.oid}
 				&limit=${url.searchParams.get('limit') || 10}
-				&offset=${url.searchParams.get('offset') || 0}`,
+				&offset=${url.searchParams.get('offset') || 0}
+				&by=startTime
+				&order=-1`,
 			{
 				method: 'GET',
 				mode: 'cors',

@@ -33,7 +33,7 @@ export const GET: RequestHandler = async (event) => {
 	}
 
 	const fetchTimeline = async () => {
-		const response = await fetch(`${API_URL}/processes/${id}/timeline`, {
+		const response = await fetch(`${API_URL}/processes/${id}/events`, {
 			method: 'GET',
 			mode: 'cors',
 			headers: {
@@ -47,9 +47,8 @@ export const GET: RequestHandler = async (event) => {
 
 	const fetchDocuments = async () => {
 		const response = await fetch(
-			`${API_URL}/documents
-			?process_id=${id}
-			&limit=${limit}
+			`${API_URL}/processes/${id}/documents
+			?limit=${limit}
 			&skip=${skip}
 			&sort=${sort}
 			&order=${order}

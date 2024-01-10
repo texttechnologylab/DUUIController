@@ -9,6 +9,7 @@
 	export let label: string
 	export let values: string[]
 	export let style: string = ''
+	export let placeholder: string = 'Category'
 
 	let current: string = ''
 
@@ -36,7 +37,7 @@
 				: ''} border-none appearance-none ring-0 bg-transparent focus:ring-0"
 			type="text"
 			bind:value={current}
-			placeholder="Category"
+			{placeholder}
 			on:keypress={(event) => {
 				if (event.key === 'Enter') {
 					push()

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import '../app.css'
+	import '../app.postcss'
 	import Logo from '$lib/assets/Logo.svg'
 
 	import { AppShell, AppBar, LightSwitch, type ModalComponent } from '@skeletonlabs/skeleton'
@@ -7,10 +7,10 @@
 	import { Toast, type DrawerSettings } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
 	import { faGlobe, faBars, faArrowRightFromBracket } from '@fortawesome/free-solid-svg-icons'
-	import { faGithub } from '@fortawesome/free-brands-svg-icons'
+	import { faGithub, faXTwitter } from '@fortawesome/free-brands-svg-icons'
 
 	import { initializeStores } from '@skeletonlabs/skeleton'
-	import { afterNavigate, beforeNavigate, goto, onNavigate } from '$app/navigation'
+	import { beforeNavigate, goto, onNavigate } from '$app/navigation'
 	import { storePopup } from '@skeletonlabs/skeleton'
 
 	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom'
@@ -21,6 +21,16 @@
 	import { userSession } from '$lib/store'
 	import Link from '$lib/components/Link.svelte'
 	import DocumentModal from '$lib/svelte/widgets/modal/DocumentModal.svelte'
+	import Documentation from '$lib/svelte/widgets/navigation/Documentation.svelte'
+
+	import hljs from 'highlight.js/lib/core'
+	import java from 'highlight.js/lib/languages/java'
+	import xml from 'highlight.js/lib/languages/java'
+	import 'highlight.js/styles/github-dark.css'
+	import { storeHighlightJs } from '@skeletonlabs/skeleton'
+	import { scrollIntoView } from '$lib/duui/utils/ui'
+	import { onMount } from 'svelte'
+	import PromptModal from '$lib/svelte/widgets/modal/PromptModal.svelte'
 
 	export let data
 	let { user } = data
@@ -31,9 +41,13 @@
 	const drawerStore = getDrawerStore()
 	const sidebarDrawer: DrawerSettings = {
 		id: 'sidebar',
-		width: 'w-full sm:w-[360px]',
-		rounded: 'rounded-none'
+		width: 'w-[80%] sm:w-[360px]',
+		rounded: 'rounded-md'
 	}
+
+	hljs.registerLanguage('java', java)
+	hljs.registerLanguage('xml', xml)
+	storeHighlightJs.set(hljs)
 
 	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow })
 
@@ -53,7 +67,6 @@
 	const logout = async () => {
 		const response = await makeApiCall(Api.Logout, 'PUT', {})
 		if (response.ok) {
-			loggedIn = false
 			userSession.set(undefined)
 
 			goto('/account/login')
@@ -62,19 +75,18 @@
 		}
 	}
 
-	$: loggedIn = !!$userSession?.session
-
 	const modalRegistry: Record<string, ModalComponent> = {
 		deleteModal: { ref: DeleteModal },
-		documentModal: { ref: DocumentModal }
+		documentModal: { ref: DocumentModal },
+		promptModal: { ref: PromptModal }
 	}
 </script>
 
 <Modal components={modalRegistry} />
 <Toast position="br" />
-<Drawer rounded="rounded-none">
+<Drawer rounded="rounded-md">
 	{#if $drawerStore.id === 'sidebar'}
-		<Sidebar {loggedIn} />
+		<Sidebar />
 	{/if}
 </Drawer>
 <!-- App Shell -->
@@ -97,16 +109,20 @@
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
 				<div class="hidden lg:flex items-center gap-8 font-heading-token">
+					{#if $userSession?.role === 'admin'}
+						<Link href="/feedback">Feedback</Link>
+					{/if}
 					<Link href="/pipelines">Pipelines</Link>
 					<Link href="/pipelines/editor">Editor</Link>
-					<Link href="/documentation">Framework</Link>
+					<Link href="/documentation">Documentation</Link>
 					<Link href="/documentation/api">API Reference</Link>
 
 					{#if $userSession}
 						<Link href="/account">Account</Link>
 
 						<button
-							class="p-0 btn inline-flex items-center hover:text-primary-500 transition-colors"
+							class="p-0 btn inline-flex items-center hover:text-primary-500 transition-colors
+							animate-underline"
 							on:click={logout}
 						>
 							<span>Logout</span>
@@ -125,8 +141,11 @@
 		</AppBar>
 	</svelte:fragment>
 
-	<!-- Page Route Content -->
+	<svelte:fragment slot="sidebarLeft">
+		<Documentation />
+	</svelte:fragment>
 
+	<!-- Page Route Content -->
 	<slot />
 
 	<svelte:fragment slot="pageFooter">
@@ -145,24 +164,27 @@
 							</div>
 						</div>
 						<div class="flex flex-col md:flex-row justify-center items-center md:items-start gap-4">
-							<div class="flex gap-4">
+							<div class="flex items-center gap-8 0">
 								<a
-									href="https://github.com/texttechnologylab/DUUIController"
 									target="_blank"
-									rel="noreferrer"
-									class="variant-ringed-primary hover:variant-filled-primary flex items-center justify-center gap-2 btn"
+									href="https://github.com/texttechnologylab"
+									class="transition-opacity opacity-70 hover:opacity-100"
 								>
-									<span>Github</span>
-									<Fa icon={faGithub} />
+									<Fa icon={faGithub} size="2x" />
 								</a>
 								<a
-									href="https://www.texttechnologylab.org/"
 									target="_blank"
-									rel="noreferrer"
-									class="variant-ringed-primary hover:variant-filled-primary flex items-center justify-center gap-2 btn"
+									href="https://twitter.com/ttlab_ffm"
+									class="transition-opacity opacity-70 hover:opacity-100"
 								>
-									<span>TTLab</span>
-									<Fa icon={faGlobe} />
+									<Fa icon={faXTwitter} size="2x" />
+								</a>
+								<a
+									target="_blank"
+									href="https://www.texttechnologylab.org/"
+									class="transition-opacity opacity-70 hover:opacity-100"
+								>
+									<Fa icon={faGlobe} size="2x" />
 								</a>
 							</div>
 						</div>
@@ -172,24 +194,24 @@
 						class="flex flex-col md:flex-row gap-8 md:gap-16 justify-between text-base
 							   text-center md:text-left"
 					>
-						<div class="flex flex-col gap-2">
+						<div class="flex flex-col gap-2 justify-center">
 							<p class="text-black dark:text-surface-100 font-bold md:mb-4">Pipelines</p>
 							<Link href="/pipelines" dimmed={true}>Dashboard</Link>
 							<Link href="/pipelines/editor" dimmed={true}>Editor</Link>
 						</div>
-						<div class="flex flex-col gap-2">
+						<div class="flex flex-col gap-2 justify-center">
 							<p class="text-black dark:text-surface-100 font-bold md:mb-4">Documentation</p>
 							<Link href="/documentation" dimmed={true}>Framework</Link>
 							<Link href="/documentation/api" dimmed={true}>API Reference</Link>
 						</div>
-						<div class="flex flex-col gap-2">
+						<div class="flex flex-col gap-2 justify-center">
 							<p class="text-black dark:text-surface-100 font-bold md:mb-4">Account</p>
 							{#if $userSession}
 								<Link href="/account" dimmed={true}>Account</Link>
 
 								<button
 									class="inline md:text-start hover:text-primary-500 transition-colors
-									text-surface-400 dark:text-surface-200"
+									text-surface-400 dark:text-surface-200 animate-underline"
 									on:click={logout}
 								>
 									Logout

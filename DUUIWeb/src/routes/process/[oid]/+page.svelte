@@ -335,9 +335,7 @@
 		{#if process.error}
 			<p class="text-error-400 font-bold break-words">ERROR: {process.error}</p>
 		{/if}
-		<div
-			class="rounded-md overflow-hidden border border-surface-200 dark:border-surface-500 shadow-lg"
-		>
+		<div class="section-wrapper">
 			<div
 				class="header grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 bg-surface-100 dark:variant-soft-surface"
 			>
@@ -404,9 +402,7 @@
 
 	<Timeline {process} {documents} />
 
-	<div
-		class="rounded-md border-[1px] border-surface-200 dark:border-surface-500 shadow-lg grid items-start p-8 space-y-4"
-	>
+	<div class="section-wrapper grid items-start p-8 space-y-4">
 		<h2 class="h2">Statistics</h2>
 		<pre>{JSON.stringify(process, null, 2)}</pre>
 		<!-- <div class="">

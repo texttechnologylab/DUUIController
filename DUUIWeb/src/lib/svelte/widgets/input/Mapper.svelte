@@ -97,7 +97,7 @@
 
 	{#if map.size > 0}
 		<div class="label col-span-2">
-			<p class="uppercase text-xs tracking-widest">{label}</p>
+			<p class="form-label">{label}</p>
 			<div
 				class="rounded-md border-[1px] bg-gray dark:bg-surface-800 border-surface-400/20 flex flex-wrap gap-2 p-2 items-start"
 			>

@@ -38,11 +38,9 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 		let order: number = url.searchParams.get('order') === '1' ? 1 : -1
 		let text: string = url.searchParams.get('text') || ''
 		let filter: string = url.searchParams.get('filter') || 'Any'
-
 		const response = await fetch(
-			`${API_URL}/documents
-			?process_id=${params.oid}
-			&limit=${limit}
+			`${API_URL}/processes/${params.oid}/documents
+			?limit=${limit}
 			&skip=${skip}
 			&by=${by}
 			&order=${order}
@@ -57,12 +55,14 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 			}
 		)
 
+
+
 		const documentQuery = await response.json()
 		return documentQuery
 	}
 
 	const loadTimeline = async () => {
-		const response = await fetch(`${API_URL}/processes/${process.oid}/timeline`, {
+		const response = await fetch(`${API_URL}/processes/${process.oid}/events`, {
 			method: 'GET',
 			mode: 'cors',
 			headers: {

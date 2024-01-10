@@ -11,11 +11,8 @@
 		faFileCircleCheck,
 		faFileCircleXmark,
 		faFileExport,
-		faGears,
 		faHourglass,
 		faHourglassStart,
-		faLayerGroup,
-		faMap,
 		faPause,
 		faPlay,
 		faPlus,
@@ -56,12 +53,16 @@
 	import IconButton from '$lib/svelte/widgets/action/IconButton.svelte'
 	import Paginator from '$lib/svelte/widgets/navigation/Paginator.svelte'
 	import Select from '$lib/svelte/widgets/input/Select.svelte'
+	import Anchor from '$lib/svelte/widgets/action/Anchor.svelte'
+	import Chips from '$lib/svelte/widgets/input/Chips.svelte'
+	import { redirect } from '@sveltejs/kit'
 
 	export let data: PageServerData
 	let { pipeline, processInfo } = data
 	let { processes, count } = processInfo
 
 	pipeline.components.forEach((c) => (c.id = uuidv4()))
+
 	let pipelineCopy = cloneDeep(pipeline)
 
 	const modalStore = getModalStore()
@@ -168,17 +169,39 @@
 	}
 
 	const copyPipeline = async () => {
-		let response = await makeApiCall(Api.Pipelines, 'POST', {
-			...pipeline,
-			name: pipeline.name + ' - Copy'
-		})
+		new Promise<string>((resolve) => {
+			const modal: ModalSettings = {
+				type: 'component',
+				component: 'promptModal',
+				meta: {
+					title: 'Copy Pipeline',
+					body: `Choose a new Name`,
+					value: pipeline.name + ' - Copy'
+				},
+				response: (r: string) => {
+					resolve(r)
+				}
+			}
+			modalStore.trigger(modal)
+		}).then(async (newName: string) => {
+			if (!newName) return
 
-		if (response.ok) {
-			const data = await response.json()
-			toastStore.trigger(info('Pipeline copied successfully'))
-			invalidateAll()
-			goto(`/pipelines/${data.oid}`, { invalidateAll: true, replaceState: true })
-		}
+			const response = await fetch('./api', {
+				method: 'POST',
+				body: JSON.stringify({
+					pipeline: {
+						...pipeline,
+						name: newName
+					}
+				})
+			})
+
+			if (response.ok) {
+				const data = await response.json()
+				toastStore.trigger(info('Pipeline copied successfully'))
+				goto(`/pipelines/${data.oid}`, { replaceState: true })
+			}
+		})
 	}
 
 	const manageService = async () => {
@@ -229,38 +252,6 @@
 	const discardChanges = () => {
 		pipeline = cloneDeep(pipelineCopy)
 		settings = new Map(Object.entries(pipeline.settings))
-	}
-
-	const sortProcesses = () => {
-		if (processes.length === 0) return processes
-		switch (sort.by) {
-			case 0:
-				return processes.sort((a, b) => (a.startTime > b.startTime ? -sort.order : sort.order))
-			case 1:
-				return processes.sort((a, b) =>
-					a.input.source > b.input.source ? sort.order : -sort.order
-				)
-			case 2:
-				return processes.sort((a, b) =>
-					a.documentNames.length > b.documentNames.length ? sort.order : -sort.order
-				)
-			case 3:
-				return processes.sort((a, b) => (a.progress > b.progress ? sort.order : -sort.order))
-			case 4:
-				return processes.sort((a, b) =>
-					documentStatusNamesString.indexOf(a.status) > documentStatusNamesString.indexOf(b.status)
-						? sort.order
-						: -sort.order
-				)
-			case 5:
-				return processes.sort((a, b) =>
-					getDuration(a.startTime, a.endTime) > getDuration(b.startTime, b.endTime)
-						? sort.order
-						: -sort.order
-				)
-			default:
-				return processes
-		}
 	}
 
 	const updateTable = async () => {
@@ -349,12 +340,7 @@
 	</div>
 	<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
 	<div class="hidden md:grid grid-cols-2 md:grid-cols-3 lg:flex items-center justify-start gap-4">
-		<ActionButton
-			text="Back"
-			icon={faArrowLeft}
-			leftToRight={true}
-			on:click={() => goto('/pipelines')}
-		/>
+		<Anchor text="Back" icon={faArrowLeft} leftToRight={true} href="/pipelines" />
 		<ActionButton text="Export" icon={faFileExport} on:click={exportPipeline} />
 		<ActionButton text="Copy" icon={faCopy} on:click={copyPipeline} />
 		<ActionButton text="Delete" icon={faTrash} on:click={deletePipeline} />
@@ -391,8 +377,8 @@
 	<div class="section-wrapper text-xs md:text-base">
 		<TabGroup
 			active="dark:variant-soft-primary variant-filled-primary"
-			border="none"
-			rounded="rounded-none"
+			border="border-none"
+			rounded="rounded-md"
 			justify="grid grid-cols-3"
 			hover="bg-fancy"
 		>
@@ -404,17 +390,16 @@
 
 	{#if tabSet === 0}
 		<div class=" grid md:grid-cols-2 gap-4">
-			<div
-				class="rounded-md flex flex-col gap-4 bg-surface-100 dark:variant-soft-surface shadow-lg p-4"
-			>
+			<div class="space-y-4 section-wrapper p-4">
 				<Text label="Name" name="pipeline-name" bind:value={pipeline.name} />
 				<TextArea
 					label="Description"
 					name="pipeline-description"
 					bind:value={pipeline.description}
 				/>
+				<Chips label="Tags" placeholder="Add a tag..." bind:values={pipeline.tags} />
 			</div>
-			<div class="rounded-md bg-surface-100 dark:variant-soft-surface p-4 shadow-lg">
+			<div class="section-wrapper p-4">
 				<Mapper
 					bind:map={settings}
 					on:update={(event) => {
@@ -424,7 +409,10 @@
 			</div>
 		</div>
 	{:else if tabSet === 1}
-		<div class="container space-y-4 bg-surface-100 dark:variant-soft-surface mx-auto shadow-lg p-4">
+		<div
+			class="rounded-md border border-surface-200
+				   dark:border-surface-500 isolate container space-y-8 bg-surface-100 dark:variant-soft-surface mx-auto shadow-lg p-4 md:p-16"
+		>
 			<ul
 				use:dndzone={{ items: pipeline.components, dropTargetStyle: {} }}
 				on:consider={(event) => handleDndConsider(event)}
@@ -461,15 +449,14 @@
 				options={statusNames}
 			/>
 		</div>
-		<div
-			class="rounded-md overflow-hidden border border-surface-200 dark:border-surface-500 text-xs"
-		>
+		<div class="section-wrapper text-xs">
 			<div
 				class="header grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 bg-surface-100 dark:variant-soft-surface border-b-4 border-primary-500"
 			>
 				{#each tableHeader as column, index}
 					<button
-						class="btn-sm md:text-base md:inline-flex bg-surface-100 px-4 dark:variant-soft-surface gap-4 justify-start items-center rounded-none p-3 text-left
+						class="btn-sm md:text-base md:inline-flex px-4 bg-fancy
+						 	   dark:variant-soft-surface gap-4 justify-start items-center rounded-none p-3 text-left
 						 {[2].includes(index)
 							? 'hidden md:inline-flex'
 							: [1, 5].includes(index)

@@ -80,8 +80,7 @@ public class DUUIMongoDBStorage {
         return getInstance().getDatabase("duui").getCollection("events");
     }
 
-
-    public static Bson combineUpdates(Document update, List<String> allowedFields) {
+    public static Bson mergeUpdates(Document update, List<String> allowedFields) {
         return Updates.combine(update
             .entrySet()
             .stream()

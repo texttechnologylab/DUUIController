@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores'
+	import { scrollIntoView } from '$lib/duui/utils/ui'
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import Text from '$lib/svelte/widgets/input/TextInput.svelte'
 	import {
@@ -7,6 +8,7 @@
 		faEnvelopeCircleCheck,
 		faExclamationTriangle
 	} from '@fortawesome/free-solid-svg-icons'
+	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
 	import { fly } from 'svelte/transition'
 
@@ -34,6 +36,10 @@
 			message = result
 		}
 	}
+
+	onMount(() => {
+		scrollIntoView("top")
+	})
 </script>
 
 <svelte:head>
@@ -50,9 +56,7 @@
 			<Fa icon={faEnvelopeCircleCheck} size="lg" />
 		</div>
 	{:else}
-		<div
-			class="dark:bg-surface-900/90 border dark:border-surface-400/50 shadow-lg rounded-md overflow-hidden p-8 space-y-16"
-		>
+		<div class="section-wrapper p-8 space-y-16 scroll-mt-4" id="top">
 			<div class="space-y-8">
 				<h2 class="h2 font-bold">Recover Password</h2>
 				<p class="max-w-[60ch]">
@@ -62,7 +66,7 @@
 			</div>
 			<div class="space-y-4 relative">
 				{#if message}
-					<p in:fly={{ y: 10 }} class="absolute -top-8 font-bold text-error-500">{message}</p>
+					<p in:fly={{ y: 10 }} class=" font-bold variant-filled-error p-4 rounded-md max-w-[40ch]">{message}</p>
 				{/if}
 				<Text label="Email" name="email" bind:value={recoverAddress} />
 				<ActionButton

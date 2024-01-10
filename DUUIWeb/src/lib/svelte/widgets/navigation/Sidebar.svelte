@@ -1,47 +1,37 @@
 <script lang="ts">
-	import Logo from '$lib/assets/Logo.svg'
-	import Icon from '$lib/assets/favicon.svg'
-
 	import {
 		faArrowRightFromBracket,
-		faArrowRightToBracket,
 		faBars,
-		faBookOpen,
 		faGears,
 		faHome,
 		faLayerGroup,
-		faNetworkWired,
-		faPlus,
-		faMap,
-		faUser,
-		faUserPlus,
-		faLock,
-		faLink,
 		faHammer,
-
-		faCloud,
-
-		faGear
-
-
+		faCloud
 	} from '@fortawesome/free-solid-svg-icons'
 	import { Accordion, AccordionItem, LightSwitch, getDrawerStore } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
 	import Anchor from '../action/Anchor.svelte'
-	import ActionButton from '../action/ActionButton.svelte'
-	import { goto } from '$app/navigation'
+	import { goto, onNavigate } from '$app/navigation'
 	import { makeApiCall, Api } from '$lib/duui/utils/api'
+	import Link from '$lib/components/Link.svelte'
+	import { userSession } from '$lib/store'
 
 	const drawerStore = getDrawerStore()
-	export let loggedIn: boolean = false
 
 	const logout = async () => {
 		const response = await makeApiCall(Api.Logout, 'PUT', {})
 		if (response.ok) {
-			loggedIn = false
-			goto('/account/auth/login', { invalidateAll: true })
+			userSession.set(undefined)
+
+			goto('/account/login')
+		} else {
+			console.error(response.status, response.statusText)
 		}
 	}
+
+	onNavigate(() => {
+		drawerStore.close()
+	})
 </script>
 
 <aside class="space-y-4 z-50">
@@ -49,108 +39,66 @@
 		<button class="btn-icon" on:click={() => drawerStore.close()}>
 			<Fa icon={faBars} size="lg" />
 		</button>
+		{#if $userSession?.role === 'admin'}
+			<span class="badge variant-soft-tertiary font-bold">ADMIN</span>
+		{/if}
 		<LightSwitch />
 	</div>
 	<div class="px-4 space-y-4">
-		<Anchor
-			href="/"
-			icon={faHome}
-			text="Home"
-			_class="items-center flex justify-start block gap-8 bg-primary-hover-token"
-			variant=""
-		/>
-		<Accordion spacing="space-y-4">
-			<AccordionItem rounded="rounded-none">
+		<div class="flex flex-col text-left px-4 space-y-4">
+			<Link href="/">Home</Link>
+		</div>
+
+		<Accordion spacing="space-y-4" autocollapse>
+			<AccordionItem regionControl="bg-fancy" hover="animate-underline">
 				<svelte:fragment slot="summary">Pipelines</svelte:fragment>
 				<svelte:fragment slot="content">
-					<div class="flex flex-col text-left">
-						<Anchor
-							href="/pipelines"
-							icon={faLayerGroup}
-							text="Dashboard"
-							_class="justify-start gap-8 bg-primary-hover-token"
-							variant=""
-						/>
-						<Anchor
-							href="/pipelines/editor"
-							icon={faHammer}
-							size="lg"
-							text="Editor"
-							_class="justify-start gap-8 bg-primary-hover-token"
-							variant=""
-						/>
+					<div class="flex flex-col text-left px-4 space-y-4">
+						<Link href="/pipelines">Dashboard</Link>
+						<Link href="/pipelines/editor">Editor</Link>
 					</div>
 				</svelte:fragment>
 			</AccordionItem>
-			<AccordionItem rounded="rounded-none">
+			<AccordionItem regionControl="bg-fancy" hover="animate-underline">
 				<svelte:fragment slot="summary">Documentation</svelte:fragment>
 				<svelte:fragment slot="content">
-					<div class="flex flex-col text-left">
-						<Anchor
-							href="/documentation"
-							icon={faGears}
-							text="Docker Unified UIMA Interface"
-							_class="justify-start gap-8 bg-primary-hover-token"
-							variant=""
-						/>
-						<Anchor
-							href="/documentation/api"
-							icon={faCloud}
-							text="API Reference"
-							_class="justify-start gap-8 bg-primary-hover-token"
-							variant=""
-						/>
+					<div class="flex flex-col text-left px-4 space-y-4">
+						<Link href="/documentation#introduction">Introduction</Link>
+						<Link href="/documentation#composer">Composer</Link>
+						<Link href="/documentation#driver">Driver</Link>
+						<Link href="/documentation#component">Component</Link>
+						<Link href="/documentation#io">IO</Link>
 					</div>
 				</svelte:fragment>
 			</AccordionItem>
-			<AccordionItem rounded="rounded-none">
+			<AccordionItem regionControl="bg-fancy" hover="animate-underline">
+				<svelte:fragment slot="summary">API Reference</svelte:fragment>
+				<svelte:fragment slot="content">
+					<div class="flex flex-col text-left px-4 space-y-4">
+						<Link href="/documentation/api#rest">REST</Link>
+						<Link href="/documentation/api#java">Java</Link>
+						<Link href="/documentation/api#python">Python</Link>
+					</div>
+				</svelte:fragment>
+			</AccordionItem>
+			<AccordionItem regionControl="bg-fancy" hover="animate-underline">
 				<svelte:fragment slot="summary">Account</svelte:fragment>
 				<svelte:fragment slot="content">
-					<div class="flex flex-col text-left">
-						{#if !loggedIn}
-							<Anchor
-								href="/account/auth/login"
-								icon={faArrowRightToBracket}
-								text="Login"
-								_class="justify-start gap-8 bg-primary-hover-token"
-								variant=""
-							/>
-							<Anchor
-								href="/account/auth/login?register=true"
-								icon={faUserPlus}
-								text="Register"
-								_class="justify-start gap-6 bg-primary-hover-token"
-								variant=""
-							/>
-						{:else}
-							<Anchor
-								href="/account/user/profile"
-								icon={faUser}
-								text="Profile"
-								_class="justify-start gap-8 bg-primary-hover-token"
-								variant=""
-							/>
-							<Anchor
-								href="/account/user/connections"
-								icon={faLink}
-								text="Connections"
-								_class="justify-start gap-8 bg-primary-hover-token"
-								variant=""
-							/>
-							<Anchor
-								href="/account/user/security"
-								icon={faLock}
-								text="Security"
-								_class="justify-start gap-8 bg-primary-hover-token"
-								variant=""
-							/>
-							<ActionButton
+					<div class="flex flex-col text-left px-4 space-y-4">
+						{#if $userSession}
+							<Link href="/account#profile">Profile</Link>
+							<Link href="/account#authorization">Authorization</Link>
+							<button
+								class="p-0 btn inline-flex items-center hover:text-primary-500 transition-colors justify-start
+							animate-underline"
 								on:click={logout}
-								icon={faArrowRightFromBracket}
-								text="Logout"
-								_class="justify-start gap-8 bg-primary-hover-token"
-								variant=""
-							/>
+							>
+								<span>Logout</span>
+								<Fa icon={faArrowRightFromBracket} />
+							</button>
+						{:else}
+							<Link href="/account/login">Login</Link>
+							<Link href="/account/register">Register</Link>
 						{/if}
 					</div>
 				</svelte:fragment>

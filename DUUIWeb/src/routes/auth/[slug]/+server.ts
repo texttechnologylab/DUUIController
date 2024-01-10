@@ -81,7 +81,10 @@ const register = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 	})
 
 	if (response.status !== 404) {
-		throw fail(302, { error: '/account/register?message=This email address is invalid' })
+		return fail(302, {
+			error:
+				'This email address is already registered. If you forgot your password, you can reset it.'
+		})
 	}
 
 	if (password1 !== password2) {

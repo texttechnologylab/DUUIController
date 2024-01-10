@@ -48,6 +48,7 @@
     "apexcharts": "^3.45.1",
     "bcrypt": "^5.1.1",
     "dropbox": "^10.34.0",
+    "highlight.js": "^11.9.0",
     "lodash": "^4.17.21",
     "svelte-apexcharts": "^1.0.2",
     "svelte-fa": "^3.0.4",

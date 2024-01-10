@@ -8,14 +8,6 @@
 	export let process: DUUIProcess
 	export let documents: DUUIDocument[] = []
 
-	let objects = [
-		{ id: 1, startTime: 10, endTime: 30 },
-		{ id: 2, startTime: 20, endTime: 65 },
-		{ id: 3, startTime: 40, endTime: 90 },
-		{ id: 4, startTime: 70, endTime: 100 }
-		// Add more objects as needed
-	]
-
 	let start = 0
 	let end = 100
 
@@ -53,8 +45,8 @@
 </script>
 
 <div
-	class="rounded-md hidden sm:block container
-	h-full mx-auto border border-surface-200 dark:border-surface-500 shadow-lg isolate p-8 space-y-4"
+	class=" hidden sm:block container section-wrapper 
+	mx-auto p-8 pb-16 space-y-4"
 >
 	<h2 class="h2">Timeline</h2>
 	<div class="w-full flex gap-2 mb-8">
@@ -68,7 +60,7 @@
 					hoverIndex
 						? document.error
 							? '!border-r-error-500'
-							: '!border-r-warning-500'
+							: '!border-r-primary-500'
 						: ''}"
 					on:click={() => showDocumentModal(document)}
 					on:mouseenter={() => (hoverIndex = index)}
@@ -88,10 +80,10 @@
 						<button
 							class="btn-sm block {document.error
 								? 'variant-glass-error'
-								: 'variant-glass-warning'} {index === hoverIndex
+								: 'variant-glass-primary'} {index === hoverIndex
 								? document.error
 									? '!bg-error-500'
-									: '!bg-warning-500'
+									: '!bg-primary-500'
 								: ''} rounded-md text-sm my-1 text-transparent"
 							style="transform: translate({((document.startTime - process.startTime) /
 								(endTime - process.startTime)) *

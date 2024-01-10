@@ -22,7 +22,7 @@ import static api.http.ResponseUtils.success;
 import static api.requests.validation.UserValidator.*;
 import static api.requests.validation.Validator.isNullOrEmpty;
 import static api.requests.validation.Validator.missingField;
-import static api.storage.DUUIMongoDBStorage.combineUpdates;
+import static api.storage.DUUIMongoDBStorage.mergeUpdates;
 import static api.storage.DUUIMongoDBStorage.mapObjectIdToString;
 import static com.mongodb.client.model.Sorts.ascending;
 
@@ -47,9 +47,9 @@ public class DUUIComponentController {
      * REQUIRED FIELDS
      * > name: String
      *
-     * @param request
-     * @param response
-     * @return
+     * @param request  Request object
+     * @param response Response object
+     * @return Response message
      */
     public static String insertOne(Request request, Response response) {
         Document user = authenticate(request.headers("Authorization"));
@@ -131,7 +131,7 @@ public class DUUIComponentController {
         DUUIMongoDBStorage
             .Components()
             .findOneAndUpdate(Filters.eq(new ObjectId(id)),
-                combineUpdates(updates, _fields));
+                mergeUpdates(updates, _fields));
 
         response.status(200);
         return getComponentById(id).toJson();

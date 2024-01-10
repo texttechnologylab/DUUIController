@@ -21,10 +21,10 @@ export const GET: RequestHandler = async (event) => {
 	let filter: string = searchParams.get('filter') || 'Any'
 
 	const fetchDocuments = async () => {
+		
 		const response = await fetch(
-			`${API_URL}/documents
-			?process_id=${process_id}
-			&limit=${limit}
+			`${API_URL}/processes/${process_id}/documents
+			?limit=${limit}
 			&skip=${skip}
 			&by=${sort}
 			&order=${order}

@@ -3,16 +3,13 @@
 		faArrowRight,
 		faArrowUpRightFromSquare,
 		faArrowsAlt,
-		faBookOpen,
 		faCheck,
 		faCloud,
 		faRecycle,
-		faRocket,
 		faUserGroup
 	} from '@fortawesome/free-solid-svg-icons'
 	import Feature from '$lib/components/Feature.svelte'
-	import Anchor from '$lib/svelte/widgets/action/Anchor.svelte'
-
+	
 	import Hosting from '$lib/assets/undraw_cloud_hosting_7xb1.svg'
 	import Futuristic from '$lib/assets/undraw_futuristic_interface_re_0cm6.svg'
 	import Reminder from '$lib/assets/undraw_reminder_re_fe15.svg'
@@ -21,20 +18,27 @@
 	import HLine from '$lib/svelte/widgets/navigation/HLine.svelte'
 	import { faAmazon, faDropbox } from '@fortawesome/free-brands-svg-icons'
 	import { userSession } from '$lib/store'
+	import { scrollIntoView } from '$lib/duui/utils/ui'
+	import { onMount } from 'svelte'
+
+	onMount(() => {
+		scrollIntoView('top')
+	})
+	
 </script>
 
 <svelte:head>
 	<title>DUUI</title>
 </svelte:head>
 
-<main class="container-full-h flex justify-center items-center">
+<main class="container-full-h flex justify-center items-center" id="top">
 	<div
 		class="text-center flex flex-col items-center bg-surface-200/30 dark:bg-surface-500/80 isolate"
 	>
 		<div
 			class="sm:grid grid-cols-2 sm:text-left gap-4 p-8 md:my-12 container relative items-start max-w-7xl"
 		>
-			<div class="space-y-8 md:space-y-16 grid justify-center sm:justify-start">
+			<div class="space-y-8 md:space-y-16 2xl:my-8 grid justify-center sm:justify-start">
 				<div class="space-y-4">
 					<p class="text-surface-400 dark:text-surface-200 text-lg md:text-2xl">
 						Natural Language Processing
@@ -51,21 +55,15 @@
 
 				<div class="flex flex-col sm:flex-row gap-4 items-center">
 					{#if $userSession === undefined}
-						<a
-							href="/account/register"
-							class="btn font-bold gap-2 px-6 py-3 variant-filled-primary rounded-full"
-						>
+						<a href="/account/register" class="flex items-center gap-2 px-6 py-3 grow-from-left">
 							<span> Get Started </span>
 							<Fa icon={faArrowRight} size="lg" />
 						</a>
 					{:else}
-						<Anchor
-							href="/pipelines"
-							icon={faArrowRight}
-							leftToRight={false}
-							text="Get back to it"
-							variant="variant-filled-primary"
-						/>
+						<a href="/pipelinesr" class="flex items-center gap-2 px-6 py-3 grow-from-left">
+							<span> Get back to it </span>
+							<Fa icon={faArrowRight} size="lg" />
+						</a>
 					{/if}
 				</div>
 			</div>
@@ -117,9 +115,7 @@
 				/>
 			</div>
 		</section>
-		<div
-			class=" w-screen relative overflow-hidden after:-z-10 after:absolute after:inset-0 after:scale-x-125 after:bg-surface-200/50 after:-rotate-[20deg] after:hidden md:after:visible"
-		>
+		<div class=" w-screen relative overflow-hidden">
 			<div class="container max-w-7xl mx-auto space-y-8 my-8">
 				<section
 					class="flex flex-col md:flex-row gap-4 p-4 md:py-8 items-center text-left justify-between mx-auto"
@@ -136,10 +132,7 @@
 						<a
 							href="https://www.dropbox.com"
 							target="_blank"
-							class="flex gap-4 items-center font-bold text-lg bg-primary-500 p-4 px-8 rounded-full shadow-lg
-					relative isolate overflow-hidden group
-					after:absolute after:inset-0 after:bg-primary-700 after:-z-10 after:rounded-full after:scale-x-0
-					hover:after:scale-x-100 after:transition-transform after:origin-left after:duration-500"
+							class="flex gap-4 items-center text-lg p-4 px-8 grow-from-left"
 						>
 							<Fa size="lg" icon={faDropbox} />
 							<p>Dropbox</p>
@@ -149,10 +142,7 @@
 						<a
 							href="https://aws.amazon.com"
 							target="_blank"
-							class="flex gap-4 items-center font-bold text-lg bg-primary-500 p-4 px-8 rounded-full shadow-lg
-					relative isolate overflow-hidden group
-					after:absolute after:inset-0 after:bg-primary-700 after:-z-10 after:rounded-full after:scale-x-0
-					hover:after:scale-x-100 after:transition-transform after:origin-left after:duration-500"
+							class="flex gap-4 items-center text-lg p-4 px-8 grow-from-left"
 						>
 							<Fa size="lg" icon={faAmazon} />
 							<p>AWS</p>
@@ -163,10 +153,7 @@
 						<a
 							href="https://www.microsoft.com/de-de/microsoft-365/onedrive/online-cloud-storage"
 							target="_blank"
-							class="flex gap-4 items-center font-bold text-lg bg-primary-500 p-4 px-8 rounded-full shadow-lg
-					relative isolate overflow-hidden group
-					after:absolute after:inset-0 after:bg-primary-700 after:-z-10 after:rounded-full after:scale-x-0
-					hover:after:scale-x-100 after:transition-transform after:origin-left after:duration-500"
+							class="flex gap-4 items-center text-lg p-4 px-8 grow-from-left"
 						>
 							<Fa size="lg" icon={faCloud} />
 							<p>OneDrive</p>

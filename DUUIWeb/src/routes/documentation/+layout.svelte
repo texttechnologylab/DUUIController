@@ -1,12 +1,12 @@
 <script lang="ts">
-	import Documentation from '$lib/svelte/widgets/navigation/Documentation.svelte'
+	import { scrollIntoView } from '$lib/duui/utils/ui'
+	import { onMount } from 'svelte'
+
+	onMount(() => {
+		scrollIntoView('top')
+	})
 </script>
 
-<div class="relative h-full grid items-start">
-	<div class="md:flex">
-		<Documentation />
-		<div class="p-8 border-l border-l-surface-400/20">
-			<slot />
-		</div>
-	</div>
+<div id="top" class="scroll-mt-4">
+	<slot />
 </div>

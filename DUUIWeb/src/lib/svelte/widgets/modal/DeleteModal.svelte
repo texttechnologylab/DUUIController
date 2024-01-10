@@ -11,7 +11,7 @@
 
 <div
 	class="z-50 overflow-hidden rounded-md dark:bg-surface-700 shadow-lg border-surface-400/20
-	items-start justify-start w-modal"
+	 w-modal"
 >
 	<div
 		class=" p-4 variant-filled-error dark:variant-soft-error flex items-center justify-between gap-4"
@@ -25,22 +25,22 @@
 		</div>
 		<div class="flex items-center gap-4 justify-end">
 			<ActionButton
-				text="Cancel"
-				icon={faClose}
-				on:click={() => {
-					if ($modalStore[0].response) {
-						$modalStore[0]?.response(false)
-						modalStore.close()
-					}
-				}}
-			/>
-			<ActionButton
 				text="Confirm"
 				variant="dark:variant-soft-error variant-filled-error"
 				icon={faTrash}
 				on:click={() => {
 					if ($modalStore[0].response) {
 						$modalStore[0]?.response(true)
+						modalStore.close()
+					}
+				}}
+			/>
+			<ActionButton
+				text="Cancel"
+				icon={faClose}
+				on:click={() => {
+					if ($modalStore[0].response) {
+						$modalStore[0]?.response(false)
 						modalStore.close()
 					}
 				}}

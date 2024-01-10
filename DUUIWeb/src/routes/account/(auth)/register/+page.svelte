@@ -8,6 +8,8 @@
 	import { userSession } from '$lib/store'
 	import { goto } from '$app/navigation'
 	import { faGithub, faXTwitter } from '@fortawesome/free-brands-svg-icons'
+	import { scrollIntoView } from '$lib/duui/utils/ui'
+	import { onMount } from 'svelte'
 
 	let email: string
 	let password1: string
@@ -17,12 +19,18 @@
 
 	let message: string
 	$: message = $page.url.searchParams.get('message') ?? ''
-
+	const emailPattern = new RegExp('[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+.[a-zA-Z]{2,}$')
 	const register = async () => {
+		if (!emailPattern.test(email)) {
+			message = 'Please enter a valid E-Mail address'
+			return
+		}
+
 		if (!email || !password1 || !password2) {
 			message = 'Please enter all required details.'
 			return
 		}
+
 		const response = await fetch('/auth/register', {
 			method: 'POST',
 			body: JSON.stringify({
@@ -42,18 +50,21 @@
 			goto('/pipelines')
 		} else {
 			message = result
+			console.log(result)
 		}
 	}
+
+	onMount(() => {
+		scrollIntoView('top')
+	})
 </script>
 
 <svelte:head>
 	<title>Register</title>
 </svelte:head>
 
-<div class="grid md:flex items-center md:justify-center h-full md:m-16 w-full">
-	<div
-		class="grid relative md:grid-cols-2 border dark:bg-surface-900/90 dark:border-surface-400/50 shadow-lg rounded-md overflow-hidden lg:min-w-[900px] p-4 md:p-0"
-	>
+<div class="grid md:flex items-center md:justify-center h-full md:m-16 w-full scroll-mt-4" id="top">
+	<div class="grid relative md:grid-cols-2 section-wrapper lg:min-w-[900px] p-4 md:p-0">
 		<div class="space-y-8 md:p-16 md:px-8 hidden md:invisible">
 			<h2 class="h2 font-bold mb-16">Login</h2>
 			<div class="space-y-4">
@@ -76,7 +87,9 @@
 			class="relative space-y-8 md:p-16 md:px-8 md:col-start-2"
 		>
 			{#if message}
-				<p in:fly={{ y: -100 }} class="absolute top-8 font-bold text-error-500">{message}</p>
+				<p in:fly={{ y: -100 }} class="font-bold variant-filled-error p-4 rounded-md max-w-[40ch]">
+					{message}
+				</p>
 			{/if}
 			<h2 class="h2 font-bold mb-16">Register</h2>
 			<div class="flex flex-col gap-8">
@@ -85,6 +98,7 @@
 					<Password bind:value={password1} label="Password" name="password" required />
 					<Password bind:value={password2} label="Repeat Password" name="password2" required />
 				</div>
+				<a class="block text-center anchor text-sm" href="/account/recover">Forgot Password? </a>
 				<button
 					on:click={register}
 					class="btn rounded-md variant-filled-primary uppercase tracking-widest self-center px-8 font-bold"

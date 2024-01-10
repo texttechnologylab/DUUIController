@@ -8,6 +8,8 @@
 	import { fly } from 'svelte/transition'
 	import Text from '$lib/svelte/widgets/input/TextInput.svelte'
 	import { faGithub, faXTwitter } from '@fortawesome/free-brands-svg-icons'
+	import { onMount } from 'svelte'
+	import { scrollIntoView } from '$lib/duui/utils/ui'
 
 	let email: string = $page.url.searchParams.get('email') || ''
 	let password: string
@@ -17,8 +19,12 @@
 
 	let message: string
 	$: message = $page.url.searchParams.get('message') ?? ''
-
+	const emailPattern = new RegExp('[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+.[a-zA-Z]{2,}$')
 	const loginUser = async () => {
+		if (!emailPattern.test(email)) {
+			message = 'Please enter a valid E-Mail address'
+			return
+		}
 		const response = await fetch('/auth/login', {
 			method: 'POST',
 			body: JSON.stringify({
@@ -41,22 +47,26 @@
 	}
 
 	const login: boolean = true
+
+	onMount(() => {
+		scrollIntoView('top')
+	})
 </script>
 
 <svelte:head>
 	<title>Login</title>
 </svelte:head>
 
-<div class="grid md:flex items-center md:justify-center h-full md:m-16 w-full">
-	<div
-		class="grid relative md:grid-cols-2 dark:bg-surface-900/90 border dark:border-surface-400/50 shadow-lg rounded-md overflow-hidden lg:min-w-[900px] p-4 md:p-0"
-	>
+<div class="grid md:flex items-center md:justify-center h-full md:m-16 w-full scroll-mt-4" id="top">
+	<div class="grid relative md:grid-cols-2 section-wrapper lg:min-w-[900px] p-4 md:p-0">
 		<div
 			in:fly={{ x: 600, opacity: 100, duration: 800 }}
 			class="space-y-8 md:p-16 md:px-8 relative"
 		>
 			{#if message}
-				<p in:fly={{ y: -100 }} class="absolute top-8 font-bold text-error-500">{message}</p>
+				<p in:fly={{ y: -100 }} class="font-bold variant-filled-error p-4 rounded-md max-w-[40ch]">
+					{message}
+				</p>
 			{/if}
 			<h2 class="h2 font-bold mb-16">Login</h2>
 			<div class="gap-8 flex flex-col">
@@ -90,6 +100,7 @@
 						name="password2"
 					/>
 				</div>
+				<a class="block text-center anchor text-sm" href="/account/recover">Forgot Password? </a>
 				<button class="btn rounded-md variant-filled-primary uppercase tracking-widest font-bold">
 					sign up
 				</button>

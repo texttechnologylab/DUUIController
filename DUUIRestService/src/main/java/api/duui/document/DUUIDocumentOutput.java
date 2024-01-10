@@ -37,11 +37,11 @@ public class DUUIDocumentOutput {
     }
 
     public boolean isText() {
-        return _target.equalsIgnoreCase("text");
+        return _target.equalsIgnoreCase(IOType.TEXT.getName());
     }
 
     public boolean isNone() {
-        return _target.equalsIgnoreCase("none");
+        return _target.equalsIgnoreCase(IOType.NONE.getName());
     }
 
     public Document toDocument() {

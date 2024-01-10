@@ -16,18 +16,18 @@
 		hidden = !hidden
 	}
 
-	const cipher: string = 'x'.repeat(16)
+	const cipher: string = 'x'.repeat(value ? 16 : 0)
 </script>
 
 <label class="label flex flex-col {style}">
 	<span class="form-label">{label}</span>
 	<div class="flex items-center relative">
 		<button
-			class="w-4 absolute left-4 top-1/2 -translate-y-1/2 text-surface-400 hover:text-black transition-colors bg-inherit"
+			class="w-4 absolute left-4 top-1/2 -translate-y-1/2 bg-inherit"
 			on:click|preventDefault={toggleVisibility}
 			tabindex="-1"
 		>
-			<Fa class="w-4" icon={hidden ? faEyeSlash : faEye} />
+			<Fa class="w-4 animate-text" icon={hidden ? faEyeSlash : faEye} />
 		</button>
 		{#if hidden}
 			<input

@@ -13,7 +13,7 @@ interface UserProperties {
 	oid: string
 	email?: string
 	password?: string
-	role: 'user' | 'admin' | 'none'
+	role: 'user' | 'admin' | 'trial' | 'none'
 	session: string
 	expires?: string
 	key?: string
@@ -53,4 +53,19 @@ interface Language {
 	name: string
 	code: string
 	data: {}
+}
+
+type Variable = {
+	visibility?: string
+	name: string
+	type: string
+}
+
+type Method = {
+	visibility?: string
+	name: string
+	description: string
+	args: Variable[]
+	throws: string[]
+	returns?: string
 }

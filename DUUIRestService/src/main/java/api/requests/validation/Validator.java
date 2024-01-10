@@ -12,11 +12,6 @@ public class Validator {
         return new Document("message", "Missing field <" + field + ">").toJson();
     }
 
-    public static String updateSuccess(Response response, String field) {
-        response.status(200);
-        return new Document("message", "Successfully updated <" + field + ">").toJson();
-    }
-
     public static boolean isNullOrEmpty(String value) {
         return value == null || value.isEmpty();
     }

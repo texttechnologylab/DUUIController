@@ -1,5 +1,12 @@
-<div
-	class="p-4 h-full flex items-center md:justify-center bg-surface-100/50 dark:bg-surface-700/50"
->
+<script lang="ts">
+	import { scrollIntoView } from '$lib/duui/utils/ui'
+	import { onMount } from 'svelte'
+
+	onMount(() => {
+		scrollIntoView('top')
+	})
+</script>
+
+<div id="top" class="h-full p-4 space-y-4 scroll-mt-4 flex items-center md:justify-center">
 	<slot />
 </div>

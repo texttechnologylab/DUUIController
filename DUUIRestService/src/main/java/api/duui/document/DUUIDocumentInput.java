@@ -41,7 +41,8 @@ public class DUUIDocumentInput {
     }
 
     public boolean isCloudProvider() {
-        return _source.equalsIgnoreCase("Dropbox") || _source.equalsIgnoreCase("Minio");
+        return _source.equalsIgnoreCase(IOType.DROPBOX.getName())
+            || _source.equalsIgnoreCase(IOType.MINIO.getName());
     }
 
     public boolean isText() {
@@ -61,6 +62,6 @@ public class DUUIDocumentInput {
     }
 
     public boolean isLocalFile() {
-        return _source.equalsIgnoreCase("local file");
+        return _source.equalsIgnoreCase(IOType.FILE.getName());
     }
 }
