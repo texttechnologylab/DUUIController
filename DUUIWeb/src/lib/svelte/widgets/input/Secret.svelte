@@ -7,40 +7,46 @@
 	export let value: string = ''
 	export let style: string = ''
 
-	export let required: boolean = true
-	export let readonly: boolean = false
+	export let readonly: boolean = true
 
-	let input: HTMLInputElement
 	let hidden: boolean = true
 	export let disabled: boolean = false
 
 	const toggleVisibility = () => {
 		hidden = !hidden
-		input.type = hidden ? 'password' : 'text'
-		input.readOnly = hidden
 	}
+
+	const cipher: string = 'x'.repeat(16)
 </script>
 
 <label class="label flex flex-col {style}">
 	<span class="form-label">{label}</span>
 	<div class="flex items-center relative">
-		<input
-			{disabled}
-			class="bg-transparent border-0 grow text-xs p-3 input-wrapper"
-			type="password"
-			{name}
-			bind:value
-			bind:this={input}
-			{required}
-			{readonly}
-		/>
-
 		<button
-			class="btn btn-sm absolute right-0 top-1/2 -translate-y-1/2 text-surface-400 hover:text-black transition-colors"
+			class="w-4 absolute left-4 top-1/2 -translate-y-1/2 text-surface-400 hover:text-black transition-colors bg-inherit"
 			on:click|preventDefault={toggleVisibility}
 			tabindex="-1"
 		>
 			<Fa class="w-4" icon={hidden ? faEyeSlash : faEye} />
 		</button>
+		{#if hidden}
+			<input
+				{disabled}
+				class="pl-12 bg-transparent border-0 grow text-xs p-3 input-wrapper"
+				type="text"
+				{name}
+				value={cipher}
+				{readonly}
+			/>
+		{:else}
+			<input
+				{disabled}
+				class="pl-12 bg-transparent border-0 grow text-xs p-3 input-wrapper"
+				type="text"
+				{name}
+				bind:value
+				{readonly}
+			/>
+		{/if}
 	</div>
 </label>

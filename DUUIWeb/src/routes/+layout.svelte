@@ -10,17 +10,17 @@
 	import { faGithub } from '@fortawesome/free-brands-svg-icons'
 
 	import { initializeStores } from '@skeletonlabs/skeleton'
-	import { beforeNavigate, goto, onNavigate } from '$app/navigation'
+	import { afterNavigate, beforeNavigate, goto, onNavigate } from '$app/navigation'
 	import { storePopup } from '@skeletonlabs/skeleton'
 
 	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom'
-	import ComponentEditor from '$lib/components/ComponentEditor.svelte'
 	import { Modal } from '@skeletonlabs/skeleton'
 	import Sidebar from '$lib/svelte/widgets/navigation/Sidebar.svelte'
-	import { Api, makeApiCall } from '$lib/utils/api'
+	import { Api, makeApiCall } from '$lib/duui/utils/api'
 	import DeleteModal from '$lib/svelte/widgets/modal/DeleteModal.svelte'
 	import { userSession } from '$lib/store'
-	import Link from '$lib/svelte/components/Link.svelte'
+	import Link from '$lib/components/Link.svelte'
+	import DocumentModal from '$lib/svelte/widgets/modal/DocumentModal.svelte'
 
 	export let data
 	let { user } = data
@@ -65,7 +65,8 @@
 	$: loggedIn = !!$userSession?.session
 
 	const modalRegistry: Record<string, ModalComponent> = {
-		deleteModal: { ref: DeleteModal }
+		deleteModal: { ref: DeleteModal },
+		documentModal: { ref: DocumentModal }
 	}
 </script>
 
@@ -74,8 +75,6 @@
 <Drawer rounded="rounded-none">
 	{#if $drawerStore.id === 'sidebar'}
 		<Sidebar {loggedIn} />
-	{:else if $drawerStore.id === 'component'}
-		<ComponentEditor component={$drawerStore.meta.component} />
 	{/if}
 </Drawer>
 <!-- App Shell -->
@@ -84,19 +83,19 @@
 		<!-- App Bar -->
 		<AppBar shadow="shadow-lg dark:bg-surface-900">
 			<svelte:fragment slot="lead">
-				<div class="flex items-center">
+				<div class="flex items-center gap-4">
 					<button class="btn-icon lg:hidden" on:click={() => drawerStore.open(sidebarDrawer)}>
 						<Fa icon={faBars} size="lg" />
 					</button>
 					<a href="/">
 						<img src={Logo} alt="The letters DUUI" class="hidden lg:block max-h-8" />
 					</a>
+					{#if $userSession?.role === 'admin'}
+						<span class="badge variant-soft-tertiary font-bold">ADMIN</span>
+					{/if}
 				</div>
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
-				{#if $userSession?.role === 'admin'}
-					<span class="badge variant-soft-tertiary font-bold">ADMIN</span>
-				{/if}
 				<div class="hidden lg:flex items-center gap-8 font-heading-token">
 					<Link href="/pipelines">Pipelines</Link>
 					<Link href="/pipelines/editor">Editor</Link>
@@ -132,7 +131,7 @@
 
 	<svelte:fragment slot="pageFooter">
 		<footer>
-			<div class="border-t border-surface-400/20 bg-surface-100 dark:bg-surface-700/50">
+			<div class="border-t border-surface-400/20 bg-white dark:bg-surface-900/50">
 				<div
 					class="relative
 				 md:after:visible after:invisible after:absolute after:w-[2px] after:h-full after:scale-y-[80%] after:bg-surface-400/20 after:left-1/2 after:top-0 after:rounded-full
@@ -151,7 +150,7 @@
 									href="https://github.com/texttechnologylab/DUUIController"
 									target="_blank"
 									rel="noreferrer"
-									class="variant-ringed-primary flex items-center justify-center gap-2 btn"
+									class="variant-ringed-primary hover:variant-filled-primary flex items-center justify-center gap-2 btn"
 								>
 									<span>Github</span>
 									<Fa icon={faGithub} />
@@ -160,7 +159,7 @@
 									href="https://www.texttechnologylab.org/"
 									target="_blank"
 									rel="noreferrer"
-									class="variant-ringed-primary flex items-center justify-center gap-2 btn"
+									class="variant-ringed-primary hover:variant-filled-primary flex items-center justify-center gap-2 btn"
 								>
 									<span>TTLab</span>
 									<Fa icon={faGlobe} />

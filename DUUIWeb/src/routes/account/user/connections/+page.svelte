@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
-	import { makeApiCall, Api } from '$lib/utils/api.js'
+	import { makeApiCall, Api } from '$lib/duui/utils/api'
 	import {
 		faCopy,
 		faCheck,

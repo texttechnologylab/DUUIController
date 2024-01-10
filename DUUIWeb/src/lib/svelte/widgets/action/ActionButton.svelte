@@ -7,7 +7,7 @@
 	export let variant: string = 'dark:variant-soft-primary variant-filled-primary'
 	export let rounded: string = ''
 	export let _class: string = ''
-	export let leftToRight: boolean = true
+	export let leftToRight: boolean = false
 	export let tabindex: number = 0
 	export let disabled: boolean = false
 	export let visible: boolean = true

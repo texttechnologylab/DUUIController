@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { equals, toTitleCase } from '$lib/utils/text'
+	import { equals, toTitleCase } from '$lib/duui/utils/text'
 	import type { Placement } from '@floating-ui/dom'
 	import { faCheck, faChevronDown, type IconDefinition } from '@fortawesome/free-solid-svg-icons'
 	import { ListBox, ListBoxItem, popup, type PopupSettings } from '@skeletonlabs/skeleton'
@@ -13,7 +13,7 @@
 
 	export let icon: IconDefinition = faChevronDown
 	export let placement: Placement = 'bottom-end'
-	export let offset: number = 8
+	export let offset: number = 0
 
 	const dropdown: PopupSettings = {
 		event: 'click',
@@ -39,7 +39,7 @@
 	</button>
 </div>
 
-<div class="input-wrapper shadow-lg z-10" data-popup={name}>
+<div class="popup-solid shadow-lg z-10" data-popup={name}>
 	<ListBox rounded="rounded-none" spacing="space-y-0">
 		{#each options as option}
 			<ListBoxItem

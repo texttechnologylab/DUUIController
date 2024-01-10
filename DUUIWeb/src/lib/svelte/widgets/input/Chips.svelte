@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { includesText, toTitleCase } from '$lib/utils/text'
+	import { includesText, toTitleCase } from '$lib/duui/utils/text'
 	import { faClose } from '@fortawesome/free-solid-svg-icons'
 	import { createEventDispatcher } from 'svelte'
 	import Fa from 'svelte-fa'
@@ -27,15 +27,13 @@
 </script>
 
 <div class="label flex flex-col {style}">
-	<span class="uppercase text-xs tracking-widest">{label}</span>
+	<span class="form-label">{label}</span>
 
-	<div
-		class="rounded-md flex flex-col border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 focus-within:ring-1 focus-within:ring-[#2563eb] focus-within:border-[#2563eb]"
-	>
+	<div class="input-wrapper !focus-within:ring-red-400 flex flex-col">
 		<input
 			class="{values.length > 0
 				? 'ring-0'
-				: ''} border-none appearance-none ring-0 bg-transparent focus:ring-0 outline-none"
+				: ''} border-none appearance-none ring-0 bg-transparent focus:ring-0"
 			type="text"
 			bind:value={current}
 			placeholder="Category"

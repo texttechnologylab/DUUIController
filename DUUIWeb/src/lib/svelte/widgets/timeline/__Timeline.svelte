@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { DUUIStatusEvent } from '$lib/duui/monitor'
-	import { includes } from '$lib/utils/text'
+	import { includes } from '$lib/duui/utils/text'
 	import { faSearch } from '@fortawesome/free-solid-svg-icons'
 	import Search from '../input/Search.svelte'
 	import Timestamp from './Timestamp.svelte'

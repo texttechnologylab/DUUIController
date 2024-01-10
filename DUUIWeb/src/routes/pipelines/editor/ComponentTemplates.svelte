@@ -4,7 +4,7 @@
 	import { faSearch } from '@fortawesome/free-solid-svg-icons'
 	import { createEventDispatcher } from 'svelte'
 	import Search from '$lib/svelte/widgets/input/Search.svelte'
-	import { equals, includes } from '$lib/utils/text'
+	import { equals, includes } from '$lib/duui/utils/text'
 	import Dropdown from '$lib/svelte/widgets/input/Dropdown.svelte'
 
 	const dispatcher = createEventDispatcher()
@@ -51,7 +51,7 @@
 <div class="md:mt-16 items-start justify-start rounded-none container">
 	<div class="md:flex justify-between items-end py-4 space-y-4">
 		<h3 class="h3">Templates</h3>
-		<div class="grid md:grid-cols-2 gap-4 items-end">
+		<div class="grid md:grid-cols-2 items-end">
 			<Dropdown bind:value={filter} options={DUUIDriverFilters} />
 			<Search bind:query={searchText} icon={faSearch} placeholder="Search..." />
 		</div>
@@ -60,15 +60,15 @@
 	<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4 py-4">
 		{#each filteredComponents as component (component.oid)}
 			<button
-				class="rounded-md border border-surface-200 dark:border-surface-500 isolate component-card text-left p-4 hover:variant-glass bg-surface-100 dark:variant-soft-surface dark:hover:bg-surface-800 shadow-lg space-y-4 grid grid-rows-3 items-start"
+				class="card-fancy text-left grid grid-rows-[auto_1fr_auto] items-start"
 				on:click={() => onSelect(component)}
 			>
 				<div class="flex items-start justify-between gap-4">
 					<p class="text-lg font-bold break-words">{component.name}</p>
 					<DriverIcon driver={component.settings.driver} />
 				</div>
-				<p class="row-span-2">{component.description}</p>
-				<div class="flex flex-wrap gap-2 p-2">
+				<p>{component.description}</p>
+				<div class="flex flex-wrap gap-2 mt-8">
 					{#each component.categories as category}
 						<span class="chip variant-glass-primary">
 							{category}
@@ -84,9 +84,3 @@
 		{/if}
 	</div>
 </div>
-
-<style>
-	.component-card {
-		grid-template-rows: auto auto 1fr 1fr;
-	}
-</style>

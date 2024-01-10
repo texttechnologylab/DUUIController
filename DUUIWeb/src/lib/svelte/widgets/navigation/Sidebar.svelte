@@ -30,7 +30,7 @@
 	import Anchor from '../action/Anchor.svelte'
 	import ActionButton from '../action/ActionButton.svelte'
 	import { goto } from '$app/navigation'
-	import { makeApiCall, Api } from '$lib/utils/api'
+	import { makeApiCall, Api } from '$lib/duui/utils/api'
 
 	const drawerStore = getDrawerStore()
 	export let loggedIn: boolean = false

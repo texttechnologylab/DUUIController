@@ -1,4 +1,4 @@
-import { equals } from '$lib/utils/text'
+import { equals } from '$lib/duui/utils/text'
 
 export interface DUUIDocument {
 	name: string
@@ -14,6 +14,7 @@ export interface DUUIDocument {
 	size: number
 	startTime: number
 	endTime: number
+	annotations: {}
 }
 
 export interface DUUIDocumentInput {

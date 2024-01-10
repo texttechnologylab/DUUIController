@@ -6,11 +6,12 @@ const fetchUser = async (
 	session: string,
 	event: RequestEvent<Partial<Record<string, string>>, string | null>
 ) => {
-	const response = await fetch(`${API_URL}/users/auth/?key=${SERVER_API_KEY}`, {
+	const response = await fetch(`${API_URL}/users/auth/`, {
 		method: 'GET',
 		mode: 'cors',
 		headers: {
-			Authorization: session
+			Authorization: session,
+			key: SERVER_API_KEY
 		}
 	})
 

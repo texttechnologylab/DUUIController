@@ -24,7 +24,7 @@ export async function POST({ request, locals }) {
 	const dbx_access_token: string = token.result.access_token
 	const dbx_refresh_token: string = token.result.refresh_token
 
-	const response = await fetch(`${API_URL}/users/${user.oid}?key=${SERVER_API_KEY}`, {
+	const response = await fetch(`${API_URL}/users/${user.oid}`, {
 		method: 'PUT',
 		mode: 'cors',
 		body: JSON.stringify({
@@ -32,7 +32,10 @@ export async function POST({ request, locals }) {
 				access_token: dbx_access_token,
 				refresh_token: dbx_refresh_token
 			}
-		})
+		}),
+		headers: {
+			Authorization: SERVER_API_KEY
+		}
 	})
 
 	return response
@@ -41,7 +44,7 @@ export async function POST({ request, locals }) {
 export async function DELETE({ request, cookies, locals }) {
 	const user = locals.user
 
-	const response = await fetch(`${API_URL}/users/${user.oid}?key=${SERVER_API_KEY}`, {
+	const response = await fetch(`${API_URL}/users/${user.oid}`, {
 		method: 'PUT',
 		mode: 'cors',
 		body: JSON.stringify({
@@ -49,7 +52,10 @@ export async function DELETE({ request, cookies, locals }) {
 				access_token: null,
 				refresh_token: null
 			}
-		})
+		}),
+		headers: {
+			Authorization: SERVER_API_KEY
+		}
 	})
 
 	return response

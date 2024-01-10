@@ -46,3 +46,11 @@ type Sort = {
 }
 
 type ServiceStatus = 'starting' | 'active' | 'stopping' | 'inactive'
+
+type Locale = Language | undefined
+
+interface Language {
+	name: string
+	code: string
+	data: {}
+}

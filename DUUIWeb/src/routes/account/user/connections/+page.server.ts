@@ -58,9 +58,12 @@ export const load: PageServerLoad = async ({ url, cookies, locals }) => {
 	}
 
 	const fetchProfile = async () => {
-		const response = await fetch(`${API_URL}/users/${locals.user?.oid}?key=${SERVER_API_KEY}`, {
+		const response = await fetch(`${API_URL}/users/${locals.user?.oid}`, {
 			method: 'GET',
-			mode: 'cors'
+			mode: 'cors',
+			headers: {
+				Authorization: SERVER_API_KEY
+			}
 		})
 
 		if (!response.ok) {

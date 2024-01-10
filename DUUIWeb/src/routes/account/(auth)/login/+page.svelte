@@ -2,22 +2,18 @@
 	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
 	import { userSession } from '$lib/store'
-	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import Password from '$lib/svelte/widgets/input/Password.svelte'
-	import HLine from '$lib/svelte/widgets/navigation/HLine.svelte'
-	import { faExclamationTriangle, faArrowRightToBracket } from '@fortawesome/free-solid-svg-icons'
+	import { faGlobe } from '@fortawesome/free-solid-svg-icons'
 	import Fa from 'svelte-fa'
 	import { fly } from 'svelte/transition'
 	import Text from '$lib/svelte/widgets/input/TextInput.svelte'
-	import Link from '$lib/svelte/components/Link.svelte'
-	import type { ActionData } from '../../../pipelines/[oid]/$types'
+	import { faGithub, faXTwitter } from '@fortawesome/free-brands-svg-icons'
 
 	let email: string = $page.url.searchParams.get('email') || ''
 	let password: string
+	let password2: string
 
-	export let form: ActionData
-
-	let redirectTo: string = $page.url.searchParams.get('redirectTo') || '/account/user/profile'
+	let redirectTo: string = $page.url.searchParams.get('redirectTo') || '/account'
 
 	let message: string
 	$: message = $page.url.searchParams.get('message') ?? ''
@@ -38,58 +34,104 @@
 
 		if (response.ok) {
 			userSession.set(result.user)
-			goto('/account')
+			goto(redirectTo)
+		} else {
+			message = result
 		}
 	}
+
+	const login: boolean = true
 </script>
 
 <svelte:head>
 	<title>Login</title>
 </svelte:head>
 
-<div class="space-y-4 w-modal md:m-16">
-	{#if message}
-		<div
-			class="flex items-start justify-between variant-filled-warning
-            p-4 gap-4 shadow-lg rounded-md"
-		>
-			<p>{message}</p>
-			<Fa icon={faExclamationTriangle} size="lg" />
-		</div>
-	{/if}
-
-	{#if form?.error}
-		<div class="flex items-start justify-between variant-filled-error p-4">
-			<p>{form.error}</p>
-			<Fa icon={faExclamationTriangle} size="lg" />
-		</div>
-	{/if}
-
+<div class="grid md:flex items-center md:justify-center h-full md:m-16 w-full">
 	<div
-		class="rounded-md border bg-surface-100 dark:variant-soft-surface shadow-lg border-surface-400/20"
-		in:fly={{ x: -300 }}
+		class="grid relative md:grid-cols-2 dark:bg-surface-900/90 border dark:border-surface-400/50 shadow-lg rounded-md overflow-hidden lg:min-w-[900px] p-4 md:p-0"
 	>
-		<div class="p-4 sm:p-8 space-y-4 transition-transform duration-300">
-			<h2 class="h1 font-bold sm:h2">Login</h2>
-			<div class="space-y-4 py-4">
-				<Text bind:value={email} name="email" label="Email" />
-				<Text name="redirect" label="redirect" hidden={true} bind:value={redirectTo} />
-				<Password name="password" label="Password" bind:value={password} />
-				<ActionButton
-					on:click={loginUser}
-					icon={faArrowRightToBracket}
-					text="Login"
-					variant="variant-filled-primary dark:variant-soft-primary"
-				/>
-			</div>
+		<div
+			in:fly={{ x: 600, opacity: 100, duration: 800 }}
+			class="space-y-8 md:p-16 md:px-8 relative"
+		>
+			{#if message}
+				<p in:fly={{ y: -100 }} class="absolute top-8 font-bold text-error-500">{message}</p>
+			{/if}
+			<h2 class="h2 font-bold mb-16">Login</h2>
+			<div class="gap-8 flex flex-col">
+				<div class="space-y-4">
+					<Text bind:value={email} label="Email" name="email" />
+					<Password bind:value={password} label="Password" name="password" />
+				</div>
 
-			<HLine width="w-full rounded-full mx-auto" thickness={2} />
-			<div class="flex items-center justify-between">
-				<p>
-					<span>Don't have an Account?</span>
-					<Link href="/account/register" underline={true}>Register</Link>
-				</p>
-				<Link href="/account/recover" underline={true}>Forgot password?</Link>
+				<a class="block text-center anchor text-sm" href="/account/recover">Forgot Password? </a>
+				<button
+					on:click={loginUser}
+					class="btn rounded-md variant-filled-primary uppercase tracking-widest self-center font-bold px-8"
+					>sign in</button
+				>
+			</div>
+			<a href="/account/register" class="block">
+				Don't have an Account?
+				<p class="anchor inline">Register</p>
+			</a>
+		</div>
+		<div class="space-y-8 md:p-16 md:px-8 col-start-2 hidden md:invisible">
+			<h2 class="h2 font-bold mb-16">Register</h2>
+			<div class="flex flex-col gap-8">
+				<div class="space-y-4">
+					<Text disabled={true} bind:value={email} label="Email" name="email" />
+					<Password disabled={true} bind:value={password} label="Password" name="password" />
+					<Password
+						disabled={true}
+						bind:value={password2}
+						label="Repeat Password"
+						name="password2"
+					/>
+				</div>
+				<button class="btn rounded-md variant-filled-primary uppercase tracking-widest font-bold">
+					sign up
+				</button>
+			</div>
+			<a href="/account/login" class="block">
+				Already have an Account?
+				<p class="anchor inline">Login</p>
+			</a>
+		</div>
+
+		<div
+			in:fly={{ x: 300, opacity: 100, duration: 800 }}
+			class="hidden md:flex absolute top-0 w-1/2 transition-all duration-700 ease-in-out h-full rounded-bl-[10%]
+				   bg-gradient-to-tr from-primary-500 to-primary-600 text-white
+				    flex-col justify-center items-center gap-16 translate-x-full"
+		>
+			<h2 class="h2 font-bold text-3xl text-center max-w-[15ch]">
+				{login ? 'Welcome Back' : 'Nice to meet you'}
+			</h2>
+
+			<div class="flex items-center gap-8 0">
+				<a
+					target="_blank"
+					href="https://github.com/texttechnologylab"
+					class="transition-opacity opacity-70 hover:opacity-100"
+				>
+					<Fa icon={faGithub} size="2x" />
+				</a>
+				<a
+					target="_blank"
+					href="https://twitter.com/ttlab_ffm"
+					class="transition-opacity opacity-70 hover:opacity-100"
+				>
+					<Fa icon={faXTwitter} size="2x" />
+				</a>
+				<a
+					target="_blank"
+					href="https://www.texttechnologylab.org/"
+					class="transition-opacity opacity-70 hover:opacity-100"
+				>
+					<Fa icon={faGlobe} size="2x" />
+				</a>
 			</div>
 		</div>
 	</div>

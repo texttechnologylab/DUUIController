@@ -1,10 +1,147 @@
 <script lang="ts">
+	import Password from '$lib/svelte/widgets/input/Password.svelte'
+	import { faGlobe } from '@fortawesome/free-solid-svg-icons'
+	import { fly } from 'svelte/transition'
+	import Text from '$lib/svelte/widgets/input/TextInput.svelte'
+	import Fa from 'svelte-fa'
+	import { page } from '$app/stores'
+	import { userSession } from '$lib/store'
+	import { goto } from '$app/navigation'
+	import { faGithub, faXTwitter } from '@fortawesome/free-brands-svg-icons'
+
+	let email: string
+	let password1: string
+	let password2: string
+
+	let login: boolean = false
+
+	let message: string
+	$: message = $page.url.searchParams.get('message') ?? ''
+
+	const register = async () => {
+		if (!email || !password1 || !password2) {
+			message = 'Please enter all required details.'
+			return
+		}
+		const response = await fetch('/auth/register', {
+			method: 'POST',
+			body: JSON.stringify({
+				email: email,
+				password1: password1,
+				password2: password2
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		})
+
+		const result = await response.json()
+
+		if (response.ok) {
+			userSession.set(result.user)
+			goto('/pipelines')
+		} else {
+			message = result
+		}
+	}
+</script>
+
+<svelte:head>
+	<title>Register</title>
+</svelte:head>
+
+<div class="grid md:flex items-center md:justify-center h-full md:m-16 w-full">
+	<div
+		class="grid relative md:grid-cols-2 border dark:bg-surface-900/90 dark:border-surface-400/50 shadow-lg rounded-md overflow-hidden lg:min-w-[900px] p-4 md:p-0"
+	>
+		<div class="space-y-8 md:p-16 md:px-8 hidden md:invisible">
+			<h2 class="h2 font-bold mb-16">Login</h2>
+			<div class="space-y-4">
+				<Text disabled={true} bind:value={email} label="Email" name="email" />
+				<Password disabled={true} bind:value={password1} label="Password" name="password" />
+				<a class="block text-center anchor text-sm" href="/account/recover">Forgot Password? </a>
+				<button
+					disabled
+					class="btn rounded-md variant-filled-primary uppercase tracking-widest !mt-12 font-bold"
+					>sign in</button
+				>
+			</div>
+			<a href="/account/register" class="block">
+				Don't have an Account?
+				<p class="anchor inline">Register</p>
+			</a>
+		</div>
+		<div
+			in:fly={{ x: -600, opacity: 100, duration: 800 }}
+			class="relative space-y-8 md:p-16 md:px-8 md:col-start-2"
+		>
+			{#if message}
+				<p in:fly={{ y: -100 }} class="absolute top-8 font-bold text-error-500">{message}</p>
+			{/if}
+			<h2 class="h2 font-bold mb-16">Register</h2>
+			<div class="flex flex-col gap-8">
+				<div class="space-y-4">
+					<Text bind:value={email} label="Email" name="email" required />
+					<Password bind:value={password1} label="Password" name="password" required />
+					<Password bind:value={password2} label="Repeat Password" name="password2" required />
+				</div>
+				<button
+					on:click={register}
+					class="btn rounded-md variant-filled-primary uppercase tracking-widest self-center px-8 font-bold"
+				>
+					sign up
+				</button>
+			</div>
+			<a href="/account/login" class="block">
+				Already have an Account?
+				<p class="anchor inline">Login</p>
+			</a>
+		</div>
+
+		<div
+			in:fly={{ x: -300, opacity: 100, duration: 800 }}
+			class="hidden absolute top-0 w-1/2 transition-all duration-700 ease-in-out h-full rounded-br-[10%]
+				   bg-gradient-to-tr from-primary-500 to-primary-600 text-white
+				   md:flex flex-col justify-center items-center gap-16"
+		>
+			<h2 class="font-bold text-3xl text-center">
+				{login ? 'Welcome Back' : 'Nice to meet you'}
+			</h2>
+
+			<div class="flex items-center gap-8 0">
+				<a
+					target="_blank"
+					href="https://github.com/texttechnologylab"
+					class="transition-opacity opacity-70 hover:opacity-100"
+				>
+					<Fa icon={faGithub} size="2x" />
+				</a>
+				<a
+					target="_blank"
+					href="https://twitter.com/ttlab_ffm"
+					class="transition-opacity opacity-70 hover:opacity-100"
+				>
+					<Fa icon={faXTwitter} size="2x" />
+				</a>
+				<a
+					target="_blank"
+					href="https://www.texttechnologylab.org/"
+					class="transition-opacity opacity-70 hover:opacity-100"
+				>
+					<Fa icon={faGlobe} size="2x" />
+				</a>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- <script lang="ts">
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import Password from '$lib/svelte/widgets/input/Password.svelte'
 	import { faExclamationTriangle, faUserCheck } from '@fortawesome/free-solid-svg-icons'
 	import { fly } from 'svelte/transition'
 	import Text from '$lib/svelte/widgets/input/TextInput.svelte'
-	import Link from '$lib/svelte/components/Link.svelte'
+	import Link from '$lib/components/Link.svelte'
 	import Fa from 'svelte-fa'
 	import { page } from '$app/stores'
 	import type { ActionData } from '../../auth/login/$types'
@@ -88,4 +225,4 @@
 			</p>
 		</div>
 	</div>
-</div>
+</div> -->

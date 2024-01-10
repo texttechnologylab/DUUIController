@@ -3,8 +3,10 @@
 	import { DUUIDrivers, type DUUIComponent } from '$lib/duui/component'
 	import { TabGroup, getModalStore, Tab } from '@skeletonlabs/skeleton'
 
-	import IconButton from '../action/IconButton.svelte'
-	import { faClose, faFilePen, faTrash } from '@fortawesome/free-solid-svg-icons'
+	import {
+		faClose,
+		faFilePen,
+		faFileUpload	} from '@fortawesome/free-solid-svg-icons'
 	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
 	import Mapper from '$lib/svelte/widgets/input/Mapper.svelte'
 	import DriverIcon from '../../../components/DriverIcon.svelte'
@@ -13,6 +15,8 @@
 	import Chips from '$lib/svelte/widgets/input/Chips.svelte'
 
 	import { createEventDispatcher } from 'svelte'
+	import Fa from 'svelte-fa'
+	import { userSession } from '$lib/store'
 	const dispatcher = createEventDispatcher()
 
 	const modalStore = getModalStore()
@@ -30,21 +34,33 @@
 		}
 		modalStore.close()
 	}
+
+	const uploadComponent = async () => {
+		const response = await fetch('/api/component', {
+			method: 'POST',
+			body: JSON.stringify({
+				component: component
+			})
+		})
+
+		if (response.ok) {
+			modalStore.close()
+		}
+	}
 </script>
 
 {#if $modalStore[0]}
 	<div class="card rounded-none shadow-lg container max-w-5xl">
 		<div
-			class="flex justify-between items-center px-4 py-2 bg-surface-50/100 dark:bg-surface-900/25"
+			class="flex justify-between items-center bg-surface-200/20 dark:bg-surface-900/25 p-4 py-3 sticky top-0"
 		>
 			<DriverIcon driver={component.settings.driver} />
-			<h3 class="h3">{component.name}</h3>
-			<IconButton
-				icon={faClose}
+			<button
+				class="transition-colors text-surface-700 hover:text-error-500"
 				on:click={() => modalStore.close()}
-				rounded="rounded-full"
-				variant="variant-glass"
-			/>
+			>
+				<Fa icon={faClose} size="lg" />
+			</button>
 		</div>
 		<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
 
@@ -104,15 +120,12 @@
 		</div>
 		<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
 
-		<footer class="bg-surface-50/100 dark:bg-surface-900/25">
-			<div class="flex justify-between items-center px-4 py-2">
+		<footer class="bg-surface-200/20 dark:bg-surface-900/25 p-4">
+			<div class="grid grid-cols-2 gap-4">
+				{#if $userSession?.role === 'admin'}
+					<ActionButton text="Upload as Template" icon={faFileUpload} on:click={uploadComponent} />
+				{/if}
 				<ActionButton text="Create" icon={faFilePen} on:click={createComponent} />
-				<ActionButton
-					text="Cancel"
-					icon={faTrash}
-					variant="dark:variant-soft-error variant-filled-error"
-					on:click={modalStore.close}
-				/>
 			</div>
 		</footer>
 	</div>

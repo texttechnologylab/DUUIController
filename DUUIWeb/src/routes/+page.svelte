@@ -1,5 +1,6 @@
 <script lang="ts">
 	import {
+		faArrowRight,
 		faArrowUpRightFromSquare,
 		faArrowsAlt,
 		faBookOpen,
@@ -9,7 +10,7 @@
 		faRocket,
 		faUserGroup
 	} from '@fortawesome/free-solid-svg-icons'
-	import Card from '$lib/components/containers/Card.svelte'
+	import Feature from '$lib/components/Feature.svelte'
 	import Anchor from '$lib/svelte/widgets/action/Anchor.svelte'
 
 	import Hosting from '$lib/assets/undraw_cloud_hosting_7xb1.svg'
@@ -19,13 +20,14 @@
 	import Fa from 'svelte-fa'
 	import HLine from '$lib/svelte/widgets/navigation/HLine.svelte'
 	import { faAmazon, faDropbox } from '@fortawesome/free-brands-svg-icons'
+	import { userSession } from '$lib/store'
 </script>
 
 <svelte:head>
 	<title>DUUI</title>
 </svelte:head>
 
-<div class="container h-full mx-auto flex justify-center items-center">
+<main class="container-full-h flex justify-center items-center">
 	<div
 		class="text-center flex flex-col items-center bg-surface-200/30 dark:bg-surface-500/80 isolate"
 	>
@@ -40,24 +42,31 @@
 					<h1 class="text-3xl md:text-5xl font-bold !my-8 max-w-[20ch]">
 						Accessiblity through Simplicity
 					</h1>
-					<p class="max-w-[40ch] text-surface-400 dark:text-white md:text-lg">
-						<span class="font-bold text-primary-500">DUUI</span>
+					<p class="max-w-[45ch] text-surface-400 dark:text-white md:text-lg">
+						<span class="font-bold text-primary-500">Docker Unified UIMA Interface</span>
 						- A scalable, flexible, lightweight and feature rich Framework for automated and distributed
 						analysis of large text corpora.
 					</p>
 				</div>
 
 				<div class="flex flex-col sm:flex-row gap-4 items-center">
-					<Anchor
-						href="/pipelines/editor"
-						icon={faRocket}
-						text="Get started"
-						variant="variant-filled-primary"
-					/>
-					<a href="/documentation" class="btn hover:variant-filled-primary variant-ringed-primary">
-						<Fa icon={faBookOpen} />
-						<span>Documentation</span>
-					</a>
+					{#if $userSession === undefined}
+						<a
+							href="/account/register"
+							class="btn font-bold gap-2 px-6 py-3 variant-filled-primary rounded-full"
+						>
+							<span> Get Started </span>
+							<Fa icon={faArrowRight} size="lg" />
+						</a>
+					{:else}
+						<Anchor
+							href="/pipelines"
+							icon={faArrowRight}
+							leftToRight={false}
+							text="Get back to it"
+							variant="variant-filled-primary"
+						/>
+					{/if}
 				</div>
 			</div>
 
@@ -67,9 +76,13 @@
 					src={Hosting}
 					alt=""
 				/>
-				<img class="hidden lg:block absolute max-h-full -translate-x-1/4 2xl:translate-x-0 scale-75 xl:scale-100" src={Futuristic} alt="" />
 				<img
-					class="hidden sm:block absolute max-h-full lg:translate-x-full 2xl:translate-x-[150%] lg:-translate-y-[30%] scale-75 sm:translate-x-1/4 md:translate-x-0"
+					class="hidden lg:block absolute max-h-full -translate-x-1/4 2xl:translate-x-0 scale-75 xl:scale-100"
+					src={Futuristic}
+					alt=""
+				/>
+				<img
+					class="hidden sm:block absolute max-h-full lg:translate-x-full 2xl:translate-x-[160%] lg:-translate-y-[20%] scale-75 sm:translate-x-1/4 md:translate-x-0"
 					src={Reminder}
 					alt=""
 				/>
@@ -80,7 +93,7 @@
 			class="bg-white dark:bg-surface-700 w-screen border-y-8 dark:border-surface-900 lg:py-8"
 		>
 			<div class="container mx-auto p-4 md:py-8 gap-4 grid md:grid-cols-3 items-start max-w-7xl">
-				<Card
+				<Feature
 					icon={faUserGroup}
 					title="Accessible"
 					content="DUUI is a lightweight framework for running NLP routines. No extensive knowledge about computer science and programming is required."
@@ -88,7 +101,7 @@
 				<div class="md:hidden">
 					<HLine thickness={4} width="w-3/4 mx-auto" />
 				</div>
-				<Card
+				<Feature
 					icon={faRecycle}
 					title="Reproducible"
 					content="Each pipeline component is fully serializable and annotates each processed document. All performed annotations, including analysis engines, models and settings can be fully reconstructed."
@@ -97,7 +110,7 @@
 					<HLine thickness={4} width="w-3/4 mx-auto" />
 				</div>
 
-				<Card
+				<Feature
 					icon={faArrowsAlt}
 					title="Scalable"
 					content="DUUI guarantees horizontal and vertical via a native Docker Swarm implementation. Docker enables machine-specific resource management."
@@ -202,21 +215,5 @@
 				</section>
 			</div>
 		</div>
-
-		<!-- 
-		<section class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 container">
-			<Card
-				icon={faRobot}
-				title="Automated"
-				content="Build and manage pipelines in the Browser."
-				classes="lg:col-span-2"
-			/>
-			<Card
-				icon={faDatabase}
-				title="Storage"
-				content="Connect to one of the Cloud Storage Solutions available for DUUI."
-				classes="lg:col-span-2"
-			/>
-		</section> -->
 	</div>
-</div>
+</main>

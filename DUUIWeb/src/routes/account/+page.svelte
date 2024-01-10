@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
-	import { makeApiCall, Api } from '$lib/utils/api.js'
+	import { makeApiCall, Api } from '$lib/duui/utils/api'
 	import {
 		faCheck,
 		faRefresh,
@@ -16,6 +16,9 @@
 	import { goto } from '$app/navigation'
 	import Text from '$lib/svelte/widgets/input/TextInput.svelte'
 	import { userSession } from '$lib/store.js'
+	import Secret from '$lib/svelte/widgets/input/Secret.svelte'
+	import Checkbox from '$lib/svelte/widgets/input/Checkbox.svelte'
+	import Dropdown from '$lib/svelte/widgets/input/Dropdown.svelte'
 
 	export let data
 	const { user, dropbBoxURL } = data
@@ -128,124 +131,174 @@
 		dropbox: !!user.dropbox?.access_token && !!user.dropbox?.refresh_token,
 		minio: !!user.minio?.access_key && !!user.minio?.secret_key && !!user.minio?.endpoint
 	}
+
+	let name: string = 'Temp'
 </script>
 
 <svelte:head>
 	<title>Account</title>
 </svelte:head>
 
-<div class="grid lg:grid-cols-3 gap-4 max-w-7xl">
-	<div class="section-wrapper">
-		<h2 class="h3 px-4 p-3 font-bold {!!user.key ? 'variant-soft-success' : ''}">API Key</h2>
-		<div class="p-4 space-y-8">
-			{#if user.key}
-				<div class="space-y-2">
-					<Password readonly={true} bind:value={user.key} />
-					<div class="flex items-center gap-2 text-sm">
-						<p
-							class="text-primary-500 hover:text-primary-400 cursor-pointer transition-colors px-2 border-r"
-							use:clipboard={user.key}
-						>
-							Copy
-						</p>
-						<button
-							class="text-primary-500 hover:text-primary-400 transition-colors pr-2 border-r"
-							on:click={generateApiKey}
-						>
-							Regenerate
-						</button>
-						<button
-							class="text-error-500 hover:text-error-400 transition-colors"
-							on:click={deleteApiKey}
-						>
-							Delete
-						</button>
+<div class="grid md:grid-cols-2 gap-4 max-w-7xl md:py-16">
+	<section class="section-wrapper p-8 space-y-4">
+		<h2 class="h3 font-bold">Profile</h2>
+		<Text disabled label="Name" name="name" bind:value={name} />
+		<Text disabled label="E-Mail" name="email" bind:value={user.email} />
+		<Dropdown
+			label="Language"
+			name="language"
+			bind:value={user.preferences.language}
+			options={['English', 'German']}
+		/>
+		<Checkbox
+			label="Show hints when using the editor."
+			name="hints"
+			bind:checked={user.preferences.tutorial}
+		/>
+		<Checkbox
+			label="Enable notifications to get informed when a pipeline is finished."
+			name="notifications"
+			bind:checked={user.preferences.notifications}
+		/>
+	</section>
+	<div class="grid gap-4">
+		<!-- <div class="grid grid-cols-3 justify-center items-center section-wrapper rounded-md text-sm">
+		<div
+			class="transition-colors hover:bg-surface-200/20 flex flex-col items-start justify-center gap-2 border-r p-4"
+		>
+			
+		</div>
+		<div
+			class="transition-colors hover:bg-surface-200/20 flex flex-col items-start justify-center gap-2 border-r p-4"
+		>
+			<p class="font-bold">Source</p>
+		</div>
+		<div
+			class="transition-colors hover:bg-surface-200/20 flex flex-col items-start justify-center gap-2 p-4"
+		>
+			<p class="font-bold">Size</p>
+		</div>
+	</div> -->
+		<div class="section-wrapper p-8 grid grid-rows-[auto_1fr_auto] gap-8">
+			<h2 class="h3 font-bold">API Key</h2>
+			<div class=" space-y-8">
+				{#if user.key}
+					<div class="space-y-2">
+						<Secret value={user.key} />
+						<div class="flex items-center gap-2 text-sm">
+							<p
+								class="text-primary-500 hover:text-primary-400 cursor-pointer transition-colors px-2 border-r"
+								use:clipboard={user.key}
+							>
+								Copy
+							</p>
+							<button
+								class="text-primary-500 hover:text-primary-400 transition-colors pr-2 border-r"
+								on:click={generateApiKey}
+							>
+								Regenerate
+							</button>
+							<button
+								class="text-error-500 hover:text-error-400 transition-colors"
+								on:click={deleteApiKey}
+							>
+								Delete
+							</button>
+						</div>
 					</div>
-				</div>
 
-				<p class="text-surface-500 dark:text-surface-200">
-					Don't share this key! Anyone with this key can make api calls in your name.
-				</p>
-			{:else}
-				<p class="text-surface-500 dark:text-surface-200">Generate a key to use the Api.</p>
-				<ActionButton text="Generate" icon={faAdd} on:click={generateApiKey} />
-			{/if}
-
+					<p class="text-surface-500 dark:text-surface-200">
+						Don't share this key! Anyone with this key can make api calls in your name.
+					</p>
+				{:else}
+					<p class="text-surface-500 dark:text-surface-200">Generate a key to use the Api.</p>
+					<ActionButton text="Generate" icon={faAdd} on:click={generateApiKey} />
+				{/if}
+			</div>
 			<p class="text-surface-500 dark:text-surface-200">
 				Visit the
 				<a href="/documentation/api" target="_blank" class="anchor">API Reference</a>
 				for further reading.
 			</p>
 		</div>
-	</div>
-	<div
-		class="rounded-md border border-surface-200 dark:border-surface-500
-	 			shadow-lg isolate overflow-hidden dark:bg-surface-900/70 scale-105"
-	>
-		<h2 class="h3 px-4 p-3 font-bold {connections.dropbox ? 'variant-soft-success' : ''}">
-			Dropbox
-		</h2>
-		<div class="p-4 space-y-8">
-			{#if connections.dropbox}
-				<p>Your Dropbox account has been connected successfully.</p>
-				<div>
-					<p class="flex items-center gap-4">
-						<Fa icon={faCheck} size="lg" class="text-primary-500" />
+		<div class="section-wrapper p-8 grid grid-rows-[auto_1fr_auto] gap-8">
+			<h2 class="h3 font-bold">Dropbox</h2>
+			<div class="space-y-8">
+				{#if connections.dropbox}
+					<p>Your Dropbox account has been connected successfully.</p>
+					<div>
+						<p class="flex items-center gap-4">
+							<Fa icon={faCheck} size="lg" class="text-primary-500" />
+							<span
+								>Read files and folders contained in your <strong>Dropbox Storage</strong>
+							</span>
+						</p>
+						<p class="flex items-center gap-4 mb-4">
+							<Fa icon={faCheck} size="lg" class="text-primary-500" />
+							<span>Create files and folders in your <strong>Dropbox Storage</strong> </span>
+						</p>
+					</div>
+
+					<ActionButton
+						icon={faTrash}
+						text="Revoke access"
+						variant="variant-filled-error dark:variant-soft-error"
+						on:click={revokeDropboxAccess}
+					/>
+				{:else}
+					<p class="mb-8">
+						By connecting Dropbox and DUUI you can directly read and write data from and to your
+						Dropbox storage.
+					</p>
+					<p class="flex items-center gap-[22px]">
+						<Fa icon={faFileText} size="lg" class="text-primary-500" />
 						<span>Read files and folders contained in your <strong>Dropbox Storage</strong> </span>
 					</p>
 					<p class="flex items-center gap-4 mb-4">
-						<Fa icon={faCheck} size="lg" class="text-primary-500" />
+						<Fa icon={faFilePen} size="lg" class="text-primary-500" />
 						<span>Create files and folders in your <strong>Dropbox Storage</strong> </span>
 					</p>
-				</div>
-
-				<ActionButton
-					icon={faTrash}
-					text="Revoke access"
-					variant="variant-filled-error dark:variant-soft-error"
-					on:click={revokeDropboxAccess}
-				/>
-			{:else}
-				<p class="mb-8">
-					By connecting Dropbox and DUUI you can directly read and write data from and to your
-					Dropbox storage.
-				</p>
-				<p class="flex items-center gap-[22px]">
-					<Fa icon={faFileText} size="lg" class="text-primary-500" />
-					<span>Read files and folders contained in your <strong>Dropbox Storage</strong> </span>
-				</p>
-				<p class="flex items-center gap-4 mb-4">
-					<Fa icon={faFilePen} size="lg" class="text-primary-500" />
-					<span>Create files and folders in your <strong>Dropbox Storage</strong> </span>
-				</p>
-				<ActionButton icon={faLink} text="Connect" on:click={startDropboxOauth} />
-			{/if}
+					<ActionButton icon={faLink} text="Connect" on:click={startDropboxOauth} />
+				{/if}
+			</div>
+			<p class="text-surface-500 dark:text-surface-200">
+				Visit
+				<a
+					href="https://help.dropbox.com/de-de/integrations/third-party-apps"
+					target="_blank"
+					class="anchor">Dropbox Apps</a
+				>
+				for further reading.
+			</p>
 		</div>
-	</div>
-	<div class="section-wrapper">
-		<h2 class="h3 px-4 p-3 font-bold {connections.minio ? 'variant-soft-success' : ''}">
-			Minio / AWS
-		</h2>
-		<div class="p-4 space-y-4">
-			<p>Your account has been connected to Minio / AWS successfully.</p>
-			<Text label="Endpoint" style="grow" name="endpoint" bind:value={minioEndpoint} />
-			<Password label="Access Key" name="accessKey" style="grow" bind:value={minioAccessKey} />
-			<Password label="Secret Key" name="secretKey" style="grow" bind:value={minioSecretKey} />
-		</div>
-		<div class="flex gap-4 justify-between p-4">
-			<ActionButton
-				text={connections.minio ? 'Update' : 'Connect'}
-				icon={connections.minio ? faRefresh : faAdd}
-				on:click={connectMinio}
-			/>
-			{#if connections.minio}
+		<div class="section-wrapper p-8 grid grid-rows-[auto_1fr_auto] gap-8">
+			<h2 class="h3 font-bold">Minio / AWS</h2>
+			<div class="space-y-4">
+				<p>Your account has been connected to Minio / AWS successfully.</p>
+				<Text label="Endpoint" style="grow" name="endpoint" bind:value={minioEndpoint} />
+				<Secret label="Access Key" name="accessKey" bind:value={minioAccessKey} />
+				<Secret label="Secret Key" name="secretKey" bind:value={minioSecretKey} />
+			</div>
+			<div class="flex gap-4 justify-between">
 				<ActionButton
-					icon={faTrash}
-					text="Revoke access"
-					variant="variant-filled-error dark:variant-soft-error"
-					on:click={revokeMinioAccess}
+					text={connections.minio ? 'Update' : 'Connect'}
+					icon={connections.minio ? faRefresh : faAdd}
+					on:click={connectMinio}
 				/>
-			{/if}
+				{#if connections.minio}
+					<ActionButton
+						icon={faTrash}
+						text="Revoke access"
+						variant="variant-filled-error dark:variant-soft-error"
+						on:click={revokeMinioAccess}
+					/>
+				{/if}
+			</div>
+			<p class="text-surface-500 dark:text-surface-200">
+				Visit
+				<a href="https://min.io/" target="_blank" class="anchor">Minio</a>
+				for further reading.
+			</p>
 		</div>
 	</div>
 </div>

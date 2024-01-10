@@ -1,6 +1,10 @@
 <script lang="ts">
-	export let label: string = ""
-	export let name: string = ""
+	import { faInfo } from '@fortawesome/free-solid-svg-icons'
+	import { popup, type PopupSettings } from '@skeletonlabs/skeleton'
+	import Fa from 'svelte-fa'
+
+	export let label: string = ''
+	export let name: string = ''
 	export let value: string = ''
 
 	export let required: boolean = false
@@ -8,17 +12,41 @@
 	export let error: string = ''
 	export let hidden: boolean = false
 	export let style: string = ''
+	export let disabled: boolean = false
+	export let placeholder: string = ''
+	export let help: string = ''
+
+	const helpPopup: PopupSettings = {
+		event: 'hover',
+		target: 'helpPopup',
+		placement: 'bottom-start',
+		middleware: {
+			offset: 8
+		}
+	}
 </script>
 
+{#if help}
+	<div
+		class="text-sm z-50 break-words max-w-[50ch] variant-filled-primary rounded-md p-4 shadow-lg
+		space-y-4"
+		data-popup="helpPopup"
+	>
+		<p>{help}</p>
+	</div>
+{/if}
+
 <label class="label flex flex-col {hidden ? 'hidden' : ''} {style}">
-	<span class="uppercase text-xs tracking-widest pl-2">{label}</span>
+	<span class="form-label flex items-center gap-4">{label} </span>
+
 	{#if error}
 		<span class="pl-1 text-xs text-error-500">{error}</span>
 	{/if}
 	<input
-		class="rounded-md overflow-hidden border bg-white dark:bg-surface-600 {error
-			? 'border-error-500'
-			: 'border-surface-400/20'}"
+		{disabled}
+		{placeholder}
+		class="input-wrapper"
+		use:popup={helpPopup}
 		type="text"
 		{name}
 		bind:value

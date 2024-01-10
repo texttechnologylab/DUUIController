@@ -16,16 +16,20 @@ const login = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 		})
 	}
 
-	const response = await fetch(`${API_URL}/users/auth/login/${email}?key=${SERVER_API_KEY}`, {
+	const response = await fetch(`${API_URL}/users/auth/login/${email}`, {
 		method: 'GET',
-		mode: 'cors'
+		mode: 'cors',
+		headers: {
+			Authorization: SERVER_API_KEY
+		}
 	})
 
 	if (!response.ok) {
 		return fail(400, {
-			error: 'Unauthorized'
+			error: 'Unknown Email address'
 		})
 	}
+
 	const { credentials } = await response.json()
 
 	try {
@@ -36,21 +40,23 @@ const login = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 		}
 	} catch (err) {
 		return fail(400, {
-			error: 'IDK'
+			error: 'Error during Login'
 		})
 	}
 
-	const update = await fetch(`${API_URL}/users/${credentials.oid}?key=${SERVER_API_KEY}`, {
+	const update = await fetch(`${API_URL}/users/${credentials.oid}`, {
 		method: 'PUT',
 		mode: 'cors',
 		body: JSON.stringify({
 			session: crypto.randomUUID()
-		})
+		}),
+		headers: {
+			Authorization: SERVER_API_KEY
+		}
 	})
 
 	const { user } = await update.json()
-
-	return user
+	return json({ user: user })
 }
 
 const register = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
@@ -66,13 +72,16 @@ const register = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 		})
 	}
 
-	const response = await fetch(`${API_URL}/users/auth/login/${email}?key=${SERVER_API_KEY}`, {
+	const response = await fetch(`${API_URL}/users/auth/login/${email}`, {
 		method: 'GET',
-		mode: 'cors'
+		mode: 'cors',
+		headers: {
+			Authorization: SERVER_API_KEY
+		}
 	})
 
 	if (response.status !== 404) {
-		throw redirect(302, '/account/login?register=true&message=This email address is invalid')
+		throw fail(302, { error: '/account/register?message=This email address is invalid' })
 	}
 
 	if (password1 !== password2) {
@@ -84,9 +93,12 @@ const register = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 	const encryptedPassword = await bcrypt.hash(password1.toString(), 10)
 	const session = crypto.randomUUID()
 
-	const postResponse = await fetch(`${API_URL}/users?key=${SERVER_API_KEY}`, {
+	const postResponse = await fetch(`${API_URL}/users`, {
 		method: 'POST',
 		mode: 'cors',
+		headers: {
+			Authorization: SERVER_API_KEY
+		},
 		body: JSON.stringify({
 			email: email,
 			password: encryptedPassword,
@@ -96,15 +108,14 @@ const register = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 	})
 
 	const { user } = await postResponse.json()
-
-	return user
+	return json({ user: user })
 }
 
 export const POST: RequestHandler = async (event) => {
 	const { cookies } = event
 	const { slug } = event.params
 
-	let user
+	let authenticationResult
 
 	try {
 		switch (slug) {
@@ -112,18 +123,29 @@ export const POST: RequestHandler = async (event) => {
 				cookies.delete('session')
 				return json({ message: 'Logout complete' })
 			case 'login':
-				user = await login(event)
+				authenticationResult = await login(event)
 				break
 			case 'register':
-				user = await register(event)
+				authenticationResult = await register(event)
 				break
+			case 'recover':
+				return json('Success')
 			default:
-				error(404, 'Unknown endpointSSSS')
+				error(404, 'Unknown endpoint')
 				break
 		}
 	} catch (exception) {
 		error(503, 'Could not communicate with database.')
 	}
+
+	if (authenticationResult.status !== 200) {
+		return json(authenticationResult.data.error, {
+			status: authenticationResult.status,
+			statusText: authenticationResult.data.error
+		})
+	}
+
+	const { user } = await authenticationResult.json()
 
 	event.locals.user = user
 	cookies.set('session', user.session, {

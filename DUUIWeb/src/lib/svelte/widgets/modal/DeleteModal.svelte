@@ -11,16 +11,17 @@
 
 <div
 	class="z-50 overflow-hidden rounded-md dark:bg-surface-700 shadow-lg border-surface-400/20
-	items-start justify-start w-modal "
+	items-start justify-start w-modal"
 >
-	<div class=" p-4 variant-filled-error dark:variant-soft-error flex items-center justify-between gap-4">
-		<p class="h3">{title}</p>
+	<div
+		class=" p-4 variant-filled-error dark:variant-soft-error flex items-center justify-between gap-4"
+	>
+		<p class="h3 font-bold">{title}</p>
 		<Fa icon={faWarning} size="2x" />
 	</div>
 	<div class="p-4 bg-white dark:bg-surface-600 space-y-16">
 		<div>
 			<p>{body}</p>
-			
 		</div>
 		<div class="flex items-center gap-4 justify-end">
 			<ActionButton

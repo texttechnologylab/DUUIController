@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { DUUIStatusEvent } from '$lib/duui/monitor'
-	import { datetimeToString } from '$lib/utils/text'
-	import { formatMilliseconds } from '$lib/utils/time'
+	import { datetimeToString } from '$lib/duui/utils/text'
+	import { formatMilliseconds } from '$lib/duui/utils/time'
 	import { faBook } from '@fortawesome/free-solid-svg-icons'
 	import Fa from 'svelte-fa'
 	import { fly } from 'svelte/transition'

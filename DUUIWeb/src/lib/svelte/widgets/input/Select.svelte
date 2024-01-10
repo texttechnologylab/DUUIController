@@ -28,7 +28,7 @@
 </script>
 
 <button
-	class=" rounded-md flex items-center gap-2 px-3 py-2 leading-6 border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 dark:border-surface-400/20"
+	class="flex items-center gap-2 px-3 py-2 leading-6 input-wrapper"
 	use:popup={menu}
 >
 	<span class="grow text-left">{label}</span>

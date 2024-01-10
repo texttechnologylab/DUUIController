@@ -1,4 +1,4 @@
-import { equals } from '$lib/utils/text'
+import { equals } from '$lib/duui/utils/text'
 import { Input, type DUUIDocumentInput, type DUUIDocumentOutput } from './io'
 import type { DUUIPipeline } from './pipeline'
 

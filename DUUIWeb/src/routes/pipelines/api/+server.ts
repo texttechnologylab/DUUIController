@@ -1,5 +1,5 @@
 import { API_URL } from '$lib/config'
-import { includes } from '$lib/utils/text'
+import { includes } from '$lib/duui/utils/text'
 import { json, type RequestHandler } from '@sveltejs/kit'
 
 export async function DELETE({ request, cookies }) {

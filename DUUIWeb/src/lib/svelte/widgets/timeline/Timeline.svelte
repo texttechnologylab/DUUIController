@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { DUUIDocument } from '$lib/duui/io'
 	import type { DUUIProcess } from '$lib/duui/process'
-	import { formatMilliseconds } from '$lib/utils/time'
+	import { formatMilliseconds } from '$lib/duui/utils/time'
 	import { getModalStore, type ModalComponent, type ModalSettings } from '@skeletonlabs/skeleton'
-	import DocumentModal from '../../../../routes/process/[oid]/DocumentModal.svelte'
+	import DocumentModal from '../modal/DocumentModal.svelte'
 
 	export let process: DUUIProcess
 	export let documents: DUUIDocument[] = []
@@ -21,7 +21,8 @@
 
 	let container: HTMLDivElement
 
-	// Function to calculate the width of the block based on start and end times
+	let maximumEndTime = Math.max(...documents.map((d) => d.endTime)) || process.endTime
+
 	function calculateWidth(document: DUUIDocument) {
 		return ((document.endTime - document.startTime) / (endTime - process.startTime)) * 100 + '%'
 	}
@@ -32,7 +33,7 @@
 		(_, index) => start + index * interval
 	)
 
-	$: endTime = process.endTime > process.startTime ? process.endTime : new Date().getTime() + 1000
+	$: endTime = maximumEndTime >= process.startTime ? maximumEndTime : new Date().getTime() + 1000
 	let hoverIndex: number | undefined = undefined
 
 	const modalStore = getModalStore()
@@ -53,9 +54,9 @@
 
 <div
 	class="rounded-md hidden sm:block container
-	h-full mx-auto border border-surface-200 dark:border-surface-500 shadow-lg isolate p-4 pr-12"
+	h-full mx-auto border border-surface-200 dark:border-surface-500 shadow-lg isolate p-8 space-y-4"
 >
-	<h2 class="h2 p-4">Timeline</h2>
+	<h2 class="h2">Timeline</h2>
 	<div class="w-full flex gap-2 mb-8">
 		<div>
 			{#each documents as document, index}
@@ -63,9 +64,11 @@
 					<div class="relative border-t border-dashed w-full border-transparent" />
 				{/if}
 				<button
-					class="btn-sm block text-left text-sm my-1 border-r-8 border-transparent rounded-none {index ===
+					class="btn-sm pl-0 block text-left my-1 border-r-8 border-transparent rounded-none {index ===
 					hoverIndex
-						? 'border-r-warning-500'
+						? document.error
+							? '!border-r-error-500'
+							: '!border-r-warning-500'
 						: ''}"
 					on:click={() => showDocumentModal(document)}
 					on:mouseenter={() => (hoverIndex = index)}
@@ -86,7 +89,9 @@
 							class="btn-sm block {document.error
 								? 'variant-glass-error'
 								: 'variant-glass-warning'} {index === hoverIndex
-								? '!bg-warning-500'
+								? document.error
+									? '!bg-error-500'
+									: '!bg-warning-500'
 								: ''} rounded-md text-sm my-1 text-transparent"
 							style="transform: translate({((document.startTime - process.startTime) /
 								(endTime - process.startTime)) *

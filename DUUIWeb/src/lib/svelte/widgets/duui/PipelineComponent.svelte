@@ -17,8 +17,8 @@
 	import { DUUIDrivers, type DUUIComponent } from '$lib/duui/component'
 	import IconButton from '../action/IconButton.svelte'
 	import Mapper from '../input/Mapper.svelte'
-	import { makeApiCall, Api } from '$lib/utils/api'
-	import { success, variantError, variantSuccess } from '$lib/utils/ui'
+	import { makeApiCall, Api } from '$lib/duui/utils/api'
+	import { success, variantError, variantSuccess } from '$lib/duui/utils/ui'
 	import {
 		getModalStore,
 		getToastStore,
@@ -27,6 +27,8 @@
 		Tab
 	} from '@skeletonlabs/skeleton'
 	import { createEventDispatcher } from 'svelte'
+	import Fa from 'svelte-fa'
+	import { faDocker } from '@fortawesome/free-brands-svg-icons'
 
 	export let component: DUUIComponent
 
@@ -111,7 +113,7 @@
 </script>
 
 <li
-	class="rounded-md border border-surface-200 dark:border-surface-500 shadow-lg overflow-hidden
+	class="section-wrapper 
         {!expanded ? 'pointer-events-none ' : 'pointer-events-auto'}"
 >
 	<header

@@ -28,7 +28,7 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 	const loadDocuments = async () => {
 		const keys: string[] = ['name', 'progress', 'status', 'size', 'duration']
 
-		let limit: number = Math.min(+(url.searchParams.get('limit') || '10'), 10)
+		let limit: number = Math.min(+(url.searchParams.get('limit') || '10'), 50)
 		let skip: number = Math.max(0, +(url.searchParams.get('skip') || '0'))
 		let by: string = url.searchParams.get('by') || 'name'
 		if (!keys.includes(by)) {

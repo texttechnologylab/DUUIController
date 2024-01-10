@@ -10,14 +10,12 @@
 </script>
 
 <label class="label flex flex-col {style}">
-	<span class="uppercase text-xs tracking-widest">{label}</span>
+	<span class="form-label">{label}</span>
 	{#if error}
 		<span class="pl-1 text-xs text-error-500">{error}</span>
 	{/if}
 	<textarea
-		class="rounded-md border-[1px] bg-white dark:bg-surface-600 {error
-			? 'border-error-500'
-			: 'border-surface-400/20'}"
+		class="input-wrapper"
 		{required}
 		{name}
 		rows={4}

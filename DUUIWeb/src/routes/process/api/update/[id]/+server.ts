@@ -8,7 +8,7 @@ export const GET: RequestHandler = async (event) => {
 
 	const keys: string[] = ['name', 'progress', 'status', 'size', 'duration']
 
-	let limit: number = Math.min(+(searchParams.get('limit') || '10'), 10)
+	let limit: number = Math.min(+(searchParams.get('limit') || '10'), 50)
 	let skip: number = Math.max(0, +(searchParams.get('skip') || '0'))
 	let sort: string = searchParams.get('sort') || 'name'
 	if (!keys.includes(sort)) {

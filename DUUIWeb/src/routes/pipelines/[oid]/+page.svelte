@@ -30,11 +30,11 @@
 
 	import { getToastStore } from '@skeletonlabs/skeleton'
 	import type { PageServerData } from './$types'
-	import { datetimeToString, equals } from '$lib/utils/text'
-	import { getDuration } from '$lib/utils/time'
+	import { datetimeToString, equals } from '$lib/duui/utils/text'
+	import { getDuration } from '$lib/duui/utils/time'
 	import { TabGroup, Tab } from '@skeletonlabs/skeleton'
 	import { page } from '$app/stores'
-	import { Api, makeApiCall } from '$lib/utils/api'
+	import { Api, makeApiCall } from '$lib/duui/utils/api'
 	import {
 		documentStatusNamesString,
 		getStatusIcon,
@@ -42,7 +42,7 @@
 		success,
 		variantError,
 		variantSuccess
-	} from '$lib/utils/ui'
+	} from '$lib/duui/utils/ui'
 	import { pipelineToExportableJson } from '$lib/duui/pipeline'
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import type { DUUIComponent } from '$lib/duui/component'
@@ -335,7 +335,8 @@
 <div class="container h-full flex-col mx-auto flex gap-4 md:my-8">
 	<div class="flex items-center md:items-end justify-between gap-4">
 		<h1 class="h2">{pipeline.name}</h1>
-		<div class="hidden md:flex items-center justify-between">
+		<div class="hidden md:flex items-center justify-between gap-4">
+			<p>Times used: {pipeline.timesUsed}</p>
 			{#if pipeline.lastUsed}
 				<p>Last used: {datetimeToString(new Date(pipeline.lastUsed))}</p>
 			{:else}
@@ -348,7 +349,12 @@
 	</div>
 	<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
 	<div class="hidden md:grid grid-cols-2 md:grid-cols-3 lg:flex items-center justify-start gap-4">
-		<ActionButton text="Back" icon={faArrowLeft} on:click={() => goto('/pipelines')} />
+		<ActionButton
+			text="Back"
+			icon={faArrowLeft}
+			leftToRight={true}
+			on:click={() => goto('/pipelines')}
+		/>
 		<ActionButton text="Export" icon={faFileExport} on:click={exportPipeline} />
 		<ActionButton text="Copy" icon={faCopy} on:click={copyPipeline} />
 		<ActionButton text="Delete" icon={faTrash} on:click={deletePipeline} />
@@ -382,34 +388,17 @@
 		{/if}
 	</div>
 
-	<div
-		class="rounded-md overflow-hidden bg-surface-100 dark:variant-soft-surface shadow-lg text-xs md:text-base"
-	>
+	<div class="section-wrapper text-xs md:text-base">
 		<TabGroup
 			active="dark:variant-soft-primary variant-filled-primary"
 			border="none"
 			rounded="rounded-none"
 			justify="grid grid-cols-3"
+			hover="bg-fancy"
 		>
-			<Tab bind:group={tabSet} name="settings" value={0} flex="flex items-center justify-center">
-				<div class="flex flex-col md:flex-row items-center justify-center md:gap-2">
-					<Fa icon={faGears} />
-					<span>Settings</span>
-				</div>
-			</Tab>
-
-			<Tab bind:group={tabSet} name="components" value={1} flex="flex items-center justify-center"
-				><div class="flex flex-col md:flex-row items-center justify-center md:gap-2">
-					<Fa icon={faMap} />
-					<span>Components</span>
-				</div></Tab
-			>
-			<Tab bind:group={tabSet} name="processes" value={2} flex="flex items-center justify-center"
-				><div class="flex flex-col md:flex-row items-center justify-center md:gap-2">
-					<Fa icon={faLayerGroup} />
-					<span>Processes</span>
-				</div></Tab
-			>
+			<Tab bind:group={tabSet} name="settings" value={0}>Settings</Tab>
+			<Tab bind:group={tabSet} name="components" value={1}>Components</Tab>
+			<Tab bind:group={tabSet} name="processes" value={2}>Processes</Tab>
 		</TabGroup>
 	</div>
 
@@ -502,7 +491,7 @@
 						href={`/process/${process.oid}?limit=10&skip=0`}
 						class="rounded-none first:border-t-0 border-t-[1px]
 						 dark:border-t-surface-500 dark:hover:variant-soft-primary hover:variant-filled-primary
-						 grid-cols-3 grid md:grid-cols-4 lg:grid-cols-6 gap-8 p-3 px-4 text-left text-xs md:text-base"
+						 grid-cols-3 grid md:grid-cols-4 lg:grid-cols-6 gap-8 p-3 px-4 text-left text-xs md:text-sm"
 					>
 						<p>{datetimeToString(new Date(process.startTime))}</p>
 						<p class="hidden lg:block">{process.input.source} / {process.output.target}</p>

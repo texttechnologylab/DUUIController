@@ -19,7 +19,6 @@
 	import { dndzone, type DndEvent } from 'svelte-dnd-action'
 	import Fa from 'svelte-fa'
 	import { flip } from 'svelte/animate'
-
 	import type { ModalComponent, ModalSettings } from '@skeletonlabs/skeleton'
 	import {
 		blankPipeline,
@@ -28,13 +27,13 @@
 		getPipelineCategories
 	} from '$lib/duui/pipeline'
 	import { blankComponent, DUUIDrivers, type DUUIComponent } from '$lib/duui/component'
-	import { Api, makeApiCall } from '$lib/utils/api'
-	import { info, success, variantError, variantSuccess } from '$lib/utils/ui'
+	import { Api, makeApiCall } from '$lib/duui/utils/api'
+	import { info, success, variantError, variantSuccess } from '$lib/duui/utils/ui'
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import PipelineComponent from '$lib/svelte/widgets/duui/PipelineComponent.svelte'
 	import { currentPipelineStore } from '$lib/store'
 	import SettingsMapper from '$lib/svelte/widgets/input/Mapper.svelte'
-	import { includes } from '$lib/utils/text'
+	import { includes } from '$lib/duui/utils/text'
 	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
 	import ComponentTemplates from './ComponentTemplates.svelte'
 	import Text from '$lib/svelte/widgets/input/TextInput.svelte'
@@ -42,6 +41,7 @@
 	import { page } from '$app/stores'
 	import IconButton from '$lib/svelte/widgets/action/IconButton.svelte'
 	import SpeedDial from '$lib/svelte/widgets/navigation/SpeedDial.svelte'
+	import JsonPreview from '$lib/svelte/widgets/input/JsonPreview.svelte'
 
 	export let data
 
@@ -312,12 +312,9 @@
 
 	{#if step === 0}
 		<div class="space-y-4">
-			<div class="grid md:grid-cols-3 gap-4">
+			<div class="grid md:grid-cols-3">
 				<button
-					class="rounded-md pipeline-card grid grid-rows-3 items-start text-left
-					       border border-surface-200 dark:border-surface-500 overflow-hidden
-					 	   shadow-lg p-4 hover:variant-glass bg-surface-100 dark:variant-soft-surface
-					  	   dark:hover:bg-surface-800 space-y-4"
+					class="card-fancy text-left grid grid-rows-[auto_1fr_80px]"
 					on:click={() => selectPipelineTemplate()}
 				>
 					<div class="flex items-center gap-4 justify-between">
@@ -326,7 +323,7 @@
 					</div>
 
 					<p class="row-span-2">An empty Pipeline.</p>
-					<div class="flex items-center justify-end gap-4">
+					<div class="flex items-center justify-end gap-4 self-end">
 						{#each DUUIDrivers as driver}
 							<DriverIcon {driver} />
 						{/each}
@@ -348,12 +345,12 @@
 				<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4 py-4">
 					{#each filteredTemplatePipelines as pipeline}
 						<button
-							class="border border-surface-200 dark:border-surface-500 overflow-hidden rounded-md pipeline-card text-left hover:variant-glass shadow-lg dark:variant-soft-surface p-4 bg-surface-100 dark:hover:bg-surface-800 space-y-4 flex flex-col"
+							class="card-fancy text-left grid grid-rows-[auto_1fr_80px]"
 							on:click={() => selectPipelineTemplate(pipeline)}
 						>
 							<p class="text-lg font-bold">{pipeline.name}</p>
 							<p class="grow min-h-[50px]">{pipeline.description}</p>
-							<div class="flex items-center gap-4 justify-between">
+							<div class="flex items-center gap-4 justify-between self-end">
 								<p class="grow">{pipeline.components.length} Component(s)</p>
 								<div class="flex items-center justify-between gap-4">
 									{#each usedDrivers(pipeline) as driver}
@@ -370,10 +367,9 @@
 		<div class="space-y-4">
 			<div class="grid md:grid-cols-2 gap-4">
 				<div
-					class="flex flex-col gap-4 bg-surface-100 dark:variant-soft-surface shadow-lg p-4 {$currentPipelineStore.name !==
-					''
+					class="section-wrapper flex flex-col gap-4 p-4 {$currentPipelineStore.name !== ''
 						? ''
-						: 'border-[1px] border-error-400'}"
+						: 'border-error-400'}"
 				>
 					<Text label="Name" name="pipeline-name" bind:value={$currentPipelineStore.name} />
 
@@ -383,7 +379,8 @@
 						name="pipeline-description"
 					/>
 				</div>
-				<div class="bg-surface-100 dark:variant-soft-surface p-4 shadow-lg relative">
+				<div class="section-wrapper p-4 relative">
+					<!-- <JsonPreview /> -->
 					<SettingsMapper bind:map={settings} />
 				</div>
 			</div>
@@ -392,10 +389,11 @@
 		<div class="space-y-4">
 			<div
 				bind:this={componentContainer}
-				class="rounded-md border border-surface-200 dark:border-surface-500 isolate container space-y-8 bg-surface-100 dark:variant-soft-surface mx-auto shadow-lg p-4 md:p-16"
+				class="rounded-md border border-surface-200
+				 dark:border-surface-500 isolate container space-y-8 bg-surface-100 dark:variant-soft-surface mx-auto shadow-lg p-4 md:p-16"
 			>
 				{#if $currentPipelineStore.components.length === 0}
-					<p class="text-center h4">Add a Component to get Started</p>
+					<p class="text-center h4 font-bold">Add a Component to get Started</p>
 				{/if}
 				<ul
 					use:dndzone={{ items: $currentPipelineStore.components, dropTargetStyle: {} }}
@@ -427,7 +425,12 @@
 					/>
 				</div>
 				<p class="text-center">Or choose a template</p>
-				<Fa class="mx-auto text-surface-400" icon={faArrowDown} size="3x" />
+				<a
+					href="/pipelines/editor#templates"
+					class="flex justify-center text-center transition-colors duration-300 text-surface-400 hover:text-primary-500"
+				>
+					<Fa icon={faArrowDown} size="3x" />
+				</a>
 			</div>
 			<div id="templates">
 				<ComponentTemplates

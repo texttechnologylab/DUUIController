@@ -44,7 +44,7 @@ export interface DUUIComponent {
 	description: string
 	status: string
 	settings: {
-		driver: string
+		driver: DUUIDriver
 		target: string
 		options: _Object
 		parameters: _Object

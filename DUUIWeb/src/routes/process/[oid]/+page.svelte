@@ -2,7 +2,6 @@
 	import { goto } from '$app/navigation'
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import IconButton from '$lib/svelte/widgets/action/IconButton.svelte'
-	import { API_URL } from '$lib/config.js'
 	import {
 		Output,
 		type DUUIDocument,
@@ -11,26 +10,24 @@
 		Input
 	} from '$lib/duui/io.js'
 	import { Status, isActive } from '$lib/duui/monitor.js'
-	import { processToSeachParams, type DUUIProcess } from '$lib/duui/process.js'
-	import { Api, makeApiCall } from '$lib/utils/api'
-	import { equals, formatFileSize, progresAsPercent } from '$lib/utils/text.js'
-	import { formatMilliseconds, getDuration } from '$lib/utils/time.js'
+	import { processToSeachParams } from '$lib/duui/process.js'
+	import { Api, makeApiCall } from '$lib/duui/utils/api'
+	import { equals, formatFileSize, progresAsPercent } from '$lib/duui/utils/text'
+	import { formatMilliseconds, getDuration } from '$lib/duui/utils/time'
 	import {
 		documentStatusNames,
 		getDocumentStatusIcon,
 		getStatusIcon,
 		info,
 		success
-	} from '$lib/utils/ui.js'
-	import DocumentModal from './DocumentModal.svelte'
+	} from '$lib/duui/utils/ui'
+	import DocumentModal from '../../../lib/svelte/widgets/modal/DocumentModal.svelte'
 
 	import {
 		faArrowDownWideShort,
 		faArrowLeft,
 		faArrowUpWideShort,
 		faCancel,
-		faChevronLeft,
-		faChevronRight,
 		faFileDownload,
 		faFileUpload,
 		faRefresh,
@@ -47,11 +44,8 @@
 
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
-	import { page } from '$app/stores'
-	import { browser } from '$app/environment'
 	import Select from '$lib/svelte/widgets/input/Select.svelte'
 	import Search from '$lib/svelte/widgets/input/Search.svelte'
-	import Label from '$lib/svelte/widgets/Label.svelte'
 	import Timeline from '$lib/svelte/widgets/timeline/Timeline.svelte'
 	import SpeedDial from '$lib/svelte/widgets/navigation/SpeedDial.svelte'
 	import Paginator from '$lib/svelte/widgets/navigation/Paginator.svelte'
@@ -119,7 +113,6 @@
 
 			progressPercent = progresAsPercent(process.progress, process.documentNames.length)
 			updateTable()
-
 
 			if (progressPercent > 100) progressPercent = 100
 			if (process.finished) {
@@ -293,6 +286,7 @@
 				<ActionButton
 					icon={faArrowLeft}
 					text="Back"
+					leftToRight={true}
 					on:click={() => goto('/pipelines/' + pipeline.oid + '?tab=2')}
 				/>
 				{#if isCloudProvider(process.input.source)}
@@ -374,7 +368,7 @@
 			<div class="overflow-hidden flex flex-col">
 				{#each documents as document}
 					<button
-						class="btn-sm text-xs md:text-base rounded-none
+						class="btn-sm text-xs md:text-sm rounded-none
 					first:border-t-0 border-t-[1px]
 					dark:border-t-surface-500 dark:hover:variant-soft-primary
 					hover:variant-filled-primary
@@ -411,43 +405,42 @@
 	<Timeline {process} {documents} />
 
 	<div
-		class="rounded-md border-[1px] border-surface-200 dark:border-surface-500 shadow-lg grid items-start"
+		class="rounded-md border-[1px] border-surface-200 dark:border-surface-500 shadow-lg grid items-start p-8 space-y-4"
 	>
-		<div class="p-4">
-			<h2 class="h2 p-4">Statistics</h2>
-			<div class="p-4">
-				<Label name="Number of documents" value={'' + process.documentNames.length} />
-				<Label
-					name="Instantiation Duration"
-					value={formatMilliseconds(process.instantiationDuration)}
-				/>
-				<Label name="Process Duration" value={getDuration(process.startTime, process.endTime)} />
-				<Label
-					name="Average document process duration"
-					value={formatMilliseconds(
-						documents
-							.filter((d) => d.finished)
-							.map((d) => d.processDuration)
-							.reduce((total, num) => total + num, 0) / documents.filter((d) => d.finished).length
-					)}
-				/>
-				<Label
-					name="Slowest document process duration"
-					value={documents.filter((d) => d.finished).length === 0
-						? '-'
-						: formatMilliseconds(
-								Math.max(...documents.filter((d) => d.finished).map((d) => d.processDuration)) || 0
-						  )}
-				/>
-				<Label
-					name="Fastest document process duration"
-					value={documents.filter((d) => d.finished).length === 0
-						? '-'
-						: formatMilliseconds(
-								Math.min(...documents.filter((d) => d.finished).map((d) => d.processDuration))
-						  )}
-				/>
-			</div>
-		</div>
+		<h2 class="h2">Statistics</h2>
+		<pre>{JSON.stringify(process, null, 2)}</pre>
+		<!-- <div class="">
+			<Label name="Number of documents" value={'' + process.documentNames.length} />
+			<Label
+				name="Instantiation Duration"
+				value={formatMilliseconds(process.instantiationDuration)}
+			/>
+			<Label name="Process Duration" value={getDuration(process.startTime, process.endTime)} />
+			<Label
+				name="Average document process duration"
+				value={formatMilliseconds(
+					documents
+						.filter((d) => d.finished)
+						.map((d) => d.processDuration)
+						.reduce((total, num) => total + num, 0) / documents.filter((d) => d.finished).length
+				)}
+			/>
+			<Label
+				name="Slowest document process duration"
+				value={documents.filter((d) => d.finished).length === 0
+					? '-'
+					: formatMilliseconds(
+							Math.max(...documents.filter((d) => d.finished).map((d) => d.processDuration)) || 0
+					  )}
+			/>
+			<Label
+				name="Fastest document process duration"
+				value={documents.filter((d) => d.finished).length === 0
+					? '-'
+					: formatMilliseconds(
+							Math.min(...documents.filter((d) => d.finished).map((d) => d.processDuration))
+					  )}
+			/>
+		</div> -->
 	</div>
 </div>

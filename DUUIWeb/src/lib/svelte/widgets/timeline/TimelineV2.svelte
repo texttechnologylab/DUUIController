@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { DUUIDocument } from '$lib/duui/io'
 	import type { DUUIProcess } from '$lib/duui/process'
-	import { formatMilliseconds } from '$lib/utils/time'
+	import { formatMilliseconds } from '$lib/duui/utils/time'
 	import { getModalStore, type ModalComponent, type ModalSettings } from '@skeletonlabs/skeleton'
-	import DocumentModal from '../../../../routes/process/[oid]/DocumentModal.svelte'
+	import DocumentModal from '../modal/DocumentModal.svelte'
 
 	export let process: DUUIProcess
 	export let documents: DUUIDocument[] = []

@@ -44,8 +44,8 @@
 		options={settings.sizes}
 	/>
 	<div
-		class="flex items-center justify-center bg-surface-100 dark:variant-soft-surface
-			   border border-surface-200 dark:border-surface-500 rounded-full overflow-hidden"
+		class="input-wrapper flex items-center justify-center bg-surface-100 dark:variant-soft-surface
+			   border border-surface-200 dark:border-surface-500 !rounded-full overflow-hidden"
 	>
 		{#if showJumpButtons}
 			<IconButton

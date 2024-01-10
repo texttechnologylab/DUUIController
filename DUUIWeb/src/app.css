@@ -3,16 +3,15 @@
 @tailwind utilities;
 @tailwind variants;
 
-@layer base {
-	html {
-		scroll-behavior: smooth;
-	}
 
+html {
+	overflow: auto;
+	height: 100%;
+	scroll-behavior: smooth;
 }
 
-html,
 body {
-	@apply h-full overflow-hidden !scroll-smooth;
+	height: 100%;
 }
 
 @font-face {
@@ -26,18 +25,43 @@ body {
 }
 
 :root [data-theme='theme'] {
-	--theme-font-family-base: 'Open Sans', sans-serif;
+	--theme-font-family-base: 'Space Grotesk', sans-serif;
 	--theme-font-family-heading: 'Space Grotesk', sans-serif;
 }
 
 .section-wrapper {
-	@apply rounded-md border border-surface-200 dark:border-surface-500 shadow-lg isolate overflow-hidden dark:bg-surface-900/70
+	@apply rounded-md border border-surface-200  dark:border-surface-500 shadow-lg isolate overflow-hidden bg-white dark:bg-surface-900/70
+}
+
+
+.bg-fancy {
+	@apply bg-white dark:bg-surface-900/70 hover:bg-surface-200/20 hover:variant-glass dark:hover:variant-soft transition-colors duration-300
+}
+
+.card-fancy {
+	@apply section-wrapper hover:bg-surface-200/20 p-8 hover:variant-glass space-y-4 transition-colors duration-300
 }
 
 .form-label {
-	@apply uppercase text-xs tracking-widest pl-2
+	@apply text-xs pl-2
 }
 
 .input-wrapper {
-	@apply rounded-md border border-surface-400/20 dark:border-surface-400/20 bg-white dark:bg-surface-600
+	@apply rounded-md overflow-hidden border border-surface-400/20 dark:border-surface-400/20 bg-surface-200/20 dark:bg-surface-600 focus-within:ring-primary-500 focus-within:ring-2;
+}
+
+.popup-solid {
+	@apply rounded-md overflow-hidden border border-surface-400/20 dark:border-surface-400/20 bg-surface-100 dark:bg-surface-600 focus-within:ring-primary-500 focus-within:ring-2
+}
+
+.input-no-highlight {
+	@apply input-wrapper focus-within:ring-0;
+}
+
+.container-full-h {
+	@apply container h-full mx-auto
+}
+
+.hr {
+	@apply bg-surface-400/20 !border-0 rounded-full h-1 w-1/2 mx-auto
 }

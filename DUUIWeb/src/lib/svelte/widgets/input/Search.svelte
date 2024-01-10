@@ -10,16 +10,14 @@
 
 <label class="label flex flex-col {style}">
 	<div
-		class="{icon
-			? 'pl-3'
-			: ''} rounded-md overflow-hidden flex items-center border-[1px] focus-within:ring-1 focus-within:ring-[#2563eb] focus-within:border-[#2563eb]
-			 bg-white dark:bg-surface-600 border-surface-400/20"
+		class="{icon ? 'pl-3' : ''} flex items-center relative
+			 "
 	>
 		{#if icon}
-			<Fa {icon} />
+			<Fa {icon} class="absolute right-4 top-1/2 -translate-y-1/2 text-surface-400" />
 		{/if}
 		<input
-			class="bg-transparent border-0 grow focus-within:ring-0"
+			class="bg-transparent border-0 grow input-wrapper"
 			type="text"
 			bind:value={query}
 			on:keydown

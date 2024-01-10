@@ -19,12 +19,15 @@ export async function PUT({ locals }) {
 
 	const key = generatKey()
 
-	const response = await fetch(`${API_URL}/users/${user?.oid}?key=${SERVER_API_KEY}`, {
+	const response = await fetch(`${API_URL}/users/${user?.oid}`, {
 		method: 'PUT',
 		mode: 'cors',
 		body: JSON.stringify({
 			key: key
-		})
+		}),
+		headers: {
+			Authorization: SERVER_API_KEY
+		}
 	})
 
 	if (response.ok) {

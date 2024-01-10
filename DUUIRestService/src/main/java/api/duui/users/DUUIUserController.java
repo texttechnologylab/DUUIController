@@ -156,7 +156,7 @@ public class DUUIUserController {
     }
 
     public static String insertOne(Request request, Response response) {
-        String key = request.queryParamOrDefault("key", "");
+        String key = request.headers("Authorization");
 
         if (!validateServer(key)) {
             response.status(401);
@@ -197,7 +197,7 @@ public class DUUIUserController {
     }
 
     public static String deleteOne(Request request, Response response) {
-        String key = request.queryParamOrDefault("key", "");
+        String key = request.headers("Authorization");
 
         if (!validateServer(key)) {
             response.status(401);
@@ -462,7 +462,8 @@ public class DUUIUserController {
     }
 
     public static String fetchLoginCredentials(Request request, Response response) {
-        String key = request.queryParamOrDefault("key", "");
+        String key = request.headers("Authorization");
+
         if (!validateServer(key)) {
             response.status(401);
             return "Unauthorized";
@@ -493,7 +494,7 @@ public class DUUIUserController {
     }
 
     public static String updateOne(Request request, Response response) {
-        String key = request.queryParamOrDefault("key", "");
+        String key = request.headers("Authorization");
 
         if (!validateServer(key)) {
             response.status(401);
@@ -533,7 +534,7 @@ public class DUUIUserController {
     }
 
     public static String authorizeUser(Request request, Response response) {
-        String key = request.queryParamOrDefault("key", "");
+        String key = request.headers("key");
 
         if (!validateServer(key)) {
             response.status(401);
@@ -553,7 +554,7 @@ public class DUUIUserController {
     }
 
     public static String fetchUser(Request request, Response response) {
-        String key = request.queryParamOrDefault("key", "");
+        String key = request.headers("Authorization");
 
         if (!validateServer(key)) {
             response.status(401);

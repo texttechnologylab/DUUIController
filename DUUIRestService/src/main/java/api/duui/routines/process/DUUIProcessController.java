@@ -209,9 +209,7 @@ public class DUUIProcessController {
             .append("finished", false);
 
         DUUIMongoDBStorage
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("processes")
+            .Processses()
             .insertOne(process);
 
         mapObjectIdToString(process);
@@ -356,6 +354,7 @@ public class DUUIProcessController {
                         Updates.set("waitDuration", document.getWaitDuration()),
                         Updates.set("startTime", document.getStartTime()),
                         Updates.set("endTime", document.getEndTime()),
+                        Updates.set("annotations", new Document(document.getAnnotations())),
                         Updates.set("processDuration", document.getProcessDuration() > 1000000000000L ? 0 : document.getProcessDuration())
                     ),
                     new UpdateOptions().upsert(true));

@@ -17,7 +17,7 @@ const connect = async (code: string, user: User) => {
 	const dbx_access_token: string = token.result.access_token
 	const dbx_refresh_token: string = token.result.refresh_token
 
-	const response = await fetch(`${API_URL}/users/${user?.oid}?key=${SERVER_API_KEY}`, {
+	const response = await fetch(`${API_URL}/users/${user?.oid}`, {
 		method: 'PUT',
 		mode: 'cors',
 		body: JSON.stringify({
@@ -25,7 +25,10 @@ const connect = async (code: string, user: User) => {
 				access_token: dbx_access_token,
 				refresh_token: dbx_refresh_token
 			}
-		})
+		}),
+		headers: {
+			Authorization: SERVER_API_KEY
+		}
 	})
 
 	return response
@@ -38,8 +41,7 @@ export const load: PageServerLoad = async ({ locals, url, cookies }) => {
 		try {
 			await connect(code, locals.user)
 		} catch (err) {
-			console.log(err);
-			
+			console.log(err)
 		}
 	}
 
@@ -57,9 +59,12 @@ export const load: PageServerLoad = async ({ locals, url, cookies }) => {
 	}
 
 	const fetchProfile = async () => {
-		const response = await fetch(`${API_URL}/users/${locals.user?.oid}?key=${SERVER_API_KEY}`, {
+		const response = await fetch(`${API_URL}/users/${locals.user?.oid}`, {
 			method: 'GET',
-			mode: 'cors'
+			mode: 'cors',
+			headers: {
+				Authorization: SERVER_API_KEY
+			}
 		})
 
 		if (!response.ok) {

@@ -1,4 +1,4 @@
-import { includes } from '$lib/utils/text'
+import { includes } from '$lib/duui/utils/text'
 import type { DUUIComponent } from './component'
 import type { DUUIPipeline } from './pipeline'
 

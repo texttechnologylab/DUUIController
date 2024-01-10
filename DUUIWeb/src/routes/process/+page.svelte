@@ -15,16 +15,16 @@
 	} from '$lib/duui/io.js'
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
-	import { equals, formatFileSize } from '$lib/utils/text.js'
+	import { equals, formatFileSize } from '$lib/duui/utils/text'
 	import { faCancel, faCheck, faExternalLink, faLink } from '@fortawesome/free-solid-svg-icons'
 	import Dropdown from '$lib/svelte/widgets/input/Dropdown.svelte'
 	import Text from '$lib/svelte/widgets/input/TextInput.svelte'
 	import Checkbox from '$lib/svelte/widgets/input/Checkbox.svelte'
-	import { Api, makeApiCall } from '$lib/utils/api.js'
+	import { Api, makeApiCall } from '$lib/duui/utils/api'
 	import { fly } from 'svelte/transition'
 	import Fa from 'svelte-fa'
 	import { FileDropzone, getToastStore } from '@skeletonlabs/skeleton'
-	import { error, success } from '$lib/utils/ui.js'
+	import { error, success } from '$lib/duui/utils/ui'
 
 	export let data
 	let { user } = data
@@ -170,7 +170,7 @@
 		/>
 	</div>
 	<div
-		class="bg-surface-100 dark:variant-soft-surface p-4 shadow-lg grid md:grid-cols-3 lg:grid-cols-4 gap-4"
+		class="section-wrapper p-4 shadow-lg grid md:grid-cols-3 lg:grid-cols-4 gap-4"
 	>
 		<Checkbox label="Enable Notifications" name="notification" bind:checked={notify} />
 
@@ -183,7 +183,7 @@
 		{/if}
 	</div>
 	<div class="grid md:grid-cols-2 gap-4">
-		<div class="bg-surface-100 dark:variant-soft-surface p-4 shadow-lg space-y-4">
+		<div class="section-wrapper p-4 space-y-4">
 			<div class="flex items-center gap-4 justify-between">
 				<h2 class="h3">Input</h2>
 				{#if equals(input.source, 'dropbox')}
@@ -249,7 +249,7 @@
 			{/if}
 		</div>
 
-		<div class="bg-surface-100 dark:variant-soft-surface p-4 shadow-lg space-y-4">
+		<div class="section-wrapper p-4 space-y-4">
 			<h2 class="h3 col-span-2">Output</h2>
 			<div class="grid grid-cols-2 gap-4">
 				<Dropdown label="Target" options={OutputTargets} bind:value={outputTarget} />
