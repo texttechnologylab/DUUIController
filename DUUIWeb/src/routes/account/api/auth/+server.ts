@@ -1,3 +1,4 @@
+import { SERVER_API_KEY } from '$env/static/private'
 import { API_URL } from '$lib/config'
 import { randomBytes } from 'crypto'
 
@@ -33,4 +34,27 @@ export async function GET({ request, cookies, locals }) {
 	}
 
 	return new Response(JSON.stringify({ authorization: '' }))
+}
+
+export async function PUT({ locals }) {
+	const user = locals.user
+	if (!user) {
+		return new Response(
+			JSON.stringify({ message: 'You must be logged in to generate an API key.' }),
+			{ status: 401 }
+		)
+	}
+
+	const response = await fetch(`${API_URL}/users/${user.oid}`, {
+		method: 'PUT',
+		mode: 'cors',
+		body: JSON.stringify({
+			key: ''
+		}),
+		headers: {
+			Authorization: SERVER_API_KEY
+		}
+	})
+
+	return response
 }

@@ -22,6 +22,7 @@
 	import Search from '../input/Search.svelte'
 	import { onMount } from 'svelte'
 	import { scrollIntoView } from '$lib/duui/utils/ui'
+	import { userSession } from '$lib/store'
 
 	export let input: DUUIDocumentInput
 	export let output: DUUIDocumentOutput
@@ -51,7 +52,9 @@
 			URLOut = `https://www.dropbox.com/home/Apps/Cedric%20Test%20App/${output.folder}/${document.name}`
 		}
 	} else if (equals(output.target, Output.Minio)) {
-		URLOut = `http://127.0.0.1:9090/browser/${output.folder}`
+		const endpoint = $userSession?.minio?.endpoint
+		
+		URLOut = `http://192.168.2.122:9040/browser/${output.folder}`
 	} else {
 		URLOut = ''
 	}
@@ -80,7 +83,7 @@
 	<div id="scroll-top" />
 	<div class="space-y-4">
 		<div
-			class="font-bold text-2xl p-4 border-b border-surface-200 dark:border-surface-500 text-center flex items-center justify-between sticky top-0 z-10 bg-fancy-solid"
+			class="font-bold text-2xl p-4 border-b border-surface-200 dark:border-surface-500 text-center flex items-center justify-between sticky top-0 z-10 gradient"
 		>
 			<p>{document.name}</p>
 			{#if document.error}
@@ -96,19 +99,29 @@
 					{document.error}
 				</p>
 			{/if}
-			<div class="grid grid-cols-3 justify-center items-center section-wrapper text-sm">
+			<div class="grid md:grid-cols-4 justify-center items-center section-wrapper text-sm ">
 				<div
 					class="bg-fancy flex flex-col items-start justify-center gap-2 border-r border-surface-200 dark:border-surface-500 p-4"
 				>
 					<p class="font-bold">Status</p>
 					<p>{document.status}</p>
 				</div>
-				<div
+				<a
+					href={URLIn}
+					target="_blank"
 					class="bg-fancy flex flex-col items-start justify-center gap-2 border-r border-surface-200 dark:border-surface-500 p-4"
 				>
 					<p class="font-bold">Source</p>
 					<p>{input.source}</p>
-				</div>
+				</a>
+				<a
+					href={URLOut}
+					target="_blank"
+					class="bg-fancy flex flex-col items-start justify-center gap-2 border-r border-surface-200 dark:border-surface-500 p-4"
+				>
+					<p class="font-bold">Target</p>
+					<p>{output.target}</p>
+				</a>
 				<div class="bg-fancy flex flex-col items-start justify-center gap-2 p-4">
 					<p class="font-bold">Size</p>
 					<p>{document.size ? formatFileSize(document.size) : 'Unknown'}</p>
@@ -165,17 +178,6 @@
 					title="Processing Step Duration (ms)"
 					colors={['#006c98', '#4d98b7', '#006189', '#005172']}
 				/> -->
-		</div>
-
-		<div
-			class="flex justify-center gap-4 text-center border-t border-surface-200 dark:border-surface-500 p-8"
-		>
-			{#if isCloudProvider(input.source)}
-				<a href={URLIn} target="_blank" class="anchor">Input Source</a>
-			{/if}
-			{#if isCloudProvider(output.target)}
-				<a href={URLOut} target="_blank" class="anchor">Output Target</a>
-			{/if}
 		</div>
 	</div>
 </div>

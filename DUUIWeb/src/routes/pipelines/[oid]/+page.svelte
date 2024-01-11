@@ -56,6 +56,7 @@
 	import Anchor from '$lib/svelte/widgets/action/Anchor.svelte'
 	import Chips from '$lib/svelte/widgets/input/Chips.svelte'
 	import { redirect } from '@sveltejs/kit'
+	import JsonPreview from '$lib/svelte/widgets/input/JsonPreview.svelte'
 
 	export let data: PageServerData
 	let { pipeline, processInfo } = data
@@ -399,13 +400,15 @@
 				/>
 				<Chips label="Tags" placeholder="Add a tag..." bind:values={pipeline.tags} />
 			</div>
-			<div class="section-wrapper p-4">
-				<Mapper
+			<div class="section-wrapper p-2 px-4">
+				<JsonPreview bind:data={settings} />
+				<!-- <Mapper
 					bind:map={settings}
 					on:update={(event) => {
 						pipeline.settings = Object.fromEntries(event.detail.map.entries())
 					}}
-				/>
+				/> -->
+				<!-- <pre>{JSON.stringify(pipeline, null, 2)}</pre> -->
 			</div>
 		</div>
 	{:else if tabSet === 1}

@@ -11,7 +11,6 @@ import api.metrics.DUUIMetricsProvider;
 import api.metrics.DUUIMongoMetricsProvider;
 import api.metrics.DUUISystemMetricsProvider;
 import com.sun.management.OperatingSystemMXBean;
-import spark.Request;
 
 import java.lang.management.ManagementFactory;
 import java.util.HashMap;

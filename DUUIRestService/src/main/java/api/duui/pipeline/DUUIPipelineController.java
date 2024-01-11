@@ -1,5 +1,7 @@
 package api.duui.pipeline;
 
+import api.duui.DUUIState;
+import api.duui.DUUIStatus;
 import api.duui.component.DUUIComponentController;
 import api.duui.routines.service.DUUIService;
 import api.storage.DUUIMongoDBStorage;
@@ -259,6 +261,11 @@ public class DUUIPipelineController {
         }
 
         long serviceStartTime = Instant.now().toEpochMilli();
+        DUUIMongoDBStorage.Pipelines().findOneAndUpdate(
+            Filters.eq(new ObjectId(id)),
+            Updates.set("state", DUUIStatus.IDLE)
+        );
+
         DUUIPipelineController.setServiceStartTime(id, serviceStartTime);
 
         response.status(200);

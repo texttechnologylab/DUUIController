@@ -105,11 +105,14 @@
 					{#if $userSession?.role === 'admin'}
 						<span class="badge variant-soft-tertiary font-bold">ADMIN</span>
 					{/if}
+					{#if $userSession?.role === 'trial'}
+						<span class="badge variant-soft-error font-bold">TRIAL</span>
+					{/if}
 				</div>
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
 				<div class="hidden lg:flex items-center gap-8 font-heading-token">
-					{#if $userSession?.role === 'admin'}
+					{#if $userSession?.role === 'admin' || $userSession?.role === 'trial'}
 						<Link href="/feedback">Feedback</Link>
 					{/if}
 					<Link href="/pipelines">Pipelines</Link>

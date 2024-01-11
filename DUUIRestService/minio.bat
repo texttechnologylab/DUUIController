@@ -1,1 +1,1 @@
-start minio.exe server D:\minio --console-address :9090
+start minio.exe server D:\minio --console-address :9040

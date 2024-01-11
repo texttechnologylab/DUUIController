@@ -90,8 +90,6 @@ public class DUUIProcessService {
                 credentials.getString("secret_key"));
         }
 
-//CaT2oM2jccCKj2bADziP
-//xDEwxY9ryUo9xovnbBcAFtLfXzKJvahvY1iIBCuM
         return null;
     }
 

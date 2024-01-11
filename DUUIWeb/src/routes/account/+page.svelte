@@ -28,9 +28,9 @@
 		minio: false
 	}
 
-	let minioEndpoint: string = user.minio.endpoint || ''
-	let minioAccessKey: string = user.minio.access_key || ''
-	let minioSecretKey: string = user.minio.secret_key || ''
+	let minioEndpoint: string = $userSession?.minio?.endpoint || ''
+	let minioAccessKey: string = $userSession?.minio?.access_key || ''
+	let minioSecretKey: string = $userSession?.minio?.secret_key || ''
 
 	const generateApiKey = async () => {
 		const response = await fetch('/auth', {
@@ -44,7 +44,10 @@
 	}
 
 	const deleteApiKey = async () => {
-		const response = await makeApiCall(Api.Authentication, 'DELETE')
+		const response = await fetch('/account/api/auth', {
+			method: 'PUT'
+		})
+
 		if (response.ok) {
 			user.key = ''
 		}
@@ -127,9 +130,19 @@
 		})
 	}
 
-	$: connections = {
-		dropbox: !!user.dropbox?.access_token && !!user.dropbox?.refresh_token,
-		minio: !!user.minio?.access_key && !!user.minio?.secret_key && !!user.minio?.endpoint
+	$: {
+		if (!$userSession) {
+			connections = { dropbox: false, minio: false }
+		} else {
+			connections = {
+				dropbox: !!$userSession?.dropbox?.access_token && !!$userSession?.dropbox?.refresh_token,
+				minio: !$userSession?.minio
+					? false
+					: !!$userSession?.minio?.access_key &&
+					  !!$userSession?.minio?.secret_key &&
+					  !!$userSession?.minio?.endpoint
+			}
+		}
 	}
 
 	let name: string = 'Temp'
@@ -260,7 +273,11 @@
 		<div class="section-wrapper p-8 grid grid-rows-[auto_1fr_auto] gap-8">
 			<h2 class="h3 font-bold">Minio / AWS</h2>
 			<div class="space-y-4">
-				<p>Your account has been connected to Minio / AWS successfully.</p>
+				{#if connections.minio}
+					<p>Your account has been connected to Minio / AWS successfully.</p>
+				{:else}
+					<p>Enter your AWS credentials below to establish a connection.</p>
+				{/if}
 				<Text label="Endpoint" style="grow" name="endpoint" bind:value={minioEndpoint} />
 				<Secret label="Access Key" name="accessKey" bind:value={minioAccessKey} />
 				<Secret label="Secret Key" name="secretKey" bind:value={minioSecretKey} />

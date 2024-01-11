@@ -39,6 +39,8 @@ export enum Status {
 	Unknown = 'Unknown'
 }
 
+
+
 export const activeStatusList: string[] = ['Setup', 'Input', 'Running', 'Shutdown', 'Output']
 export const isActive = (status: string) => {
 	return activeStatusList.includes(status)

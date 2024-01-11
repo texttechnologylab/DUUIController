@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { faInfo } from '@fortawesome/free-solid-svg-icons'
-	import { popup, type PopupSettings } from '@skeletonlabs/skeleton'
-	import Fa from 'svelte-fa'
+	import {
+		popup,
+		type PopupSettings	} from '@skeletonlabs/skeleton'
 
 	export let label: string = ''
 	export let name: string = ''

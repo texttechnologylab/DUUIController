@@ -3,7 +3,6 @@
 		faCancel,
 		faCheck,
 		faClose,
-		faFileImage,
 		faFileImport,
 		faPen,
 		faPlus,
@@ -93,76 +92,147 @@
 	}
 </script>
 
-<div class="form-no-highlight">
-	<div class="flex items-center gap-2 mb-4">
-		{#if !edit}
-			{#if !nested}
-				<FileButton
-					bind:files
-					name="importFile"
-					button="btn variant-soft-primary"
-					accept="application/json"
-					on:change={importData}
-				>
-					<span>Import</span>
-					<Fa icon={faFileImport} />
-				</FileButton>
-			{/if}
+<div class="label">
+	<span class="form-label">Settings</span>
+	<div class="input-no-highlight p-4">
+		<div class="flex items-center gap-2 mb-4">
+			{#if !edit}
+				<!-- {#if !nested}
+					<FileButton
+						bind:files
+						name="importFile"
+						button="btn variant-soft-primary"
+						accept="application/json"
+						on:change={importData}
+					>
+						<span>Import</span>
+						<Fa icon={faFileImport} />
+					</FileButton>
+				{/if} -->
 
-			<button
-				class="btn variant-soft-primary"
-				on:click={() => {
-					key = ''
-					value = ''
-					edit = true
-				}}><span>New</span><Fa icon={faPlus} size="lg" /></button
-			>
-			<button disabled={history.length === 0} class="btn variant-soft-primary" on:click={undo}>
-				<span>Undo</span>
-				<Fa icon={faUndo} />
-			</button>
-		{:else}
-			<div class="grid grid-cols-2 gap-4">
-				<TextInput bind:value={key} placeholder="Key" />
-				<TextInput bind:value placeholder="Value" />
-				<button disabled={!key || !value} class="btn variant-soft-success" on:click={create}
-					><span>Confirm</span><Fa icon={faCheck} size="lg" /></button
+				<button
+					class="btn variant-soft-primary"
+					on:click={() => {
+						key = ''
+						value = ''
+						edit = true
+					}}><span>New</span><Fa icon={faPlus} size="lg" /></button
 				>
-				<button class="btn variant-soft-error" on:click={create}
-					><span>Cancel</span><Fa icon={faCancel} size="lg" /></button
-				>
+				{#if history.length > 0}
+					<button disabled={history.length === 0} class="btn variant-soft-primary" on:click={undo}>
+						<span>Undo</span>
+						<Fa icon={faUndo} />
+					</button>
+				{/if}
+			{:else}
+				<div class="flex items-center gap-4">
+					<div>
+						<TextInput
+							bind:value={key}
+							placeholder="Key"
+							on:keydown={(event) => {
+								if (event.key !== 'Enter') return
+								if (key && value) {
+									create()
+								}
+							}}
+						/>
+						<TextInput
+							bind:value
+							placeholder="Value"
+							on:keydown={(event) => {
+								if (event.key !== 'Enter') return
+								if (key && value) {
+									create()
+								}
+							}}
+						/>
+					</div>
+					<div class="flex flex-col items-start justify-center gap-4">
+						<button
+							disabled={!key || !value}
+							class="aspect-square rounded-full {key && value
+								? 'hover:text-success-500 transition-colors'
+								: 'opacity-50'}"
+							on:click={create}><Fa icon={faCheck} size="lg" /></button
+						>
+						<button
+							class="aspect-square rounded-full hover:text-error-500 transition-colors"
+							on:click={() => (edit = false)}><Fa icon={faClose} size="lg" /></button
+						>
+					</div>
+				</div>
+			{/if}
+		</div>
+		{#if data.size === 0}
+			<div class="text-sm max-w-[60ch] space-y-4">
+				<p>Click new, then enter both a key and value then press enter or click confirm.</p>
+				<p>
+					By setting the option
+					<span class="italic font-bold">withDockerImageFetching</span>
+					to true for a component, the Pipeline attempts to download the image from Docker Hub if it
+					is not already present locally.
+				</p>
 			</div>
 		{/if}
-	</div>
-	<div class="grid grid-cols-2 justify-start items-start gap-8">
-		{#each data.entries() as [_key, _value], index}
-			<div class="space-y-2 border-l-[1rem] border-l-primary-500/20 pl-2">
-				<div class="flex items-center justify-between gap-4">
-					<span class="text-sm text-primary-600">{typeof _value}</span>
-					<button
-						class="spect-square rounded-full hover:text-error-500 transition-colors"
-						on:click={() => remove(_key)}><Fa icon={faClose} size="lg" /></button
-					>
+		<div class="grid grid-cols-2 justify-start items-start gap-2">
+			{#each data.entries() as [_key, _value], index}
+				<div class="bg-fancy p-4 rounded-md">
+					<div class="flex items-center gap-2">
+						<button
+							class="spect-square rounded-full hover:text-error-500 transition-colors"
+							on:click={() => remove(_key)}><Fa icon={faClose} size="lg" /></button
+						>
+						<span class="text-sm text-primary-600">{typeof _value}</span>
+					</div>
+					<div class="flex items-center gap-2">
+						<button
+							class="aspect-square rounded-full hover:text-primary-500 transition-colors"
+							on:click={() => {
+								edit = true
+								key = _key
+								value = _value
+							}}><Fa icon={faPen} /></button
+						>
+
+						<span class="text-start">
+							{_key}
+						</span>
+						<span class="text-start">
+							{_value}
+						</span>
+					</div>
 				</div>
-				<div class="flex items-center justify-between gap-4">
-					<span class="text-start">
-						{_key}
-					</span>
-				</div>
-				<div class="flex items-center justify-between gap-4">
-					<span class="text-start">
-						{_value}
-					</span>
-					<button
-						class="aspect-square rounded-full hover:text-primary-500 transition-colors"
-						on:click={() => {
-							edit = true
-							key = _key
-							value = _value
-						}}><Fa icon={faPen} /></button
-					>
-				</div>
-			</div>
-		{/each}
+
+				<!-- <div>
+				<div class="flex items-center justify-start gap-2">
+					<div class="flex flex-col gap-1">
+						<div class="flex items-center gap-x-2">
+							<button
+								class="spect-square rounded-full hover:text-error-500 transition-colors"
+								on:click={() => remove(_key)}><Fa icon={faClose} size="lg" /></button
+							>
+							<span class="text-sm text-primary-600">{typeof _value}</span>
+						</div>
+
+						<button
+							class="aspect-square rounded-full hover:text-primary-500 transition-colors"
+							on:click={() => {
+								edit = true
+								key = _key
+								value = _value
+							}}><Fa icon={faPen} /></button
+						>
+
+						<span class="text-start">
+							{_key}
+						</span>
+						<span class="text-start">
+							{_value}
+						</span>
+					</div>
+				</div> -->
+			{/each}
+		</div>
 	</div>
 </div>

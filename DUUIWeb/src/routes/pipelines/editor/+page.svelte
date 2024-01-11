@@ -44,6 +44,7 @@
 	import JsonPreview from '$lib/svelte/widgets/input/JsonPreview.svelte'
 	import Anchor from '$lib/svelte/widgets/action/Anchor.svelte'
 	import PipelineCard from '$lib/svelte/widgets/duui/PipelineCard.svelte'
+	import Chips from '$lib/svelte/widgets/input/Chips.svelte'
 
 	export let data
 
@@ -55,7 +56,7 @@
 		return { ...c, id: uuidv4() }
 	})
 
-	let step: number = 0
+	let step: number = +($page.url.searchParams.get('step') || '0')
 
 	if (!isImport) {
 		$currentPipelineStore = blankPipeline()
@@ -143,7 +144,7 @@
 			return { ...c, id: uuidv4(), index: $currentPipelineStore.components.indexOf(c) }
 		})
 
-		goto('/pipelines/editor?step=2')
+		goto('/pipelines/editor?step=1')
 
 		step = 1
 	}
@@ -366,9 +367,10 @@
 						label="Description"
 						name="pipeline-description"
 					/>
+					<Chips label="Tags" placeholder="Add a tag..." bind:values={$currentPipelineStore.tags} />
 				</div>
 				<div class="section-wrapper p-4 relative">
-					<!-- <JsonPreview /> -->
+					<JsonPreview bind:data={settings} />
 					<SettingsMapper bind:map={settings} />
 				</div>
 			</div>

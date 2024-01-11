@@ -323,9 +323,7 @@ public class DUUIProcessController {
     public static void updateDocuments(String id, Set<DUUIDocument> documents) {
         for (DUUIDocument document : documents.stream().toList()) {
             DUUIMongoDBStorage
-                .getInstance()
-                .getDatabase("duui")
-                .getCollection("documents")
+                .Documents()
                 .updateOne(
                     Filters.and(
                         Filters.eq("process_id", id),
@@ -421,11 +419,16 @@ public class DUUIProcessController {
                 Updates.set("progress", progress));
     }
 
+    public static void setFinishTime(String id) {
+        setFinishTime(id, Instant.now().toEpochMilli());
+    }
+
     public static void setFinishTime(String id, long endTime) {
         DUUIMongoDBStorage
             .Processses()
             .updateOne(Filters.eq(new ObjectId(id)), Updates.set("endTime", endTime));
     }
+
 
     public static void setFinished(String id, boolean finished) {
         DUUIMongoDBStorage

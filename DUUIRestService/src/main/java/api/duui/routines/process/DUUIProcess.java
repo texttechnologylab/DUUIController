@@ -107,7 +107,7 @@ public class DUUIProcess extends Thread {
         System.out.println(error.getClass().getSimpleName());
         System.out.println("--------------------------------------------------------");
 
-        DUUIProcessController.setError(_id, error.getMessage());
+        DUUIProcessController.setError(_id, String.format("%s - %s", error.getClass().getCanonicalName(), error.getMessage()));
 
         Application.metrics.get("active_processes").decrementAndGet();
         Application.metrics.get("failed_processes").incrementAndGet();
@@ -152,9 +152,14 @@ public class DUUIProcess extends Thread {
     @Override
     public void run() {
         try {
+            boolean ignoreErrors = _pipeline
+                .get("settings", Document.class)
+                .getOrDefault("ignoreErrors", "false") == "true";
+
             _composer = new DUUIComposer()
                 .withSkipVerification(true)
                 .withDebug(true)
+                .withIgnoreErrors(ignoreErrors)
                 .withStorageBackend(
                     new DUUIMongoStorageBackend(DUUIMongoDBStorage.getConnectionURI()))
                 .withLuaContext(new DUUILuaContext().withJsonLibrary());
@@ -320,7 +325,7 @@ public class DUUIProcess extends Thread {
 
         DUUIProcessController.setFinishTime(_id, new Date().toInstant().toEpochMilli());
 
-        if (DUUIProcessService.deleteTempOutputDirectory(new File(_xmiWriterOutputPath))) {
+        if (DUUIProcessService.deleteTempOutputDirectory(new File(Paths.get("temp/duui/%s".formatted(_id)).toString()))) {
             _composer.addStatus("Clean up complete");
         }
         DUUIProcessController.setFinished(_id, true);

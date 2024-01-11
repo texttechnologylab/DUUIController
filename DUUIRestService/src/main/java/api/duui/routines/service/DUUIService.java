@@ -2,16 +2,21 @@ package api.duui.routines.service;
 
 
 import api.Application;
+import api.duui.DUUIState;
+import api.duui.DUUIStatus;
 import api.duui.document.DUUIDocumentInput;
 import api.duui.document.DUUIDocumentOutput;
 import api.duui.pipeline.DUUIPipelineController;
 import api.duui.routines.process.DUUIProcessController;
 import api.storage.DUUIMongoDBStorage;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
 import de.tudarmstadt.ukp.dkpro.core.api.metadata.type.DocumentMetaData;
 import org.apache.uima.fit.factory.JCasFactory;
 import org.apache.uima.fit.util.JCasUtil;
 import org.apache.uima.jcas.JCas;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.dkpro.core.io.xmi.XmiWriter;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.DUUIComposer;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.DUUIDocument;
@@ -69,10 +74,16 @@ public class DUUIService extends Thread {
 
     public DUUIService(Document pipeline) throws Exception {
         _pipeline = pipeline;
+
+        boolean ignoreErrors = pipeline
+            .get("settings", Document.class)
+            .getOrDefault("ignoreErrors", "false") == "true";
+
         _composer = new DUUIComposer()
             .withSkipVerification(true)
             .withDebug(true)
             .asService(true)
+            .withIgnoreErrors(ignoreErrors)
             .withStorageBackend(
                 new DUUIMongoStorageBackend(DUUIMongoDBStorage.getConnectionURI()))
             .withLuaContext(new DUUILuaContext().withJsonLibrary());
@@ -186,15 +197,24 @@ public class DUUIService extends Thread {
     }
 
     private void onShutdown(boolean stayOnline) {
+        DUUIMongoDBStorage.Pipelines().findOneAndUpdate(
+            Filters.eq(new ObjectId(pipelineId())),
+            Updates.set("state", DUUIStatus.SHUTDOWN)
+        );
         _active = false;
         _idle = true;
 
-        _composer.asService(stayOnline).setShutdownAtomic(true);
+        _composer.asService(stayOnline)
+            .setShutdownAtomic(true);
         try {
             _composer.shutdown();
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }
+        DUUIMongoDBStorage.Pipelines().findOneAndUpdate(
+            Filters.eq(new ObjectId(pipelineId())),
+            Updates.set("state", DUUIStatus.INACTIVE)
+        );
     }
 
     public void onInterrupt() {
@@ -210,6 +230,10 @@ public class DUUIService extends Thread {
 
         String id = pipelineId();
         DUUIPipelineController.setServiceStartTime(id, 0);
+        DUUIMongoDBStorage.Pipelines().findOneAndUpdate(
+            Filters.eq(new ObjectId(pipelineId())),
+            Updates.set("state", DUUIStatus.INACTIVE)
+        );
         DUUIPipelineController.getServices().remove(id);
     }
 
@@ -242,6 +266,11 @@ public class DUUIService extends Thread {
     }
 
     private void executePipeline() throws Exception {
+        DUUIMongoDBStorage.Pipelines().findOneAndUpdate(
+            Filters.eq(new ObjectId(pipelineId())),
+            Updates.set("state", DUUIStatus.RUNNING)
+        );
+
         Application.metrics.get("active_processes").incrementAndGet();
         DUUIProcessController.setStatus(processId(), "Input");
 
@@ -279,7 +308,7 @@ public class DUUIService extends Thread {
             Application.metrics.get("completed_processes").incrementAndGet();
         }
 
-        if (deleteTempOutputDirectory(new File(Paths.get(_xmiWriterOutputPath).toString()))) {
+        if (deleteTempOutputDirectory(new File(Paths.get("temp/duui/%s".formatted(processId())).toString()))) {
             File path = new File(Paths.get("temp/duui/%s".formatted(processId())).toString());
             path.delete();
             _composer.addStatus("Clean up complete");
@@ -411,7 +440,7 @@ public class DUUIService extends Thread {
             DUUIProcessController.setError(processId(), "Writing output failed because all documents failed during processing.");
         } else {
             _exception = exception;
-            DUUIProcessController.setError(processId(), exception.getMessage());
+            DUUIProcessController.setError(processId(), String.format("%s - %s", exception.getClass().getCanonicalName(),exception.getMessage()));
         }
 
 
