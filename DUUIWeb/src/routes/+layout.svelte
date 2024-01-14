@@ -1,36 +1,41 @@
 <script lang="ts">
-	import '../app.postcss'
 	import Logo from '$lib/assets/Logo.svg'
+	import '../app.postcss'
 
-	import { AppShell, AppBar, LightSwitch, type ModalComponent } from '@skeletonlabs/skeleton'
-	import { Drawer, getDrawerStore } from '@skeletonlabs/skeleton'
-	import { Toast, type DrawerSettings } from '@skeletonlabs/skeleton'
-	import Fa from 'svelte-fa'
-	import { faGlobe, faBars, faArrowRightFromBracket } from '@fortawesome/free-solid-svg-icons'
 	import { faGithub, faXTwitter } from '@fortawesome/free-brands-svg-icons'
+	import { faArrowRightFromBracket, faBars, faGlobe } from '@fortawesome/free-solid-svg-icons'
+	import {
+		AppBar,
+		AppShell,
+		Drawer,
+		LightSwitch,
+		Toast,
+		getDrawerStore,
+		type DrawerSettings,
+		type ModalComponent
+	} from '@skeletonlabs/skeleton'
+	import Fa from 'svelte-fa'
 
-	import { initializeStores } from '@skeletonlabs/skeleton'
 	import { beforeNavigate, goto, onNavigate } from '$app/navigation'
-	import { storePopup } from '@skeletonlabs/skeleton'
+	import { initializeStores, storePopup } from '@skeletonlabs/skeleton'
 
-	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom'
-	import { Modal } from '@skeletonlabs/skeleton'
-	import Sidebar from '$lib/svelte/widgets/navigation/Sidebar.svelte'
-	import { Api, makeApiCall } from '$lib/duui/utils/api'
+	import { helpStore, userSession } from '$lib/store'
+	import Link from '$lib/svelte/Link.svelte'
 	import DeleteModal from '$lib/svelte/widgets/modal/DeleteModal.svelte'
-	import { userSession } from '$lib/store'
-	import Link from '$lib/components/Link.svelte'
 	import DocumentModal from '$lib/svelte/widgets/modal/DocumentModal.svelte'
 	import Documentation from '$lib/svelte/widgets/navigation/Documentation.svelte'
+	import ConfirmModal from '$lib/svelte/widgets/modal/ConfirmModal.svelte'
+	import Sidebar from '$lib/svelte/widgets/navigation/Sidebar.svelte'
+	import { arrow, autoUpdate, computePosition, flip, offset, shift } from '@floating-ui/dom'
+	import { Modal } from '@skeletonlabs/skeleton'
 
-	import hljs from 'highlight.js/lib/core'
-	import java from 'highlight.js/lib/languages/java'
-	import xml from 'highlight.js/lib/languages/java'
-	import 'highlight.js/styles/github-dark.css'
-	import { storeHighlightJs } from '@skeletonlabs/skeleton'
-	import { scrollIntoView } from '$lib/duui/utils/ui'
-	import { onMount } from 'svelte'
 	import PromptModal from '$lib/svelte/widgets/modal/PromptModal.svelte'
+	import Help from '$lib/svelte/widgets/navigation/Help.svelte'
+	import HelpToggle from '$lib/svelte/widgets/navigation/HelpToggle.svelte'
+	import { storeHighlightJs } from '@skeletonlabs/skeleton'
+	import hljs from 'highlight.js/lib/core'
+	import { default as java, default as xml } from 'highlight.js/lib/languages/java'
+	import 'highlight.js/styles/github-dark.css'
 
 	export let data
 	let { user } = data
@@ -65,7 +70,7 @@
 	})
 
 	const logout = async () => {
-		const response = await makeApiCall(Api.Logout, 'PUT', {})
+		const response = await fetch('/account/logout', { method: 'PUT' })
 		if (response.ok) {
 			userSession.set(undefined)
 
@@ -78,7 +83,8 @@
 	const modalRegistry: Record<string, ModalComponent> = {
 		deleteModal: { ref: DeleteModal },
 		documentModal: { ref: DocumentModal },
-		promptModal: { ref: PromptModal }
+		promptModal: { ref: PromptModal },
+		confirmModal: { ref: ConfirmModal }
 	}
 </script>
 
@@ -87,13 +93,20 @@
 <Drawer rounded="rounded-md">
 	{#if $drawerStore.id === 'sidebar'}
 		<Sidebar />
+	{:else if $drawerStore.id === 'helpDrawer'}
+		<p>
+			Lorem, ipsum dolor sit amet consectetur adipisicing elit. Impedit temporibus asperiores aut
+			hic, ipsam odio illum voluptate nihil quae laudantium, quibusdam porro, sed aperiam atque
+			minus quasi ullam eaque. Soluta?
+		</p>
 	{/if}
 </Drawer>
-<!-- App Shell -->
-<AppShell class="dark:bg-surface-700">
+
+<!-- App Shell  -->
+<AppShell class=" dark:bg-surface-700 ">
 	<svelte:fragment slot="header">
 		<!-- App Bar -->
-		<AppBar shadow="shadow-lg dark:bg-surface-900">
+		<AppBar shadow="shadow-lg" background="bg-surface-50-900-token z-[100]">
 			<svelte:fragment slot="lead">
 				<div class="flex items-center gap-4">
 					<button class="btn-icon lg:hidden" on:click={() => drawerStore.open(sidebarDrawer)}>
@@ -135,10 +148,13 @@
 						<Link href="/account/login">Login</Link>
 						<Link href="/account/register">Register</Link>
 					{/if}
+					<HelpToggle />
 				</div>
+
 				<a href="/">
 					<img src={Logo} alt="The letters DUUI" class="md:hidden block max-h-8 pr-4" />
 				</a>
+
 				<LightSwitch class="md:block hidden" rounded="rounded-full" />
 			</svelte:fragment>
 		</AppBar>
@@ -146,6 +162,12 @@
 
 	<svelte:fragment slot="sidebarLeft">
 		<Documentation />
+	</svelte:fragment>
+
+	<svelte:fragment slot="sidebarRight">
+		{#if $helpStore}
+			<Help />
+		{/if}
 	</svelte:fragment>
 
 	<!-- Page Route Content -->
@@ -156,7 +178,7 @@
 			<div class="border-t border-surface-400/20 bg-white dark:bg-surface-900/50">
 				<div
 					class="relative
-				 md:after:visible after:invisible after:absolute after:w-[2px] after:h-full after:scale-y-[80%] after:bg-surface-400/20 after:left-1/2 after:top-0 after:rounded-full
+				 lg:after:visible after:invisible after:absolute after:w-[2px] after:h-full after:scale-y-[80%] after:bg-surface-400/20 after:left-1/2 after:top-0 after:rounded-full
 				 flex flex-col md:flex-row gap-4 md:justify-between py-16 max-w-7xl container mx-auto p-4 space-y-16 md:space-y-0"
 				>
 					<div class="space-y-4 md:my-0 md:border-none">
@@ -197,17 +219,17 @@
 						class="flex flex-col md:flex-row gap-8 md:gap-16 justify-between text-base
 							   text-center md:text-left"
 					>
-						<div class="flex flex-col gap-2 justify-center">
+						<div class="flex flex-col gap-2 justify-center items-center">
 							<p class="text-black dark:text-surface-100 font-bold md:mb-4">Pipelines</p>
 							<Link href="/pipelines" dimmed={true}>Dashboard</Link>
 							<Link href="/pipelines/editor" dimmed={true}>Editor</Link>
 						</div>
-						<div class="flex flex-col gap-2 justify-center">
+						<div class="flex flex-col gap-2 justify-center items-center">
 							<p class="text-black dark:text-surface-100 font-bold md:mb-4">Documentation</p>
 							<Link href="/documentation" dimmed={true}>Framework</Link>
 							<Link href="/documentation/api" dimmed={true}>API Reference</Link>
 						</div>
-						<div class="flex flex-col gap-2 justify-center">
+						<div class="flex flex-col gap-2 justify-center items-center">
 							<p class="text-black dark:text-surface-100 font-bold md:mb-4">Account</p>
 							{#if $userSession}
 								<Link href="/account" dimmed={true}>Account</Link>

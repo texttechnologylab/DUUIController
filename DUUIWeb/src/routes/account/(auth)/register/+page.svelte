@@ -71,9 +71,7 @@
 				<Text disabled={true} bind:value={email} label="Email" name="email" />
 				<Password disabled={true} bind:value={password1} label="Password" name="password" />
 				<a class="block text-center anchor text-sm" href="/account/recover">Forgot Password? </a>
-				<button
-					disabled
-					class="btn rounded-md variant-filled-primary uppercase tracking-widest !mt-12 font-bold"
+				<button disabled class="button-primary button-modal uppercase tracking-widest self-center"
 					>sign in</button
 				>
 			</div>
@@ -101,7 +99,7 @@
 				<a class="block text-center anchor text-sm" href="/account/recover">Forgot Password? </a>
 				<button
 					on:click={register}
-					class="btn rounded-md variant-filled-primary uppercase tracking-widest self-center px-8 font-bold"
+					class="button-primary button-modal uppercase tracking-widest self-center"
 				>
 					sign up
 				</button>

@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { faArrowLeft, faClose, faTrash, faWarning } from '@fortawesome/free-solid-svg-icons'
-	import ActionButton from '../action/ActionButton.svelte'
+	import { faClose } from '@fortawesome/free-solid-svg-icons'
 	import { getModalStore } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
 
@@ -9,42 +8,45 @@
 	export let body: string = $modalStore[0].meta['body'] || 'Are you sure?'
 </script>
 
-<div
-	class="z-50 overflow-hidden rounded-md dark:bg-surface-700 shadow-lg border-surface-400/20
-	 w-modal"
->
+<div class="z-50 bg-modal w-modal">
 	<div
-		class=" p-4 variant-filled-error dark:variant-soft-error flex items-center justify-between gap-4"
+		class="p-4 flex items-center justify-between gap-4 border-b border-color bg-surface-100 dark:bg-surface-700"
 	>
 		<p class="h3 font-bold">{title}</p>
-		<Fa icon={faWarning} size="2x" />
+		<button
+			on:click={() => modalStore.close()}
+			class="text-surface-400 hover:text-surface-900 dark:hover:text-surface-100 transform-colors duration-300"
+		>
+			<Fa icon={faClose} scale={1.5} />
+		</button>
 	</div>
-	<div class="p-4 bg-white dark:bg-surface-600 space-y-16">
-		<div>
+	<div class=" space-y-8">
+		<div class="p-8">
 			<p>{body}</p>
 		</div>
-		<div class="flex items-center gap-4 justify-end">
-			<ActionButton
-				text="Confirm"
-				variant="dark:variant-soft-error variant-filled-error"
-				icon={faTrash}
+		<div class="p-4 px-8 border-t border-color grid grid-cols-2 items-center gap-4 justify-end">
+			<button
+				class="button-error button-modal"
 				on:click={() => {
 					if ($modalStore[0].response) {
 						$modalStore[0]?.response(true)
 						modalStore.close()
 					}
 				}}
-			/>
-			<ActionButton
-				text="Cancel"
-				icon={faClose}
+			>
+				<span>Delete</span>
+			</button>
+			<button
+				class="button-primary button-modal"
 				on:click={() => {
 					if ($modalStore[0].response) {
 						$modalStore[0]?.response(false)
 						modalStore.close()
 					}
 				}}
-			/>
+			>
+				<span>Cancel</span>
+			</button>
 		</div>
 	</div>
 </div>

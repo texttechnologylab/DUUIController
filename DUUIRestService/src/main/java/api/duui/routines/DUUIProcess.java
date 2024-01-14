@@ -2,7 +2,6 @@ package api.duui.routines;
 
 import api.Application;
 import api.duui.DUUIState;
-import api.duui.DUUIStatus;
 import api.duui.document.DUUIDocumentInput;
 import api.duui.document.DUUIDocumentOutput;
 import api.duui.pipeline.DUUIPipelineController;
@@ -20,6 +19,7 @@ import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.IDUUIDataRea
 import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.DUUIUIMADriver;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.io.AsyncCollectionReader;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.lua.DUUILuaContext;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.pipeline_storage.mongodb.DUUIMongoStorageBackend;
 import org.xml.sax.SAXException;
 
@@ -94,15 +94,11 @@ public class DUUIProcess extends Thread {
 
         composer = new DUUIComposer()
             .withSkipVerification(true)
-            .withDebug(true)
-            .asService(true)
+            .withDebug(false)
+            .asService(keepAlive)
             .withStorageBackend(
                 new DUUIMongoStorageBackend(DUUIMongoDBStorage.getConnectionURI()))
             .withLuaContext(new DUUILuaContext().withJsonLibrary());
-
-        if (keepAlive) {
-            instantiatePipeline();
-        }
     }
 
     private void instantiatePipeline() throws Exception {
@@ -115,13 +111,15 @@ public class DUUIProcess extends Thread {
 
     private void startPipeline(Document process, Document settings) {
         this.process = process;
-        this.pipeline = DUUIPipelineController.getPipelineById(process.getString("pipeline_id"));
-        this.userId = pipeline.getString("user_id");
-
         processId = process.getString("oid");
         pipelineId = process.getString("pipeline_id");
 
+        this.pipeline = DUUIPipelineController.getPipelineById(pipelineId);
+        this.settings = settings;
+        this.userId = pipeline.getString("user_id");
+
         startUpdater();
+
         if (state == DUUIState.INACTIVE) {
             try {
                 instantiatePipeline();
@@ -134,10 +132,6 @@ public class DUUIProcess extends Thread {
             onException(new Exception("Pipeline is in an invalid state: %s.".formatted(state)));
         }
 
-        this.process = process;
-        this.settings = settings;
-        this.pipeline = DUUIPipelineController
-            .getPipelineById(process.getString("pipeline_id"));
 
         state = DUUIState.ACTIVE;
 
@@ -214,7 +208,7 @@ public class DUUIProcess extends Thread {
         }
 
         composer.addStatus("Loaded document, starting Pipeline");
-        DUUIProcessController.setStatus(processId, DUUIStatus.RUNNING);
+        DUUIProcessController.setStatus(processId, DUUIStatus.ACTIVE);
 
         composer.run(cas, pipeline.getString("name") + "_" + process.getLong("startedAt"));
 
@@ -252,7 +246,7 @@ public class DUUIProcess extends Thread {
         composer.withWorkers(threadCount);
 
         Application.metrics.get("active_threads").getAndAdd(threadCount);
-        DUUIProcessController.setStatus(processId, DUUIStatus.RUNNING);
+        DUUIProcessController.setStatus(processId, DUUIStatus.ACTIVE);
         composer.addStatus(
             "AsyncCollectionReader",
             "Loaded " + collectionReader.getDocumentCount() + " documents");
@@ -297,7 +291,7 @@ public class DUUIProcess extends Thread {
             composer.getDocuments().stream().filter(document ->
                 !document.getIsFinished() ||
                     DUUIStatus.oneOf(document.getStatus(),
-                        DUUIStatus.RUNNING,
+                        DUUIStatus.ACTIVE,
                         DUUIStatus.WAITING
                     )
             ).forEach(document -> {
@@ -356,6 +350,7 @@ public class DUUIProcess extends Thread {
             state = DUUIState.IDLE;
             DUUIProcessController.updateDocuments(processId, composer.getDocuments());
             DUUIProcessController.updateTimeline(processId, composer.getLog());
+            DUUIProcessController.updatePipelineStatus(processId, composer.getPipelineStatus());
             DUUIProcessController.setProgress(processId, composer.getProgress());
             DUUIProcessController.removeProcess(processId);
             if (interrupted) {
@@ -432,4 +427,5 @@ public class DUUIProcess extends Thread {
             xmiWriter.setAnalysisEngineParameter(XmiWriter.PARAM_FILENAME_EXTENSION, output.getFileExtension());
         }
     }
+
 }

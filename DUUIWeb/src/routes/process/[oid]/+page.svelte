@@ -1,19 +1,17 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
-	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
-	import IconButton from '$lib/svelte/widgets/action/IconButton.svelte'
 	import {
+		Input,
 		Output,
-		type DUUIDocument,
-		isCloudProvider,
 		getTotalDuration,
-		Input
+		isCloudProvider,
+		type DUUIDocument
 	} from '$lib/duui/io.js'
 	import { Status, isActive } from '$lib/duui/monitor.js'
 	import { processToSeachParams } from '$lib/duui/process.js'
 	import { Api, makeApiCall } from '$lib/duui/utils/api'
 	import { equals, formatFileSize, progresAsPercent } from '$lib/duui/utils/text'
-	import { formatMilliseconds, getDuration } from '$lib/duui/utils/time'
+	import { formatMilliseconds } from '$lib/duui/utils/time'
 	import {
 		documentStatusNames,
 		getDocumentStatusIcon,
@@ -21,6 +19,7 @@
 		info,
 		success
 	} from '$lib/duui/utils/ui'
+	import IconButton from '$lib/svelte/widgets/action/IconButton.svelte'
 	import DocumentModal from '../../../lib/svelte/widgets/modal/DocumentModal.svelte'
 
 	import {
@@ -35,21 +34,19 @@
 		faTrash
 	} from '@fortawesome/free-solid-svg-icons'
 	import {
+		ProgressBar,
 		getModalStore,
 		getToastStore,
-		ProgressBar,
 		type ModalComponent,
 		type ModalSettings
 	} from '@skeletonlabs/skeleton'
 
+	import Search from '$lib/svelte/widgets/input/Search.svelte'
+	import Select from '$lib/svelte/widgets/input/Select.svelte'
+	import SpeedDial from '$lib/svelte/widgets/navigation/BottomMenu.svelte'
+	import Paginator from '$lib/svelte/widgets/navigation/Paginator.svelte'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
-	import Select from '$lib/svelte/widgets/input/Select.svelte'
-	import Search from '$lib/svelte/widgets/input/Search.svelte'
-	import Timeline from '$lib/svelte/widgets/timeline/Timeline.svelte'
-	import SpeedDial from '$lib/svelte/widgets/navigation/SpeedDial.svelte'
-	import Paginator from '$lib/svelte/widgets/navigation/Paginator.svelte'
-	// import { chart } from 'svelte-apexcharts'
 
 	export let data
 	const toastStore = getToastStore()
@@ -85,9 +82,107 @@
 	let searchText: string = ''
 
 	let filter: string[] = [Status.Any]
-	let maxProgress = pipeline.components.length + (isCloudProvider(process.output.target) ? 1 : 0)
+	let maxProgress = pipeline.components.length + (isCloudProvider(process.output.provider) ? 1 : 0)
+
+	let ApexCharts
+	let loaded: boolean = false
+
+	let annotations: Map<string, number> = new Map()
+	let statusMap: Map<string, number> = new Map()
+
+	// let options = {
+	// 	series: Array.from(statusMap.values()),
+	// 	chart: {
+	// 		type: 'donut'
+	// 	},
+	// 	labels: Array.from(statusMap.keys()),
+	// 	responsive: [
+	// 		{
+	// 			breakpoint: 480,
+	// 			options: {
+	// 				chart: {
+	// 					width: 200
+	// 				},
+	// 				legend: {
+	// 					position: 'bottom'
+	// 				}
+	// 			}
+	// 		}
+	// 	]
+	// }
+
+	// let timeChart = {
+	// 	series: [
+	// 		{
+	// 			data: documents.map((d) => {
+	// 				return {
+	// 					x: d.name,
+	// 					y: [
+	// 						((d.startTime > 0 ? d.startTime : process.startTime) - process.startTime) / 1000,
+	// 						((d.endTime > 0 ? d.endTime : new Date().getTime() + 500) - process.startTime) / 1000
+	// 					]
+	// 				}
+	// 			})
+	// 		}
+	// 	],
+	// 	chart: {
+	// 		height: 600,
+	// 		type: 'rangeBar',
+	// 		zoom: {
+	// 			enabled: false
+	// 		}
+	// 	},
+	// 	colors: ['#006c98', '#36BDCB'],
+	// 	plotOptions: {
+	// 		bar: {
+	// 			horizontal: true,
+	// 			borderRadius: 4
+	// 		}
+	// 	},
+	// 	grid: {
+	// 		xaxis: {
+	// 			lines: {
+	// 				show: true
+	// 			}
+	// 		},
+	// 		yaxis: {
+	// 			lines: {
+	// 				show: true
+	// 			}
+	// 		}
+	// 	},
+	// 	labels: {
+	// 		show: true,
+	// 		formatter: function (val) {
+	// 			return formatMilliseconds(val * 1000)
+	// 		}
+	// 	}
+	// }
+
+	const chart = (node: HTMLDivElement, options: any) => {
+		if (!loaded) return
+
+		let _chart = new ApexCharts(node, options)
+		_chart.render()
+
+		return {
+			update(options: any) {
+				_chart.updateOptions(options)
+			},
+			destroy() {
+				_chart.destroy()
+			}
+		}
+	}
 
 	onMount(() => {
+		// async function loadApexCharts() {
+		// 	const module = await import('apexcharts')
+		// 	ApexCharts = module.default
+		// 	window.ApexCharts = ApexCharts
+		// 	loaded = true
+		// }
+
 		async function updateProcess() {
 			const response = await fetch(
 				`./api/update/${process.oid}
@@ -111,6 +206,22 @@
 			process = json.process
 			timeline = json.timeline
 
+			// for (let document of documents) {
+			// 	for (let annotation of Object.entries(document.annotations)) {
+			// 		const name: string | undefined = annotation[0].split('.').at(-1)
+			// 		if (!name) continue
+
+			// 		const value: number | undefined = annotation[1]
+			// 		if (!value) continue
+
+			// 		if (annotations.has(name)) {
+			// 			annotations.set(name, annotations.get(name) || 0 + value)
+			// 		} else {
+			// 			annotations.set(name, value)
+			// 		}
+			// 	}
+			// }
+
 			progressPercent = progresAsPercent(process.progress, process.documentNames.length)
 			updateTable()
 
@@ -122,6 +233,7 @@
 
 		const interval = setInterval(updateProcess, 1000)
 		updateProcess()
+		// loadApexCharts()
 		return () => clearInterval(interval)
 	})
 
@@ -129,7 +241,7 @@
 		const response = await makeApiCall(Api.Processes, 'PUT', { oid: process.oid })
 		if (response.ok) {
 			toastStore.trigger(success('Process has been canceled'))
-			process.status = Status.Canceled
+			process.status = Status.Cancelled
 			process.finished = true
 		} else {
 			toastStore.trigger(info('Process has already been canceled'))
@@ -156,7 +268,7 @@
 			const response = await makeApiCall(Api.Processes, 'DELETE', { oid: process.oid })
 			if (response.ok) {
 				toastStore.trigger(info('Process has been deleted'))
-				goto(`/pipelines/${pipeline.oid}?tab=2`)
+				goto(`/pipelines/${pipeline.oid}?tab=1`)
 			}
 		})
 	}
@@ -164,24 +276,24 @@
 	const DROPBOX_URL: string = 'https://www.dropbox.com/home/Apps/Cedric%20Test%20App'
 
 	function getOutput(): string {
-		if (equals(process.output.target, Output.Minio)) {
-			return `http://192.168.2.122:9090/browser/${process.output.folder}`
+		if (equals(process.output.provider, Output.Minio)) {
+			return `http://192.168.2.122:9090/browser/${process.output.path}`
 		}
 
-		if (equals(process.output.target, Output.Dropbox)) {
-			return `${DROPBOX_URL}${process.output.folder}`
+		if (equals(process.output.provider, Output.Dropbox)) {
+			return `${DROPBOX_URL}${process.output.path}`
 		}
 
 		return ''
 	}
 
 	function getInput(): string {
-		if (equals(process.input.source, Input.Minio)) {
-			return `http://192.168.2.122:9090/browser/${process.input.folder}`
+		if (equals(process.input.provider, Input.Minio)) {
+			return `http://192.168.2.122:9090/browser/${process.input.path}`
 		}
 
-		if (equals(process.input.source, Input.Dropbox)) {
-			return `${DROPBOX_URL}${process.input.folder}`
+		if (equals(process.input.provider, Input.Dropbox)) {
+			return `${DROPBOX_URL}${process.input.path}`
 		}
 
 		return ''
@@ -189,7 +301,7 @@
 
 	async function restart() {
 		goto(
-			`/process?oid=${pipeline.oid}
+			`/process?pipeline_id=${pipeline.oid}
 			&from=/process/${process.oid}
 			&${processToSeachParams(process)}`
 		)
@@ -203,6 +315,7 @@
 		} else {
 			filter = filter.filter((status) => !equals(status, Status.Any))
 		}
+
 		const response = await fetch(
 			`./api/documents
 			?process_id=${process.oid}
@@ -248,11 +361,11 @@
 
 <SpeedDial>
 	<svelte:fragment slot="content">
-		<IconButton icon={faArrowLeft} on:click={() => goto('/pipelines/' + pipeline.oid + '?tab=2')} />
-		{#if isCloudProvider(process.input.source)}
+		<IconButton icon={faArrowLeft} on:click={() => goto('/pipelines/' + pipeline.oid + '?tab=1')} />
+		{#if isCloudProvider(process.input.provider)}
 			<IconButton icon={faFileDownload} on:click={() => window.open(getInput())} />
 		{/if}
-		{#if isCloudProvider(process.output.target)}
+		{#if isCloudProvider(process.output.provider)}
 			<IconButton icon={faFileUpload} on:click={() => window.open(getOutput())} />
 		{/if}
 
@@ -265,178 +378,183 @@
 	</svelte:fragment>
 </SpeedDial>
 
-<div class="container h-full flex-col mx-auto flex gap-4 md:my-8 pb-32 space">
-	<div class="flex items-end justify-between gap-4">
-		<h1 class="h2">{pipeline.name}</h1>
+<div class="">
+	<div class="grid">
+		<div
+			class="page-wrapper bg-solid md:top-0 z-10 left-0 bottom-0 right-0 row-start-2 fixed md:sticky md:row-start-1"
+		>
+			<div class="grid grid-cols-3 md:flex items-center md:justify-start gap-4 relative">
+				<button class="button-primary" on:click={() => goto(`/pipelines/${pipeline.oid}?tab=1`)}>
+					<Fa icon={faArrowLeft} />
+					<span class="hidden md:inline">Back</span>
+				</button>
 
-		<div class="flex items-center gap-2 ml-auto">
-			<Fa
-				icon={getStatusIcon(process.status)}
-				size="lg"
-				class={equals(process.status, Status.Running) ? 'animate-spin-slow ' : ''}
-			/>
-			<p>{process.status}</p>
-		</div>
-	</div>
-
-	<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
-	<div class="space-y-4">
-		<div class="grid xl:flex items-center xl:justify-start gap-4">
-			<div class="hidden lg:flex md:grid md:grid-cols-3 gap-4 items-center">
-				<ActionButton
-					icon={faArrowLeft}
-					text="Back"
-					leftToRight={true}
-					on:click={() => goto('/pipelines/' + pipeline.oid + '?tab=2')}
-				/>
-				{#if isCloudProvider(process.input.source)}
-					<ActionButton
-						text="Input"
-						icon={faFileDownload}
-						on:click={() => window.open(getInput())}
-					/>
-				{/if}
-				{#if isCloudProvider(process.output.target) && equals(process.status, Status.Completed)}
-					<ActionButton
-						text="Output"
-						icon={faFileUpload}
-						on:click={() => window.open(getOutput())}
-					/>
-				{/if}
-				{#if !process.finished}
-					<ActionButton text="Cancel" icon={faCancel} on:click={cancelProcess} />
+				{#if process.finished}
+					<button class="button-primary" on:click={restart}>
+						<Fa icon={faRefresh} />
+						<span class="hidden md:inline">Restart</span>
+					</button>
+					<button class="button-error md:ml-auto" on:click={deleteProcess}>
+						<Fa icon={faTrash} />
+						<span class="hidden md:inline">Delete</span>
+					</button>
 				{:else}
-					<ActionButton text="Restart" icon={faRefresh} on:click={restart} />
-					<ActionButton text="Delete" icon={faTrash} on:click={deleteProcess} />
+					<button class="button-error md:ml-auto" on:click={cancelProcess}>
+						<Fa icon={faCancel} />
+						<span class="hidden md:inline">Cancel</span>
+					</button>
+				{/if}
+			</div>
+		</div>
+		<div class="p-4 md:p-8 space-y-4">
+			<div class="flex items-center justify-between gap-4 mb-8">
+				<h1 class="h1">{pipeline.name}</h1>
+
+				<div class="flex items-center gap-4">
+					<Fa
+						icon={getStatusIcon(process.status)}
+						size="2x"
+						class={equals(process.status, Status.Active) ? 'animate-spin-slow ' : ''}
+					/>
+					<p class="text-lg hidden md:block">{process.status}</p>
+				</div>
+			</div>
+			<div>
+				<div class=" md:text-base flex items-end">
+					{#if process.error}
+						<p class="text-error-500 font-bold p-2 md:max-w-[60ch] max-w-[40ch]">
+							ERROR: {process.error}
+						</p>
+					{/if}
+					<div
+						class="hidden ml-auto md:flex overflow-hidden justify-between section-wrapper !shadow-none !border-b-0 !rounded-b-none z-10"
+					>
+						<Search
+							style="bg-fancy py-3"
+							bind:query={searchText}
+							placeholder="Search..."
+							icon={faSearch}
+							on:focusout={() => updateTable()}
+							on:keydown={(event) => {
+								if (equals(event.key, 'enter')) {
+									updateTable()
+								}
+							}}
+						/>
+						<Select
+							style="z-50 !rounded-none hidden md:flex"
+							border="border-l border-color"
+							label="Status"
+							name="Status"
+							on:change={updateTable}
+							bind:selected={filter}
+							options={documentStatusNames}
+						/>
+					</div>
+				</div>
+
+				<div class="section-wrapper">
+					<div
+						class="header grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 bg-surface-100 dark:variant-soft-surface"
+					>
+						{#each tableHeader as column, index}
+							<button
+								class="btn-sm md:text-base md:inline-flex bg-surface-100 px-4 dark:variant-soft-surface gap-4 justify-start items-center rounded-none p-3 text-left
+							{[4].includes(index)
+									? 'hidden md:inline-flex'
+									: [3].includes(index)
+									? 'hidden lg:inline-flex'
+									: ''}"
+								on:click={() => sortTable(index)}
+							>
+								<span>{column}</span>
+								{#if sort.by === index}
+									<Fa icon={sort.order === -1 ? faArrowDownWideShort : faArrowUpWideShort} />
+								{/if}
+							</button>
+						{/each}
+					</div>
+					<ProgressBar
+						value={process.progress}
+						max={process.documentNames.length}
+						height="h-1"
+						rounded="rounded-none"
+						meter="variant-filled-primary"
+					/>
+					<div class="overflow-hidden flex flex-col">
+						{#each documents as document}
+							<button
+								class="btn-sm text-xs md:text-sm rounded-none
+							first:border-t-0 border-t-[1px]
+							dark:border-t-surface-500 dark:hover:variant-soft-primary
+							hover:variant-filled-primary
+							grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 p-3 px-4 text-left"
+								on:click={() => showDocumentModal(document)}
+							>
+								<p class="break-words">{document.name}</p>
+								<div class="md:flex items-center justify-start md:gap-4">
+									<p>
+										{Math.round((Math.min(document.progress, maxProgress) / maxProgress) * 100)} %
+									</p>
+									<p>{Math.min(document.progress, maxProgress)} / {maxProgress}</p>
+								</div>
+								<p class="flex justify-start items-center gap-2 md:gap-4">
+									<Fa
+										icon={getDocumentStatusIcon(document)}
+										size="lg"
+										class="{equals(document.status, Status.Active)
+											? 'animate-spin-slow'
+											: equals(document.status, Status.Waiting)
+											? 'animate-hourglass'
+											: ''} w-6"
+									/>
+									<span>{document.status}</span>
+								</p>
+								<p class="hidden lg:block">{formatFileSize(document.size)}</p>
+								<p class="hidden md:block">{formatMilliseconds(getTotalDuration(document))}</p>
+							</button>
+						{/each}
+					</div>
+				</div>
+				<div class="py-4">
+					<Paginator bind:settings={paginationSettings} on:change={updateTable} />
+				</div>
+			</div>
+
+			<!-- <Timeline {process} {documents} /> -->
+
+			<div class="section-wrapper space-y-8 p-8">
+				<p>Skipped Files smaller than {formatFileSize(process.settings.skipFiles)}</p>
+				{#if process.settings.sortBySize}
+					<p>Files are being processed in ascending order</p>
+				{/if}
+				{#if loaded}
+					<!-- <div>
+						<h2 class="h2">Timeline</h2>
+
+						<div use:chart={timeChart} />
+					</div>
+					<div class="max-w-[500px]">
+						<h2 class="h2">Status</h2>
+
+						<div use:chart={options} />
+					</div> -->
 				{/if}
 			</div>
 
-			<div class="grid md:flex items-center gap-4 lg:ml-auto">
-				<Search
-					bind:query={searchText}
-					placeholder="Search..."
-					icon={faSearch}
-					on:focusout={() => updateTable()}
-					on:keydown={(event) => {
-						if (equals(event.key, 'enter')) {
-							updateTable()
-						}
-					}}
-				/>
-				<Select
-					label="Status"
-					name="Status"
-					on:change={updateTable}
-					bind:selected={filter}
-					options={documentStatusNames}
-				/>
-			</div>
+			{#if process.pipelineStatus}
+				<div class="section-wrapper grid items-start p-8 space-y-4">
+					<h2 class="h2">Pipeline Status</h2>
+					<div class="space-y-4">
+						{#each Object.entries(process.pipelineStatus) as [key, status]}
+							<div class="flex items-center justify-between gap-4 md:justify-start">
+								<p>{key}</p>
+								<p class="badge variant-soft-primary">{status}</p>
+							</div>
+						{/each}
+					</div>
+				</div>
+			{/if}
 		</div>
-		{#if process.error}
-			<p class="text-error-400 font-bold break-words">ERROR: {process.error}</p>
-		{/if}
-		<div class="section-wrapper">
-			<div
-				class="header grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 bg-surface-100 dark:variant-soft-surface"
-			>
-				{#each tableHeader as column, index}
-					<button
-						class="btn-sm md:text-base md:inline-flex bg-surface-100 px-4 dark:variant-soft-surface gap-4 justify-start items-center rounded-none p-3 text-left
-					{[4].includes(index)
-							? 'hidden md:inline-flex'
-							: [3].includes(index)
-							? 'hidden lg:inline-flex'
-							: ''}"
-						on:click={() => sortTable(index)}
-					>
-						<span>{column}</span>
-						{#if sort.by === index}
-							<Fa icon={sort.order === -1 ? faArrowDownWideShort : faArrowUpWideShort} />
-						{/if}
-					</button>
-				{/each}
-			</div>
-			<ProgressBar
-				value={process.progress}
-				max={process.documentNames.length}
-				height="h-1"
-				rounded="rounded-none"
-				meter="variant-filled-primary"
-			/>
-			<div class="overflow-hidden flex flex-col">
-				{#each documents as document}
-					<button
-						class="btn-sm text-xs md:text-sm rounded-none
-					first:border-t-0 border-t-[1px]
-					dark:border-t-surface-500 dark:hover:variant-soft-primary
-					hover:variant-filled-primary
-					grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 p-3 px-4 text-left"
-						on:click={() => showDocumentModal(document)}
-					>
-						<p class="break-words">{document.name}</p>
-						<div class="md:flex items-center justify-start md:gap-4">
-							<p>{Math.round((Math.min(document.progress, maxProgress) / maxProgress) * 100)} %</p>
-							<p>{Math.min(document.progress, maxProgress)} / {maxProgress}</p>
-						</div>
-						<p class="flex justify-start items-center gap-2 md:gap-4">
-							<Fa
-								icon={getDocumentStatusIcon(document)}
-								size="lg"
-								class="{equals(document.status, Status.Running)
-									? 'animate-spin-slow'
-									: equals(document.status, Status.Waiting)
-									? 'animate-hourglass'
-									: ''} w-6"
-							/>
-							<span>{document.status}</span>
-						</p>
-						<p class="hidden lg:block">{formatFileSize(document.size)}</p>
-						<p class="hidden md:block">{formatMilliseconds(getTotalDuration(document))}</p>
-					</button>
-				{/each}
-			</div>
-		</div>
-
-		<Paginator bind:settings={paginationSettings} on:change={updateTable} />
-	</div>
-
-	<Timeline {process} {documents} />
-
-	<div class="section-wrapper grid items-start p-8 space-y-4">
-		<h2 class="h2">Statistics</h2>
-		<pre>{JSON.stringify(process, null, 2)}</pre>
-		<!-- <div class="">
-			<Label name="Number of documents" value={'' + process.documentNames.length} />
-			<Label
-				name="Instantiation Duration"
-				value={formatMilliseconds(process.instantiationDuration)}
-			/>
-			<Label name="Process Duration" value={getDuration(process.startTime, process.endTime)} />
-			<Label
-				name="Average document process duration"
-				value={formatMilliseconds(
-					documents
-						.filter((d) => d.finished)
-						.map((d) => d.processDuration)
-						.reduce((total, num) => total + num, 0) / documents.filter((d) => d.finished).length
-				)}
-			/>
-			<Label
-				name="Slowest document process duration"
-				value={documents.filter((d) => d.finished).length === 0
-					? '-'
-					: formatMilliseconds(
-							Math.max(...documents.filter((d) => d.finished).map((d) => d.processDuration)) || 0
-					  )}
-			/>
-			<Label
-				name="Fastest document process duration"
-				value={documents.filter((d) => d.finished).length === 0
-					? '-'
-					: formatMilliseconds(
-							Math.min(...documents.filter((d) => d.finished).map((d) => d.processDuration))
-					  )}
-			/>
-		</div> -->
 	</div>
 </div>

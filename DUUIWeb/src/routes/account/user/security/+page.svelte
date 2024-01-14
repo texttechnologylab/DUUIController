@@ -1,8 +1,7 @@
 <script lang="ts">
-	import { goto, invalidateAll } from '$app/navigation'
+	import { goto } from '$app/navigation'
+	import { Api, makeApiCall } from '$lib/duui/utils/api'
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
-	import TimelineV2 from '$lib/svelte/widgets/timeline/Timeline.svelte'
-	import { makeApiCall, Api } from '$lib/duui/utils/api'
 	import { faUserMinus } from '@fortawesome/free-solid-svg-icons'
 	import { getModalStore, type ModalSettings } from '@skeletonlabs/skeleton'
 

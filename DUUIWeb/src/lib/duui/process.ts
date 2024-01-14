@@ -1,5 +1,5 @@
 import { equals } from '$lib/duui/utils/text'
-import { Input, type DUUIDocumentInput, type DUUIDocumentOutput } from './io'
+import { Input, type DUUIDocumentProvider } from './io'
 import type { DUUIPipeline } from './pipeline'
 
 export interface DUUIProcess {
@@ -10,14 +10,23 @@ export interface DUUIProcess {
 	progress: number
 	startTime: number
 	endTime: number
-	input: DUUIDocumentInput
-	output: DUUIDocumentOutput
-	settings: Map<string, Object>
+	input: DUUIDocumentProvider
+	output: DUUIDocumentProvider
+	settings: {
+		notify: boolean
+		checkTarget: boolean
+		recursive: boolean
+		overwrite: boolean
+		sortBySize: boolean
+		skipFiles: number
+		workerCount: number
+	}
 	documentNames: string[]
 	finished: boolean
 	setupDuration: number
 	instantiationDuration: number
 	count: number
+	pipelineStatus: Map<string, string>
 }
 
 export const progressMaximum = (process: DUUIProcess, pipeline: DUUIPipeline) => {
@@ -26,11 +35,19 @@ export const progressMaximum = (process: DUUIProcess, pipeline: DUUIPipeline) =>
 
 export const processToSeachParams = (process: DUUIProcess) => {
 	return `
-		input-source=${process.input.source}&
-		input-folder=${process.input.folder}&
-		input-content=${equals(process.input.source, Input.LocalFile) ? '' : process.input.content}&
-		input-file-extension=${process.input.fileExtension}&
-		output-target=${process.output.target}&
-		output-folder=${process.output.folder}&
-		output-file-extension=${process.output.fileExtension}&`
+		&input-provider=${process.input.provider}
+		&input-path=${process.input.path}
+		&input-content=${equals(process.input.provider, Input.Text) ? process.input.content : ''}
+		&input-file-extension=${process.input.fileExtension}
+		&output-provider=${process.output.provider}
+		&output-path=${process.output.path}
+		&output-file-extension=${process.output.fileExtension}
+		&notify=${process.settings.notify || 'false'}
+		&checkTarget=${process.settings.checkTarget || 'false'}
+		&recursive=${process.settings.recursive || 'false'}
+		&overwrite=${process.settings.overwrite || 'false'}
+		&sortBySize=${process.settings.sortBySize || 'false'}
+		&skipFiles=${process.settings.skipFiles || '0'}
+		&workerCount=${process.settings.workerCount || '5'}
+		`
 }

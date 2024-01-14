@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores'
-	import SpeedDial from '$lib/svelte/widgets/navigation/SpeedDial.svelte'
+	import SpeedDial from '$lib/svelte/widgets/navigation/BottomMenu.svelte'
 	import { toTitleCase } from  '$lib/duui/utils/text'
 	import { faUser, faLink, faLock } from '@fortawesome/free-solid-svg-icons'
 	import Fa from 'svelte-fa'

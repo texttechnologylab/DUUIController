@@ -56,7 +56,7 @@
 	</p>
 </div>
 
-<div class="space-y-4 items-start">
+<div class="space-y-4">
 	<div class="gap-4 grid md:grid-cols-2">
 		<Text
 			label="Key"

@@ -38,7 +38,7 @@
 	}
 
 	onMount(() => {
-		scrollIntoView("top")
+		scrollIntoView('top')
 	})
 </script>
 
@@ -66,16 +66,19 @@
 			</div>
 			<div class="space-y-4 relative">
 				{#if message}
-					<p in:fly={{ y: 10 }} class=" font-bold variant-filled-error p-4 rounded-md max-w-[40ch]">{message}</p>
+					<p in:fly={{ y: 10 }} class=" font-bold variant-filled-error p-4 rounded-md max-w-[40ch]">
+						{message}
+					</p>
 				{/if}
 				<Text label="Email" name="email" bind:value={recoverAddress} />
-				<ActionButton
+				<button
+					class="button-primary button-modal uppercase tracking-widest self-center"
 					on:click={recover}
-					text="Request new password"
-					icon={faEnvelope}
-					variant="variant-filled-primary dark:variant-soft-primary"
-					disabled={recoverAddress === ''}
-				/>
+				>
+					<Fa icon={faEnvelope} size="lg" />
+					<span>Reset Password</span>
+				</button>
+			
 			</div>
 		</div>
 	{/if}

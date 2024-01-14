@@ -1,30 +1,36 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
-	import { v4 as uuidv4 } from 'uuid'
 	import {
+		IO,
 		Input,
 		InputFileExtensions,
 		InputSources,
 		Output,
 		OutputFileExtensions,
 		OutputTargets,
-		isCloudProvider,
 		isValidIO,
-		isValidS3BucketName
+		isValidInput,
+		isValidOutput,
+		isValidS3BucketName,
+		type DUUIDocumentProvider,
+		type FileExtension,
+		type IOProvider,
+		areSettingsValid
 	} from '$lib/duui/io.js'
-	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
-	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
-	import { equals, formatFileSize } from '$lib/duui/utils/text'
-	import { faCancel, faCheck, faExternalLink, faLink } from '@fortawesome/free-solid-svg-icons'
-	import Dropdown from '$lib/svelte/widgets/input/Dropdown.svelte'
-	import Text from '$lib/svelte/widgets/input/TextInput.svelte'
-	import Checkbox from '$lib/svelte/widgets/input/Checkbox.svelte'
 	import { Api, makeApiCall } from '$lib/duui/utils/api'
-	import { fly } from 'svelte/transition'
-	import Fa from 'svelte-fa'
+	import { equals, formatFileSize } from '$lib/duui/utils/text'
+	import { error } from '$lib/duui/utils/ui'
+	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
+	import Checkbox from '$lib/svelte/widgets/input/Checkbox.svelte'
+	import Dropdown from '$lib/svelte/widgets/input/Dropdown.svelte'
+	import Number from '$lib/svelte/widgets/input/Number.svelte'
+	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
+	import TextInput from '$lib/svelte/widgets/input/TextInput.svelte'
+	import { faArrowLeft, faCheck, faLink } from '@fortawesome/free-solid-svg-icons'
 	import { FileDropzone, getToastStore } from '@skeletonlabs/skeleton'
-	import { error, success } from '$lib/duui/utils/ui'
+	import Fa from 'svelte-fa'
+	import { fly } from 'svelte/transition'
 
 	export let data
 	let { user } = data
@@ -34,40 +40,34 @@
 		minio: !!user.minio.endpoint && !!user.minio.access_key && !!user.minio.secret_key
 	}
 
-	let inputSource: string = $page.url.searchParams.get('input-source') || Input.Text
-	let inputFolder: string = $page.url.searchParams.get('input-folder') || '/input/sample_txt'
-	let inputContent: string = $page.url.searchParams.get('input-content') || 'Hello World!'
-	let inputFileExtension: string = $page.url.searchParams.get('input-file-extension') || '.txt'
-
-	let outputTarget: string = $page.url.searchParams.get('output-target') || 'None'
-	let outputFolder: string = $page.url.searchParams.get('output-folder') || ''
-	let outputFileExtension: string = $page.url.searchParams.get('output-file-extension') || '.txt'
-
 	const toastStore = getToastStore()
 
-	$: input = {
-		source: inputSource,
-		folder: inputFolder,
-		fileID: '',
-		content: inputContent,
-		fileExtension: inputFileExtension
+	let input: DUUIDocumentProvider = {
+		provider: ($page.url.searchParams.get('input-provider') as IOProvider) || 'Text',
+		path: $page.url.searchParams.get('input-path') || '',
+		content: $page.url.searchParams.get('input-content') || 'Sample Text.',
+		fileExtension: ($page.url.searchParams.get('input-file-extension') as FileExtension) || '.txt'
 	}
 
-	$: output = {
-		target: outputTarget,
-		folder: outputFolder,
-		fileExtension: outputFileExtension
+	let output: DUUIDocumentProvider = {
+		provider: ($page.url.searchParams.get('output-provider') as IOProvider) || 'None',
+		path: $page.url.searchParams.get('output-path') || '',
+		content: $page.url.searchParams.get('output-content') || '',
+		fileExtension: ($page.url.searchParams.get('output-file-extension') as FileExtension) || '.txt'
 	}
 
 	let files: FileList
 
-	let notify: boolean = false
-	let checkTarget: boolean = false
-	let recursive: boolean = false
+	let notify: boolean = $page.url.searchParams.get('notify') === 'true' || false
+	let checkTarget: boolean = $page.url.searchParams.get('checkTarget') === 'true' || false
+	let recursive: boolean = $page.url.searchParams.get('recursive') === 'true' || false
+	let overwrite: boolean = $page.url.searchParams.get('overwrite') === 'true' || false
+	let sortBySize: boolean = $page.url.searchParams.get('sortBySize') === 'true' || false
+	let skipFiles: number = +($page.url.searchParams.get('skipFiles') || '0')
+	let workerCount: number = +($page.url.searchParams.get('workerCount') || '5')
 
-	let onCancelURL =
-		$page.url.searchParams.get('from') ||
-		`/pipelines/${$page.url.searchParams.get('oid') || ''}?tab=2`
+	const pipeline_id: string = $page.url.searchParams.get('pipeline_id') || ''
+	let onCancelURL = $page.url.searchParams.get('from') || `/pipelines/${pipeline_id}?tab=1`
 
 	let starting: boolean = false
 	const createProcess = async () => {
@@ -76,7 +76,7 @@
 		}
 		starting = true
 
-		if (equals(input.source, Input.LocalFile)) {
+		if (equals(input.provider, 'File')) {
 			const formData = new FormData()
 
 			formData.append('file', files[0])
@@ -90,30 +90,25 @@
 			}
 
 			const json = await fileUpload.json()
-			inputContent = json.content
-			inputFolder = files[0].name
+			input.content = json.content
+			input.path = files[0].name
 		}
 
 		const response = await makeApiCall(
 			Api.Processes,
 			'POST',
 			JSON.stringify({
-				pipeline_id: $page.url.searchParams.get('oid'),
-				input: {
-					source: inputSource,
-					folder: inputFolder,
-					content: inputContent,
-					fileExtension: inputFileExtension
-				},
-				output: {
-					target: outputTarget,
-					folder: outputFolder,
-					fileExtension: outputFileExtension
-				},
+				pipeline_id: pipeline_id,
+				input: { ...input },
+				output: { ...output },
 				settings: {
 					notify: notify,
 					checkTarget: checkTarget,
-					recursive: recursive
+					recursive: recursive,
+					overwrite: overwrite,
+					sortBySize: sortBySize,
+					skipFiles: skipFiles || 0,
+					workerCount: workerCount
 				}
 			})
 		)
@@ -126,10 +121,12 @@
 
 	let inputBucketIsValid: string = ''
 	let outputBucketIsValid: string = ''
+	let settingsAreValid: string = ''
 
 	$: {
-		inputBucketIsValid = isValidS3BucketName(input.folder)
-		outputBucketIsValid = isValidS3BucketName(output.folder)
+		inputBucketIsValid = isValidS3BucketName(input.path)
+		outputBucketIsValid = isValidS3BucketName(output.path)
+		settingsAreValid = areSettingsValid(workerCount, skipFiles)
 	}
 
 	let needsDropboxAuthentication: boolean = false
@@ -138,180 +135,267 @@
 
 	$: {
 		needsDropboxAuthentication =
-			(!connections.dropbox && equals(inputSource, Input.Dropbox)) ||
-			(!connections.dropbox && equals(outputTarget, Output.Dropbox))
+			(!connections.dropbox && equals(input.provider, Input.Dropbox)) ||
+			(!connections.dropbox && equals(output.provider, Output.Dropbox))
 
 		needsMinioAuthentication =
-			(!connections.minio && equals(inputSource, Input.Minio)) ||
-			(!connections.minio && equals(outputTarget, Output.Minio))
+			(!connections.minio && equals(input.provider, Input.Minio)) ||
+			(!connections.minio && equals(output.provider, Output.Minio))
 
 		needsAuthentication = needsDropboxAuthentication || needsMinioAuthentication
 	}
 </script>
 
-<div class="container h-full flex-col mx-auto flex gap-4 md:my-8">
-	<h1 class="h2">New Process</h1>
-	<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
-	<div class="items-center justify-between gap-4 hidden md:flex">
-		<ActionButton
-			tabindex={0}
-			text="Cancel"
-			icon={faCancel}
-			variant="dark:variant-soft-error variant-filled-error"
-			on:click={() => goto(onCancelURL)}
-		/>
-		<ActionButton
-			text="Start"
-			icon={faCheck}
-			variant="dark:variant-soft-success variant-filled-success"
-			on:click={createProcess}
-			leftToRight={false}
-			disabled={needsAuthentication || starting || !isValidIO(input, output, files)}
-		/>
-	</div>
-	<div
-		class="section-wrapper p-4 shadow-lg grid md:grid-cols-3 lg:grid-cols-4 gap-4"
-	>
-		<Checkbox label="Enable Notifications" name="notification" bind:checked={notify} />
-
-		{#if isCloudProvider(input.source) || isCloudProvider(output.target)}
-			<Checkbox label="Find Documents recursively" name="recursive" bind:checked={recursive} />
-		{/if}
-
-		{#if isCloudProvider(output.target)}
-			<Checkbox label="Check Target for Documents" name="check-target" bind:checked={checkTarget} />
-		{/if}
-	</div>
-	<div class="grid md:grid-cols-2 gap-4">
-		<div class="section-wrapper p-4 space-y-4">
-			<div class="flex items-center gap-4 justify-between">
-				<h2 class="h3">Input</h2>
-				{#if equals(input.source, 'dropbox')}
-					<a class="anchor" href="https://www.dropbox.com" target="_blank">
-						<Fa icon={faExternalLink} />
-					</a>
-				{/if}
-			</div>
-			<div class="grid grid-cols-2 gap-4">
-				<Dropdown label="Source" options={InputSources} bind:value={inputSource} />
-				<Dropdown
-					label="File extension"
-					name="input-extension"
-					options={InputFileExtensions}
-					bind:value={inputFileExtension}
-				/>
-			</div>
-
-			{#if equals(inputSource, 'Text')}
-				<TextArea
-					label="Document Text"
-					name="content"
-					error={inputContent === '' ? 'Text cannot be empty' : ''}
-					bind:value={inputContent}
-				/>
-			{:else if equals(inputSource, Input.LocalFile)}
-				<div class="space-y-2">
-					{#if files}
-						<div class="flex justify-between items-center">
-							<p class="font-bold">Selected File</p>
-						</div>
-						<div>
-							<p class="text-sm">Name: {files[0].name}</p>
-							<p class="text-sm">Size: {formatFileSize(files[0].size)}</p>
-						</div>
-					{/if}
-					<FileDropzone
-						name="inputFile"
-						bind:files
-						accept={inputFileExtension}
-						multiple={false}
-						class="!border-solid !rounded-none !border bg-white dark:bg-surface-600 border-surface-400/20"
-					/>
-				</div>
-			{:else if equals(input.source, 'minio')}
-				<Text
-					label="Bucket name"
-					error={inputBucketIsValid}
-					name="Bucket name"
-					bind:value={inputFolder}
-				/>
-			{:else}
-				<Text
-					label="Folder"
-					error={inputFolder === ''
-						? 'Folder cannot be empty'
-						: !inputFolder.startsWith('/')
-						? 'Path should start with a /'
-						: ''}
-					name="Bucket name"
-					bind:value={inputFolder}
-				/>
-			{/if}
-		</div>
-
-		<div class="section-wrapper p-4 space-y-4">
-			<h2 class="h3 col-span-2">Output</h2>
-			<div class="grid grid-cols-2 gap-4">
-				<Dropdown label="Target" options={OutputTargets} bind:value={outputTarget} />
-				<Dropdown
-					label="File extension"
-					name="output-extension"
-					options={OutputFileExtensions}
-					bind:value={outputFileExtension}
-				/>
-			</div>
-			{#if equals(output.target, 'minio')}
-				<Text
-					label="Bucket name"
-					error={outputBucketIsValid}
-					name="output-folder"
-					bind:value={outputFolder}
-				/>
-			{:else if equals(output.target, 'dropbox')}
-				<Text
-					label="Folder"
-					name="output-folder"
-					error={outputFolder === '' ? 'Folder cannot be empty' : ''}
-					bind:value={outputFolder}
-				/>
-			{/if}
-		</div>
-	</div>
-	{#if needsAuthentication}
+<div class="h-full">
+	<div class="grid">
 		<div
-			in:fly
-			class="bg-surface-100 dark:variant-soft-surface p-4 shadow-lg flex justify-center gap-4"
+			class="page-wrapper bg-solid md:top-0 z-10 left-0 bottom-0 right-0 row-start-2 fixed md:sticky md:row-start-1"
 		>
-			{#if needsDropboxAuthentication}
-				<a
-					href="/account/user/connections"
-					target="_blank"
-					class="btn rounded-none variant-ringed-primary"
+			<div class="grid grid-cols-2 md:justify-between md:flex items-center gap-4 relative">
+				<button class="button-primary" on:click={() => goto(onCancelURL)}>
+					<Fa icon={faArrowLeft} />
+					<span>Cancel</span>
+				</button>
+				<button
+					class="button-success"
+					disabled={needsAuthentication ||
+						starting ||
+						!isValidIO(input, output, files) ||
+						settingsAreValid.length !== 0}
+					on:click={createProcess}
 				>
-					<Fa icon={faLink} />
-					<span>Connect Dropbox</span>
-				</a>
-			{/if}
-			{#if needsMinioAuthentication}
-				<ActionButton text="Connect Minio" icon={faLink} />
+					<Fa icon={faCheck} />
+					<span>Submit</span>
+				</button>
+			</div>
+		</div>
+		<div class="p-4 md:p-8 space-y-4">
+			<h1 class="h1 mb-8">New Process</h1>
+			<div class="grid md:grid-cols-3 gap-4">
+				<div
+					class="section-wrapper p-4 md:p-8 space-y-8
+				 {isValidInput(input, files) ? '!border-success-500 !border-2' : ''}"
+				>
+					<div class="flex items-center gap-4 justify-between">
+						<h2 class="h2">Input</h2>
+						{#if isValidInput(input, files)}
+							<Fa icon={faCheck} class="text-success-500" size="2x" />
+						{/if}
+					</div>
+
+					<div class="grid gap-4">
+						<div class="flex items-center gap-4">
+							<div class="flex-1">
+								<Dropdown label="Source" options={InputSources} bind:value={input.provider} />
+							</div>
+							{#if equals(input.provider, IO.Dropbox) || equals(input.provider, IO.Minio)}
+								<Dropdown
+									label="File extension"
+									name="input-extension"
+									options={InputFileExtensions}
+									bind:value={input.fileExtension}
+								/>
+							{/if}
+						</div>
+
+						{#if equals(input.provider, IO.Text)}
+							<TextArea
+								label="Document Text"
+								name="content"
+								error={input.content === '' ? 'Text cannot be empty' : ''}
+								bind:value={input.content}
+							/>
+						{:else if equals(input.provider, IO.File)}
+							<div class="space-y-1">
+								<p class="form-label">File</p>
+								<FileDropzone
+									name="inputFile"
+									bind:files
+									accept={input.fileExtension}
+									multiple={false}
+									border="border border-color"
+									rounded="rounded-md"
+									class="input-wrapper"
+								/>
+								{#if files}
+									<div class="flex items-center gap-2 justify-start">
+										<p class="badge variant-soft-primary text-sm">Name: {files[0].name}</p>
+										<p class="badge variant-soft-tertiary text-sm">
+											Size: {formatFileSize(files[0].size)}
+										</p>
+									</div>
+								{/if}
+							</div>
+						{:else if equals(input.provider, IO.Minio)}
+							<TextInput
+								label="Bucket name"
+								error={inputBucketIsValid}
+								name="inputPath"
+								bind:value={input.path}
+							/>
+						{:else if equals(input.provider, IO.MongoDB)}
+							<TextInput
+								label="Database / Collection"
+								error={!input.path.includes('/') ||
+								input.path.split('/').length !== 2 ||
+								input.path.split('/').at(1) === ''
+									? 'Path should be in the format Database / Collection'
+									: ''}
+								name="inputPath"
+								bind:value={input.path}
+							/>
+						{:else}
+							<TextInput
+								label="Path"
+								error={input.path === ''
+									? 'Path cannot be empty'
+									: !input.path.startsWith('/') && equals(input.provider, Input.Dropbox)
+									? 'Path should start with a /'
+									: ''}
+								name="inputPath"
+								bind:value={input.path}
+							/>
+						{/if}
+					</div>
+				</div>
+
+				<div
+					class="section-wrapper p-4 md:p-8 space-y-8
+				 {isValidOutput(output) ? '!border-success-500 !border-2' : ''}"
+				>
+					<div class="flex items-center gap-4 justify-between">
+						<h2 class="h2">Output</h2>
+						{#if isValidOutput(output)}
+							<Fa icon={faCheck} class="text-success-500" size="2x" />
+						{/if}
+					</div>
+					<div class="space-y-4">
+						<div class="flex items-center gap-4">
+							<div class="flex-1">
+								<Dropdown label="Target" options={OutputTargets} bind:value={output.provider} />
+							</div>
+							{#if equals(output.provider, IO.Dropbox) || equals(output.provider, IO.Minio)}
+								<Dropdown
+									label="File extension"
+									name="output-extension"
+									options={OutputFileExtensions}
+									bind:value={output.fileExtension}
+								/>
+							{/if}
+						</div>
+
+						{#if equals(output.provider, IO.Minio)}
+							<TextInput
+								label="Bucket name"
+								error={outputBucketIsValid}
+								name="output-folder"
+								bind:value={output.path}
+							/>
+						{:else if equals(output.provider, IO.Dropbox)}
+							<TextInput
+								label="Folder"
+								name="output-folder"
+								error={output.path === '' ? 'Folder cannot be empty' : ''}
+								bind:value={output.path}
+							/>
+						{:else if equals(output.provider, IO.MongoDB)}
+							<TextInput
+								label="Database / Collection"
+								error={!output.path.includes('/') ||
+								output.path.split('/').length !== 2 ||
+								output.path.split('/').at(1) === ''
+									? 'Path should be in the format Database / Collection'
+									: ''}
+								name="inputPath"
+								bind:value={output.path}
+							/>
+						{/if}
+					</div>
+				</div>
+
+				<div
+					class="section-wrapper p-4 md:p-8 space-y-8
+				{settingsAreValid.length === 0 ? '!border-success-500 !border-2' : ''}"
+				>
+					<div class="flex items-center gap-4 justify-between">
+						<h2 class="h2">Settings</h2>
+						{#if settingsAreValid.length === 0}
+							<Fa icon={faCheck} class="text-success-500" size="2x" />
+						{/if}
+					</div>
+					{#if settingsAreValid.length > 0}
+						<p class="text-error-500">{settingsAreValid}</p>
+					{/if}
+					<div class="grid space-y-4">
+						{#if input.provider !== IO.Text && input.provider !== IO.File}
+							<div class="grid grid-cols-2 gap-4">
+								<div>
+									<Number
+										label="Skip files smaller than"
+										max={2147483647}
+										name="skipFiles"
+										bind:value={skipFiles}
+									/>
+									<span class="text-xs pl-2">Bytes</span>
+								</div>
+								<Number
+									label="Worker count"
+									min={1}
+									max={100}
+									name="workerCount"
+									bind:value={workerCount}
+								/>
+							</div>
+
+							<div class="grid md:grid-cols-2 gap-4">
+								<Checkbox
+									bind:checked={recursive}
+									name="recursive"
+									label="Find files recursively starting in the path directory"
+								/>
+
+								<Checkbox
+									bind:checked={checkTarget}
+									name="checkTarget"
+									label="Ignore files already present in the target location"
+								/>
+
+								<Checkbox
+									bind:checked={sortBySize}
+									name="sortBySize"
+									label="Sort files by size in ascending order"
+								/>
+
+								<Checkbox
+									bind:checked={overwrite}
+									name="recursive"
+									label="Overwrite existing files on conflict"
+								/>
+							</div>
+						{/if}
+					</div>
+				</div>
+			</div>
+			{#if needsAuthentication}
+				<div
+					in:fly
+					class="bg-surface-100 dark:variant-soft-surface p-4 shadow-lg flex justify-center gap-4"
+				>
+					{#if needsDropboxAuthentication}
+						<a
+							href="/account/user/connections"
+							target="_blank"
+							class="btn rounded-none variant-ringed-primary"
+						>
+							<Fa icon={faLink} />
+							<span>Connect Dropbox</span>
+						</a>
+					{/if}
+					{#if needsMinioAuthentication}
+						<ActionButton text="Connect Minio" icon={faLink} />
+					{/if}
+				</div>
 			{/if}
 		</div>
-	{/if}
-
-	<div class="items-center justify-between gap-4 flex md:hidden">
-		<ActionButton
-			tabindex={0}
-			text="Cancel"
-			icon={faCancel}
-			variant="variant-soft-error"
-			on:click={() => goto(onCancelURL)}
-		/>
-		<ActionButton
-			text="Start"
-			icon={faCheck}
-			variant="variant-villed-success dark:variant-soft-success"
-			on:click={createProcess}
-			leftToRight={false}
-		/>
 	</div>
 </div>

@@ -77,7 +77,7 @@ public class DUUIMongoDBStorage {
     }
 
     public static MongoCollection<Document> Events() {
-        return getInstance().getDatabase("duui").getCollection("events");
+        return getInstance().getDatabase("duui").getCollection("test");
     }
 
     public static Bson mergeUpdates(Document update, List<String> allowedFields) {

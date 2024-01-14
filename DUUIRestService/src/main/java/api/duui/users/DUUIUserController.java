@@ -39,7 +39,9 @@ public class DUUIUserController {
         "preferences",
         "key",
         "dropbox",
-        "minio"
+        "minio",
+        "workerCount",
+        "mongoDBConnectionURI"
     );
 
 
@@ -73,18 +75,32 @@ public class DUUIUserController {
     }
 
     public static Document getUserById(ObjectId id) {
+        return getUserById(id, new ArrayList<>());
+    }
+
+    public static Document getUserById(ObjectId id, List<String> includeFields) {
+        List<String> defaultFields = Arrays.asList("email", "role", "session");
+
+        List<String> mergedFields = new ArrayList<>(includeFields);
+        for (String field : defaultFields) {
+            if (!includeFields.contains(field)) {
+                mergedFields.add(field);
+            }
+        }
+
         return DUUIMongoDBStorage
             .Users()
             .find(Filters.eq(id))
+            .projection(Projections.include(mergedFields))
             .first();
     }
 
     public static Document getUserById(String id) {
-        return DUUIMongoDBStorage
-            .Users()
-            .find(Filters.eq(new ObjectId(id)))
-            .projection(Projections.include("email", "role", "session"))
-            .first();
+        return getUserById(new ObjectId(id));
+    }
+
+    public static Document getUserById(String id, List<String> includeFields) {
+        return getUserById(new ObjectId(id), includeFields);
     }
 
     public static Document getUserByAuthorization(String authorization) {
@@ -361,8 +377,16 @@ public class DUUIUserController {
 
         Document body = Document.parse(request.body());
         String id = request.params(":id");
+//
+//        try {
+//            return updateUser(id, body).toJson();
+//        } catch (IllegalArgumentException e) {
+//            return e.getMessage();
+//        }
 
         List<Bson> __updates = new ArrayList<>();
+        List<String> __updatedFields = new ArrayList<>();
+
 
         for (Map.Entry<String, Object> entry : body.entrySet()) {
             if (!ALLOWED_UPDATES.contains(entry.getKey())) {
@@ -376,8 +400,8 @@ public class DUUIUserController {
             }
 
             __updates.add(Updates.set(entry.getKey(), entry.getValue()));
+            __updatedFields.add(entry.getKey());
         }
-
 
         Bson updates = __updates.isEmpty() ? new Document() : Updates.combine(__updates);
 
@@ -385,10 +409,9 @@ public class DUUIUserController {
             .Users()
             .findOneAndUpdate(Filters.eq(new ObjectId(id)), updates);
 
-        Document user = DUUIUserController.getUserById(id);
+        Document user = DUUIUserController.getUserById(id, __updatedFields);
         mapObjectIdToString(user);
         return new Document("user", user).toJson();
-
     }
 
     public static String authorizeUser(Request request, Response response) {
@@ -433,5 +456,32 @@ public class DUUIUserController {
                 Projections.include("email", "session", "role", "preferences", "key", "dropbox", "minio")
             )
             .first();
+    }
+
+    public static Document updateUser(String id, Document updates) throws IllegalArgumentException {
+        List<Bson> __updates = new ArrayList<>();
+        List<String> __updatedFields = new ArrayList<>();
+
+        for (Map.Entry<String, Object> entry : updates.entrySet()) {
+            if (!ALLOWED_UPDATES.contains(entry.getKey())) {
+                throw new IllegalArgumentException(String.format("%s can not be updated. Allowed updates are %s.",
+                    entry.getKey(),
+                    String.join(", ", ALLOWED_UPDATES)
+                ));
+            }
+
+            __updates.add(Updates.set(entry.getKey(), entry.getValue()));
+            __updatedFields.add(entry.getKey());
+        }
+
+        Bson allowedUpdates = __updates.isEmpty() ? new Document() : Updates.combine(__updates);
+
+        DUUIMongoDBStorage
+            .Users()
+            .findOneAndUpdate(Filters.eq(new ObjectId(id)), allowedUpdates);
+
+        Document user = DUUIUserController.getUserById(id, __updatedFields);
+        mapObjectIdToString(user);
+        return user;
     }
 }

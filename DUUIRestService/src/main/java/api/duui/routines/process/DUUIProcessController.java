@@ -1,8 +1,7 @@
 package api.duui.routines.process;
 
 import api.duui.document.DUUIDocumentController;
-import api.duui.document.DUUIDocumentInput;
-import api.duui.document.DUUIDocumentOutput;
+import api.duui.document.DUUIDocumentProvider;
 import api.duui.pipeline.DUUIPipelineController;
 import api.duui.routines.service.DUUIService;
 import api.storage.DUUIMongoDBStorage;
@@ -14,6 +13,7 @@ import org.apache.commons.io.IOUtils;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.DUUIDocument;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatusEvent;
 import spark.Request;
 import spark.Response;
@@ -174,21 +174,23 @@ public class DUUIProcessController {
 
         if (isNullOrEmpty(pipelineId)) return missingField(response, "pipeline_id");
 
-        DUUIDocumentInput input = new DUUIDocumentInput(body.get("input", Document.class));
-        DUUIDocumentOutput output = new DUUIDocumentOutput(body.get("output", Document.class));
-        Document settings = body.get("settings", Document.class);
+        DUUIDocumentProvider input = new DUUIDocumentProvider(body.get("input", Document.class));
+        DUUIDocumentProvider output = new DUUIDocumentProvider(body.get("output", Document.class));
 
-        String error = DUUIDocumentController.validateIO(input, output);
+
+        String error = DUUIDocumentController.validateDocumentProviders(input, output);
         if (!error.isEmpty()) return missingField(response, error);
 
+        Document settings = body.get("settings", Document.class);
         Document pipeline = DUUIPipelineController.getPipelineById(pipelineId);
+
         if (pipeline == null) {
             response.status(404);
-            return new Document("message", "No Pipeline found").toJson();
+            return "Unknown pipeline_id.";
         }
 
         Document process = new Document("pipeline_id", pipelineId)
-            .append("status", "Setup")
+            .append("status", DUUIStatus.SETUP)
             .append("error", null)
             .append("progress", 0)
             .append("startTime", Instant.now().toEpochMilli())
@@ -197,16 +199,29 @@ public class DUUIProcessController {
             .append("output", output.toDocument())
             .append("settings", settings)
             .append("documentNames", new HashSet<String>())
+            .append("pipelineStatus", null)
             .append("finished", false);
 
         DUUIMongoDBStorage
             .Processses()
             .insertOne(process);
 
+        String id = process.getObjectId("_id").toString();
         mapObjectIdToString(process);
-        String id = process.getString("oid");
 
-        _runningProcesses.put(id, new DUUIProcess(id, pipeline, process, settings, user));
+        // Check if a Service is running for the given pipeline_id
+        // If so, start the idle pipeline else start a new one.
+
+//        DUUIProcess p;
+//        boolean keepAlive = false;
+//        if (DUUIPipelineController.pipelineIsActive(pipelineId)) {
+//          p = DUUIPipelineController.getIdleProcess(pipelineId);
+//          keepAlive = true;
+//        } else {
+//          p = new DUUIProcess();
+//        }
+
+//        p.startPipeline(process, pipelineId, settings, user, keepAlive)
 
         if (DUUIPipelineController.pipelineIsActive(pipelineId)) {
             try {
@@ -216,11 +231,11 @@ public class DUUIProcessController {
                 DUUIPipelineController.removeService(pipelineId);
             }
         } else {
+            _runningProcesses.put(id, new DUUIProcess(id, pipeline, process, settings, user));
             _runningProcesses.get(id).start();
         }
 
         updateTimesUsed(pipelineId);
-
         return process.toJson();
     }
 
@@ -228,9 +243,7 @@ public class DUUIProcessController {
         String id = request.params(":id");
 
         Document process = DUUIMongoDBStorage
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("processes")
+            .Processses()
             .find(
                 Filters.and(
                     Filters.eq(new ObjectId(id)),
@@ -246,7 +259,7 @@ public class DUUIProcessController {
 
         DUUIProcess activeProcess = _runningProcesses.get(id);
         if (activeProcess == null) {
-            DUUIProcessController.setStatus(id, "Canceled");
+            DUUIProcessController.setStatus(id, "Cancelled");
             DUUIProcessController.setFinished(id, true);
         } else {
             String pipelineId = activeProcess.getPipeline().getString("oid");
@@ -320,6 +333,15 @@ public class DUUIProcessController {
         return new Document("documents", documents).append("count", count).toJson();
     }
 
+    public static void updatePipelineStatus(String id, Map<String, String> pipelineStatus) {
+        DUUIMongoDBStorage
+            .Processses()
+            .updateOne(
+                Filters.eq(new ObjectId(id)),
+                Updates.set("pipelineStatus", new Document(pipelineStatus))
+            );
+    }
+
     public static void updateDocuments(String id, Set<DUUIDocument> documents) {
         for (DUUIDocument document : documents.stream().toList()) {
             DUUIMongoDBStorage
@@ -327,12 +349,11 @@ public class DUUIProcessController {
                 .updateOne(
                     Filters.and(
                         Filters.eq("process_id", id),
-                        Filters.eq("absolute_path", document.getAbsolutePath())
+                        Filters.eq("path", document.getPath())
                     ),
                     Updates.combine(
                         Updates.set("name", document.getName()),
                         Updates.set("path", document.getPath()),
-                        Updates.set("absolute_path", document.getAbsolutePath()),
                         Updates.set("size", document.size()),
                         Updates.set("progress", document.getProgress()),
                         Updates.set("status", document.getStatus()),
@@ -356,9 +377,7 @@ public class DUUIProcessController {
 
     public static void updateTimesUsed(String id) {
         DUUIMongoDBStorage
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("pipelines")
+            .Pipelines()
             .updateOne(
                 Filters.eq(new ObjectId(id)),
                 Updates.combine(
@@ -370,9 +389,7 @@ public class DUUIProcessController {
 
     public static void setStatus(String id, String status) {
         DUUIMongoDBStorage
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("processes")
+            .Processses()
             .updateOne(Filters.eq(new ObjectId(id)), Updates.set("status", status));
     }
 
@@ -393,7 +410,7 @@ public class DUUIProcessController {
         DUUIMongoDBStorage
             .Events()
             .insertMany(newEvents.stream().map(event -> new Document(
-                "timestamp", event.getTimestamp())
+                "timestamp", new Date(event.getTimestamp()))
                 .append("process_id", id)
                 .append("sender", event.getSender())
                 .append("message", event.getMessage())
@@ -493,4 +510,6 @@ public class DUUIProcessController {
         response.status(200);
         return new Document("content", result).toJson();
     }
+
+
 }

@@ -1,21 +1,50 @@
 package api.duui.document;
 
 import api.requests.validation.Validator;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.DUUIDocument;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
+
+import static api.requests.validation.Validator.isNullOrEmpty;
 
 public class DUUIDocumentController {
 
-    public static String validateIO(
-        DUUIDocumentInput input,
-        DUUIDocumentOutput output) {
-        if (Validator.isNullOrEmpty(input.getSource())) return "input.source";
-        if (input.isText() && Validator.isNullOrEmpty(input.getContent())) return "input.text";
-        if (!input.isText() && Validator.isNullOrEmpty(input.getFolder())) return "input.folder";
-        if (!input.isText() && Validator.isNullOrEmpty(input.getFileExtension()))
+    public static String validateDocumentProviders(
+        DUUIDocumentProvider input,
+        DUUIDocumentProvider output) {
+
+        if (isNullOrEmpty(input.getProvider()))
+            return "input.provider";
+
+        if (isNullOrEmpty(output.getProvider()))
+            return "output.provider";
+
+        if (input.getProvider().equals(IOProvider.TEXT) && isNullOrEmpty(input.getContent()))
+            return "input.content";
+
+        if (!input.getProvider().equals(IOProvider.TEXT) && isNullOrEmpty(input.getPath()))
+            return "input.path";
+
+        if (input.getProvider().equals(IOProvider.TEXT) && isNullOrEmpty(input.getFileExtension()))
             return "input.fileExtension";
 
-        if (Validator.isNullOrEmpty(output.getTarget())) return "output.target";
-        if (!output.isNone() && Validator.isNullOrEmpty(output.getFolder())) return "output.folder";
+        if (!output.getProvider().equals(IOProvider.NONE) && isNullOrEmpty(output.getPath()))
+            return "output.path";
+
+        if (!output.getProvider().equals(IOProvider.NONE) && isNullOrEmpty(output.getFileExtension()))
+            return "output.fileExtension";
+
         return "";
     }
 
+    public static boolean isActive(DUUIDocument document) {
+        return DUUIStatus.oneOf(
+            document.getStatus(),
+            DUUIStatus.ACTIVE,
+            DUUIStatus.WAITING,
+            DUUIStatus.INPUT,
+            DUUIStatus.OUTPUT,
+            DUUIStatus.DECODE,
+            DUUIStatus.DESERIALIZE
+        );
+    }
 }

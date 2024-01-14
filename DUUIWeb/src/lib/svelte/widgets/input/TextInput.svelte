@@ -1,7 +1,5 @@
 <script lang="ts">
-	import {
-		popup,
-		type PopupSettings	} from '@skeletonlabs/skeleton'
+	import { popup, type PopupSettings } from '@skeletonlabs/skeleton'
 
 	export let label: string = ''
 	export let name: string = ''
@@ -43,9 +41,10 @@
 		<span class="pl-1 text-xs text-error-500">{error}</span>
 	{/if}
 	<input
+		autocomplete="off"
 		{disabled}
 		{placeholder}
-		class="input-wrapper"
+		class="input-wrapper {error ? 'input-error' : ''}"
 		use:popup={helpPopup}
 		type="text"
 		{name}

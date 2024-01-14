@@ -7,7 +7,7 @@
 	export let value: string = ''
 	export let style: string = ''
 
-	export let readonly: boolean = true
+	export let readonly: boolean = false
 
 	let hidden: boolean = true
 	export let disabled: boolean = false

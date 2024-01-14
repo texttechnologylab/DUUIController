@@ -18,6 +18,8 @@ export interface Session {
 
 export const userSession: Writable<User> = writable(undefined)
 export const setLocale: Writable<Locale> = writable(undefined)
+export const helpStore: Writable<boolean> = writable(false)
+
 export const storage: Writable<Session> = localStorageStore('session', {
 	session: '',
 	user: {

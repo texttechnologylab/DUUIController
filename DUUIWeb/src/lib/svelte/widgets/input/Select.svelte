@@ -13,6 +13,9 @@
 	export let offset: number = 8
 
 	export let closeQuery: string = 'button'
+	export let style: string = 'input-wrapper'
+	export let rounded: string = 'rounded-md'
+	export let border: string = 'border'
 
 	const columns: number = Math.floor(options.length / rows)
 
@@ -28,17 +31,14 @@
 </script>
 
 <button
-	class="flex items-center gap-2 px-3 py-2 leading-6 input-wrapper"
+	class="flex items-center justify-between gap-2 px-3 py-2 leading-6 {border} {rounded} {style} bg-fancy z-50"
 	use:popup={menu}
 >
 	<span class="grow text-left">{label}</span>
 	<Fa icon={faChevronDown} />
 </button>
 
-<div
-	class="overflow-hidden rounded-md shadow-lg border-[1px] bg-white dark:bg-surface-600 border-surface-400/20 z-50"
-	data-popup={name}
->
+<div class="popup-solid  z-50" data-popup={name}>
 	<ListBox {name} multiple={true} class="grid grid-cols-{columns}" spacing="space-y-0">
 		{#each options as option}
 			<ListBoxItem

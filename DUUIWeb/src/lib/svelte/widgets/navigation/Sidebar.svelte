@@ -1,25 +1,16 @@
 <script lang="ts">
-	import {
-		faArrowRightFromBracket,
-		faBars,
-		faGears,
-		faHome,
-		faLayerGroup,
-		faHammer,
-		faCloud
-	} from '@fortawesome/free-solid-svg-icons'
+	import { goto, onNavigate } from '$app/navigation'
+	import Link from '$lib/svelte/Link.svelte'
+	import { userSession } from '$lib/store'
+	import { faArrowRightFromBracket, faBars } from '@fortawesome/free-solid-svg-icons'
 	import { Accordion, AccordionItem, LightSwitch, getDrawerStore } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
-	import Anchor from '../action/Anchor.svelte'
-	import { goto, onNavigate } from '$app/navigation'
-	import { makeApiCall, Api } from '$lib/duui/utils/api'
-	import Link from '$lib/components/Link.svelte'
-	import { userSession } from '$lib/store'
+	import { sineOut } from 'svelte/easing'
 
 	const drawerStore = getDrawerStore()
 
 	const logout = async () => {
-		const response = await makeApiCall(Api.Logout, 'PUT', {})
+		const response = await fetch('/account/logout', { method: 'PUT' })
 		if (response.ok) {
 			userSession.set(undefined)
 
@@ -49,11 +40,11 @@
 			<Link href="/">Home</Link>
 		</div>
 
-		<Accordion spacing="space-y-4" autocollapse>
+		<Accordion spacing="space-y-4" transitionInParams={{ duration: 400, easing: sineOut }}>
 			<AccordionItem regionControl="bg-fancy" hover="animate-underline">
 				<svelte:fragment slot="summary">Pipelines</svelte:fragment>
 				<svelte:fragment slot="content">
-					<div class="flex flex-col text-left px-4 space-y-4">
+					<div class="flex flex-col text-left p-2 space-y-2">
 						<Link href="/pipelines">Dashboard</Link>
 						<Link href="/pipelines/editor">Editor</Link>
 					</div>
@@ -62,7 +53,7 @@
 			<AccordionItem regionControl="bg-fancy" hover="animate-underline">
 				<svelte:fragment slot="summary">Documentation</svelte:fragment>
 				<svelte:fragment slot="content">
-					<div class="flex flex-col text-left px-4 space-y-4">
+					<div class="flex flex-col text-left p-2 space-y-2">
 						<Link href="/documentation#introduction">Introduction</Link>
 						<Link href="/documentation#composer">Composer</Link>
 						<Link href="/documentation#driver">Driver</Link>
@@ -74,7 +65,7 @@
 			<AccordionItem regionControl="bg-fancy" hover="animate-underline">
 				<svelte:fragment slot="summary">API Reference</svelte:fragment>
 				<svelte:fragment slot="content">
-					<div class="flex flex-col text-left px-4 space-y-4">
+					<div class="flex flex-col text-left p-2 space-y-2">
 						<Link href="/documentation/api#rest">REST</Link>
 						<Link href="/documentation/api#java">Java</Link>
 						<Link href="/documentation/api#python">Python</Link>
@@ -84,7 +75,7 @@
 			<AccordionItem regionControl="bg-fancy" hover="animate-underline">
 				<svelte:fragment slot="summary">Account</svelte:fragment>
 				<svelte:fragment slot="content">
-					<div class="flex flex-col text-left px-4 space-y-4">
+					<div class="flex flex-col text-left p-2 space-y-2">
 						{#if $userSession}
 							<Link href="/account#profile">Profile</Link>
 							<Link href="/account#authorization">Authorization</Link>

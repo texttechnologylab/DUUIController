@@ -1,7 +1,10 @@
 package api.duui.routines.process;
 
-import api.duui.document.DUUIDocumentOutput;
+import api.duui.document.IOProvider;
 import api.duui.users.DUUIUserController;
+import api.storage.DUUIMongoDBStorage;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Projections;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.uima.UIMAException;
 import org.apache.uima.fit.factory.AnalysisEngineFactory;
@@ -11,20 +14,17 @@ import org.bson.Document;
 import org.dkpro.core.io.xmi.XmiWriter;
 import org.junit.jupiter.params.aggregator.ArgumentAccessException;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.DUUIComposer;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.DUUIDocument;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.DUUIDropboxDataReader;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.DUUIMinioDataReader;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.IDUUIDataReader;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.*;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.*;
 import org.xml.sax.SAXException;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import static api.requests.validation.Validator.isNullOrEmpty;
 import static org.apache.uima.fit.factory.AnalysisEngineFactory.createEngineDescription;
 
 public class DUUIProcessService {
@@ -70,24 +70,34 @@ public class DUUIProcessService {
         };
     }
 
-    public static IDUUIDataReader getDataReaderFromString(String type, String userId) {
+    public static IDUUIDataReader getDataReaderFromString(String provider, String userId) {
         Document user = DUUIUserController.getUserById(userId);
 
-        if (type.equalsIgnoreCase("dropbox")) {
+        if (provider.equalsIgnoreCase(IOProvider.DROPBOX)) {
             Document credentials = DUUIUserController.getDropboxCredentials(user);
             return new DUUIDropboxDataReader(
-                "Cedric Test App",
+                "DUUI",
                 credentials.getString("access_token"),
                 credentials.getString("refresh_token")
             );
-        }
-
-        if (type.equalsIgnoreCase("minio")) {
+        } else if (provider.equalsIgnoreCase(IOProvider.MINIO)) {
             Document credentials = DUUIUserController.getMinioCredentials(user);
             return new DUUIMinioDataReader(
                 credentials.getString("endpoint"),
                 credentials.getString("access_key"),
                 credentials.getString("secret_key"));
+        } else if (provider.equalsIgnoreCase(IOProvider.MONGODB)) {
+            Document projection = DUUIMongoDBStorage
+                .Users()
+                .find(Filters.eq(user.getObjectId("_id")))
+                .projection(Projections.include("mongoDBConnectionURI"))
+                .first();
+
+            if (!isNullOrEmpty(projection)) {
+                return new DUUIMongoDBDataReader(
+                    (String) projection.getOrDefault("mongoDBConnectionURI", "")
+                );
+            }
         }
 
         return null;

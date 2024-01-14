@@ -14,6 +14,7 @@ export interface DUUIPipeline {
 	user_id: string | null | undefined // if null -> Template
 	components: DUUIComponent[]
 	tags: string[]
+	state: string
 }
 
 export const blankPipeline = () =>
@@ -28,7 +29,8 @@ export const blankPipeline = () =>
 		settings: {},
 		user_id: null,
 		components: [],
-		tags: []
+		tags: [],
+		state: 'Inactive'
 	}
 
 export const pipelineToExportableJson = (pipeline: DUUIPipeline) => {

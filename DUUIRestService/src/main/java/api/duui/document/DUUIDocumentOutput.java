@@ -37,11 +37,11 @@ public class DUUIDocumentOutput {
     }
 
     public boolean isText() {
-        return _target.equalsIgnoreCase(IOType.TEXT.getName());
+        return _target.equalsIgnoreCase(IOProvider.TEXT);
     }
 
     public boolean isNone() {
-        return _target.equalsIgnoreCase(IOType.NONE.getName());
+        return _target.equalsIgnoreCase(IOProvider.NONE);
     }
 
     public Document toDocument() {
@@ -49,5 +49,9 @@ public class DUUIDocumentOutput {
             .append("target", _target)
             .append("folder", _folder)
             .append("fileExtension", _fileExtension);
+    }
+
+    public boolean isDatabase() {
+        return _target.equalsIgnoreCase(IOProvider.MONGODB);
     }
 }

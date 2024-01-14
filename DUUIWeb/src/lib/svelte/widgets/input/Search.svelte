@@ -4,17 +4,17 @@
 
 	export let placeholder: string = ''
 	export let query: string
-	export let style: string = ''
+	export let style: string = 'input-wrapper'
 	export let icon: IconDefinition | null = faSearch
 </script>
 
-<label class="label flex flex-col {style}">
+<label class="label flex flex-col">
 	<div class="flex items-center relative">
 		{#if icon}
 			<Fa {icon} class="absolute right-4 top-1/2 -translate-y-1/2 text-surface-400" />
 		{/if}
 		<input
-			class="bg-transparent border-0 grow input-wrapper"
+			class="bg-transparent border-0 grow {style}"
 			type="text"
 			bind:value={query}
 			on:keydown

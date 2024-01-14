@@ -8,7 +8,7 @@ export const Api = {
 	Components: '/pipelines/api/components',
 	Processes: '/process/api',
 	Documents: '/process/api/documents',
-	Logout: '/account/api',
+	Logout: '/account/auth/logout',
 	Authentication: '/account/api/auth',
 	Dropbox: '/auth/dropbox',
 	Minio: '/account/api/minio',

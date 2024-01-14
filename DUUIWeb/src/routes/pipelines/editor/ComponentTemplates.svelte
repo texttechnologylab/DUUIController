@@ -1,5 +1,5 @@
 <script lang="ts">
-	import DriverIcon from '$lib/components/DriverIcon.svelte'
+	import DriverIcon from '$lib/svelte/DriverIcon.svelte'
 	import { DUUIDriverFilters, type DUUIComponent, type DUUIDriverFilter } from '$lib/duui/component'
 	import { faSearch } from '@fortawesome/free-solid-svg-icons'
 	import { createEventDispatcher } from 'svelte'
@@ -48,16 +48,15 @@
 	}
 </script>
 
-<div class="md:mt-16 items-start justify-start rounded-none container">
-	<div class="md:flex justify-between items-end py-4 space-y-4">
-		<h3 class="h3">Templates</h3>
-		<div class="grid md:grid-cols-2 items-end">
+<div class="space-y-8">
+	<div class="md:flex justify-between items-end space-y-4 md:space-y-0">
+		<h2 class="h2 font-bold">Templates</h2>
+		<div class="grid md:grid-cols-2 items-end gap-4">
 			<Dropdown bind:value={filter} options={DUUIDriverFilters} />
 			<Search bind:query={searchText} icon={faSearch} placeholder="Search..." />
 		</div>
 	</div>
-	<hr class="bg-surface-400/20 h-[1px] !border-0 rounded" />
-	<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4 py-4">
+	<div class="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
 		{#each filteredComponents as component (component.oid)}
 			<button
 				class="card-fancy text-left grid grid-rows-[auto_1fr_auto] items-start"

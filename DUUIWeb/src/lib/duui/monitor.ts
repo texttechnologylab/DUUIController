@@ -1,5 +1,4 @@
 import { includes } from '$lib/duui/utils/text'
-import type { DUUIComponent } from './component'
 import type { DUUIPipeline } from './pipeline'
 
 export interface DUUIStatusEvent {
@@ -11,37 +10,51 @@ export interface DUUIStatusEvent {
 }
 
 export const statusNames: string[] = [
+	'Active',
 	'Any',
-	'Input',
-	'Setup',
-	'Running',
-	'Shutdown',
-	'Output',
+	'Cancelled',
 	'Completed',
+	'Decode',
+	'Deserialize',
+	'Download',
 	'Failed',
-	'Canceled',
-	'Unknown'
+	'Idle',
+	'Inactive',
+	'Input',
+	'Instatiating',
+	'Output',
+	'Setup',
+	'Shutdown',
+	'Starting',
+	'Skipped',
+	'Unknow',
+	'Waiting'
 ]
 
 export enum Status {
+	Active = 'Active',
 	Any = 'Any',
-	Setup = 'Setup',
-	Input = 'Input',
+	Cancelled = 'Cancelled',
+	Completed = 'Completed',
 	Decode = 'Decode',
 	Deserialize = 'Deserialize',
-	Waiting = 'Waiting',
-	Running = 'Running',
-	Shutdown = 'Shutdown',
-	Output = 'Output',
-	Completed = 'Completed',
+	Download = 'Download',
 	Failed = 'Failed',
-	Canceled = 'Canceled',
-	Unknown = 'Unknown'
+	Idle = 'Idle',
+	Inactive = 'Inactive',
+	Input = 'Input',
+	Instantiating = 'Instatiating',
+	Output = 'Output',
+	Setup = 'Setup',
+	Shutdown = 'Shutdown',
+	Skipped = 'Skipped',
+	ImageStart = 'Starting',
+	Unknown = 'Unknow',
+	Waiting = 'Waiting'
 }
 
+export const activeStatusList: string[] = ['Setup', 'Input', 'Active', 'Shutdown', 'Output']
 
-
-export const activeStatusList: string[] = ['Setup', 'Input', 'Running', 'Shutdown', 'Output']
 export const isActive = (status: string) => {
 	return activeStatusList.includes(status)
 }
@@ -64,14 +77,4 @@ export const getDocumentProgress = (
 ) => {
 	let progress = Math.max(0, documentProgress.get(document.split('/').at(-1) || '') || 0)
 	return `${Math.min(progress, pipeline.components.length)} / ${pipeline.components.length}`
-}
-
-export const getComponentStatus = (log: DUUIStatusEvent[], component: DUUIComponent) => {
-	for (let event of log) {
-		if (includes(event.message, 'Shutting down component ' + component.name)) return 'Shutdown'
-		if (includes(event.message, 'Finished setup for component ' + component.name)) return 'Active'
-		if (includes(event.message, 'Instantiating component ' + component.name)) return 'Instantiating'
-		if (includes(event.message, 'Added component ' + component.name)) return 'Added'
-	}
-	return 'Setup'
 }

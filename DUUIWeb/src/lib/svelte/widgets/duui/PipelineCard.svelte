@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores'
-	import DriverIcon from '$lib/components/DriverIcon.svelte'
+	import DriverIcon from '$lib/svelte/DriverIcon.svelte'
 	import { usedDrivers, type DUUIPipeline } from '$lib/duui/pipeline'
 
 	export let pipeline: DUUIPipeline
@@ -26,7 +26,8 @@
 	{/each}
 </div>
 <div class="pt-4 flex items-center justify-between self-end">
-	<p>{pipeline.components.length} Component(s)</p>
+	<p>{pipeline.components.length} Component{pipeline.components.length > 1 ? 's' : ''}</p>
+	<p class="hidden md:block">{pipeline.timesUsed}</p>
 	<div class="flex items-center gap-4">
 		{#each usedDrivers(pipeline) as driver}
 			<DriverIcon {driver} />

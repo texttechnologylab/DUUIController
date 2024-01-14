@@ -1,19 +1,10 @@
 <script lang="ts">
-	import {
-		faCancel,
-		faCheck,
-		faClose,
-		faFileImport,
-		faPen,
-		faPlus,
-		faUndo
-	} from '@fortawesome/free-solid-svg-icons'
+	import { faCheck, faClose, faPen, faPlus, faUndo } from '@fortawesome/free-solid-svg-icons'
+	import { getToastStore } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
 	import TextInput from './TextInput.svelte'
-	import { FileButton, getToastStore } from '@skeletonlabs/skeleton'
 
 	export let data: Map<string, any> = new Map()
-	export let nested: boolean = false
 
 	let edit: boolean = false
 	let key: string = ''
@@ -92,24 +83,11 @@
 	}
 </script>
 
-<div class="label">
+<label class="label flex flex-col" >
 	<span class="form-label">Settings</span>
 	<div class="input-no-highlight p-4">
 		<div class="flex items-center gap-2 mb-4">
 			{#if !edit}
-				<!-- {#if !nested}
-					<FileButton
-						bind:files
-						name="importFile"
-						button="btn variant-soft-primary"
-						accept="application/json"
-						on:change={importData}
-					>
-						<span>Import</span>
-						<Fa icon={faFileImport} />
-					</FileButton>
-				{/if} -->
-
 				<button
 					class="btn variant-soft-primary"
 					on:click={() => {
@@ -175,9 +153,9 @@
 				</p>
 			</div>
 		{/if}
-		<div class="grid grid-cols-2 justify-start items-start gap-2">
-			{#each data.entries() as [_key, _value], index}
-				<div class="bg-fancy p-4 rounded-md">
+		<div class="grid lg:grid-cols-2 justify-start items-start gap-2">
+			{#each data.entries() as [_key, _value]}
+				<div class="bg-fancy rounded-md">
 					<div class="flex items-center gap-2">
 						<button
 							class="spect-square rounded-full hover:text-error-500 transition-colors"
@@ -235,4 +213,4 @@
 			{/each}
 		</div>
 	</div>
-</div>
+</label>

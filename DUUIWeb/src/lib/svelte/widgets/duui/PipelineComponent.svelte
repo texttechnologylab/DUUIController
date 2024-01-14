@@ -1,34 +1,33 @@
 <script lang="ts">
-	import DriverIcon from '$lib/components/DriverIcon.svelte'
-	import Text from '../input/TextInput.svelte'
-	import TextArea from '../input/TextArea.svelte'
+	import DriverIcon from '$lib/svelte/DriverIcon.svelte'
+	import ActionButton from '../action/ActionButton.svelte'
 	import Chips from '../input/Chips.svelte'
 	import Dropdown from '../input/Dropdown.svelte'
-	import ActionButton from '../action/ActionButton.svelte'
+	import TextArea from '../input/TextArea.svelte'
+	import Text from '../input/TextInput.svelte'
 
-	import { isEqual, cloneDeep } from 'lodash'
+	import { cloneDeep, isEqual } from 'lodash'
 
+	import { DUUIDrivers, type DUUIComponent } from '$lib/duui/component'
+	import { Api, makeApiCall } from '$lib/duui/utils/api'
+	import { slugify } from '$lib/duui/utils/text'
+	import { scrollIntoView, success, variantError, variantSuccess } from '$lib/duui/utils/ui'
 	import {
 		faFileCircleCheck,
 		faFileCircleXmark,
 		faFilePen,
 		faTrash
 	} from '@fortawesome/free-solid-svg-icons'
-	import { DUUIDrivers, type DUUIComponent } from '$lib/duui/component'
-	import IconButton from '../action/IconButton.svelte'
-	import Mapper from '../input/Mapper.svelte'
-	import { makeApiCall, Api } from '$lib/duui/utils/api'
-	import { success, variantError, variantSuccess } from '$lib/duui/utils/ui'
 	import {
+		Tab,
+		TabGroup,
 		getModalStore,
 		getToastStore,
-		TabGroup,
-		type ModalSettings,
-		Tab
+		type ModalSettings
 	} from '@skeletonlabs/skeleton'
 	import { createEventDispatcher } from 'svelte'
-	import Fa from 'svelte-fa'
-	import { faDocker } from '@fortawesome/free-brands-svg-icons'
+	import IconButton from '../action/IconButton.svelte'
+	import JsonPreview from '../input/JsonPreview.svelte'
 
 	export let component: DUUIComponent
 
@@ -83,7 +82,7 @@
 			modalStore.trigger(modal)
 		}).then(async (accepted: boolean) => {
 			if (!accepted) return
-			dispatcher('remove', { oid: component.oid })
+			dispatcher('remove', { id: component.id })
 		})
 	}
 
@@ -113,7 +112,8 @@
 </script>
 
 <li
-	class="section-wrapper 
+	id={slugify(component.name)}
+	class="section-wrapper scroll-mt-4 md:scroll-mt-24
         {!expanded ? 'pointer-events-none ' : 'pointer-events-auto'}"
 >
 	<header
@@ -121,17 +121,28 @@
 	>
 		<div class="md:flex md:items-center grid gap-4">
 			<DriverIcon driver={component.settings.driver} />
-			{#if !expanded}
-				<p class="md:h4 grow">{component.name}</p>
-			{/if}
+			<p class="{expanded ? 'hidden md:block' : ''} md:h4 grow">{component.name}</p>
 		</div>
-		<div class=" flex-col-reverse gap-2 md:flex-row {expanded ? 'space-x-1' : 'flex'}">
+		<div
+			class="scroll-mt-4 md:scroll-mt-16 flex-col-reverse gap-2 md:flex-row {expanded
+				? 'space-x-1'
+				: 'flex'}"
+		>
 			<IconButton
 				_class="pointer-events-auto pl-1"
 				variant="variant-soft-primary"
 				rounded="rounded-full"
 				icon={faFilePen}
-				on:click={() => (expanded = !expanded)}
+				on:click={() => {
+					expanded = !expanded
+					if (!isNew) return
+					
+					if (expanded) {
+						scrollIntoView(slugify(component.name))
+					} else {
+						scrollIntoView('top')
+					}
+				}}
 			/>
 			<IconButton
 				_class="pointer-events-auto"
@@ -160,7 +171,6 @@
 					name="target"
 					bind:value={component.settings.target}
 				/>
-				<!-- <SettingsMapper /> -->
 
 				<Chips
 					style="md:col-span-2"
@@ -184,21 +194,24 @@
 				</TabGroup>
 				<div class="md:col-span-2">
 					{#if tabSet === 0}
-						<Mapper
+						<JsonPreview bind:data={parameters} />
+						<!-- <Mapper
 							label="Parameters"
 							bind:map={parameters}
 							on:update={(event) => {
 								component.settings.parameters = Object.fromEntries(event.detail.map.entries())
 							}}
-						/>
+						/> -->
 					{:else if tabSet === 1}
-						<Mapper
+						<JsonPreview bind:data={options} />
+
+						<!-- <Mapper
 							label="Options"
 							bind:map={options}
 							on:update={(event) => {
 								component.settings.options = Object.fromEntries(event.detail.map.entries())
 							}}
-						/>
+						/> -->
 					{/if}
 				</div>
 			</div>

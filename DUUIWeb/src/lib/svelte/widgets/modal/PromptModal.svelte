@@ -1,56 +1,63 @@
 <script lang="ts">
 	import {
-		faCheck,
 		faClose,
 		faEnvelope,
-		faTrash,
-		faWarning
+		faFileClipboard,
+		type IconDefinition
 	} from '@fortawesome/free-solid-svg-icons'
-	import ActionButton from '../action/ActionButton.svelte'
 	import { getModalStore } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
 	import TextInput from '../input/TextInput.svelte'
 
 	const modalStore = getModalStore()
 	export let title: string = $modalStore[0].meta['title']
-	export let body: string = $modalStore[0].meta['body']
+	export let message: string = $modalStore[0].meta['message']
+	export let textYes: string = $modalStore[0].meta['textYes'] || 'Copy'
+	export let textNo: string = $modalStore[0].meta['textNo'] || 'Cancel'
 	let value: string = $modalStore[0].meta['value']
 </script>
 
-<div
-	class="z-50 overflow-hidden rounded-md dark:bg-surface-700 shadow-lg border-surface-400/20
-	 w-modal card"
->
-	<div class="p-4 flex items-center justify-between gap-4">
+<div class="z-50 bg-modal w-modal">
+	<div
+		class="p-4 flex items-center justify-between gap-4 border-b border-color bg-surface-100 dark:bg-surface-700"
+	>
 		<p class="h3 font-bold">{title}</p>
-		<Fa icon={faEnvelope} size="2x" />
+		<button
+			on:click={() => modalStore.close()}
+			class="text-surface-400 hover:text-surface-900 dark:hover:text-surface-100 transform-colors duration-300"
+		>
+			<Fa icon={faClose} scale={1.5} />
+		</button>
 	</div>
-	<div class="p-4 bg-white dark:bg-surface-600 space-y-4">
-		<p>{body}</p>
-		<TextInput bind:value required />
-		<div class="flex items-center gap-4 justify-end">
-			<ActionButton
+	<div class="space-y-8">
+		<div class="p-8 space-y-2">
+			<p>{message}</p>
+			<TextInput bind:value required />
+		</div>
+		<div class="p-4 px-8 border-t border-color grid grid-cols-2 items-center gap-4 justify-end">
+			<button
 				disabled={!value}
-				text="Confirm"
-				icon={faCheck}
+				class="button-primary button-modal"
 				on:click={() => {
 					if ($modalStore[0].response) {
 						$modalStore[0]?.response(value)
 						modalStore.close()
 					}
 				}}
-			/>
-			<ActionButton
-				text="Cancel"
-				variant="dark:variant-soft-error variant-filled-error"
-				icon={faClose}
+			>
+				<span>{textYes}</span>
+			</button>
+			<button
+				class="button-error button-modal"
 				on:click={() => {
 					if ($modalStore[0].response) {
 						$modalStore[0]?.response('')
 						modalStore.close()
 					}
 				}}
-			/>
+			>
+				<span>{textNo}</span>
+			</button>
 		</div>
 	</div>
 </div>

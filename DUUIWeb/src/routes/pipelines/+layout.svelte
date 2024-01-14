@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { scrollIntoView } from '$lib/duui/utils/ui'
+	import HelpToggle from '$lib/svelte/widgets/navigation/HelpToggle.svelte'
 	import { onMount } from 'svelte'
 
 	onMount(() => {
@@ -7,6 +8,6 @@
 	})
 </script>
 
-<div id="top" class="h-full p-4 space-y-4 scroll-mt-4 mb-32">
+<div id="top" class="scroll-mt-4 h-full relative">
 	<slot />
 </div>

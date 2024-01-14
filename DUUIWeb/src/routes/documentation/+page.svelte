@@ -1,10 +1,8 @@
 <script>
-	import HLine from '$lib/svelte/widgets/navigation/HLine.svelte'
-	import { faArrowUp } from '@fortawesome/free-solid-svg-icons'
-	import Fa from 'svelte-fa'
-	import Block from './components/Block.svelte'
-	import { CodeBlock } from '@skeletonlabs/skeleton'
 	import JavaClass from '$lib/svelte/widgets/duui/JavaClass.svelte'
+	import { faArrowUp } from '@fortawesome/free-solid-svg-icons'
+	import { CodeBlock } from '@skeletonlabs/skeleton'
+	import Fa from 'svelte-fa'
 
 	const code = `
 	int iWorkers = 2; // define the number of workers

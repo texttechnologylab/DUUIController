@@ -1,8 +1,8 @@
 package api.duui.pipeline;
 
 import api.duui.DUUIState;
-import api.duui.DUUIStatus;
 import api.duui.component.DUUIComponentController;
+import api.duui.routines.DUUIProcess;
 import api.duui.routines.service.DUUIService;
 import api.storage.DUUIMongoDBStorage;
 import com.mongodb.client.FindIterable;
@@ -11,6 +11,7 @@ import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.Updates;
 import org.bson.Document;
 import org.bson.types.ObjectId;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
 import spark.Request;
 import spark.Response;
 
@@ -30,7 +31,7 @@ import static api.storage.DUUIMongoDBStorage.mergeUpdates;
 import static api.storage.DUUIMongoDBStorage.mapObjectIdToString;
 
 public class DUUIPipelineController {
-    private static final Map<String, DUUIService> _services = new HashMap<>();
+    private static final Map<String, DUUIService> keepAliveProcesses = new HashMap<>();
 
     private static final List<String> ALLOWED_UPDATES = List.of(
         "name",
@@ -136,6 +137,7 @@ public class DUUIPipelineController {
             .append("settings", body.get("settings", Document.class))
             .append("timesUsed", 0)
             .append("user_id", template.equals("true") ? null : user.getObjectId("_id").toString())
+            .append("state", DUUIState.INACTIVE)
             .append("tags", List.of());
 
         DUUIMongoDBStorage
@@ -198,9 +200,9 @@ public class DUUIPipelineController {
             return new Document("message", "No Pipeline found").toJson();
         }
 
-        if (_services.containsKey(id)) {
-            _services.get(id).interrupt();
-            _services.remove(id);
+        if (keepAliveProcesses.containsKey(id)) {
+            keepAliveProcesses.get(id).interrupt();
+            keepAliveProcesses.remove(id);
         }
 
         DUUIMongoDBStorage
@@ -251,9 +253,14 @@ public class DUUIPipelineController {
 
         if (isNullOrEmpty(id)) return missingField(response, "id");
 
+        DUUIMongoDBStorage.Pipelines().findOneAndUpdate(
+            Filters.eq(new ObjectId(id)),
+            Updates.set("state", DUUIStatus.SETUP)
+        );
+
         try {
             DUUIService service = new DUUIService(getPipelineById(id));
-            _services.put(id, service);
+            keepAliveProcesses.put(id, service);
             service.start();
         } catch (Exception e) {
             response.status(500);
@@ -265,7 +272,6 @@ public class DUUIPipelineController {
             Filters.eq(new ObjectId(id)),
             Updates.set("state", DUUIStatus.IDLE)
         );
-
         DUUIPipelineController.setServiceStartTime(id, serviceStartTime);
 
         response.status(200);
@@ -282,10 +288,15 @@ public class DUUIPipelineController {
         String id = body.getString("oid");
 
         if (isNullOrEmpty(id)) return missingField(response, "id");
-        DUUIService service = _services.get(id);
+        DUUIService service = keepAliveProcesses.get(id);
         if (service == null) {
             return new Document("message", "No service running").toJson();
         }
+
+        DUUIMongoDBStorage.Pipelines().findOneAndUpdate(
+            Filters.eq(new ObjectId(id)),
+            Updates.set("state", DUUIStatus.SHUTDOWN)
+        );
 
         try {
             service.cancel();
@@ -294,8 +305,13 @@ public class DUUIPipelineController {
             return new Document("message", e.getMessage()).toJson();
         }
 
+        DUUIMongoDBStorage.Pipelines().findOneAndUpdate(
+            Filters.eq(new ObjectId(id)),
+            Updates.set("state", DUUIStatus.INACTIVE)
+        );
+
         response.status(200);
-        return new Document("message", "service has been shutdown").toJson();
+        return new Document("message", "Service has been shutdown").toJson();
     }
 
 
@@ -312,18 +328,22 @@ public class DUUIPipelineController {
 
 
     public static Map<String, DUUIService> getServices() {
-        return _services;
+        return keepAliveProcesses;
     }
 
     public static DUUIService getService(String id) {
-        return _services.get(id);
+        return keepAliveProcesses.get(id);
     }
 
+//    public static DUUIProcess getIdleProcess(String pipelineId) {
+//        return keepAliveProcesses.get(pipelineId);
+//    }
+
     public static void removeService(String id) {
-        _services.remove(id);
+        keepAliveProcesses.remove(id);
     }
 
     public static boolean pipelineIsActive(String id) {
-        return _services.containsKey(id);
+        return keepAliveProcesses.containsKey(id);
     }
 }

@@ -5,9 +5,8 @@
 		faChevronLeft,
 		faChevronRight
 	} from '@fortawesome/free-solid-svg-icons'
-	import IconButton from '../action/IconButton.svelte'
 	import { createEventDispatcher } from 'svelte'
-	import { ListBox, ListBoxItem } from '@skeletonlabs/skeleton'
+	import IconButton from '../action/IconButton.svelte'
 	import Dropdown from '../input/Dropdown.svelte'
 
 	const dispatcher = createEventDispatcher()
@@ -36,9 +35,8 @@
 	}
 </script>
 
-<div class="flex items-center justify-between">
+<div class="grid justify-center md:flex items-center md:justify-between gap-4 text-sm md:text-base">
 	<Dropdown
-		label="Items per page"
 		on:change={() => dispatcher('change')}
 		bind:value={settings.limit}
 		options={settings.sizes}

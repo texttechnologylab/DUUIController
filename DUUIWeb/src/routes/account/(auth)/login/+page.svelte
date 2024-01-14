@@ -78,7 +78,7 @@
 				<a class="block text-center anchor text-sm" href="/account/recover">Forgot Password? </a>
 				<button
 					on:click={loginUser}
-					class="btn rounded-md variant-filled-primary uppercase tracking-widest self-center font-bold px-8"
+					class="button-primary button-modal uppercase tracking-widest self-center"
 					>sign in</button
 				>
 			</div>
@@ -101,7 +101,7 @@
 					/>
 				</div>
 				<a class="block text-center anchor text-sm" href="/account/recover">Forgot Password? </a>
-				<button class="btn rounded-md variant-filled-primary uppercase tracking-widest font-bold">
+				<button class="button-primary button-modal uppercase tracking-widest self-center">
 					sign up
 				</button>
 			</div>

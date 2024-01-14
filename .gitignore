@@ -38,3 +38,5 @@ tmp/duui
 
 Monitoring/*
 .env
+
+temp/*

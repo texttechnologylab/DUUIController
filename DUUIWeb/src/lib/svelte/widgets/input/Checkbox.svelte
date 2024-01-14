@@ -26,7 +26,7 @@
 	export let iconUnchecked: IconDefinition | null = null
 </script>
 
-<label class="flex {column ? 'flex-col-reverse' : ''} items-start gap-2">
+<label class="flex {column ? 'flex-col-reverse' : ''} items-start gap-4 text-sm">
 	<button on:click={() => (checked = !checked)}>
 		<div
 			class="rounded-md p-1 aspect-square border-[1px] bg-white dark:bg-surface-600 border-surface-400/20"
@@ -45,5 +45,5 @@
 		</div>
 	</button>
 	<input type="checkbox" {name} bind:checked class="appearance-none hidden" />
-	<span class="{column ? 'uppercase text-xs tracking-widest' : ''} cursor-pointer">{label}</span>
+	<span class="{column ? 'form-label' : ''} cursor-pointer">{label}</span>
 </label>

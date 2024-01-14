@@ -12,7 +12,8 @@ import {
 	faQuestion,
 	faRefresh,
 	faClose,
-	faWarning
+	faWarning,
+	faSlash
 } from '@fortawesome/free-solid-svg-icons'
 import { equals } from './text'
 import { Status } from '$lib/duui/monitor'
@@ -21,43 +22,43 @@ import type { ToastSettings } from '@skeletonlabs/skeleton'
 
 export const documentStatusNames = [
 	Status.Any,
-	Status.Setup,
-	Status.Input,
+	Status.Active,
+	Status.Cancelled,
+	Status.Completed,
 	Status.Decode,
 	Status.Deserialize,
-	Status.Waiting,
-	Status.Running,
+	Status.Failed,
+	Status.Input,
 	Status.Output,
+	Status.Setup,
 	Status.Shutdown,
-	Status.Completed,
-	Status.Canceled,
-	Status.Failed
+	Status.Waiting
 ]
 
 export const documentStatusNamesString = [
+	'Active',
 	'Any',
-	'Setup',
-	'Input',
+	'Cancelled',
+	'Completed',
 	'Decode',
 	'Deserialize',
-	'Waiting',
-	'Running',
-	'Shutdown',
-	'Output',
-	'Completed',
 	'Failed',
-	'Canceled',
-	'Unknown'
+	'Input',
+	'Output',
+	'Setup',
+	'Shutdown',
+	'Unknown',
+	'Waiting'
 ]
 
 export function getStatusIcon(status: string) {
 	if (equals(status, Status.Input)) return faFileDownload
 	if (equals(status, Status.Setup)) return faArrowTrendUp
-	if (equals(status, Status.Running)) return faRefresh
+	if (equals(status, Status.Active)) return faRefresh
 	if (equals(status, Status.Shutdown)) return faArrowTrendDown
 	if (equals(status, Status.Output)) return faFileUpload
 	if (equals(status, Status.Completed)) return faCheckDouble
-	if (equals(status, Status.Canceled)) return faCancel
+	if (equals(status, Status.Cancelled)) return faCancel
 	if (equals(status, Status.Failed)) return faWarning
 
 	return faQuestion
@@ -68,8 +69,9 @@ export const getDocumentStatusIcon = (document: DUUIDocument) => {
 	if (equals(document.status, Status.Input)) return faFileDownload
 	if (equals(document.status, Status.Decode)) return faFileCode
 	if (equals(document.status, Status.Deserialize)) return faFileArchive
+	if (equals(document.status, Status.Skipped)) return faSlash
 	if (equals(document.status, Status.Waiting)) return faHourglass
-	if (equals(document.status, Status.Canceled)) return document.error ? faClose : faCancel
+	if (equals(document.status, Status.Cancelled)) return document.error ? faClose : faCancel
 	if (equals(document.status, Status.Output)) return document.error ? faClose : faFileUpload
 	if (equals(document.status, Status.Failed)) return document.error ? faWarning : faCheck
 	if (equals(document.status, Status.Completed)) return document.error ? faClose : faCheckDouble

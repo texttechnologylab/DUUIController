@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Feature from '$lib/svelte/Feature.svelte'
 	import {
 		faArrowRight,
 		faArrowUpRightFromSquare,
@@ -8,30 +9,27 @@
 		faRecycle,
 		faUserGroup
 	} from '@fortawesome/free-solid-svg-icons'
-	import Feature from '$lib/components/Feature.svelte'
-	
+
 	import Hosting from '$lib/assets/undraw_cloud_hosting_7xb1.svg'
 	import Futuristic from '$lib/assets/undraw_futuristic_interface_re_0cm6.svg'
 	import Reminder from '$lib/assets/undraw_reminder_re_fe15.svg'
 
-	import Fa from 'svelte-fa'
-	import HLine from '$lib/svelte/widgets/navigation/HLine.svelte'
-	import { faAmazon, faDropbox } from '@fortawesome/free-brands-svg-icons'
-	import { userSession } from '$lib/store'
 	import { scrollIntoView } from '$lib/duui/utils/ui'
+	import { userSession } from '$lib/store'
+	import { faAmazon, faDropbox } from '@fortawesome/free-brands-svg-icons'
 	import { onMount } from 'svelte'
+	import Fa from 'svelte-fa'
 
 	onMount(() => {
 		scrollIntoView('top')
 	})
-	
 </script>
 
 <svelte:head>
 	<title>DUUI</title>
 </svelte:head>
 
-<main class="container-full-h flex justify-center items-center" id="top">
+<main class="container mx-auto flex justify-center items-center" id="top">
 	<div
 		class="text-center flex flex-col items-center bg-surface-200/30 dark:bg-surface-500/80 isolate"
 	>
@@ -87,9 +85,7 @@
 			</div>
 		</div>
 
-		<section
-			class="bg-white dark:bg-surface-700 w-screen border-y-8 dark:border-surface-900 lg:py-8"
-		>
+		<section class="bg-white dark:bg-surface-900/50 w-screen lg:py-16">
 			<div class="container mx-auto p-4 md:py-8 gap-4 grid md:grid-cols-3 items-start max-w-7xl">
 				<Feature
 					icon={faUserGroup}
@@ -97,7 +93,7 @@
 					content="DUUI is a lightweight framework for running NLP routines. No extensive knowledge about computer science and programming is required."
 				/>
 				<div class="md:hidden">
-					<HLine thickness={4} width="w-3/4 mx-auto" />
+					<hr class="hr" />
 				</div>
 				<Feature
 					icon={faRecycle}
@@ -105,7 +101,7 @@
 					content="Each pipeline component is fully serializable and annotates each processed document. All performed annotations, including analysis engines, models and settings can be fully reconstructed."
 				/>
 				<div class="md:hidden">
-					<HLine thickness={4} width="w-3/4 mx-auto" />
+					<hr class="hr" />
 				</div>
 
 				<Feature
@@ -164,7 +160,7 @@
 					</div>
 				</section>
 				<!-- Virtualization -->
-				<HLine width="w-1/2 mx-auto" thickness={2} />
+				<hr class="hr" />
 
 				<section
 					class="flex flex-col-reverse md:flex-row gap-4 p-4 md:py-8 items-center text-left justify-between mx-auto"

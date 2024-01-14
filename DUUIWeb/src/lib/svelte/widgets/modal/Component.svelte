@@ -1,23 +1,19 @@
 <script lang="ts">
-	import ActionButton from '../action/ActionButton.svelte'
 	import { DUUIDrivers, type DUUIComponent } from '$lib/duui/component'
-	import { TabGroup, getModalStore, Tab } from '@skeletonlabs/skeleton'
+	import { Tab, TabGroup, getModalStore } from '@skeletonlabs/skeleton'
+	import ActionButton from '../action/ActionButton.svelte'
 
-	import {
-		faClose,
-		faFilePen,
-		faFileUpload	} from '@fortawesome/free-solid-svg-icons'
-	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
-	import Mapper from '$lib/svelte/widgets/input/Mapper.svelte'
-	import DriverIcon from '../../../components/DriverIcon.svelte'
-	import Text from '$lib/svelte/widgets/input/TextInput.svelte'
-	import Dropdown from '$lib/svelte/widgets/input/Dropdown.svelte'
 	import Chips from '$lib/svelte/widgets/input/Chips.svelte'
+	import Dropdown from '$lib/svelte/widgets/input/Dropdown.svelte'
+	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
+	import Text from '$lib/svelte/widgets/input/TextInput.svelte'
+	import { faClose, faFilePen, faFileUpload } from '@fortawesome/free-solid-svg-icons'
+	import DriverIcon from '../../DriverIcon.svelte'
 
-	import { createEventDispatcher } from 'svelte'
-	import Fa from 'svelte-fa'
 	import { userSession } from '$lib/store'
-	const dispatcher = createEventDispatcher()
+	import Fa from 'svelte-fa'
+	import JsonPreview from '../input/JsonPreview.svelte'
+
 
 	const modalStore = getModalStore()
 
@@ -36,7 +32,7 @@
 	}
 
 	const uploadComponent = async () => {
-		const response = await fetch('/api/component', {
+		const response = await fetch('/api/components', {
 			method: 'POST',
 			body: JSON.stringify({
 				component: component
@@ -50,7 +46,7 @@
 </script>
 
 {#if $modalStore[0]}
-	<div class="card rounded-none shadow-lg container max-w-5xl">
+	<div class="card rounded-none shadow-lg container max-w-5xl max-h-[90vh]">
 		<div
 			class="flex justify-between items-center bg-surface-200/20 dark:bg-surface-900/25 p-4 py-3 sticky top-0"
 		>
@@ -102,19 +98,24 @@
 			</TabGroup>
 			<div class="md:col-span-2">
 				{#if tabSet === 0}
-					<Mapper
-						bind:map={parameters}
-						on:update={(event) => {
-							component.settings.parameters = Object.fromEntries(event.detail.map.entries())
-						}}
-					/>
+					<JsonPreview bind:data={parameters} />
+					<!-- <Mapper
+							label="Parameters"
+							bind:map={parameters}
+							on:update={(event) => {
+								component.settings.parameters = Object.fromEntries(event.detail.map.entries())
+							}}
+						/> -->
 				{:else if tabSet === 1}
-					<Mapper
-						bind:map={options}
-						on:update={(event) => {
-							component.settings.options = Object.fromEntries(event.detail.map.entries())
-						}}
-					/>
+					<JsonPreview bind:data={options} />
+
+					<!-- <Mapper
+							label="Options"
+							bind:map={options}
+							on:update={(event) => {
+								component.settings.options = Object.fromEntries(event.detail.map.entries())
+							}}
+						/> -->
 				{/if}
 			</div>
 		</div>
@@ -123,7 +124,7 @@
 		<footer class="bg-surface-200/20 dark:bg-surface-900/25 p-4">
 			<div class="grid grid-cols-2 gap-4">
 				{#if $userSession?.role === 'admin'}
-					<ActionButton text="Upload as Template" icon={faFileUpload} on:click={uploadComponent} />
+					<ActionButton text="Upload" icon={faFileUpload} on:click={uploadComponent} />
 				{/if}
 				<ActionButton text="Create" icon={faFilePen} on:click={createComponent} />
 			</div>

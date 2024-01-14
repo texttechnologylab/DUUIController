@@ -1,3 +1,4 @@
+import { DropboxAppURL } from '$lib/config'
 import { equals } from '$lib/duui/utils/text'
 
 export interface DUUIDocument {
@@ -14,41 +15,50 @@ export interface DUUIDocument {
 	size: number
 	startTime: number
 	endTime: number
-	annotations: {}
+	annotations: {
+		string: number
+	}
 }
 
-export interface DUUIDocumentInput {
-	source: string
-	folder: string
+export type DUUIDocumentProvider = {
+	provider: IOProvider
+	path: string
 	content: string
-	fileExtension: string
+	fileExtension: FileExtension
 }
 
-export interface DUUIDocumentOutput {
-	target: string
-	folder: string
-	fileExtension: string
-}
+export type IOProvider = 'Dropbox' | 'Minio' | 'MongoDB' | 'File' | 'Text' | 'None'
+export type FileExtension = '.txt' | '.xmi' | '.gz' | ''
 
 export enum Input {
 	Dropbox = 'Dropbox',
 	Minio = 'Minio',
+	MongoDB = 'MongoDB',
 	Text = 'Text',
-	LocalFile = 'Local File'
+	File = 'File'
 }
 
 export enum Output {
 	Dropbox = 'Dropbox',
 	Minio = 'Minio',
-	LocalFile = 'Local File',
+	MongoDB = 'MongoDB',
+	File = 'File',
 	None = 'None'
 }
 
-export const InputSources: string[] = ['Dropbox', 'Local File', 'Minio', 'Text']
+export enum IO {
+	Dropbox = 'Dropbox',
+	File = 'File',
+	Minio = 'Minio',
+	MongoDB = 'MongoDB',
+	Text = 'Text'
+}
+
+export const InputSources: string[] = ['Dropbox', 'File', 'Minio', 'MongoDB', 'Text']
 
 export const InputFileExtensions: string[] = ['.txt', '.xmi', '.gz']
 
-export const OutputTargets: string[] = ['Dropbox', 'Local File', 'Minio', 'None']
+export const OutputTargets: string[] = ['Dropbox', 'File', 'Minio', 'MongoDB', 'None']
 
 export const OutputFileExtensions: string[] = ['.txt', '.xmi']
 
@@ -57,43 +67,55 @@ export const isCloudProvider = (provider: string) => {
 }
 
 export const isValidIO = (
-	input: DUUIDocumentInput,
-	output: DUUIDocumentOutput,
+	input: DUUIDocumentProvider,
+	output: DUUIDocumentProvider,
 	files: FileList
 ) => {
 	return isValidInput(input, files) && isValidOutput(output)
 }
 
-export const isValidInput = (input: DUUIDocumentInput, files: FileList) => {
-	if (equals(input.source, Input.Text)) {
-		return input.content.length > 0
+export const isValidInput = (input: DUUIDocumentProvider, files: FileList) => {
+	if (equals(input.provider, Input.Text)) {
+		return input.content && input.content.length > 0
 	}
 
-	if (equals(input.source, Input.LocalFile)) {
+	if (equals(input.provider, Input.File)) {
 		return files?.length > 0
 	}
 
-	if (equals(input.source, Input.Minio)) {
-		return isValidS3BucketName(input.folder).length === 0
+	if (equals(input.provider, Input.Minio)) {
+		return isValidS3BucketName(input.path || '').length === 0
 	}
 
-	if (equals(input.source, Input.Dropbox)) {
-		return input.folder.length > 0 && input.folder.startsWith('/')
+	if (equals(input.provider, Input.Dropbox)) {
+		return input.path && input.path.length > 0 && input.path.startsWith('/')
 	}
 
 	return true
 }
 
-export const isValidOutput = (output: DUUIDocumentOutput) => {
-	if (equals(output.target, Output.Minio)) {
-		return isValidS3BucketName(output.folder).length === 0
+export const isValidOutput = (output: DUUIDocumentProvider) => {
+	if (equals(output.provider, Output.Minio)) {
+		return isValidS3BucketName(output.path || '').length === 0
 	}
 
-	if (equals(output.target, Output.Dropbox)) {
-		return output.folder.length > 0
+	if (equals(output.provider, Output.Dropbox)) {
+		return output.path && output.path.length > 0
 	}
 
 	return true
+}
+
+export const areSettingsValid = (workerCount: number, size: number) => {
+	if (workerCount < 1 || workerCount > 20) {
+		return 'Worker count must be between 1 and 20'
+	}
+
+	if (size < 0 || size > 2147483647) {
+		return 'File size must be between 0 and 2147483647 bytes'
+	}
+
+	return ''
 }
 
 export const isValidS3BucketName = (bucket: string) => {
@@ -145,4 +167,9 @@ export const getTotalDuration = (document: DUUIDocument) => {
 		document.waitDuration +
 		document.processDuration
 	)
+}
+
+export const URLFromProvider = (provider: DUUIDocumentProvider) => {
+	if (provider.provider === 'Dropbox') return DropboxAppURL
+	return ''
 }

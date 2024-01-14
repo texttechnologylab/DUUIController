@@ -23,8 +23,8 @@
 	}
 </script>
 
-<div class="container mx-auto section-wrapper p-8 space-y-8 max-w-7xl">
-	<div class="grid grid-cols-2 gap-8">
+<div class="p-8 space-y-8">
+	<div class="p-4 section-wrapper grid grid-cols-2 gap-8">
 		<div class="space-y-2">
 			<p class="h2">Future Work</p>
 			<ul class="space-y-4 list-decimal px-8">
@@ -47,61 +47,62 @@
 		</div>
 	</div>
 
-	TITEL = A web-based interface for DUUI
-
-	<h1 class="h1 text-center font-bold">Feedback</h1>
-	<Stepper on:complete={submitForm}>
-		<form bind:this={form} action="?/send" method="POST" class="grid gap-16">
-			<Step>
-				<div class="grid md:grid-cols-2 md:gap-4">
-					<Rating
-						bind:value={ease}
-						name="ease"
-						question="The website made it easier to create Pipelines."
-					/>
-					<Rating
-						bind:value={fast}
-						name="efficient"
-						question="The website allowed me to work with DUUI faster."
-					/>
-					<Rating bind:value={revisit} name="revisit" question="I would use the website again." />
-					<Rating
-						bind:value={prefer}
-						name="prefer"
-						question="Working with DUUI is more enjoyable in the browser."
-					/>
-					<Rating bind:value={ui} name="ui" question="The website is visually pleasing." />
-					<Rating
-						bind:value={performance}
-						name="performance"
-						question="Processes did not take too long to complete."
-					/>
-				</div>
-			</Step>
-			<Step>
-				<div class="grid md:grid-cols-2 md:gap-4">
-					<Rating
-						bind:value={informative}
-						name="informative"
-						question="The website presented useful information."
-					/>
-					<Rating
-						bind:value={cloud}
-						name="cloud"
-						question="Using Dropbox / Minio worked without problems."
-					/>
-					<Rating
-						bind:value={problems}
-						name="problems"
-						question="The task could be completed without problems."
-					/>
-					<Rating
-						bind:value={help}
-						name="help"
-						question="The documentation was helpful and easy to use."
-					/>
-				</div>
-			</Step>
-		</form>
-	</Stepper>
+	<!-- TITEL = A web-based interface for DUUI -->
+	<div class="p-4 section-wrapper">
+		<h1 class="h1 text-center font-bold">Feedback</h1>
+		<Stepper on:complete={submitForm}>
+			<form bind:this={form} action="?/send" method="POST" class="grid gap-16">
+				<Step>
+					<div class="grid md:grid-cols-2 md:gap-4">
+						<Rating
+							bind:value={ease}
+							name="ease"
+							question="The website made it easier to create Pipelines."
+						/>
+						<Rating
+							bind:value={fast}
+							name="efficient"
+							question="The website allowed me to work with DUUI faster."
+						/>
+						<Rating bind:value={revisit} name="revisit" question="I would use the website again." />
+						<Rating
+							bind:value={prefer}
+							name="prefer"
+							question="Working with DUUI is more enjoyable in the browser."
+						/>
+						<Rating bind:value={ui} name="ui" question="The website is visually pleasing." />
+						<Rating
+							bind:value={performance}
+							name="performance"
+							question="Processes did not take too long to complete."
+						/>
+					</div>
+				</Step>
+				<Step>
+					<div class="grid md:grid-cols-2 md:gap-4">
+						<Rating
+							bind:value={informative}
+							name="informative"
+							question="The website presented useful information."
+						/>
+						<Rating
+							bind:value={cloud}
+							name="cloud"
+							question="Using Dropbox / Minio worked without problems."
+						/>
+						<Rating
+							bind:value={problems}
+							name="problems"
+							question="The task could be completed without problems."
+						/>
+						<Rating
+							bind:value={help}
+							name="help"
+							question="The documentation was helpful and easy to use."
+						/>
+					</div>
+				</Step>
+			</form>
+		</Stepper>
+	</div>
 </div>
