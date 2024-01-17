@@ -10,6 +10,7 @@ import api.metrics.DUUIMetricsManager;
 import api.metrics.DUUIMetricsProvider;
 import api.metrics.DUUIMongoMetricsProvider;
 import api.metrics.DUUISystemMetricsProvider;
+import api.storage.DUUIMongoDBStorage;
 import com.sun.management.OperatingSystemMXBean;
 
 import java.lang.management.ManagementFactory;
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
 
 import static spark.Spark.*;
 
-public class Application {
+public class Main {
 
     private static final DUUIMetricsManager metricsManager = new DUUIMetricsManager();
     private static OperatingSystemMXBean monitor;
@@ -120,7 +121,7 @@ public class Application {
             if (!request.url().endsWith("metrics")) {
                 metrics.get("http_requests_in_progress").incrementAndGet();
             }
-            response.header("Access-Control-Allow-Origin", "192.168.2.122");
+            response.header("Access-Control-Allow-Origin", "*");
         });
 
         after((request, response) -> {
@@ -219,7 +220,7 @@ public class Application {
         ScheduledFuture<?> service = Executors
             .newScheduledThreadPool(1)
             .scheduleAtFixedRate(
-                Application::updateSystemMetrics,
+                Main::updateSystemMetrics,
                 0,
                 5,
                 TimeUnit.SECONDS
