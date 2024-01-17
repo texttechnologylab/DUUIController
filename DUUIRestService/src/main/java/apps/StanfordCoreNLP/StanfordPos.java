@@ -1,4 +1,4 @@
-package api.apps.StanfordCoreNLP;
+package apps.StanfordCoreNLP;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -23,6 +23,8 @@ import org.xml.sax.SAXException;
 
 public class StanfordPos {
 
+  private static StanfordCoreNLP pipeline;
+
   public static void main(String[] args) throws Exception {
     HttpServer server = HttpServer.create(
       new InetSocketAddress("192.168.2.122", 9002),
@@ -39,6 +41,12 @@ public class StanfordPos {
 
     server.setExecutor(null); // creates a default executor
     server.start();
+
+    Properties props = new Properties();
+    props.setProperty("annotators", "tokenize, ssplit, pos");
+    props.setProperty("language", "de");
+    pipeline = new StanfordCoreNLP(props);
+
   }
 
   static class ProcessHandler implements HttpHandler {
@@ -59,10 +67,6 @@ public class StanfordPos {
         jc.reset();
         CasIOUtils.load(t.getRequestBody(), jc.getCas());
 
-        Properties props = new Properties();
-        props.setProperty("annotators", "tokenize, ssplit, pos");
-        props.setProperty("language", jc.getDocumentLanguage());
-        StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
 
         CoreDocument document = pipeline.processToCoreDocument(
           jc.getDocumentText()

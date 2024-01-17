@@ -1,4 +1,4 @@
-package api.apps.StanfordCoreNLP;
+package apps.StanfordCoreNLP;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;

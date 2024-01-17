@@ -1,4 +1,4 @@
-package api.apps.StanfordCoreNLP;
+package apps.StanfordCoreNLP;
 
 public class StanfordCore {
     

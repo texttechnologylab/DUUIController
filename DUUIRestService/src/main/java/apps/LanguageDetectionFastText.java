@@ -1,16 +1,10 @@
-package api.apps.StanfordCoreNLP;
-
+package apps;
+import com.github.jfasttext.JFastText;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Lemma;
-import edu.stanford.nlp.ling.CoreLabel;
-import edu.stanford.nlp.pipeline.CoreDocument;
-import edu.stanford.nlp.pipeline.StanfordCoreNLP;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.InetSocketAddress;
-import java.util.Properties;
 import org.apache.uima.UIMAException;
 import org.apache.uima.cas.impl.XmiCasSerializer;
 import org.apache.uima.fit.factory.JCasFactory;
@@ -21,41 +15,37 @@ import org.apache.uima.resource.metadata.TypeSystemDescription;
 import org.apache.uima.util.CasIOUtils;
 import org.xml.sax.SAXException;
 
-public class StanfordLemma {
+public class LanguageDetectionFastText {
 
-  static Properties props;
+  private static final String modelPath = "D:\\Uni Informatik B.sc\\Bachelor\\DUUIController\\DUUIRestService\\src\\main\\resources\\lid.176.ftz";
 
   public static void main(String[] args) throws Exception {
+    int PORT = 8000;
     HttpServer server = HttpServer.create(
-      new InetSocketAddress("192.168.2.122", 9003),
+      new InetSocketAddress("192.168.2.122", PORT),
       0
     );
 
     server.getAddress();
-    server.createContext(
-      "/v1/communication_layer",
-      new StanfordLemma.CommunicationLayer()
-    );
-    server.createContext(
-      "/v1/typesystem",
-      new StanfordLemma.TypesystemHandler()
-    );
-
-    props = new Properties();
-    props.setProperty("annotators", "tokenize, ssplit, pos, lemma");
-
-    server.createContext("/v1/process", new StanfordLemma.ProcessHandler());
+    server.createContext("/v1/communication_layer", new CommunicationLayer());
+    server.createContext("/v1/typesystem", new TypesystemHandler());
+    server.createContext("/v1/process", new ProcessHandler());
 
     server.setExecutor(null); // creates a default executor
     server.start();
+
+    System.out.println("Remote Server started at " + server.getAddress());
   }
 
   static class ProcessHandler implements HttpHandler {
 
     static JCas jc;
+    static JFastText fasttext;
 
     static {
       try {
+        fasttext = new JFastText();
+        fasttext.loadModel(modelPath);
         jc = JCasFactory.createJCas();
       } catch (UIMAException e) {
         e.printStackTrace();
@@ -67,26 +57,13 @@ public class StanfordLemma {
       try {
         jc.reset();
         CasIOUtils.load(t.getRequestBody(), jc.getCas());
-
-        props.setProperty("language", jc.getDocumentLanguage());
-        StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
-
-        CoreDocument document = pipeline.processToCoreDocument(
+        JFastText.ProbLabel probLabel = fasttext.predictProba(
           jc.getDocumentText()
         );
-        for (CoreLabel token : document.tokens()) {
-          Lemma lemma = new Lemma(
-            jc,
-            token.beginPosition(),
-            token.endPosition()
-          );
-          lemma.setValue(token.lemma());
-          lemma.addToIndexes(jc);
-        }
-
+        jc.setDocumentLanguage(probLabel.label.replace("__label__", ""));
         t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
         t.sendResponseHeaders(200, 0);
-        XmiCasSerializer.serialize(jc.getCas(), t.getResponseBody());
+        XmiCasSerializer.serialize(jc.getCas(), null, t.getResponseBody());
         t.getResponseBody().close();
       } catch (SAXException e) {
         throw new RuntimeException(e);
@@ -105,7 +82,7 @@ public class StanfordLemma {
 
         t.sendResponseHeaders(200, 0);
         OutputStream os = t.getResponseBody();
-        desc.toXML(os);
+        desc.toXML(os);        
         os.close();
       } catch (ResourceInitializationException e) {
         e.printStackTrace();
