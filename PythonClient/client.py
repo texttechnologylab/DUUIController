@@ -1,8 +1,8 @@
 import json
 from process import start_process
-from pipeline import load_pipeline
-from pipeline import create_pipeline
-from pipeline import load_pipelines
+from duui.pipeline import load_pipeline
+from duui.pipeline import create_pipeline
+from duui.pipeline import load_pipelines
 from component import load_components, create_component, delete_component
 
 if __name__ == "__main__":

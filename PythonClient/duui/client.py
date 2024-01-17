@@ -1,29 +1,38 @@
+import datetime
 import requests
 
 from user import DUUIUser
 
 
 class DUUIClient:
-    def __init__(self, api_key: str) -> None:
-        self.api_key = api_key
-        self.user = self.__validate_api_key()
-        if not self.user:
-            raise ValueError("Invalid api key")
+    __URL = "http://192.168.2.122:2605"
 
-    def __validate_api_key(self) -> bool:
-        user = self.__fetch_user_by_api_key()
-        return user
-
-    def __fetch_user_by_api_key(self) -> DUUIUser:
-        return requests.get(f"http://192.168.2.122:2605/users/auth/{self.api_key}").json()
+    def __init__(self, key: str) -> None:
+        self.__KEY = key
 
     def fetch_pipeline(self, pipeline_id: str) -> dict:
-        return requests.get(f"http://192.168.2.122:2605/pipelines/{pipeline_id}", headers={"session": self.user["session"]}).json()
+        return requests.get(
+            f"{DUUIClient.__URL}/pipelines/{pipeline_id}",
+            headers={"Authorization": self.__KEY},
+        ).json()
 
-    def fetch_pipelines(self) -> dict:
-        return requests.get(f"http://192.168.2.122:2605/pipelines/all/{self.user['id']}").json()
+    def fetch_pipelines(self, limit: int = 10, skip: int = 0) -> dict:
+        try:
+            response: requests.Response = requests.get(
+                f"{DUUIClient.__URL}/pipelines?limit={limit}&skip={skip}",
+                headers={"Authorization": self.__KEY},
+            )
+        except requests.exceptions.ConnectionError as exception:
+            return {"error": "The connection to the API could not be established."}
+
+        if response.ok:
+            return response.json()
+
+        return {"error": response.text}
 
 
 if __name__ == "__main__":
     client = DUUIClient("6e150c69-c6f2-403b-968a-4ba274adadb7")
-    print(client.fetch_pipeline("650d81296569b14506ce29ba")['components'][0]["description"])
+    # print(datetime.datetime.now().timestamp() * 1000)
+    # print(datetime.datetime.fromtimestamp(1417601730000 / 1000))
+    # print(client.fetch_pipeline("650d81296569b14506ce29ba")['components'][0]["description"])

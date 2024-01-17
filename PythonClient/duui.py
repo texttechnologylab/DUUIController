@@ -1,7 +1,7 @@
 import json
 import requests
 
-from pipeline import DUUIComponent, DUUIComponentSettings, DUUIPipeline, Driver
+from duui.pipeline import DUUIComponent, DUUIComponentSettings, DUUIPipeline, Driver
 
 
 def as_json(json_dict: dict) -> str:
