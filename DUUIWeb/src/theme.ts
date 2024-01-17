@@ -15,7 +15,7 @@ export const Theme: CustomThemeConfig = {
 		'--on-primary': '255 255 255',
 		'--on-secondary': '0 0 0',
 		'--on-tertiary': '0 0 0',
-		'--on-success': '0 0 0',
+		'--on-success': '255 255 255',
 		'--on-warning': '0 0 0',
 		'--on-error': '255 255 255',
 		'--on-surface': '255 255 255',

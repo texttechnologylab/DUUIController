@@ -1,24 +1,20 @@
 <script lang="ts">
-	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
-	import DriverIcon from '$lib/svelte/DriverIcon.svelte'
-	import { blankPipeline, usedDrivers } from '$lib/duui/pipeline'
+	import { blankPipeline } from '$lib/duui/pipeline'
 	import { includes } from '$lib/duui/utils/text'
+	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import {
 		faClose,
-		faFileImage,
 		faFileImport,
 		faPlus,
-		faSearch,
-		faWifi
+		faSearch
 	} from '@fortawesome/free-solid-svg-icons'
 
-	import Fa from 'svelte-fa'
 	import { goto } from '$app/navigation'
-	import { FileButton, Step } from '@skeletonlabs/skeleton'
 	import { currentPipelineStore } from '$lib/store.js'
-	import Search from '$lib/svelte/widgets/input/Search.svelte'
 	import PipelineCard from '$lib/svelte/widgets/duui/PipelineCard.svelte'
-	import IconButton from '$lib/svelte/widgets/action/IconButton.svelte'
+	import Search from '$lib/svelte/widgets/input/Search.svelte'
+	import { FileButton } from '@skeletonlabs/skeleton'
+	import Fa from 'svelte-fa'
 
 	export let data
 
@@ -50,10 +46,6 @@
 		filteredPipelines = pipelines.filter(
 			(pipeline) => includes(pipeline.name + ' ' + pipeline.description, searchText) || !searchText
 		)
-
-		if (activeOnly) {
-			filteredPipelines = filteredPipelines.filter((pipeline) => pipeline.serviceStartTime !== 0)
-		}
 
 		filteredPipelines = filteredPipelines.filter((pipeline) => pipeline.timesUsed === 0 || !unused)
 	}

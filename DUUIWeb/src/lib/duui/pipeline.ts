@@ -7,7 +7,6 @@ export interface DUUIPipeline {
 	name: string
 	description: string
 	createdAt: number
-	serviceStartTime: number
 	timesUsed: number
 	lastUsed: number | undefined
 	settings: Object
@@ -23,7 +22,6 @@ export const blankPipeline = () =>
 		name: 'New Pipeline',
 		description: '',
 		createdAt: Date.now(),
-		serviceStartTime: 0,
 		timesUsed: 0,
 		lastUsed: 0,
 		settings: {},

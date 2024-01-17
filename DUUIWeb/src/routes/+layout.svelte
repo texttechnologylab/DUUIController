@@ -21,14 +21,15 @@
 
 	import { helpStore, userSession } from '$lib/store'
 	import Link from '$lib/svelte/Link.svelte'
+	import ConfirmModal from '$lib/svelte/widgets/modal/ConfirmModal.svelte'
 	import DeleteModal from '$lib/svelte/widgets/modal/DeleteModal.svelte'
 	import DocumentModal from '$lib/svelte/widgets/modal/DocumentModal.svelte'
 	import Documentation from '$lib/svelte/widgets/navigation/Documentation.svelte'
-	import ConfirmModal from '$lib/svelte/widgets/modal/ConfirmModal.svelte'
 	import Sidebar from '$lib/svelte/widgets/navigation/Sidebar.svelte'
 	import { arrow, autoUpdate, computePosition, flip, offset, shift } from '@floating-ui/dom'
 	import { Modal } from '@skeletonlabs/skeleton'
 
+	import ComponentModal from '$lib/svelte/widgets/modal/Component.svelte'
 	import PromptModal from '$lib/svelte/widgets/modal/PromptModal.svelte'
 	import Help from '$lib/svelte/widgets/navigation/Help.svelte'
 	import HelpToggle from '$lib/svelte/widgets/navigation/HelpToggle.svelte'
@@ -64,7 +65,6 @@
 		let expirationDate = $userSession?.expires ? new Date($userSession.expires) : undefined
 
 		if (expirationDate && expirationDate < new Date()) {
-			console.log('Login session expired.')
 			$userSession = null
 		}
 	})
@@ -84,7 +84,8 @@
 		deleteModal: { ref: DeleteModal },
 		documentModal: { ref: DocumentModal },
 		promptModal: { ref: PromptModal },
-		confirmModal: { ref: ConfirmModal }
+		confirmModal: { ref: ConfirmModal },
+		componentModal: { ref: ComponentModal }
 	}
 </script>
 

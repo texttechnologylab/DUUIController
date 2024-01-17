@@ -55,8 +55,6 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 			}
 		)
 
-
-
 		const documentQuery = await response.json()
 		return documentQuery
 	}
@@ -77,8 +75,8 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 
 	return {
 		process: process,
-		pipeline: loadPipeline(process),
-		documentQuery: loadDocuments(),
-		timeline: loadTimeline()
+		pipeline: await loadPipeline(process),
+		documentQuery: await loadDocuments(),
+		timeline: await loadTimeline()
 	}
 }

@@ -58,7 +58,7 @@
 							<Fa icon={faArrowRight} size="lg" />
 						</a>
 					{:else}
-						<a href="/pipelinesr" class="flex items-center gap-2 px-6 py-3 grow-from-left">
+						<a href="/pipelines" class="flex items-center gap-2 px-6 py-3 grow-from-left">
 							<span> Get back to it </span>
 							<Fa icon={faArrowRight} size="lg" />
 						</a>

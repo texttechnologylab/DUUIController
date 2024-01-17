@@ -5,7 +5,7 @@ export const DUUIRemoteDriver = 'DUUIRemoteDriver'
 export const DUUIDockerDriver = 'DUUIDockerDriver'
 export const DUUISwarmDriver = 'DUUISwarmDriver'
 export const DUUIUIMADriver = 'DUUIUIMADriver'
-export const DUUIKubernetsDriver = 'DUUIKubernetsDriver'
+export const DUUIKubernetesDriver = 'DUUIKubernetesDriver'
 
 export type DUUIDriver =
 	| 'DUUIRemoteDriver'
@@ -20,7 +20,7 @@ export const DUUIDriverFilters = [
 	'DUUIDockerDriver',
 	'DUUISwarmDriver',
 	'DUUIUIMADriver',
-	'DUUIKubernetsDriver'
+	'DUUIKubernetesDriver'
 ]
 
 export const DUUIDrivers: string[] = [
@@ -28,7 +28,7 @@ export const DUUIDrivers: string[] = [
 	DUUIDockerDriver,
 	DUUISwarmDriver,
 	DUUIUIMADriver,
-	DUUIKubernetsDriver
+	DUUIKubernetesDriver
 ]
 
 export type SvelteComponentWrapper = {

@@ -16,7 +16,7 @@ export async function POST({ request, locals }) {
 
 	const code = data.code
 	if (!code) {
-		throw error(404, 'Code not found in url')
+		error(404, 'Code not found in url');
 	}
 
 	const token: DropboxResponse<object> = await dbxAuth.getAccessTokenFromCode(redirectURI, code)

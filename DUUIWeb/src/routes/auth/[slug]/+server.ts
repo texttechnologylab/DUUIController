@@ -123,7 +123,7 @@ export const POST: RequestHandler = async (event) => {
 	try {
 		switch (slug) {
 			case 'logout':
-				cookies.delete('session')
+				cookies.delete('session', { path: '/' })
 				return json({ message: 'Logout complete' })
 			case 'login':
 				authenticationResult = await login(event)
@@ -153,8 +153,8 @@ export const POST: RequestHandler = async (event) => {
 	event.locals.user = user
 	cookies.set('session', user.session, {
 		path: '/',
+		sameSite: 'lax',
 		httpOnly: true,
-		sameSite: 'strict',
 		secure: process.env.NODE_ENV === 'production',
 		maxAge: 60 * 60 * 24 * 30
 	})

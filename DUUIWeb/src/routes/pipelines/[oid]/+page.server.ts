@@ -40,7 +40,7 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 	}
 
 	return {
-		pipeline: loadPipeline(),
-		processInfo: loadProcesses()
+		pipeline: await loadPipeline(),
+		processInfo: await loadProcesses()
 	}
 }

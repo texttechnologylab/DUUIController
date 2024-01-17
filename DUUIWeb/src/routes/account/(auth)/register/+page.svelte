@@ -50,7 +50,6 @@
 			goto('/pipelines')
 		} else {
 			message = result
-			console.log(result)
 		}
 	}
 

@@ -79,7 +79,7 @@ export const getDocumentStatusIcon = (document: DUUIDocument) => {
 	return document.error ? faClose : document.finished ? faCheck : faRefresh
 }
 
-export const success = (message: string, duration: number = 4000): ToastSettings => {
+export const successToast = (message: string, duration: number = 4000): ToastSettings => {
 	return {
 		message: message,
 		timeout: duration,
@@ -88,7 +88,7 @@ export const success = (message: string, duration: number = 4000): ToastSettings
 	}
 }
 
-export const info = (message: string, duration: number = 4000): ToastSettings => {
+export const infoToast = (message: string, duration: number = 4000): ToastSettings => {
 	return {
 		message: message,
 		timeout: duration,
@@ -97,7 +97,7 @@ export const info = (message: string, duration: number = 4000): ToastSettings =>
 	}
 }
 
-export const error = (message: string, duration: number = 4000): ToastSettings => {
+export const errorToast = (message: string, duration: number = 4000): ToastSettings => {
 	return {
 		message: message,
 		timeout: duration,

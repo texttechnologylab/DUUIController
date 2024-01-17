@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { scrollIntoView } from '$lib/duui/utils/ui'
-	import HelpToggle from '$lib/svelte/widgets/navigation/HelpToggle.svelte'
 	import { onMount } from 'svelte'
 
 	onMount(() => {

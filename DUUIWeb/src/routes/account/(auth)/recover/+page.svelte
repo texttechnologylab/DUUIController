@@ -1,12 +1,9 @@
 <script lang="ts">
-	import { page } from '$app/stores'
 	import { scrollIntoView } from '$lib/duui/utils/ui'
-	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import Text from '$lib/svelte/widgets/input/TextInput.svelte'
 	import {
 		faEnvelope,
-		faEnvelopeCircleCheck,
-		faExclamationTriangle
+		faEnvelopeCircleCheck
 	} from '@fortawesome/free-solid-svg-icons'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'

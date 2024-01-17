@@ -5,7 +5,7 @@ import { API_URL } from '$lib/config'
 
 export const load: LayoutServerLoad = async ({ locals, url, cookies }) => {
 	if (!locals.user) {
-		throw redirect(302, handleLoginRedirect(url))
+		redirect(302, handleLoginRedirect(url));
 	}
 
 	const fetchProfile = async () => {

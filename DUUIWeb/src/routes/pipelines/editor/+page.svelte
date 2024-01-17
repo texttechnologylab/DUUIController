@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
-	import DriverIcon from '$lib/svelte/DriverIcon.svelte'
 	import { DUUIDrivers, blankComponent, type DUUIComponent } from '$lib/duui/component'
 	import {
 		blankPipeline,
@@ -11,17 +10,17 @@
 	} from '$lib/duui/pipeline'
 	import { Api, makeApiCall } from '$lib/duui/utils/api'
 	import { includes } from '$lib/duui/utils/text'
-	import { scrollIntoView, success } from '$lib/duui/utils/ui'
+	import { scrollIntoView, successToast } from '$lib/duui/utils/ui'
 	import { currentPipelineStore } from '$lib/store'
+	import DriverIcon from '$lib/svelte/DriverIcon.svelte'
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import PipelineCard from '$lib/svelte/widgets/duui/PipelineCard.svelte'
 	import PipelineComponent from '$lib/svelte/widgets/duui/PipelineComponent.svelte'
 	import Chips from '$lib/svelte/widgets/input/Chips.svelte'
-	import JsonPreview from '$lib/svelte/widgets/input/JsonPreview.svelte'
+	import JsonPreview from '$lib/svelte/widgets/input/JsonInput.svelte'
 	import Search from '$lib/svelte/widgets/input/Search.svelte'
 	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
 	import Text from '$lib/svelte/widgets/input/TextInput.svelte'
-	import ComponentModal from '$lib/svelte/widgets/modal/Component.svelte'
 	import {
 		faArrowDown,
 		faArrowLeft,
@@ -31,14 +30,15 @@
 		faSearch,
 		faUpload
 	} from '@fortawesome/free-solid-svg-icons'
-	import type { ModalComponent, ModalSettings } from '@skeletonlabs/skeleton'
+	import type { ModalSettings } from '@skeletonlabs/skeleton'
 	import { getModalStore, getToastStore } from '@skeletonlabs/skeleton'
-	import { cloneDeep } from 'lodash'
 	import { dndzone, type DndEvent } from 'svelte-dnd-action'
 	import Fa from 'svelte-fa'
 	import { flip } from 'svelte/animate'
 	import { v4 as uuidv4 } from 'uuid'
 	import ComponentTemplates from './ComponentTemplates.svelte'
+	import pkg from 'lodash'
+	const { cloneDeep } = pkg
 
 	export let data
 
@@ -113,11 +113,8 @@
 
 		if (response.ok) {
 			const data = await response.json()
-			toastStore.trigger(success('Pipeline created successfully'))
+			toastStore.trigger(successToast('Pipeline created successfully'))
 			goto(`/pipelines/${data.oid}`)
-		} else {
-			console.log(data);
-			
 		}
 	}
 
@@ -131,8 +128,6 @@
 		copyTemplate.id = uuidv4()
 
 		$currentPipelineStore.components = [...$currentPipelineStore.components, copyTemplate]
-		console.log($currentPipelineStore.components.map((c) => c.id))
-
 		scrollIntoView('top')
 	}
 
@@ -154,29 +149,22 @@
 		step = 1
 	}
 
-	const componentModal: ModalComponent = {
-		ref: ComponentModal
-	}
-
 	const addComponent = () => {
 		let c = blankComponent($currentPipelineStore.oid, $currentPipelineStore.components.length + 1)
-		new Promise<boolean>((resolve) => {
+		new Promise<{ accepted: boolean; component: DUUIComponent }>((resolve) => {
 			const modal: ModalSettings = {
 				type: 'component',
-				component: componentModal,
+				component: 'componentModal',
 				meta: { component: c, new: true },
-				response: (r: boolean) => {
+				response: (r: { accepted: boolean; component: DUUIComponent }) => {
 					resolve(r)
 				}
 			}
 			modalStore.trigger(modal)
+		}).then(async ({ accepted, component }) => {
+			if (!accepted) return
+			$currentPipelineStore.components = [...$currentPipelineStore.components, c]
 		})
-			.then(async (accepted: boolean) => {
-				if (!accepted) return
-
-				$currentPipelineStore.components = [...$currentPipelineStore.components, c]
-			})
-			.catch((e) => console.log(e))
 	}
 
 	const uploadPipeline = async () => {
@@ -187,7 +175,7 @@
 		})
 
 		if (response.ok) {
-			toastStore.trigger(success('Pipeline uploaded successfully'))
+			toastStore.trigger(successToast('Pipeline uploaded successfully'))
 			goto(`/pipelines`)
 		}
 	}

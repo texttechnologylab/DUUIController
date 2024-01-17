@@ -1,7 +1,7 @@
 <script lang="ts">
 	import {
 		DUUIDockerDriver,
-		DUUIKubernetsDriver,
+		DUUIKubernetesDriver,
 		DUUIRemoteDriver,
 		DUUISwarmDriver,
 		DUUIUIMADriver,
@@ -24,7 +24,7 @@
 		<Fa icon={faWifi} class="text-success-500" size="2x" />
 	{:else if equals(driver, DUUIUIMADriver)}
 		<Fa icon={faJava} class="text-error-500" size="2x" />
-	{:else if equals(driver, DUUIKubernetsDriver)}
+	{:else if equals(driver, DUUIKubernetesDriver)}
 		<svg
 			viewBox="0 -10.44 722.846 722.846"
 			xmlns="http://www.w3.org/2000/svg"

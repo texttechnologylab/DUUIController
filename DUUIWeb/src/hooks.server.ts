@@ -17,6 +17,7 @@ const fetchUser = async (
 
 	if (response.ok) {
 		const json = await response.json()
+
 		event.locals.user = json.user
 	}
 }

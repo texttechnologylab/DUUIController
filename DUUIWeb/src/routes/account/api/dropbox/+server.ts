@@ -15,7 +15,7 @@ export async function POST({ request, cookies, locals }) {
 
 	const code = data.code
 	if (!code) {
-		throw error(404, 'Code not found in url')
+		error(404, 'Code not found in url')
 	}
 
 	const token: DropboxResponse<object> = await dbxAuth.getAccessTokenFromCode(redirectURI, code)
@@ -40,7 +40,7 @@ export async function POST({ request, cookies, locals }) {
 	return response
 }
 
-export async function DELETE({ request, cookies, locals }) {
+export async function DELETE({ cookies, locals }) {
 	const user = locals.user
 
 	const response = await fetch(`${API_URL}/users/${user.oid}`, {

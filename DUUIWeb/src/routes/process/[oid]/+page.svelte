@@ -16,8 +16,8 @@
 		documentStatusNames,
 		getDocumentStatusIcon,
 		getStatusIcon,
-		info,
-		success
+		infoToast,
+		successToast
 	} from '$lib/duui/utils/ui'
 	import IconButton from '$lib/svelte/widgets/action/IconButton.svelte'
 	import DocumentModal from '../../../lib/svelte/widgets/modal/DocumentModal.svelte'
@@ -240,11 +240,11 @@
 	const cancelProcess = async () => {
 		const response = await makeApiCall(Api.Processes, 'PUT', { oid: process.oid })
 		if (response.ok) {
-			toastStore.trigger(success('Process has been canceled'))
+			toastStore.trigger(successToast('Process has been canceled'))
 			process.status = Status.Cancelled
 			process.finished = true
 		} else {
-			toastStore.trigger(info('Process has already been canceled'))
+			toastStore.trigger(infoToast('Process has already been canceled'))
 		}
 	}
 
@@ -267,7 +267,7 @@
 
 			const response = await makeApiCall(Api.Processes, 'DELETE', { oid: process.oid })
 			if (response.ok) {
-				toastStore.trigger(info('Process has been deleted'))
+				toastStore.trigger(infoToast('Process has been deleted'))
 				goto(`/pipelines/${pipeline.oid}?tab=1`)
 			}
 		})

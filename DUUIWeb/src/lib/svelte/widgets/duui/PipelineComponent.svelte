@@ -6,12 +6,13 @@
 	import TextArea from '../input/TextArea.svelte'
 	import Text from '../input/TextInput.svelte'
 
-	import { cloneDeep, isEqual } from 'lodash'
+	import pkg from 'lodash'
+	const { cloneDeep, isEqual } = pkg
 
 	import { DUUIDrivers, type DUUIComponent } from '$lib/duui/component'
 	import { Api, makeApiCall } from '$lib/duui/utils/api'
 	import { slugify } from '$lib/duui/utils/text'
-	import { scrollIntoView, success, variantError, variantSuccess } from '$lib/duui/utils/ui'
+	import { scrollIntoView, successToast, variantError, variantSuccess } from '$lib/duui/utils/ui'
 	import {
 		faFileCircleCheck,
 		faFileCircleXmark,
@@ -27,7 +28,7 @@
 	} from '@skeletonlabs/skeleton'
 	import { createEventDispatcher } from 'svelte'
 	import IconButton from '../action/IconButton.svelte'
-	import JsonPreview from '../input/JsonPreview.svelte'
+	import JsonPreview from '../input/JsonInput.svelte'
 
 	export let component: DUUIComponent
 
@@ -53,7 +54,7 @@
 		if (!isNew) {
 			const response = await makeApiCall(Api.Components, 'PUT', component)
 			if (response.ok) {
-				toastStore.trigger(success('Component updated successfully'))
+				toastStore.trigger(successToast('Component updated successfully'))
 				componentCopy = cloneDeep(component)
 			}
 		}
@@ -105,7 +106,7 @@
 			if (!accepted) return
 
 			makeApiCall(Api.Components, 'DELETE', component)
-			toastStore.trigger(success('Component deleted successfully'))
+			toastStore.trigger(successToast('Component deleted successfully'))
 			dispatcher('deleteComponent', { oid: component.oid })
 		})
 	}
@@ -136,7 +137,7 @@
 				on:click={() => {
 					expanded = !expanded
 					if (!isNew) return
-					
+
 					if (expanded) {
 						scrollIntoView(slugify(component.name))
 					} else {
@@ -172,12 +173,7 @@
 					bind:value={component.settings.target}
 				/>
 
-				<Chips
-					style="md:col-span-2"
-					label="Categories"
-					bind:values={component.categories}
-					on:push={() => console.log(component.categories)}
-				/>
+				<Chips style="md:col-span-2" label="Categories" bind:values={component.categories} />
 				<TextArea
 					style="md:col-span-2"
 					label="Description"

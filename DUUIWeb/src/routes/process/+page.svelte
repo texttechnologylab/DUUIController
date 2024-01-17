@@ -9,18 +9,18 @@
 		Output,
 		OutputFileExtensions,
 		OutputTargets,
+		areSettingsValid,
 		isValidIO,
 		isValidInput,
 		isValidOutput,
 		isValidS3BucketName,
 		type DUUIDocumentProvider,
 		type FileExtension,
-		type IOProvider,
-		areSettingsValid
+		type IOProvider
 	} from '$lib/duui/io.js'
 	import { Api, makeApiCall } from '$lib/duui/utils/api'
 	import { equals, formatFileSize } from '$lib/duui/utils/text'
-	import { error } from '$lib/duui/utils/ui'
+	import { errorToast } from '$lib/duui/utils/ui'
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import Checkbox from '$lib/svelte/widgets/input/Checkbox.svelte'
 	import Dropdown from '$lib/svelte/widgets/input/Dropdown.svelte'
@@ -84,7 +84,7 @@
 
 			if (!fileUpload.ok) {
 				const errorMessge = await fileUpload.text()
-				toastStore.trigger(error('File upload failed. ' + errorMessge + ' '))
+				toastStore.trigger(errorToast('File upload failed. ' + errorMessge + ' '))
 				starting = false
 				return
 			}
@@ -171,7 +171,11 @@
 		</div>
 		<div class="p-4 md:p-8 space-y-4">
 			<h1 class="h1 mb-8">New Process</h1>
-			<div class="grid md:grid-cols-3 gap-4">
+			<div
+				class="grid {!equals(input.provider, IO.Text) && !equals(input.provider, IO.File)
+					? 'md:grid-cols-3'
+					: 'md:grid-cols-2'} gap-4"
+			>
 				<div
 					class="section-wrapper p-4 md:p-8 space-y-8
 				 {isValidInput(input, files) ? '!border-success-500 !border-2' : ''}"
@@ -313,69 +317,72 @@
 					</div>
 				</div>
 
-				<div
-					class="section-wrapper p-4 md:p-8 space-y-8
+				{#if !equals(input.provider, IO.Text) && !equals(input.provider, IO.File)}
+					<div
+						class="section-wrapper p-4 md:p-8 space-y-8
 				{settingsAreValid.length === 0 ? '!border-success-500 !border-2' : ''}"
-				>
-					<div class="flex items-center gap-4 justify-between">
-						<h2 class="h2">Settings</h2>
-						{#if settingsAreValid.length === 0}
-							<Fa icon={faCheck} class="text-success-500" size="2x" />
+					>
+						<div class="flex items-center gap-4 justify-between">
+							<h2 class="h2">Settings</h2>
+							{#if settingsAreValid.length === 0}
+								<Fa icon={faCheck} class="text-success-500" size="2x" />
+							{/if}
+						</div>
+						{#if settingsAreValid.length > 0}
+							<p class="text-error-500">{settingsAreValid}</p>
 						{/if}
-					</div>
-					{#if settingsAreValid.length > 0}
-						<p class="text-error-500">{settingsAreValid}</p>
-					{/if}
-					<div class="grid space-y-4">
-						{#if input.provider !== IO.Text && input.provider !== IO.File}
-							<div class="grid grid-cols-2 gap-4">
-								<div>
+						<div class="grid space-y-4">
+							{#if input.provider !== IO.Text && input.provider !== IO.File}
+								<div class="grid grid-cols-2 gap-4">
+									<div>
+										<Number
+											label="Skip files smaller than"
+											max={2147483647}
+											name="skipFiles"
+											bind:value={skipFiles}
+										/>
+										<span class="text-xs pl-2">Bytes</span>
+									</div>
 									<Number
-										label="Skip files smaller than"
-										max={2147483647}
-										name="skipFiles"
-										bind:value={skipFiles}
+										label="Worker count"
+										min={1}
+										max={100}
+										name="workerCount"
+										bind:value={workerCount}
 									/>
-									<span class="text-xs pl-2">Bytes</span>
 								</div>
-								<Number
-									label="Worker count"
-									min={1}
-									max={100}
-									name="workerCount"
-									bind:value={workerCount}
-								/>
-							</div>
 
-							<div class="grid md:grid-cols-2 gap-4">
-								<Checkbox
-									bind:checked={recursive}
-									name="recursive"
-									label="Find files recursively starting in the path directory"
-								/>
+								<div class="grid md:grid-cols-2 gap-4">
+									<Checkbox
+										bind:checked={recursive}
+										name="recursive"
+										label="Find files recursively starting in the path directory"
+									/>
 
-								<Checkbox
-									bind:checked={checkTarget}
-									name="checkTarget"
-									label="Ignore files already present in the target location"
-								/>
+									<Checkbox
+										bind:checked={checkTarget}
+										name="checkTarget"
+										label="Ignore files already present in the target location"
+									/>
 
-								<Checkbox
-									bind:checked={sortBySize}
-									name="sortBySize"
-									label="Sort files by size in ascending order"
-								/>
+									<Checkbox
+										bind:checked={sortBySize}
+										name="sortBySize"
+										label="Sort files by size in ascending order"
+									/>
 
-								<Checkbox
-									bind:checked={overwrite}
-									name="recursive"
-									label="Overwrite existing files on conflict"
-								/>
-							</div>
-						{/if}
+									<Checkbox
+										bind:checked={overwrite}
+										name="recursive"
+										label="Overwrite existing files on conflict"
+									/>
+								</div>
+							{/if}
+						</div>
 					</div>
-				</div>
+				{/if}
 			</div>
+
 			{#if needsAuthentication}
 				<div
 					in:fly

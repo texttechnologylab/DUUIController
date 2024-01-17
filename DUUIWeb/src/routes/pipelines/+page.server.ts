@@ -5,7 +5,7 @@ import type { DUUIPipeline } from '$lib/duui/pipeline'
 
 export const load: PageServerLoad = async ({ fetch, locals, cookies }) => {
 	if (!locals.user) {
-		throw redirect(300, '/user/login')
+		redirect(300, '/user/login');
 	}
 	const loadPipelines = async (): Promise<{ pipelines: DUUIPipeline[] }> => {
 		const response = await fetch(`${API_URL}/pipelines`, {

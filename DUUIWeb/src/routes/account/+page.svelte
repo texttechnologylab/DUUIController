@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { goto } from '$app/navigation'
 	import { Api, makeApiCall } from '$lib/duui/utils/api'
-	import { info } from '$lib/duui/utils/ui.js'
+	import { infoToast } from '$lib/duui/utils/ui.js'
 	import { userSession } from '$lib/store.js'
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import Checkbox from '$lib/svelte/widgets/input/Checkbox.svelte'
@@ -16,7 +15,6 @@
 		faKey,
 		faLink,
 		faRefresh,
-		faTrash,
 		faXmarkCircle
 	} from '@fortawesome/free-solid-svg-icons'
 	import {
@@ -31,22 +29,22 @@
 	const { user, dropbBoxURL } = data
 
 	let connections = {
-		dropbox: false,
-		minio: false,
-		mongodb: true
+		dropbox: !!user?.dropbox || false,
+		minio: !!user?.minio || false,
+		mongodb: !!user?.mongoDBConnectionURI || false
 	}
 
 	const toastStore = getToastStore()
 
-	let minioEndpoint: string = $userSession?.minio?.endpoint || ''
 	let minioAccessKey: string = $userSession?.minio?.access_key || ''
+	let minioEndpoint: string = $userSession?.minio?.endpoint || ''
 	let minioSecretKey: string = $userSession?.minio?.secret_key || ''
 
-	let mongoDBConnectionURI: string = 'mongodb+srv://TestUser:1234@testcluster.727ylpr.mongodb.net/'
+	let mongoDBConnectionURI: string = $userSession?.mongoDBConnectionURI || ''
 
 	const updateUser = async (data: object) => {
 		const response = await fetch('/api/users', { method: 'PUT', body: JSON.stringify(data) })
-		toastStore.trigger(info(response.statusText))
+		toastStore.trigger(infoToast(response.statusText))
 		return response
 	}
 
@@ -65,7 +63,6 @@
 
 		if (response.ok) {
 			const userResponse = await response.json()
-			console.log(userResponse)
 			user.key = userResponse.user.key
 		}
 	}
@@ -131,7 +128,7 @@
 	}
 
 	const startDropboxOauth = async () => {
-		goto(dropbBoxURL.toString())
+		window.location.href = (await dropbBoxURL).toString()
 	}
 
 	const modalStore = getModalStore()
@@ -144,7 +141,8 @@
 				meta: {
 					title: 'Revoke Access for Dropbox',
 					body: `Are you sure you want to revoke access?
-					 You will have to go through the OAuth process again to reconnect.`
+					 You will have to go through the OAuth process again to reconnect.`,
+					deleteText: 'Revoke'
 				},
 				response: (r: boolean) => {
 					resolve(r)
@@ -185,7 +183,8 @@
 				component: 'deleteModal',
 				meta: {
 					title: 'Revoke Access for Min.io',
-					body: `Are you sure you want to revoke access?`
+					body: `Are you sure you want to revoke access?`,
+					deleteText: 'Revoke'
 				},
 				response: (r: boolean) => {
 					resolve(r)
@@ -425,14 +424,14 @@
 					icon={connections.mongodb ? faRefresh : faLink}
 					on:click={() => updateUser({ mongoDBConnectionURI: mongoDBConnectionURI })}
 				/>
-				<!-- {#if connections.mongodb}
+				{#if connections.mongodb}
 					<ActionButton
-						icon={faTrash}
+						icon={faXmarkCircle}
 						text="Revoke access"
 						variant="variant-filled-error dark:variant-soft-error"
-						on:click={revokeMinioAccess}
+						on:click={() => updateUser({ mongoDBConnectionURI: '' })}
 					/>
-				{/if} -->
+				{/if}
 			</div>
 			<p class="text-surface-500 dark:text-surface-200">
 				Visit

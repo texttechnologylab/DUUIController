@@ -62,39 +62,20 @@
 		data = data
 		edit = false
 	}
-
-	let files: FileList
-	const importData = async () => {
-		if (!files) return
-		const file: File = files[0]
-		try {
-			const importedData = JSON.parse(await file.text())
-			data = new Map(Object.entries(importedData))
-			for (let [key, value] of data.entries()) {
-				if (typeof value === 'object') {
-					data.delete(key)
-				}
-			}
-		} catch (err) {
-			getToastStore().trigger({
-				message: 'Error'
-			})
-		}
-	}
 </script>
 
-<label class="label flex flex-col" >
+<label class="label flex flex-col">
 	<span class="form-label">Settings</span>
 	<div class="input-no-highlight p-4">
 		<div class="flex items-center gap-2 mb-4">
 			{#if !edit}
 				<button
-					class="btn variant-soft-primary"
+					class="button button-primary"
 					on:click={() => {
 						key = ''
 						value = ''
 						edit = true
-					}}><span>New</span><Fa icon={faPlus} size="lg" /></button
+					}}><span>New</span><Fa icon={faPlus} /></button
 				>
 				{#if history.length > 0}
 					<button disabled={history.length === 0} class="btn variant-soft-primary" on:click={undo}>
@@ -153,9 +134,9 @@
 				</p>
 			</div>
 		{/if}
-		<div class="grid lg:grid-cols-2 justify-start items-start gap-2">
+		<div class="flex flex-wrap justify-start items-start gap-2">
 			{#each data.entries() as [_key, _value]}
-				<div class="bg-fancy rounded-md">
+				<div class="bg-fancy rounded-md p-4 border border-color">
 					<div class="flex items-center gap-2">
 						<button
 							class="spect-square rounded-full hover:text-error-500 transition-colors"
@@ -181,35 +162,6 @@
 						</span>
 					</div>
 				</div>
-
-				<!-- <div>
-				<div class="flex items-center justify-start gap-2">
-					<div class="flex flex-col gap-1">
-						<div class="flex items-center gap-x-2">
-							<button
-								class="spect-square rounded-full hover:text-error-500 transition-colors"
-								on:click={() => remove(_key)}><Fa icon={faClose} size="lg" /></button
-							>
-							<span class="text-sm text-primary-600">{typeof _value}</span>
-						</div>
-
-						<button
-							class="aspect-square rounded-full hover:text-primary-500 transition-colors"
-							on:click={() => {
-								edit = true
-								key = _key
-								value = _value
-							}}><Fa icon={faPen} /></button
-						>
-
-						<span class="text-start">
-							{_key}
-						</span>
-						<span class="text-start">
-							{_value}
-						</span>
-					</div>
-				</div> -->
 			{/each}
 		</div>
 	</div>
