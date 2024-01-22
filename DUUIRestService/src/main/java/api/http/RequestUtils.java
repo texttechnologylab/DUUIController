@@ -7,28 +7,19 @@ import static com.mongodb.client.model.Filters.eq;
 
 public class RequestUtils {
 
-    public static int Limit(Request request) {
-        return Integer.parseInt(request.queryParamOrDefault("limit", "0"));
+    public static int getLimit(Request request) {
+        return Integer.parseInt(request.queryParamOrDefault("limit", "10"));
     }
 
-    public static int Skip(Request request) {
+    public static int getSkip(Request request) {
         return Integer.parseInt(request.queryParamOrDefault("skip", "0"));
     }
 
-    public static boolean validateSession(String session) {
-        return DUUIMongoDBStorage
-            .Users()
-            .countDocuments(eq("session", session)) > 0;
+    public static String getSort(Request request) {
+        return request.queryParamOrDefault("sort", "");
     }
 
-    public static boolean validateApiKey(String key) {
-        return DUUIMongoDBStorage
-            .Users()
-            .countDocuments(eq("key", key)) > 0;
-    }
-
-    public static boolean isAuthorized(Request request) {
-        String key = request.headers("Authorization");
-        return validateSession(key) || validateApiKey(key);
+    public static int getOrder(Request request) {
+        return Integer.parseInt(request.queryParamOrDefault("order", "1"));
     }
 }

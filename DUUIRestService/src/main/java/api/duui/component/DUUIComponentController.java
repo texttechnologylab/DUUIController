@@ -6,29 +6,32 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 import org.bson.Document;
 import org.bson.types.ObjectId;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
 import spark.Request;
 import spark.Response;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 
-import static api.http.RequestUtils.Limit;
-import static api.http.RequestUtils.Skip;
+import static api.http.RequestUtils.getLimit;
+import static api.http.RequestUtils.getSkip;
 import static api.http.ResponseUtils.notFound;
 import static api.http.ResponseUtils.success;
 import static api.requests.validation.UserValidator.*;
 import static api.requests.validation.Validator.isNullOrEmpty;
 import static api.requests.validation.Validator.missingField;
 import static api.storage.DUUIMongoDBStorage.mergeUpdates;
-import static api.storage.DUUIMongoDBStorage.mapObjectIdToString;
+import static api.storage.DUUIMongoDBStorage.convertObjectIdToString;
 import static com.mongodb.client.model.Sorts.ascending;
 
 public class DUUIComponentController {
 
-    private static final List<String> _fields = List.of(
+    private static final Set<String> ALLOWED_UPDATES = Set.of(
         "name",
         "description",
         "categories",
@@ -68,8 +71,10 @@ public class DUUIComponentController {
             .append("name", name)
             .append("categories", data.getList("categories", String.class))
             .append("description", data.getString("description"))
-            .append("status", "None")
+            .append("status", DUUIStatus.INACTIVE)
             .append("settings", settings)
+            .append("created_at", Instant.now().toEpochMilli())
+            .append("modified_at", Instant.now().toEpochMilli())
             .append("pipeline_id", data.getString("pipeline_id"))
             .append("user_id", data.getString("user_id"))
             .append("index", data.getInteger("index"));
@@ -78,7 +83,7 @@ public class DUUIComponentController {
             .Components()
             .insertOne(component);
 
-        mapObjectIdToString(component);
+        convertObjectIdToString(component);
         return success(response, 200, component.toJson());
     }
 
@@ -91,7 +96,7 @@ public class DUUIComponentController {
             .first();
         if (isNullOrEmpty(component)) return notFound(response, "Component");
 
-        mapObjectIdToString(component);
+        convertObjectIdToString(component);
         return success(response, 200, component.toJson());
     }
 
@@ -100,8 +105,8 @@ public class DUUIComponentController {
         Document user = authenticate(authorization);
         if (isNullOrEmpty(user)) return unauthorized(response);
 
-        int limit = Limit(request);
-        int skip = Skip(request);
+        int limit = getLimit(request);
+        int skip = getSkip(request);
 
         FindIterable<Document> components = DUUIMongoDBStorage
             .Components()
@@ -119,7 +124,7 @@ public class DUUIComponentController {
 
         List<Document> documents = new ArrayList<>();
         components.into(documents);
-        documents.forEach(DUUIMongoDBStorage::mapObjectIdToString);
+        documents.forEach(DUUIMongoDBStorage::convertObjectIdToString);
 
         return success(response, 200, new Document("components", documents).toJson());
     }
@@ -131,7 +136,7 @@ public class DUUIComponentController {
         DUUIMongoDBStorage
             .Components()
             .findOneAndUpdate(Filters.eq(new ObjectId(id)),
-                mergeUpdates(updates, _fields));
+                mergeUpdates(updates, ALLOWED_UPDATES));
 
         response.status(200);
         return getComponentById(id).toJson();
@@ -148,10 +153,10 @@ public class DUUIComponentController {
         return new Document("message", "Component deleted").toJson();
     }
 
-    public static void deleteMany(String id) {
+    public static void deleteMany(String pipelineID) {
         DUUIMongoDBStorage
             .Components()
-            .deleteMany(Filters.eq("pipeline_id", id));
+            .deleteMany(Filters.eq("pipeline_id", pipelineID));
     }
 
     public static Document getComponentById(String id) {
@@ -171,7 +176,7 @@ public class DUUIComponentController {
                     .spliterator(), false
             ).collect(Collectors.toList());
 
-        documents.forEach(DUUIMongoDBStorage::mapObjectIdToString);
+        documents.forEach(DUUIMongoDBStorage::convertObjectIdToString);
         return documents;
     }
 

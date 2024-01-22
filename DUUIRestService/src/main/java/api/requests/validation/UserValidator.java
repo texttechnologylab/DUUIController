@@ -3,20 +3,11 @@ package api.requests.validation;
 import api.duui.users.DUUIUserController;
 import api.duui.users.Role;
 import org.bson.Document;
-import org.bson.types.ObjectId;
 import spark.Response;
 
 import static api.requests.validation.Validator.isNullOrEmpty;
 
 public class UserValidator {
-
-    public static boolean isAuthorized(String session, Role minimumRole) {
-        Document user = DUUIUserController.getUserBySession(session);
-        if (user == null) return false;
-
-        Role userRole = Role.fromString(user.getString("role"));
-        return userRole.ordinal() >= minimumRole.ordinal();
-    }
 
     public static String unauthorized(Response response) {
         response.status(401);

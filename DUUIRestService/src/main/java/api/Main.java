@@ -2,9 +2,13 @@ package api;
 
 import api.duui.component.DUUIComponentController;
 import api.duui.pipeline.DUUIPipelineController;
+//import api.duui.routines.process.DUUIProcessController;
+//import api.duui.routines.service.DUUIService;
+import api.duui.pipeline.DUUIPipelineRequestHandler;
 import api.duui.routines.process.DUUIProcessController;
 import api.duui.routines.service.DUUIService;
 import api.duui.users.DUUIUserController;
+import api.http.DUUIRequestHandler;
 import api.http.RequestUtils;
 import api.metrics.DUUIMetricsManager;
 import api.metrics.DUUIMetricsProvider;
@@ -12,6 +16,7 @@ import api.metrics.DUUIMongoMetricsProvider;
 import api.metrics.DUUISystemMetricsProvider;
 import api.storage.DUUIMongoDBStorage;
 import com.sun.management.OperatingSystemMXBean;
+import io.github.cdimascio.dotenv.Dotenv;
 
 import java.lang.management.ManagementFactory;
 import java.util.HashMap;
@@ -57,6 +62,7 @@ public class Main {
     }
 
     public static void main(String[] args) {
+
 
         monitor =
             ManagementFactory.getPlatformMXBean(
@@ -146,7 +152,6 @@ public class Main {
             });
         });
 
-        get("/users/auth/dropbox/:id", DUUIUserController::dbxIsAuthorized);
         put("/users/authorization", DUUIUserController::updateApiKey);
         put("/users/reset-password", DUUIUserController::resetPassword);
         put("/users/:id/minio", DUUIUserController::updateMinioCredentials);
@@ -155,7 +160,7 @@ public class Main {
         /* Components */
         path("/components", () -> {
             before("/*", (request, response) -> {
-                boolean isAuthorized = RequestUtils.isAuthorized(request);
+                boolean isAuthorized = DUUIRequestHandler.isAuthorized(request);
                 if (!isAuthorized) {
                     halt(401, "Unauthorized");
                 }
@@ -170,25 +175,25 @@ public class Main {
         /* Pipelines */
         path("/pipelines", () -> {
             before("/*", (request, response) -> {
-                boolean isAuthorized = RequestUtils.isAuthorized(request);
+                boolean isAuthorized = DUUIRequestHandler.isAuthorized(request);
                 if (!isAuthorized) {
                     halt(401, "Unauthorized");
                 }
             });
-            get("/:id", DUUIPipelineController::findOne);
-            get("", DUUIPipelineController::findMany);
+            get("/:id", DUUIPipelineRequestHandler::getOne);
+            get("", DUUIPipelineRequestHandler::getMany);
             post("", DUUIPipelineController::insertOne);
             put("/:id", DUUIPipelineController::updateOne);
             put("/:id/start", DUUIPipelineController::startService);
             put("/:id/stop", DUUIPipelineController::stopService);
-            delete("/:id", DUUIPipelineController::deleteOne);
+            delete("/:id", DUUIPipelineRequestHandler::deleteOne);
         });
 
 
         /* Processes */
         path("/processes", () -> {
             before("/*", (request, response) -> {
-                boolean isAuthorized = RequestUtils.isAuthorized(request);
+                boolean isAuthorized = DUUIRequestHandler.isAuthorized(request);
                 if (!isAuthorized) {
                     halt(401, "Unauthorized");
                 }

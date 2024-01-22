@@ -36,7 +36,7 @@ public class DUUIMongoMetricsProvider implements IDUUIMetricsProvider {
 
     @Override
     public Map<String, Long> getMetrics() {
-        Document _queryResult = DUUIMongoDBStorage.getInstance()
+        Document _queryResult = DUUIMongoDBStorage.getClient()
             .getDatabase(_database)
             .getCollection(_collection)
             .aggregate(

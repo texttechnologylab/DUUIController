@@ -1,29 +1,34 @@
 package api.duui.routines.service;
 
 
-import api.Application;
+import api.Main;
 import api.duui.document.DUUIDocumentController;
 import api.duui.document.DUUIDocumentProvider;
 import api.duui.pipeline.DUUIPipelineController;
 import api.duui.routines.process.DUUIProcessController;
+import api.duui.users.DUUIUserController;
 import api.storage.DUUIMongoDBStorage;
+import com.dropbox.core.DbxException;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 import de.tudarmstadt.ukp.dkpro.core.api.metadata.type.DocumentMetaData;
 import org.apache.uima.fit.factory.JCasFactory;
 import org.apache.uima.fit.util.JCasUtil;
 import org.apache.uima.jcas.JCas;
+import org.apache.uima.jcas.cas.TOP;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.dkpro.core.io.xmi.XmiWriter;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.DUUIComposer;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.DUUIDocument;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.IDUUIDataReader;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.DUUIDocument;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.IDUUIDocumentHandler;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.DUUIUIMADriver;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.io.AsyncCollectionReader;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.io.reader.DUUIDocumentReader;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.lua.DUUILuaContext;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIEvent;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.pipeline_storage.mongodb.DUUIMongoStorageBackend;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.pipeline_storage.mongodb.DUUIMongoDBStorageBackend;
 import org.xml.sax.SAXException;
 
 import java.io.File;
@@ -42,7 +47,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static api.duui.routines.process.DUUIProcessService.*;
-import static org.texttechnologylab.DockerUnifiedUIMAInterface.io.AsyncCollectionReader.getFilesInDirectoryRecursive;
 
 public class DUUIService extends Thread {
 
@@ -53,7 +57,7 @@ public class DUUIService extends Thread {
     private final Lock _lock = new ReentrantLock();
     private final Condition _idleCondition = _lock.newCondition();
     private DUUIUIMADriver.Component _xmiWriter;
-    private long _threadCount;
+    private int _threadCount;
     private ScheduledFuture<?> _scheduledMonitor;
     private boolean _interrupted = false;
     private boolean _instantiationInProgress = false;
@@ -64,7 +68,7 @@ public class DUUIService extends Thread {
     private Exception _exception = null;
 
     private String _outputFolder;
-    private IDUUIDataReader _outputDataReader;
+    private IDUUIDocumentHandler _outputDataReader;
     private String _xmiWriterOutputPath;
     private List<DUUIDocument> _outputDocuments = new ArrayList<>();
 
@@ -77,11 +81,11 @@ public class DUUIService extends Thread {
 
         _composer = new DUUIComposer()
             .withSkipVerification(true)
-            .withDebug(true)
+            .withDebugLevel(DUUIComposer.DebugLevel.DEBUG)
             .asService(true)
             .withIgnoreErrors(ignoreErrors)
             .withStorageBackend(
-                new DUUIMongoStorageBackend(DUUIMongoDBStorage.getConnectionURI()))
+                new DUUIMongoDBStorageBackend(DUUIMongoDBStorage.getConnectionURI()))
             .withLuaContext(new DUUILuaContext().withJsonLibrary());
 
         instantiatePipeline();
@@ -159,28 +163,28 @@ public class DUUIService extends Thread {
             .scheduleAtFixedRate(
                 () -> {
                     if (_composer != null) {
-                        if (_outputDataReader != null && _outputDocuments.isEmpty()) {
-                            try {
-                                try {
-                                    _outputDocuments = getFilesInDirectoryRecursive(_xmiWriterOutputPath);
-                                    _outputDataReader.writeFiles(_outputDocuments, _outputFolder);
-                                    _outputDocuments.forEach(
-                                        document -> {
-                                            _composer.addStatus("Uploaded document %s".formatted(document.getName()));
-                                            File file = new File(document.getPath());
-                                            file.delete();
-
-                                        }
-                                    );
-                                    _outputDocuments.clear();
-                                } catch (NoSuchFileException ignored) {
-                                }
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }
+//                        if (_outputDataReader != null && _outputDocuments.isEmpty()) {
+//                            try {
+//                                try {
+//                                    _outputDocuments = getFilesInDirectoryRecursive(_xmiWriterOutputPath);
+//                                    _outputDataReader.writeDocuments(_outputDocuments, _outputFolder);
+//                                    _outputDocuments.forEach(
+//                                        document -> {
+//                                            _composer.addEvent("Uploaded document %s".formatted(document.getName()));
+//                                            File file = new File(document.getPath());
+//                                            file.delete();
+//
+//                                        }
+//                                    );
+//                                    _outputDocuments.clear();
+//                                } catch (NoSuchFileException ignored) {
+//                                }
+//                            } catch (IOException e) {
+//                                throw new RuntimeException(e);
+//                            }
+//                        }
                         DUUIProcessController.setProgress(processId(), _composer.getProgress());
-                        DUUIProcessController.updateTimeline(processId(), _composer.getLog());
+                        DUUIProcessController.updateTimeline(processId(), _composer.getEvents());
                         DUUIProcessController.updateDocuments(processId(), _composer.getDocuments());
                         DUUIProcessController.updatePipelineStatus(processId(), _composer.getPipelineStatus());
 //                            DUUIProcessController.updatePipelineStatus(_id, _composer.getPipelineStatus());
@@ -196,13 +200,14 @@ public class DUUIService extends Thread {
     private void onShutdown(boolean stayOnline) {
         DUUIMongoDBStorage.Pipelines().findOneAndUpdate(
             Filters.eq(new ObjectId(pipelineId())),
-            Updates.set("state", DUUIStatus.SHUTDOWN)
+            Updates.set("status"
+                , DUUIStatus.SHUTDOWN)
         );
         _active = false;
         _idle = true;
 
         _composer.asService(stayOnline)
-            .setShutdownAtomic(true);
+            .interrupt();
         try {
             _composer.shutdown();
         } catch (UnknownHostException e) {
@@ -210,14 +215,15 @@ public class DUUIService extends Thread {
         }
         DUUIMongoDBStorage.Pipelines().findOneAndUpdate(
             Filters.eq(new ObjectId(pipelineId())),
-            Updates.set("state", stayOnline ? DUUIStatus.IDLE : DUUIStatus.INACTIVE)
+            Updates.set("status"
+                , stayOnline ? DUUIStatus.IDLE : DUUIStatus.INACTIVE)
         );
     }
 
     public void onInterrupt() {
         _interrupted = true;
         if (_active) {
-            Application.metrics.get("active_processes").decrementAndGet();
+            Main.metrics.get("active_processes").decrementAndGet();
             cancelProcess();
         }
 
@@ -229,7 +235,8 @@ public class DUUIService extends Thread {
         DUUIPipelineController.setServiceStartTime(id, 0);
         DUUIMongoDBStorage.Pipelines().findOneAndUpdate(
             Filters.eq(new ObjectId(pipelineId())),
-            Updates.set("state", DUUIStatus.INACTIVE)
+            Updates.set("status"
+                , DUUIStatus.INACTIVE)
         );
         DUUIPipelineController.getServices().remove(id);
     }
@@ -265,10 +272,11 @@ public class DUUIService extends Thread {
     private void executePipeline() throws Exception {
         DUUIMongoDBStorage.Pipelines().findOneAndUpdate(
             Filters.eq(new ObjectId(pipelineId())),
-            Updates.set("state", DUUIStatus.ACTIVE)
+            Updates.set("status"
+                , DUUIStatus.ACTIVE)
         );
 
-        Application.metrics.get("active_processes").incrementAndGet();
+        Main.metrics.get("active_processes").incrementAndGet();
         DUUIProcessController.setStatus(processId(), DUUIStatus.INPUT);
 
         DUUIDocumentProvider input = new DUUIDocumentProvider(_process.get("input", Document.class));
@@ -290,32 +298,34 @@ public class DUUIService extends Thread {
         if (output.isCloudProvider() && _outputDataReader != null && !_composer.getDocuments().isEmpty() && !_interrupted && _exception == null) {
             DUUIProcessController.setStatus(processId(), DUUIStatus.OUTPUT);
             try {
-                List<DUUIDocument> documents = getFilesInDirectoryRecursive(Paths.get("temp/duui", output.getPath()).toString());
-                _outputDataReader.writeFiles(documents, output.getPath());
+                List<DUUIDocument> documents = DUUIDocumentReader.loadDocumentsFromPath(
+                    Paths.get("temp/duui", output.getPath()).toString(), "", true);
+
+                _outputDataReader.writeDocuments(documents, output.getPath());
             } catch (IOException e) {
                 onException(e);
             }
         }
 
-        Application.metrics.get("active_processes").decrementAndGet();
+        Main.metrics.get("active_processes").decrementAndGet();
         DUUIProcessController.setFinishTime(processId(), Instant.now().toEpochMilli());
 
         if (_exception == null && !_interrupted) {
             DUUIProcessController.setStatus(processId(), DUUIStatus.COMPLETED);
-            Application.metrics.get("completed_processes").incrementAndGet();
+            Main.metrics.get("completed_processes").incrementAndGet();
         }
 
         if (deleteTempOutputDirectory(new File(Paths.get("temp/duui/%s".formatted(processId())).toString()))) {
             File path = new File(Paths.get("temp/duui/%s".formatted(processId())).toString());
             path.delete();
-            _composer.addStatus("Clean up complete");
+            _composer.addEvent(DUUIEvent.Sender.SYSTEM, "Clean up complete");
         }
 
         DUUIProcessController.setFinished(processId(), true);
         _scheduledMonitor.cancel(false);
 
         if (_threadCount > 0) {
-            Application.metrics.get("active_threads").getAndAdd(-_threadCount);
+            Main.metrics.get("active_threads").getAndAdd(-_threadCount);
             _threadCount = 0;
         }
 
@@ -328,7 +338,7 @@ public class DUUIService extends Thread {
             _active = false;
             _idle = true;
             DUUIProcessController.updateDocuments(processId(), _composer.getDocuments());
-            DUUIProcessController.updateTimeline(processId(), _composer.getLog());
+            DUUIProcessController.updateTimeline(processId(), _composer.getEvents());
             DUUIProcessController.setProgress(processId(), _composer.getProgress());
             DUUIProcessController.removeProcess(processId());
             if (_interrupted) onShutdown(false);
@@ -339,7 +349,7 @@ public class DUUIService extends Thread {
 
     private void executeText(DUUIDocumentProvider input, DUUIDocumentProvider output) throws
         Exception {
-        _outputDataReader = getDataReaderFromString(output.getPath(), userId());
+        _outputDataReader = buildDocumentHandler(output.getPath(), userId());
 
 
         DUUIProcessController.setDocumentNames(processId(), Set.of("Text"));
@@ -357,23 +367,23 @@ public class DUUIService extends Thread {
 
         JCas cas = JCasFactory.createText(input.getContent());
 
+        DocumentMetaData metaData;
+
         if (JCasUtil.select(cas, DocumentMetaData.class).isEmpty()) {
-            DocumentMetaData dmd = DocumentMetaData.create(cas);
-            dmd.setDocumentId(_pipeline.getString("name"));
-            dmd.setDocumentTitle(_pipeline.getString("name"));
-            dmd.setDocumentUri(_pipeline.getString("name") + "_" + _process.getLong("startedAt"));
-            dmd.addToIndexes();
+            metaData = DocumentMetaData.create(cas);
+            metaData.setDocumentId(_pipeline.getString("name"));
+            metaData.setDocumentTitle(_pipeline.getString("name"));
+            metaData.setDocumentUri(_pipeline.getString("name") + "_" + _process.getLong("startedAt"));
+            metaData.addToIndexes();
+        } else {
+            metaData = DocumentMetaData.get(cas);
+            metaData.setDocumentUri(_pipeline.getString("name") + "_" + _process.getLong("startedAt"));
+            metaData.addToIndexes();
         }
 
-        _composer.addStatus("Loaded document, starting Pipeline");
         DUUIProcessController.setStatus(processId(), DUUIStatus.ACTIVE);
 
         _composer.run(cas, _pipeline.getString("name") + "_" + _process.getLong("startedAt"));
-
-
-        Set<String> annotations = new HashSet<>();
-        cas.getAnnotationIndex().forEach(annotation -> annotations.add(annotation.getClass().getSimpleName()));
-        annotations.forEach(annotation -> _composer.addStatus("Added annotation " + annotation));
 
         if (_interrupted) {
             cancelProcess();
@@ -383,36 +393,54 @@ public class DUUIService extends Thread {
     }
 
     private void executeDocuments(DUUIDocumentProvider input, DUUIDocumentProvider output) {
-        IDUUIDataReader inputDataReader = getDataReaderFromString(input.getProvider(), userId());
-        _outputDataReader = input.equals(output) ? inputDataReader : getDataReaderFromString(output.getProvider(), userId());
 
-        AsyncCollectionReader collectionReader;
+        IDUUIDocumentHandler inputHandler;
+
+        DUUIDocumentReader collectionReader;
         try {
-            collectionReader = new AsyncCollectionReader.Builder()
-                .withSourceDirectory(input.getPath())
-                .withSourceFileExtension(input.getFileExtension())
-                .withInputDataReader(inputDataReader)
-                .withTargetDirectory(output.getPath())
-                .withTargetFileExtension(output.getFileExtension())
-                .withOutputDataReader(_outputDataReader)
+            inputHandler = buildDocumentHandler(input.getProvider(), userId());
+            _outputDataReader = input.equals(output) ? inputHandler : buildDocumentHandler(output.getProvider(), userId());
+
+            collectionReader = new DUUIDocumentReader
+                .Builder(_composer)
+                .withInputPath(input.getPath())
+                .withInputFileExtension(input.getFileExtension())
+                .withInputHandler(inputHandler)
+                .withOutputPath(output.getPath())
+                .withOutputFileExtension(output.getFileExtension())
+                .withOutputHandler(_outputDataReader)
                 .withAddMetadata(_settings.getBoolean("addMetaData", true))
                 .withSortBySize(_settings.getBoolean("sortBySize", false))
                 .withLanguage(_settings.getString("language"))
-                .withSkipSmallerFiles((int) _settings.getOrDefault("skipSmallerFiles", 0))
+                .withMinimumDocumentSize((int) _settings.getOrDefault("skipSmallerFiles", 0))
                 .withCheckTarget(_settings.getBoolean("checkTarget", false))
                 .withRecursive(_settings.getBoolean("recursive", false))
-                .build(_composer);
+                .build();
+
         } catch (RuntimeException e) {
             onException(new IOException(String.format("Source path %s was not found", input.getPath())));
             return;
+        } catch (DbxException e) {
+            throw new RuntimeException(e);
         }
-        DUUIProcessController.setDocumentNames(processId(), collectionReader.getDocumentNames());
+        DUUIProcessController.setDocumentNames(processId(), _composer.getDocumentNames());
 
-        _threadCount = Math.min(5, collectionReader.getDocumentCount());
+        int requestedWorkers = _settings.getInteger("worker_count");
+        int availableWorkers = DUUIUserController.getUserById(userId()).getInteger("worker_count");
+
+        if (availableWorkers == 0) {
+            throw new RuntimeException("This Account is out of workers for now. Wait until your other processes have finished.");
+        }
+
+        _threadCount = Math.max(1, Math.min(requestedWorkers, availableWorkers));
+        DUUIUserController.updateUser(userId(), new Document("worker_count", availableWorkers - _threadCount));
         _composer.withWorkers((int) _threadCount);
-        Application.metrics.get("active_threads").getAndAdd(_threadCount);
+
+
+        _threadCount = Math.min(5, _composer.getDocuments().size());
+        _composer.withWorkers((int) _threadCount);
+        Main.metrics.get("active_threads").getAndAdd(_threadCount);
         DUUIProcessController.setStatus(processId(), DUUIStatus.ACTIVE);
-        _composer.addStatus("AsyncCollectionReader", "Loaded " + collectionReader.getDocumentCount() + " documents");
         try {
             _composer.run(collectionReader, _pipeline.getString("name") + "_" + _process.getLong("startedAt"));
         } catch (Exception e) {
@@ -443,8 +471,8 @@ public class DUUIService extends Thread {
 
 
         if (_active) {
-            Application.metrics.get("failed_processes").incrementAndGet();
-            Application.metrics.get("active_processes").decrementAndGet();
+            Main.metrics.get("failed_processes").incrementAndGet();
+            Main.metrics.get("active_processes").decrementAndGet();
             DUUIProcessController.setStatus(processId(), DUUIStatus.FAILED);
         }
 
@@ -457,19 +485,18 @@ public class DUUIService extends Thread {
         }
 
         if (_threadCount > 0) {
-            Application.metrics.get("active_threads").getAndAdd(-_threadCount);
+            Main.metrics.get("active_threads").getAndAdd(-_threadCount);
         }
 
         if (_composer != null) {
             DUUIProcessController.setProgress(processId(), _composer.getProgress());
 
             _composer.getDocuments().stream().filter(document ->
-                !document.getIsFinished() || DUUIDocumentController.isActive(document)).forEach(document -> {
-
+                !document.isFinished() || DUUIDocumentController.isActive(document)).forEach(document -> {
                     document.setStatus(DUUIStatus.FAILED);
                     document.setError("Process failed before Document was fully processed.");
                     document.setFinished(true);
-                    document.setProcessingEndTime();
+                    document.setFinishedAt();
                 }
             );
 
@@ -492,12 +519,12 @@ public class DUUIService extends Thread {
 
             DUUIProcessController.setStatus(processId(), DUUIStatus.CANCELLED);
             DUUIProcessController.setFinishTime(processId(), Instant.now().toEpochMilli());
-            Application.metrics.get("cancelled_processes").incrementAndGet();
+            Main.metrics.get("cancelled_processes").incrementAndGet();
             DUUIProcessController.setFinished(processId(), true);
             return;
         }
 
-        while (!_composer.processingFinished()) {
+        while (!_composer.isFinished()) {
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
@@ -506,10 +533,10 @@ public class DUUIService extends Thread {
         }
 
         _composer.getDocuments().stream().filter(document ->
-            !document.getIsFinished() || DUUIDocumentController.isActive(document)).forEach(document -> {
+            !document.isFinished() || DUUIDocumentController.isActive(document)).forEach(document -> {
                 document.setStatus(DUUIStatus.CANCELLED);
                 document.setFinished(true);
-                document.setProcessingEndTime();
+                document.setFinishedAt();
             }
         );
 
@@ -520,7 +547,7 @@ public class DUUIService extends Thread {
 
         DUUIProcessController.setStatus(processId(), DUUIStatus.CANCELLED);
         DUUIProcessController.setFinishTime(processId(), Instant.now().toEpochMilli());
-        Application.metrics.get("cancelled_processes").incrementAndGet();
+        Main.metrics.get("cancelled_processes").incrementAndGet();
         DUUIProcessController.setFinished(processId(), true);
     }
 

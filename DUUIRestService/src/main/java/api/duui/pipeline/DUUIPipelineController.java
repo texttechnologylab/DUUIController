@@ -1,124 +1,147 @@
 package api.duui.pipeline;
 
-import api.duui.DUUIState;
 import api.duui.component.DUUIComponentController;
-import api.duui.routines.DUUIProcess;
+//import api.duui.routines.service.DUUIService;
+import api.duui.routines.process.DUUIProcess;
 import api.duui.routines.service.DUUIService;
+import api.http.DUUIRequestHandler;
+import api.requests.validation.UserValidator;
+import api.storage.AggregationProps;
 import api.storage.DUUIMongoDBStorage;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Sorts;
-import com.mongodb.client.model.Updates;
+import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.model.*;
+import com.mongodb.client.result.DeleteResult;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
 import spark.Request;
 import spark.Response;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.StreamSupport;
 
-import static api.http.RequestUtils.Limit;
-import static api.http.RequestUtils.Skip;
 import static api.requests.validation.UserValidator.authenticate;
-import static api.requests.validation.UserValidator.unauthorized;
 import static api.requests.validation.Validator.isNullOrEmpty;
 import static api.requests.validation.Validator.missingField;
-import static api.storage.DUUIMongoDBStorage.mergeUpdates;
-import static api.storage.DUUIMongoDBStorage.mapObjectIdToString;
+import static api.storage.DUUIMongoDBStorage.*;
 
 public class DUUIPipelineController {
     private static final Map<String, DUUIService> keepAliveProcesses = new HashMap<>();
 
-    private static final List<String> ALLOWED_UPDATES = List.of(
+    private static final Set<String> ALLOWED_UPDATES = Set.of(
         "name",
         "description",
         "settings",
         "tags",
         "timesUsed",
-        "lastUsed"
+        "lastUsed",
+        "components"
     );
 
-    public static String findOne(Request request, Response response) {
-        String authorization = request.headers("Authorization");
+    private static final Set<String> SORTABLE_FIELDS = Set.of(
+        "name",
+        "description",
+        "created_at",
+        "modified_at",
+        "status",
+        "times_used"
+    );
 
-        Document user = authenticate(authorization);
-        if (isNullOrEmpty(user)) return unauthorized(response);
-
-
-        Document pipeline = getPipelineById(request.params(":id"));
-        if (pipeline == null) {
-            response.status(404);
-            return new Document("message", "No Pipeline found").toJson();
-        }
-
-        mapObjectIdToString(pipeline);
-        response.status(200);
-        return pipeline.toJson();
+    public static Set<String> getAllowedUpdates() {
+        return ALLOWED_UPDATES;
     }
 
-    public static String findMany(Request request, Response response) {
-        String authorization = request.headers("Authorization");
-
-        Document user = authenticate(authorization);
-        if (isNullOrEmpty(user)) return unauthorized(response);
-
-        int limit = Limit(request);
-        int skip = Skip(request);
-
-        String templates = request.queryParamOrDefault("templates", "false").toLowerCase();
-
-        FindIterable<Document> documents;
-
-        if (user.getString("role").equalsIgnoreCase("admin")) {
-            documents = DUUIMongoDBStorage
-                .Pipelines()
-                .find(
-                    Filters.or(
-                        Filters.eq("user_id", user.getObjectId("_id").toString()),
-                        Filters.or(
-                            Filters.exists("user_id", false),
-                            Filters.eq("user_id", null))));
-        } else {
-            documents = DUUIMongoDBStorage
-                .Pipelines()
-                .find(
-                    templates.equals("true") ?
-                        Filters.or(
-                            Filters.exists("user_id", false),
-                            Filters.eq("user_id", null)) :
-                        Filters.eq(
-                            "user_id",
-                            user.getObjectId("_id").toString()
-                        ));
-        }
-
-        if (skip != 0) documents = documents.skip(skip);
-        if (limit != 0) documents = documents.limit(limit);
-        documents = documents.sort(Sorts.descending("user_id"));
-
-        List<Document> pipelines = documents.into(new ArrayList<>());
-
-        pipelines.forEach(pipeline -> {
-            DUUIMongoDBStorage.mapObjectIdToString(pipeline);
-            pipeline.put("components",
-                DUUIComponentController
-                    .getComponentsForPipeline(pipeline.getString("oid")));
-        });
-
-        response.status(200);
-        return new Document("pipelines", pipelines).toJson();
+    public static Set<String> getSortableFields() {
+        return SORTABLE_FIELDS;
     }
 
+    /**
+     * Retrieve one pipeline given its id.
+     *
+     * @param id A unique 24 character identifier generated by MongoDB.
+     * @return A document containing the pipeline data or null if nothing matched.
+     */
+    public static Document getPipelineById(String id) {
+        Document result;
+
+        try {
+            result =
+                DUUIMongoDBStorage
+                    .Pipelines()
+                    .find(Filters.eq(new ObjectId(id)))
+                    .first();
+
+        } catch (IllegalArgumentException exception) {
+            result = null;
+        }
+
+        if (result == null) return null;
+
+        List<Document> components = DUUIComponentController.getComponentsForPipeline(id);
+        convertObjectIdToString(result);
+        return result.append("components", components);
+    }
+
+    /**
+     * Retrieve one or more pipelines from the database given a userID and {@link AggregationProps} to sort
+     * and filter the results.
+     *
+     * @param userID        The userID to identify pipelines belonging to the account.
+     * @param props         Props that determine sort, order, limit and skip values.
+     * @param getComponents Wether to include components in the pipeline data.
+     * @return A Document containing a list of matched pipelines.
+     */
+    public static Document getPipelinesByUserID(String userID, AggregationProps props, boolean getComponents) {
+        List<Bson> aggreagtion = new ArrayList<>();
+
+        aggreagtion.add(Aggregates.match(Filters.in("user_id", userID, null)));
+        aggreagtion.add(Aggregates.addFields(new Field<>("oid", new Document("$toString", "$_id"))));
+        aggreagtion.add(Aggregates.project(Projections.excludeId()));
+
+        if (!props.getSort().isEmpty() && SORTABLE_FIELDS.contains(props.getSort())) {
+            aggreagtion.add(Aggregates.sort(
+                props.getOrder() == 1
+                    ? Sorts.ascending(props.getSort())
+                    : Sorts.descending(props.getSort())
+            ));
+        }
+
+        if (props.getSkip() > 0) aggreagtion.add(Aggregates.skip(props.getSkip()));
+        if (props.getLimit() > 0) aggreagtion.add(Aggregates.limit(props.getLimit()));
+
+        AggregateIterable<Document> result;
+
+        try {
+            result = DUUIMongoDBStorage
+                .Pipelines()
+                .aggregate(aggreagtion);
+        } catch (IllegalArgumentException exception) {
+            return null;
+        }
+
+        List<Document> pipelines = StreamSupport.stream(result.spliterator(), false).toList();
+        if (pipelines.isEmpty()) return null;
+
+
+        if (getComponents) {
+            for (Document pipeline : pipelines) {
+                List<Document> components = DUUIComponentController
+                    .getComponentsForPipeline(pipeline.getString("oid"));
+
+                pipeline.append("components", components);
+            }
+        }
+
+        return new Document("pipelines", pipelines);
+    }
 
     public static String insertOne(Request request, Response response) {
         String authorization = request.headers("Authorization");
 
         Document user = authenticate(authorization);
-        if (isNullOrEmpty(user)) return unauthorized(response);
+        if (isNullOrEmpty(user)) return UserValidator.unauthorized(response);
 
         Document body = Document.parse(request.body());
 
@@ -129,22 +152,25 @@ public class DUUIPipelineController {
         if (components.isEmpty()) return missingField(response, "components");
 
         String template = request.queryParamOrDefault("template", "false").toLowerCase();
+        List<String> tags = body.getList("tags", String.class);
 
         Document pipeline = new Document("name", name)
             .append("description", body.getString("description"))
-            .append("createdAt", Instant.now().toEpochMilli())
-            .append("serviceStartTime", 0L)
+            .append("created_at", Instant.now().toEpochMilli())
+            .append("modified_at", Instant.now().toEpochMilli())
             .append("settings", body.get("settings", Document.class))
-            .append("timesUsed", 0)
-            .append("user_id", template.equals("true") ? null : user.getObjectId("_id").toString())
-            .append("state", DUUIState.INACTIVE)
-            .append("tags", List.of());
+            .append("times_used", 0)
+            .append("last_used", null)
+            .append("status"
+                , DUUIStatus.INACTIVE)
+            .append("tags", tags)
+            .append("user_id", template.equals("true") ? null : user.getObjectId("_id").toString());
 
         DUUIMongoDBStorage
             .Pipelines()
             .insertOne(pipeline);
 
-        mapObjectIdToString(pipeline);
+        convertObjectIdToString(pipeline);
         String id = pipeline.getString("oid");
         components.forEach(c -> {
                 c.put("pipeline_id", id);
@@ -190,7 +216,7 @@ public class DUUIPipelineController {
         String authorization = request.headers("Authorization");
 
         Document user = authenticate(authorization);
-        if (isNullOrEmpty(user)) return unauthorized(response);
+        if (isNullOrEmpty(user)) return UserValidator.unauthorized(response);
 
         String id = request.params(":id");
 
@@ -200,13 +226,13 @@ public class DUUIPipelineController {
             return new Document("message", "No Pipeline found").toJson();
         }
 
-        if (keepAliveProcesses.containsKey(id)) {
-            keepAliveProcesses.get(id).interrupt();
-            keepAliveProcesses.remove(id);
-        }
+//        if (keepAliveProcesses.containsKey(id)) {
+////            keepAliveProcesses.get(id).interrupt();
+//            keepAliveProcesses.remove(id);
+//        }
 
         DUUIMongoDBStorage
-            .getInstance()
+            .getClient()
             .getDatabase("duui")
             .getCollection("pipelines")
             .deleteOne(Filters.eq(new ObjectId(id)));
@@ -217,36 +243,12 @@ public class DUUIPipelineController {
         return new Document().toJson();
     }
 
-    public static Document getPipelineById(String id) {
-        Document pipeline = DUUIMongoDBStorage
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("pipelines")
-            .find(Filters.eq(new ObjectId(id)))
-            .first();
-
-        if (pipeline == null) {
-            return new Document();
-        }
-
-        List<Document> components = DUUIComponentController.getComponentsForPipeline(id);
-        mapObjectIdToString(pipeline);
-        return pipeline.append("components", components);
-    }
-
-    public static FindIterable<Document> getPipelinesByUser(Document user) {
-        return DUUIMongoDBStorage
-            .getInstance()
-            .getDatabase("duui")
-            .getCollection("pipelines")
-            .find(Filters.eq("user_id", user.getObjectId("_id")));
-    }
 
     public static String startService(Request request, Response response) {
         String authorization = request.headers("Authorization");
 
         Document user = authenticate(authorization);
-        if (isNullOrEmpty(user)) return unauthorized(response);
+        if (isNullOrEmpty(user)) return UserValidator.unauthorized(response);
 
         Document body = Document.parse(request.body());
         String id = body.getString("oid");
@@ -255,11 +257,14 @@ public class DUUIPipelineController {
 
         DUUIMongoDBStorage.Pipelines().findOneAndUpdate(
             Filters.eq(new ObjectId(id)),
-            Updates.set("state", DUUIStatus.SETUP)
+            Updates.set("status", DUUIStatus.SETUP)
         );
 
         try {
-            DUUIService service = new DUUIService(getPipelineById(id));
+            Document pipeline = getPipelineById(id);
+            if (pipeline == null) return DUUIRequestHandler.notFound(response);
+
+            DUUIService service = new DUUIService(pipeline);
             keepAliveProcesses.put(id, service);
             service.start();
         } catch (Exception e) {
@@ -270,19 +275,19 @@ public class DUUIPipelineController {
         long serviceStartTime = Instant.now().toEpochMilli();
         DUUIMongoDBStorage.Pipelines().findOneAndUpdate(
             Filters.eq(new ObjectId(id)),
-            Updates.set("state", DUUIStatus.IDLE)
+            Updates.set("status", DUUIStatus.IDLE)
         );
         DUUIPipelineController.setServiceStartTime(id, serviceStartTime);
 
         response.status(200);
-        return new Document("serviceStartTime", serviceStartTime).toJson();
+        return new Document("status", DUUIStatus.IDLE).toJson();
     }
 
     public static String stopService(Request request, Response response) {
         String authorization = request.headers("Authorization");
 
         Document user = authenticate(authorization);
-        if (isNullOrEmpty(user)) return unauthorized(response);
+        if (isNullOrEmpty(user)) return UserValidator.unauthorized(response);
 
         Document body = Document.parse(request.body());
         String id = body.getString("oid");
@@ -295,7 +300,7 @@ public class DUUIPipelineController {
 
         DUUIMongoDBStorage.Pipelines().findOneAndUpdate(
             Filters.eq(new ObjectId(id)),
-            Updates.set("state", DUUIStatus.SHUTDOWN)
+            Updates.set("status", DUUIStatus.SHUTDOWN)
         );
 
         try {
@@ -307,17 +312,17 @@ public class DUUIPipelineController {
 
         DUUIMongoDBStorage.Pipelines().findOneAndUpdate(
             Filters.eq(new ObjectId(id)),
-            Updates.set("state", DUUIStatus.INACTIVE)
+            Updates.set("status", DUUIStatus.INACTIVE)
         );
 
         response.status(200);
-        return new Document("message", "Service has been shutdown").toJson();
+        return new Document("status", DUUIStatus.INACTIVE).toJson();
     }
 
 
     public static void setServiceStartTime(String id, long serviceStartTime) {
         DUUIMongoDBStorage
-            .getInstance()
+            .getClient()
             .getDatabase("duui")
             .getCollection("pipelines")
             .findOneAndUpdate(
@@ -335,9 +340,9 @@ public class DUUIPipelineController {
         return keepAliveProcesses.get(id);
     }
 
-//    public static DUUIProcess getIdleProcess(String pipelineId) {
-//        return keepAliveProcesses.get(pipelineId);
-//    }
+    public static DUUIService getIdleProcess(String pipelineId) {
+        return keepAliveProcesses.get(pipelineId);
+    }
 
     public static void removeService(String id) {
         keepAliveProcesses.remove(id);
@@ -345,5 +350,21 @@ public class DUUIPipelineController {
 
     public static boolean pipelineIsActive(String id) {
         return keepAliveProcesses.containsKey(id);
+    }
+
+    public static boolean deletePipeline(String pipelineID) {
+        DeleteResult result = Pipelines()
+            .deleteOne(
+                Filters.eq("_id", new ObjectId(pipelineID))
+            );
+
+        return result.getDeletedCount() > 0;
+    }
+
+    public static void interruptIfRunning(String pipelineID) {
+        if (keepAliveProcesses.containsKey(pipelineID)) {
+            keepAliveProcesses.get(pipelineID).interrupt();
+            keepAliveProcesses.remove(pipelineID);
+        }
     }
 }

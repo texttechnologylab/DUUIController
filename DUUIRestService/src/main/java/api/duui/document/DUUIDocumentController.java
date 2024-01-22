@@ -1,7 +1,6 @@
 package api.duui.document;
 
-import api.requests.validation.Validator;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.DUUIDocument;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.DUUIDocument;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
 
 import static api.requests.validation.Validator.isNullOrEmpty;

@@ -9,7 +9,7 @@ import io.github.cdimascio.dotenv.Dotenv;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.data_reader.DUUIMinioDataReader;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.DUUIMinioDocumentHandler;
 import spark.Request;
 import spark.Response;
 
@@ -18,30 +18,23 @@ import java.util.*;
 import static api.requests.validation.UserValidator.*;
 import static api.requests.validation.Validator.*;
 import static api.storage.DUUIMongoDBStorage.mergeUpdates;
-import static api.storage.DUUIMongoDBStorage.mapObjectIdToString;
+import static api.storage.DUUIMongoDBStorage.convertObjectIdToString;
 
 
 public class DUUIUserController {
 
-    private static final List<String> ALLOWED_FIELDS = List.of(
-        "email",
+    private static final Set<String> ALLOWED_UPDATES = Set.of(
         "role",
         "session",
         "preferences",
-        "key",
-        "dropbox",
-        "minio"
-    );
-
-    private static final List<String> ALLOWED_UPDATES = List.of(
-        "role",
-        "session",
-        "preferences",
-        "key",
-        "dropbox",
-        "minio",
-        "workerCount",
-        "mongoDBConnectionURI"
+        "worker_count",
+        "connections.key",
+        "connections.minio.endpoint",
+        "connections.minio.access_key",
+        "connections.minio.secret_key",
+        "connections.dropbox.access_token",
+        "connections.dropbox.refresh_token",
+        "connections.mongoDB.uri"
     );
 
 
@@ -49,22 +42,21 @@ public class DUUIUserController {
         Document projection = DUUIMongoDBStorage
             .Users()
             .find(Filters.eq(user.getObjectId("_id")))
-            .projection(Projections.include("dropbox"))
+            .projection(Projections.include("connections.dropbox"))
             .first();
 
         if (isNullOrEmpty(projection)) {
             return new Document();
         }
 
-        return projection.get("dropbox", Document.class);
-
+        return projection.get("connections", Document.class).get("dropbox", Document.class);
     }
 
     public static Document getMinioCredentials(Document user) {
         Document projection = DUUIMongoDBStorage
             .Users()
             .find(Filters.eq(user.getObjectId("_id")))
-            .projection(Projections.include("minio"))
+            .projection(Projections.include("connections.minio"))
             .first();
 
         if (isNullOrEmpty(projection)) {
@@ -156,6 +148,7 @@ public class DUUIUserController {
             .append("password_reset_token", null)
             .append("reset_token_expiration", null)
             .append("key", "")
+            .append("worker_count", role.equalsIgnoreCase(Role.ADMIN) ? 20 : 10)
             .append("dropbox", new Document("access_token", null).append("refresh_token", null))
             .append("minio", new Document("endpoint", null).append("access_key", null).append("secret_key", null));
 
@@ -163,7 +156,7 @@ public class DUUIUserController {
             .Users()
             .insertOne(newUser);
 
-        mapObjectIdToString(newUser);
+        convertObjectIdToString(newUser);
         response.status(200);
         return new Document("user", newUser).toJson();
     }
@@ -217,7 +210,7 @@ public class DUUIUserController {
         long expiresAt = System.currentTimeMillis() + 60 * 30 * 1000; // 30 Minutes
 
         DUUIMongoDBStorage
-            .getInstance()
+            .getClient()
             .getDatabase("duui")
             .getCollection("users")
             .findOneAndUpdate(Filters.eq("email", email),
@@ -255,7 +248,7 @@ public class DUUIUserController {
             return expired(response);
 
         DUUIMongoDBStorage
-            .getInstance()
+            .getClient()
             .getDatabase("duui")
             .getCollection("users")
             .findOneAndUpdate(
@@ -267,25 +260,6 @@ public class DUUIUserController {
 
         return new Document("message", "Password has been updated")
             .append("email", user.getString("email")).toJson();
-    }
-
-    public static String dbxIsAuthorized(Request request, Response response) {
-        String session = request.headers("session");
-        if (!UserValidator.isAuthorized(session, Role.USER))
-            return unauthorized(response);
-
-        Document user = getUserById(request.params(":id"));
-        if (user == null)
-            return userNotFound(response);
-
-        if (!isDropboxConnected(user)) {
-            response.status(401);
-            return "Unauthorized";
-        }
-
-        mapObjectIdToString(user);
-        response.status(200);
-        return user.toJson();
     }
 
     private static boolean isDropboxConnected(Document user) {
@@ -309,7 +283,7 @@ public class DUUIUserController {
         if (isNullOrEmpty(endpoint)) return missingField(response, "endpoint");
 
         try {
-            new DUUIMinioDataReader(
+            new DUUIMinioDocumentHandler(
                 endpoint,
                 accessKey,
                 secretKey);
@@ -326,7 +300,7 @@ public class DUUIUserController {
             .Users()
             .findOneAndUpdate(
                 Filters.eq(new ObjectId(id)),
-                mergeUpdates(update, ALLOWED_FIELDS)
+                mergeUpdates(update, ALLOWED_UPDATES)
             );
 
         response.status(200);
@@ -355,7 +329,7 @@ public class DUUIUserController {
             return userNotFound(response);
         }
 
-        mapObjectIdToString(credentials);
+        convertObjectIdToString(credentials);
 
         response.status(200);
         return new Document("credentials", credentials).toJson();
@@ -410,7 +384,7 @@ public class DUUIUserController {
             .findOneAndUpdate(Filters.eq(new ObjectId(id)), updates);
 
         Document user = DUUIUserController.getUserById(id, __updatedFields);
-        mapObjectIdToString(user);
+        convertObjectIdToString(user);
         return new Document("user", user).toJson();
     }
 
@@ -428,7 +402,7 @@ public class DUUIUserController {
         if (isNullOrEmpty(user))
             return userNotFound(response);
 
-        mapObjectIdToString(user);
+        convertObjectIdToString(user);
 
         response.status(200);
         return new Document("user", user).toJson();
@@ -444,7 +418,7 @@ public class DUUIUserController {
 
         String id = request.params(":id");
         Document user = getUserProperties(id);
-        mapObjectIdToString(user);
+        convertObjectIdToString(user);
         return new Document("user", user).toJson();
     }
 
@@ -453,7 +427,7 @@ public class DUUIUserController {
             .Users()
             .find(Filters.eq(new ObjectId(id)))
             .projection(
-                Projections.include("email", "session", "role", "preferences", "key", "dropbox", "minio")
+                Projections.include("email", "session", "role", "preferences", "connections")
             )
             .first();
     }
@@ -481,7 +455,7 @@ public class DUUIUserController {
             .findOneAndUpdate(Filters.eq(new ObjectId(id)), allowedUpdates);
 
         Document user = DUUIUserController.getUserById(id, __updatedFields);
-        mapObjectIdToString(user);
+        convertObjectIdToString(user);
         return user;
     }
 }
