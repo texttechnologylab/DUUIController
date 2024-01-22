@@ -112,7 +112,7 @@
 
 	<footer class="bg-surface-200/20 dark:bg-surface-900/25 p-4">
 		<div class="grid grid-cols-2 gap-4">
-			{#if $userSession?.role === 'admin'}
+			{#if $userSession?.role === 'Admin'}
 				<ActionButton
 					disabled={!component.name || !component.settings.driver || !component.settings.target}
 					text="Upload"

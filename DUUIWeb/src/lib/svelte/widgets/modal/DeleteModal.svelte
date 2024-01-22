@@ -6,7 +6,7 @@
 	const modalStore = getModalStore()
 	export let title: string = $modalStore[0].meta['title'] || 'Delete'
 	export let body: string = $modalStore[0].meta['body'] || 'Are you sure?'
-	export let deleteText: string = $modalStore[0].meta['deleteText'] || 'DELETE'
+	export let deleteText: string = $modalStore[0].meta['deleteText'] || 'Delete'
 </script>
 
 <div class="z-50 bg-modal w-modal">

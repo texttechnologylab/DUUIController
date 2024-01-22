@@ -26,7 +26,7 @@ export const GET: RequestHandler = async (event) => {
 			`${API_URL}/processes/${process_id}/documents
 			?limit=${limit}
 			&skip=${skip}
-			&by=${sort}
+			&sort=${sort}
 			&order=${order}
 			&text=${text}
 			&filter=${filter}`,
@@ -38,7 +38,7 @@ export const GET: RequestHandler = async (event) => {
 				}
 			}
 		)
-
+			
 		return await response.json()
 	}
 

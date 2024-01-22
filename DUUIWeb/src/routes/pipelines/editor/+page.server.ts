@@ -4,7 +4,7 @@ import type { PageServerLoad } from './$types'
 
 export const load: PageServerLoad = async ({ cookies, locals }) => {
 	const fetchComponentTemplates = async (): Promise<{ components: DUUIComponent[] }> => {
-		const result = await fetch(`${API_URL}/components`, {
+		const response = await fetch(`${API_URL}/components`, {
 			method: 'GET',
 			mode: 'cors',
 			headers: {
@@ -12,19 +12,26 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 			}
 		})
 
-		return await result.json()
+		if (response.ok) {
+			return await response.json()
+		}
+
+		return { components: [] }
 	}
 
 	const fetchPipelineTemplates = async () => {
-		const result = await fetch(`${API_URL}/pipelines?templates=true`, {
+		const response = await fetch(`${API_URL}/pipelines?limit=25&sort=times_used&order=-1`, {
 			method: 'GET',
 			mode: 'cors',
 			headers: {
 				Authorization: cookies.get('session') || ''
 			}
 		})
+		if (response.ok) {
+			return await response.json()
+		}
 
-		return await result.json()
+		return { pipelines: [] }
 	}
 
 	return {

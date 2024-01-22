@@ -15,17 +15,15 @@ const redirectURI = `http://localhost:5173/account/dropbox`
 const connect = async (code: string, user: User) => {
 	const token: DropboxResponse<object> = await dbxAuth.getAccessTokenFromCode(redirectURI, code)
 
-	const dbx_access_token: string = token.result.access_token
-	const dbx_refresh_token: string = token.result.refresh_token
+	const access_token: string = token.result.access_token
+	const refresh_token: string = token.result.refresh_token
 
 	const response = await fetch(`${API_URL}/users/${user?.oid}`, {
 		method: 'PUT',
 		mode: 'cors',
 		body: JSON.stringify({
-			dropbox: {
-				access_token: dbx_access_token,
-				refresh_token: dbx_refresh_token
-			}
+			'connections.dropbox.access_token': access_token,
+			'connections.dropbox.refresh_token': refresh_token
 		}),
 		headers: {
 			Authorization: SERVER_API_KEY

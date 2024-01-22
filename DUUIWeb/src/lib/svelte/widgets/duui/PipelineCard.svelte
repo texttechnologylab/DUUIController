@@ -10,7 +10,7 @@
 <div class="flex items-center gap-4 justify-between">
 	<h4 class="h4 font-bold">{pipeline.name}</h4>
 	{#if pipeline.user_id === null || pipeline.user_id === undefined}
-		<p class="badge variant-soft-tertiary">Template</p>
+		<p class="badge variant-soft-tertiary">DUUI</p>
 	{:else}
 		<p class="badge variant-soft-primary {editor ? 'hidden' : ''}">User</p>
 	{/if}
@@ -27,7 +27,7 @@
 </div>
 <div class="pt-4 flex items-center justify-between self-end">
 	<p>{pipeline.components.length} Component{pipeline.components.length > 1 ? 's' : ''}</p>
-	<p class="hidden md:block">{pipeline.timesUsed}</p>
+	<p class="hidden md:block">{pipeline.times_used}</p>
 	<div class="flex items-center gap-4">
 		{#each usedDrivers(pipeline) as driver}
 			<DriverIcon {driver} />

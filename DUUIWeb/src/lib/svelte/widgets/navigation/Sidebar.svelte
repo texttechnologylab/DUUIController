@@ -30,7 +30,7 @@
 		<button class="btn-icon" on:click={() => drawerStore.close()}>
 			<Fa icon={faBars} size="lg" />
 		</button>
-		{#if $userSession?.role === 'admin'}
+		{#if $userSession?.role === 'Admin'}
 			<span class="badge variant-soft-tertiary font-bold">ADMIN</span>
 		{/if}
 		<LightSwitch />

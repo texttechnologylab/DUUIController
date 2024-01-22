@@ -13,10 +13,10 @@
 
 	let container: HTMLDivElement
 
-	let maximumEndTime = Math.max(...documents.map((d) => d.endTime)) || process.endTime
+	let maximumEndTime = Math.max(...documents.map((d) => d.finished_at)) || process.finished_at
 
 	function calculateWidth(document: DUUIDocument) {
-		return ((document.endTime - document.startTime) / (endTime - process.startTime)) * 100 + '%'
+		return ((document.finished_at - document.started_at) / (endTime - process.started_at)) * 100 + '%'
 	}
 
 	let interval: number = 10
@@ -25,7 +25,7 @@
 		(_, index) => start + index * interval
 	)
 
-	$: endTime = maximumEndTime >= process.startTime ? maximumEndTime : new Date().getTime() + 1000
+	$: endTime = maximumEndTime >= process.started_at ? maximumEndTime : new Date().getTime() + 1000
 	let hoverIndex: number | undefined = undefined
 
 	const modalStore = getModalStore()
@@ -83,7 +83,7 @@
 									: '!bg-primary-500'
 								: ''} rounded-md text-sm my-1 text-transparent"
 							style="transform: translate({((document.startTime - process.startTime) /
-								(endTime - process.startTime)) *
+								(endTime - process.started_at)) *
 								container.clientWidth}px, 0); width: {calculateWidth(document)}"
 							on:click={() => showDocumentModal(document)}
 							on:mouseenter={() => (hoverIndex = index)}
@@ -105,7 +105,7 @@
 							class="absolute -bottom-6 text-xs -translate-x-1/2 whitespace-nowrap"
 							style="left: {index * interval}%"
 						>
-							{formatMilliseconds(endTime - process.startTime)}
+							{formatMilliseconds(endTime - process.started_at)}
 						</p>
 					{:else}
 						<div
@@ -116,7 +116,7 @@
 							class="absolute -bottom-6 text-xs -translate-x-1/2 whitespace-nowrap"
 							style="left: {index * interval}%"
 						>
-							{formatMilliseconds((index * (endTime - process.startTime)) / interval)}
+							{formatMilliseconds((index * (endTime - process.started_at)) / interval)}
 						</p>
 					{/if}
 				{/each}

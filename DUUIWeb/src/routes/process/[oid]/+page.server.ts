@@ -42,7 +42,7 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 			`${API_URL}/processes/${params.oid}/documents
 			?limit=${limit}
 			&skip=${skip}
-			&by=${by}
+			&sort=${by}
 			&order=${order}
 			&text=${text}
 			&filter=${filter}`,
@@ -56,6 +56,7 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 		)
 
 		const documentQuery = await response.json()
+		
 		return documentQuery
 	}
 

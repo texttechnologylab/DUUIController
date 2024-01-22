@@ -73,7 +73,7 @@
 				component: 'deleteModal',
 				meta: {
 					title: 'Remove Component',
-					body: `Are you sure you want to delete ${component.name}?`
+					body: `Are you sure you want to remove ${component.name}?`
 				},
 				response: (r: boolean) => {
 					resolve(r)

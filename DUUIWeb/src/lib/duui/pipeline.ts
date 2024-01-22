@@ -6,14 +6,15 @@ export interface DUUIPipeline {
 	oid: string
 	name: string
 	description: string
-	createdAt: number
-	timesUsed: number
-	lastUsed: number | undefined
-	settings: Object
-	user_id: string | null | undefined // if null -> Template
-	components: DUUIComponent[]
+	status: string
 	tags: string[]
-	state: string
+	created_at: number
+	modified_at: number
+	times_used: number
+	last_used: number | undefined
+	settings: Object
+	user_id: string | null // if null -> Template
+	components: DUUIComponent[]
 }
 
 export const blankPipeline = () =>
@@ -21,14 +22,15 @@ export const blankPipeline = () =>
 		oid: uuidv4(),
 		name: 'New Pipeline',
 		description: '',
-		createdAt: Date.now(),
-		timesUsed: 0,
-		lastUsed: 0,
+		created_at: Date.now(),
+		modified_at: Date.now(),
+		times_used: 0,
+		last_used: 0,
 		settings: {},
 		user_id: null,
 		components: [],
 		tags: [],
-		state: 'Inactive'
+		status: 'Inactive'
 	}
 
 export const pipelineToExportableJson = (pipeline: DUUIPipeline) => {

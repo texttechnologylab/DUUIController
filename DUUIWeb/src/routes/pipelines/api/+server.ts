@@ -58,10 +58,10 @@ export const GET: RequestHandler = async (event) => {
 	let order: string = searchParams.get('order') || 'ascending'
 	let filter: string = searchParams.get('filter') || 'Any'
 
-	const keys: string[] = ['startTime', 'input', 'count', 'progress', 'status', 'duration']
+	const keys: string[] = ['started_at', 'input', 'count', 'progress', 'status', 'duration']
 
 	if (!keys.includes(by)) {
-		by = 'startTime'
+		by = 'started_at'
 	}
 
 	const fetchProcesses = async () => {
@@ -70,7 +70,7 @@ export const GET: RequestHandler = async (event) => {
 			?pipeline_id=${id}
 			&limit=${limit}
 			&skip=${skip}
-			&by=${by}
+			&sort=${by}
 			&order=${order}
 			&filter=${filter}`,
 			{

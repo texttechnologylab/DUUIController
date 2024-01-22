@@ -116,17 +116,17 @@
 					<a href="/">
 						<img src={Logo} alt="The letters DUUI" class="hidden lg:block max-h-8" />
 					</a>
-					{#if $userSession?.role === 'admin'}
+					{#if $userSession?.role === 'Admin'}
 						<span class="badge variant-soft-tertiary font-bold">ADMIN</span>
 					{/if}
-					{#if $userSession?.role === 'trial'}
+					{#if $userSession?.role === 'Trial'}
 						<span class="badge variant-soft-error font-bold">TRIAL</span>
 					{/if}
 				</div>
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
 				<div class="hidden lg:flex items-center gap-8 font-heading-token">
-					{#if $userSession?.role === 'admin' || $userSession?.role === 'trial'}
+					{#if $userSession?.role === 'Admin' || $userSession?.role === 'Trial'}
 						<Link href="/feedback">Feedback</Link>
 					{/if}
 					<Link href="/pipelines">Pipelines</Link>

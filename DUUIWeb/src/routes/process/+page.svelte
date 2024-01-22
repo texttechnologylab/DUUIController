@@ -6,7 +6,6 @@
 		Input,
 		InputFileExtensions,
 		InputSources,
-		Output,
 		OutputFileExtensions,
 		OutputTargets,
 		areSettingsValid,
@@ -21,24 +20,14 @@
 	import { Api, makeApiCall } from '$lib/duui/utils/api'
 	import { equals, formatFileSize } from '$lib/duui/utils/text'
 	import { errorToast } from '$lib/duui/utils/ui'
-	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import Checkbox from '$lib/svelte/widgets/input/Checkbox.svelte'
 	import Dropdown from '$lib/svelte/widgets/input/Dropdown.svelte'
 	import Number from '$lib/svelte/widgets/input/Number.svelte'
 	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
 	import TextInput from '$lib/svelte/widgets/input/TextInput.svelte'
-	import { faArrowLeft, faCheck, faLink } from '@fortawesome/free-solid-svg-icons'
+	import { faArrowLeft, faCheck } from '@fortawesome/free-solid-svg-icons'
 	import { FileDropzone, getToastStore } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
-	import { fly } from 'svelte/transition'
-
-	export let data
-	let { user } = data
-
-	const connections = {
-		dropbox: !!user.dropbox.access_token && !!user.dropbox.refresh_token,
-		minio: !!user.minio.endpoint && !!user.minio.access_key && !!user.minio.secret_key
-	}
 
 	const toastStore = getToastStore()
 
@@ -59,12 +48,12 @@
 	let files: FileList
 
 	let notify: boolean = $page.url.searchParams.get('notify') === 'true' || false
-	let checkTarget: boolean = $page.url.searchParams.get('checkTarget') === 'true' || false
+	let checkTarget: boolean = $page.url.searchParams.get('check_target') === 'true' || false
 	let recursive: boolean = $page.url.searchParams.get('recursive') === 'true' || false
 	let overwrite: boolean = $page.url.searchParams.get('overwrite') === 'true' || false
-	let sortBySize: boolean = $page.url.searchParams.get('sortBySize') === 'true' || false
-	let skipFiles: number = +($page.url.searchParams.get('skipFiles') || '0')
-	let workerCount: number = +($page.url.searchParams.get('workerCount') || '5')
+	let sortBySize: boolean = $page.url.searchParams.get('sort_by-size') === 'true' || false
+	let skipFiles: number = +($page.url.searchParams.get('minimum_size') || '0')
+	let workerCount: number = +($page.url.searchParams.get('worker_count') || '5')
 
 	const pipeline_id: string = $page.url.searchParams.get('pipeline_id') || ''
 	let onCancelURL = $page.url.searchParams.get('from') || `/pipelines/${pipeline_id}?tab=1`
@@ -103,12 +92,12 @@
 				output: { ...output },
 				settings: {
 					notify: notify,
-					checkTarget: checkTarget,
+					check_target: checkTarget,
 					recursive: recursive,
 					overwrite: overwrite,
-					sortBySize: sortBySize,
-					skipFiles: skipFiles || 0,
-					workerCount: workerCount
+					sort_by_size: sortBySize,
+					minimum_size: skipFiles || 0,
+					worker_count: workerCount
 				}
 			})
 		)
@@ -128,22 +117,6 @@
 		outputBucketIsValid = isValidS3BucketName(output.path)
 		settingsAreValid = areSettingsValid(workerCount, skipFiles)
 	}
-
-	let needsDropboxAuthentication: boolean = false
-	let needsMinioAuthentication: boolean = false
-	let needsAuthentication: boolean = needsDropboxAuthentication || needsMinioAuthentication
-
-	$: {
-		needsDropboxAuthentication =
-			(!connections.dropbox && equals(input.provider, Input.Dropbox)) ||
-			(!connections.dropbox && equals(output.provider, Output.Dropbox))
-
-		needsMinioAuthentication =
-			(!connections.minio && equals(input.provider, Input.Minio)) ||
-			(!connections.minio && equals(output.provider, Output.Minio))
-
-		needsAuthentication = needsDropboxAuthentication || needsMinioAuthentication
-	}
 </script>
 
 <div class="h-full">
@@ -158,10 +131,7 @@
 				</button>
 				<button
 					class="button-success"
-					disabled={needsAuthentication ||
-						starting ||
-						!isValidIO(input, output, files) ||
-						settingsAreValid.length !== 0}
+					disabled={starting || !isValidIO(input, output, files) || settingsAreValid.length !== 0}
 					on:click={createProcess}
 				>
 					<Fa icon={faCheck} />
@@ -299,7 +269,11 @@
 							<TextInput
 								label="Folder"
 								name="output-folder"
-								error={output.path === '' ? 'Folder cannot be empty' : ''}
+								error={output.path === ''
+									? 'Path cannot be empty'
+									: !output.path.startsWith('/') && equals(output.provider, IO.Dropbox)
+									? 'Path should start with a /'
+									: ''}
 								bind:value={output.path}
 							/>
 						{:else if equals(output.provider, IO.MongoDB)}
@@ -382,27 +356,6 @@
 					</div>
 				{/if}
 			</div>
-
-			{#if needsAuthentication}
-				<div
-					in:fly
-					class="bg-surface-100 dark:variant-soft-surface p-4 shadow-lg flex justify-center gap-4"
-				>
-					{#if needsDropboxAuthentication}
-						<a
-							href="/account/user/connections"
-							target="_blank"
-							class="btn rounded-none variant-ringed-primary"
-						>
-							<Fa icon={faLink} />
-							<span>Connect Dropbox</span>
-						</a>
-					{/if}
-					{#if needsMinioAuthentication}
-						<ActionButton text="Connect Minio" icon={faLink} />
-					{/if}
-				</div>
-			{/if}
 		</div>
 	</div>
 </div>

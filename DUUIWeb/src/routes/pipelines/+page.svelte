@@ -2,12 +2,7 @@
 	import { blankPipeline } from '$lib/duui/pipeline'
 	import { includes } from '$lib/duui/utils/text'
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
-	import {
-		faClose,
-		faFileImport,
-		faPlus,
-		faSearch
-	} from '@fortawesome/free-solid-svg-icons'
+	import { faClose, faFileImport, faPlus, faSearch } from '@fortawesome/free-solid-svg-icons'
 
 	import { goto } from '$app/navigation'
 	import { currentPipelineStore } from '$lib/store.js'
@@ -24,7 +19,6 @@
 	let searchText: string = ''
 	let filteredPipelines = pipelines
 
-	let activeOnly: boolean = false
 	let unused: boolean = false
 
 	let importFiles: FileList
@@ -47,7 +41,7 @@
 			(pipeline) => includes(pipeline.name + ' ' + pipeline.description, searchText) || !searchText
 		)
 
-		filteredPipelines = filteredPipelines.filter((pipeline) => pipeline.timesUsed === 0 || !unused)
+		filteredPipelines = filteredPipelines.filter((pipeline) => pipeline.times_used === 0 || !unused)
 	}
 </script>
 
@@ -115,7 +109,7 @@
 			</div>
 			<div class="md:min-h-[800px] p-4 md:p-8 space-y-4">
 				<h1 class="h1 font-bold mb-8">Pipelines</h1>
-				<div class="grid gap-4 md:gap-8 md:grid-cols-3 relative">
+				<div class="grid gap-4 md:gap-8 md:grid-cols-2 lg:grid-cols-3 relative">
 					{#each filteredPipelines as pipeline}
 						<a
 							class="card-fancy grid grid-rows-[auto_1fr_80px] items-start"

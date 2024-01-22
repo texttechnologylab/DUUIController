@@ -30,12 +30,7 @@
 	import { Api, makeApiCall } from '$lib/duui/utils/api'
 	import { datetimeToString, equals } from '$lib/duui/utils/text'
 	import { getDuration } from '$lib/duui/utils/time'
-	import {
-		errorToast,
-		getStatusIcon,
-		infoToast,
-		successToast
-	} from '$lib/duui/utils/ui'
+	import { errorToast, getStatusIcon, infoToast, successToast } from '$lib/duui/utils/ui'
 	import { markedForDeletionStore } from '$lib/store'
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import Chips from '$lib/svelte/widgets/input/Chips.svelte'
@@ -81,7 +76,7 @@
 				method: 'GET'
 			})
 			const json = await response.json()
-			pipeline.state = json.state
+			pipeline.status = json.state
 		}
 		interval = setInterval(fetchUpdate, 500)
 		fetchUpdate()
@@ -219,18 +214,18 @@
 	}
 
 	const manageService = async () => {
-		if (pipeline.state === Status.Setup || pipeline.state === Status.Shutdown) {
+		if (pipeline.status === Status.Setup || pipeline.status === Status.Shutdown) {
 			return
 		}
 		update()
-		pipeline.state === Status.Inactive ? startService() : stopService()
+		pipeline.status === Status.Inactive ? startService() : stopService()
 	}
 
 	const startService = async () => {
 		const response = await makeApiCall(Api.Services, 'POST', pipeline)
 
 		if (response.ok) {
-			pipeline.state = Status.Idle
+			pipeline.status = Status.Idle
 			clearInterval(interval)
 		}
 	}
@@ -239,7 +234,7 @@
 		const response = await makeApiCall(Api.Services, 'PUT', pipeline)
 
 		if (response.ok) {
-			pipeline.state = Status.Inactive
+			pipeline.status = Status.Inactive
 			clearInterval(interval)
 		}
 	}
@@ -277,7 +272,7 @@
 			?pipeline_id=${pipeline.oid}
 			&limit=${paginationSettings.limit}
 			&skip=${paginationSettings.page * paginationSettings.limit}
-			&by=${sortMap.get(sort.by)}
+			&sort=${sortMap.get(sort.by)}
 			&order=${sort.order}
 			&filter=${filter.join(';')}`,
 			{
@@ -305,9 +300,8 @@
 			}
 			modalStore.trigger(modal)
 		}).then(async ({ accepted, component }) => {
-			console.log(component);
 			return
-			
+
 			if (!accepted) return
 			const response = await fetch('/pipelines/api/components', {
 				method: 'POST',
@@ -384,17 +378,17 @@
 				<button
 					class="button-primary md:ml-auto"
 					on:click={manageService}
-					disabled={pipeline.state === Status.Setup || pipeline.state === Status.Shutdown}
+					disabled={pipeline.status === Status.Setup || pipeline.status === Status.Shutdown}
 				>
-					{#if pipeline.state === Status.Setup || pipeline.state === Status.Shutdown}
+					{#if pipeline.status === Status.Setup || pipeline.status === Status.Shutdown}
 						<Fa icon={faRotate} spin />
 					{:else}
-						<Fa icon={pipeline.state === Status.Idle ? faPause : faPlay} />
+						<Fa icon={pipeline.status === Status.Idle ? faPause : faPlay} />
 					{/if}
 					<span class="hidden md:inline"
-						>{pipeline.state === Status.Inactive
+						>{pipeline.status === Status.Inactive
 							? 'Setup'
-							: pipeline.state === Status.Idle
+							: pipeline.status === Status.Idle
 							? 'Shutdown'
 							: 'Processing'}</span
 					>
@@ -543,16 +537,17 @@
 						 dark:border-t-surface-500 dark:hover:variant-soft-primary hover:variant-filled-primary
 						 grid-cols-3 grid md:grid-cols-4 lg:grid-cols-6 gap-8 p-3 px-4 text-left text-xs md:text-sm"
 									>
-										<p>{datetimeToString(new Date(process.startTime))}</p>
+										<p>{datetimeToString(new Date(process.started_at))}</p>
 										<p class="hidden lg:block">
 											{process.input.provider} / {process.output.provider}
 										</p>
-										<p class="hidden md:block">{process.documentNames.length}</p>
+										<p class="hidden md:block">{process.document_names.length}</p>
 										<div class="md:grid md:grid-cols-2 items-center justify-start md:gap-4">
 											<p>
-												{((process.progress / process.documentNames.length) * 100 || 0).toFixed(2)} %
+												{((process.progress / process.document_names.length) * 100 || 0).toFixed(2)}
+												%
 											</p>
-											<p>{process.progress} / {process.documentNames.length}</p>
+											<p>{process.progress} / {process.document_names.length}</p>
 										</div>
 										<p class="flex justify-start items-center gap-2 md:gap-4">
 											<Fa
@@ -563,7 +558,7 @@
 											<span>{process.status}</span>
 										</p>
 										<p class="hidden lg:block">
-											{getDuration(process.startTime, process.endTime)}
+											{getDuration(process.started_at, process.finished_at)}
 										</p>
 									</a>
 								{/each}

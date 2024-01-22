@@ -8,13 +8,14 @@ export interface DUUIDocument {
 	progress: number
 	finished: boolean
 	error: string
-	decodeDuration: number
-	deserializeDuration: number
-	waitDuration: number
-	processDuration: number
+	duration_decode: number
+	duration_deserialize: number
+	duration_wait: number
+	duration_process: number
+	duration_total: number | undefined
 	size: number
-	startTime: number
-	endTime: number
+	started_at: number
+	finished_at: number
 	annotations: {
 		string: number
 	}
@@ -162,10 +163,10 @@ export const isValidS3BucketName = (bucket: string) => {
 
 export const getTotalDuration = (document: DUUIDocument) => {
 	return (
-		document.decodeDuration +
-		document.deserializeDuration +
-		document.waitDuration +
-		document.processDuration
+		document.duration_decode +
+		document.duration_deserialize +
+		document.duration_wait +
+		document.duration_process
 	)
 }
 

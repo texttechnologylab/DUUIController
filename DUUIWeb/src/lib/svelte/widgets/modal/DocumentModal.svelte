@@ -99,22 +99,22 @@
 				class="bg-fancy flex flex-col items-start justify-center gap-2 border-r border-surface-200 dark:border-surface-500 p-4"
 			>
 				<p class="font-bold">Setup</p>
-				<p>{formatMilliseconds(document.decodeDuration + document.deserializeDuration)}</p>
+				<p>{formatMilliseconds(document.duration_decode + document.duration_deserialize)}</p>
 			</div>
 			<div
 				class="bg-fancy flex flex-col items-start justify-center gap-2 border-r border-surface-200 dark:border-surface-500 p-4"
 			>
 				<p class="font-bold">Wait</p>
-				<p>{formatMilliseconds(document.waitDuration)}</p>
+				<p>{formatMilliseconds(document.duration_wait)}</p>
 			</div>
 			<div class="bg-fancy flex flex-col items-start justify-center gap-2 p-4">
 				<p class="font-bold">Process</p>
-				<p>{formatMilliseconds(document.processDuration)}</p>
+				<p>{formatMilliseconds(document.duration_process)}</p>
 			</div>
 			<p
 				class="bg-fancy col-span-3 border-t border-surface-200 dark:border-surface-500 p-4 text-center font-bold text-lg"
 			>
-				Total {formatMilliseconds(getTotalDuration(document))}
+				Total {formatMilliseconds(document.duration_total || 0)}
 			</p>
 		</div>
 		{#if document.annotations}

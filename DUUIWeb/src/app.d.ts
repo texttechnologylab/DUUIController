@@ -13,20 +13,28 @@ interface UserProperties {
 	oid: string
 	email?: string
 	password?: string
-	role: 'user' | 'admin' | 'trial' | 'none'
+	role: 'None' | 'User' | 'Admin' | 'Trial' | 'System'
 	session: string
 	expires?: string
-	key?: string
-	dropbox?: {
-		access_token?: string
-		refresh_token?: string
+	connections: {
+		key: string
+		dropbox: {
+			access_token: string | null
+			refresh_token: string | null
+		}
+		minio: {
+			endpoint: string | null
+			access_key: string | null
+			secret_key: string | null
+		}
+		mongoDB: {
+			uri: string | null
+			host: string | null
+			port: string | null
+			username: string | null
+			password: string | null
+		}
 	}
-	minio?: {
-		endpoint: string
-		access_key: string
-		secret_key: string
-	}
-	mongoDBConnectionURI: string
 }
 
 interface UserConnections {

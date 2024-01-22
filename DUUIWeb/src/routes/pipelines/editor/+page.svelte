@@ -103,7 +103,7 @@
 				method: 'PUT',
 				body: JSON.stringify({
 					oid: selectedTemplate.oid,
-					timesUsed: selectedTemplate.timesUsed + 1
+					timesUsed: selectedTemplate.times_used + 1
 				})
 			})
 		}
@@ -204,7 +204,7 @@
 					<Fa icon={faArrowLeft} />
 					<span>{step === 0 ? 'Pipelines' : step === 1 ? 'Start' : 'Settings'}</span>
 				</button>
-				{#if user?.role === 'admin' && step === 2 && $currentPipelineStore.components.length !== 0}
+				{#if user?.role === 'Admin' && step === 2 && $currentPipelineStore.components.length !== 0}
 					<button
 						class="col-span-2 button-success md:ml-auto row-start-2"
 						on:click={uploadPipeline}
@@ -239,7 +239,7 @@
 						>
 							<div class="flex items-center gap-4 justify-between">
 								<p class="text-lg font-bold">Start from scratch</p>
-								<p class="variant-glass-tertiary badge">New</p>
+								<p class="variant-soft badge">New</p>
 							</div>
 
 							<p class="row-span-2">An empty Pipeline.</p>
@@ -261,7 +261,7 @@
 								placeholder="Search..."
 							/>
 						</div>
-						<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+						<div class="grid gap-4 md:gap-8 md:grid-cols-2 lg:grid-cols-3">
 							{#each filteredTemplatePipelines as pipeline}
 								<button
 									class="card-fancy text-left grid grid-rows-[auto_1fr_80px]"

@@ -8,29 +8,29 @@ export interface DUUIProcess {
 	status: string
 	error: string
 	progress: number
-	startTime: number
-	endTime: number
+	started_at: number
+	finished_at: number
 	input: DUUIDocumentProvider
 	output: DUUIDocumentProvider
 	settings: {
 		notify: boolean
-		checkTarget: boolean
+		check_target: boolean
 		recursive: boolean
 		overwrite: boolean
-		sortBySize: boolean
-		skipFiles: number
-		workerCount: number
+		sort_by_size: boolean
+		minimum_size: number
+		worker_count: number
 	}
-	documentNames: string[]
-	finished: boolean
-	setupDuration: number
-	instantiationDuration: number
+	document_names: string[]
+	is_finished: boolean
+	duration_setup: number
+	duration_instantiation: number
 	count: number
-	pipelineStatus: Map<string, string>
+	pipeline_status: Map<string, string>
 }
 
 export const progressMaximum = (process: DUUIProcess, pipeline: DUUIPipeline) => {
-	return process.documentNames.length
+	return process.document_names.length
 }
 
 export const processToSeachParams = (process: DUUIProcess) => {
@@ -43,11 +43,11 @@ export const processToSeachParams = (process: DUUIProcess) => {
 		&output-path=${process.output.path}
 		&output-file-extension=${process.output.fileExtension}
 		&notify=${process.settings.notify || 'false'}
-		&checkTarget=${process.settings.checkTarget || 'false'}
+		&check_target=${process.settings.check_target || 'false'}
 		&recursive=${process.settings.recursive || 'false'}
 		&overwrite=${process.settings.overwrite || 'false'}
-		&sortBySize=${process.settings.sortBySize || 'false'}
-		&skipFiles=${process.settings.skipFiles || '0'}
-		&workerCount=${process.settings.workerCount || '5'}
+		&sort_by_size=${process.settings.sort_by_size || 'false'}
+		&minimum_size=${process.settings.minimum_size || '0'}
+		&worker_count=${process.settings.worker_count || '5'}
 		`
 }

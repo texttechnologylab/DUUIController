@@ -67,9 +67,7 @@ composer.run(jc);
 	<title>Documentation</title>
 </svelte:head>
 
-<div
-	class="bg-repeat [&_p]:max-w-[70ch] md:text-left py-8 gradient"
->
+<div class="bg-repeat [&_p]:max-w-[70ch] md:text-left py-8 gradient">
 	<div class=" max-w-7xl mx-auto space-y-8 p-4">
 		<h1 class="h1 font-bold scroll-mt-4 !mb-16" id="introduction">Documentation</h1>
 		<div class="grid md:grid-cols-2 gap-8">
@@ -107,11 +105,11 @@ composer.run(jc);
 			</div>
 
 			<JavaClass
-				name="IDUUIDataReader"
+				name="IDUUIDocumentHandler"
 				members={[]}
 				methods={[
 					{
-						name: 'writeFile',
+						name: 'writeDocument',
 						throws: ['IOExcetion'],
 						args: [
 							{
@@ -120,14 +118,14 @@ composer.run(jc);
 							},
 							{
 								type: 'String',
-								name: 'target'
+								name: 'path'
 							}
 						],
 						description:
 							'Writes one document to the target location. Should be the full path in the storage.'
 					},
 					{
-						name: 'writeFiles',
+						name: 'writeDocuments',
 						throws: ['IOExcetion'],
 						args: [
 							{
@@ -136,27 +134,27 @@ composer.run(jc);
 							},
 							{
 								type: 'String',
-								name: 'target'
+								name: 'path'
 							}
 						],
 						description:
 							'Writes multiple documents to the target location. Should be the full path to a folder or bucket.'
 					},
 					{
-						name: 'readFile',
+						name: 'readDocument',
 						returns: 'DUUIDocument',
 						throws: ['IOExcetion'],
 						args: [
 							{
 								type: 'String',
-								name: 'source'
+								name: 'path'
 							}
 						],
 						description:
-							'Reads one document from the source location. Should be the full path in the storage.'
+							'Reads one document from the source location. Should be the full path.'
 					},
 					{
-						name: 'readFiles',
+						name: 'readDocuments',
 						returns: 'List<DUUIDocument>',
 						throws: ['IOExcetion'],
 						args: [
@@ -169,7 +167,7 @@ composer.run(jc);
 							'Reads multiple documents from the source location. Should be the full to a folder or bucket.'
 					},
 					{
-						name: 'listFiles',
+						name: 'listDocuments',
 						returns: 'List<String>',
 						throws: ['IOExcetion'],
 						args: [

@@ -19,7 +19,6 @@
 		infoToast,
 		successToast
 	} from '$lib/duui/utils/ui'
-	import IconButton from '$lib/svelte/widgets/action/IconButton.svelte'
 	import DocumentModal from '../../../lib/svelte/widgets/modal/DocumentModal.svelte'
 
 	import {
@@ -27,8 +26,6 @@
 		faArrowLeft,
 		faArrowUpWideShort,
 		faCancel,
-		faFileDownload,
-		faFileUpload,
 		faRefresh,
 		faSearch,
 		faTrash
@@ -43,7 +40,6 @@
 
 	import Search from '$lib/svelte/widgets/input/Search.svelte'
 	import Select from '$lib/svelte/widgets/input/Select.svelte'
-	import SpeedDial from '$lib/svelte/widgets/navigation/BottomMenu.svelte'
 	import Paginator from '$lib/svelte/widgets/navigation/Paginator.svelte'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
@@ -52,6 +48,7 @@
 	const toastStore = getToastStore()
 
 	let { pipeline, process, documentQuery, timeline } = data
+	
 
 	let documents: DUUIDocument[] = documentQuery.documents
 
@@ -188,7 +185,7 @@
 				`./api/update/${process.oid}
 				?limit=${paginationSettings.limit}
 				&skip=${paginationSettings.limit * paginationSettings.page}
-				&by=${sortMap.get(sort.by)}
+				&sort=${sortMap.get(sort.by)}
 				&order=${sort.order}
 				&text=${searchText}
 				&filter=${filter.join(';')}`,
@@ -222,11 +219,11 @@
 			// 	}
 			// }
 
-			progressPercent = progresAsPercent(process.progress, process.documentNames.length)
+			progressPercent = progresAsPercent(process.progress, process.document_names.length)
 			updateTable()
 
 			if (progressPercent > 100) progressPercent = 100
-			if (process.finished) {
+			if (process.is_finished) {
 				clearInterval(interval)
 			}
 		}
@@ -240,11 +237,11 @@
 	const cancelProcess = async () => {
 		const response = await makeApiCall(Api.Processes, 'PUT', { oid: process.oid })
 		if (response.ok) {
-			toastStore.trigger(successToast('Process has been canceled'))
+			toastStore.trigger(successToast('Process has been cancelled'))
 			process.status = Status.Cancelled
-			process.finished = true
+			process.is_finished = true
 		} else {
-			toastStore.trigger(infoToast('Process has already been canceled'))
+			toastStore.trigger(infoToast('Process has already been cancelled'))
 		}
 	}
 
@@ -321,7 +318,7 @@
 			?process_id=${process.oid}
 			&limit=${paginationSettings.limit}
 			&skip=${paginationSettings.page * paginationSettings.limit}
-			&by=${sortMap.get(sort.by)}
+			&sort=${sortMap.get(sort.by)}
 			&text=${searchText}
 			&order=${sort.order}
 			&filter=${filter.join(';')}`,
@@ -335,6 +332,7 @@
 
 		documents = data.documents
 		paginationSettings.total = data.count
+	
 	}
 
 	const modalStore = getModalStore()
@@ -359,9 +357,11 @@
 	}
 </script>
 
-<SpeedDial>
+<!-- <SpeedDial>
 	<svelte:fragment slot="content">
-		<IconButton icon={faArrowLeft} on:click={() => goto('/pipelines/' + pipeline.oid + '?tab=1')} />
+		<a href={`/pipelines/${pipeline.oid}?tab=1`}>
+			<Fa icon={faArrowLeft} />
+		</a>
 		{#if isCloudProvider(process.input.provider)}
 			<IconButton icon={faFileDownload} on:click={() => window.open(getInput())} />
 		{/if}
@@ -369,14 +369,14 @@
 			<IconButton icon={faFileUpload} on:click={() => window.open(getOutput())} />
 		{/if}
 
-		{#if !process.finished}
+		{#if !process.is_finished}
 			<IconButton icon={faCancel} on:click={cancelProcess} />
 		{:else}
 			<IconButton icon={faRefresh} on:click={restart} />
 			<IconButton icon={faTrash} on:click={deleteProcess} />
 		{/if}
 	</svelte:fragment>
-</SpeedDial>
+</SpeedDial> -->
 
 <div class="">
 	<div class="grid">
@@ -384,12 +384,13 @@
 			class="page-wrapper bg-solid md:top-0 z-10 left-0 bottom-0 right-0 row-start-2 fixed md:sticky md:row-start-1"
 		>
 			<div class="grid grid-cols-3 md:flex items-center md:justify-start gap-4 relative">
-				<button class="button-primary" on:click={() => goto(`/pipelines/${pipeline.oid}?tab=1`)}>
+
+				<a class="button-primary" href={`/pipelines/${pipeline.oid}?tab=1`}>
 					<Fa icon={faArrowLeft} />
 					<span class="hidden md:inline">Back</span>
-				</button>
 
-				{#if process.finished}
+				</a>
+				{#if process.is_finished}
 					<button class="button-primary" on:click={restart}>
 						<Fa icon={faRefresh} />
 						<span class="hidden md:inline">Restart</span>
@@ -476,7 +477,7 @@
 					</div>
 					<ProgressBar
 						value={process.progress}
-						max={process.documentNames.length}
+						max={process.document_names.length}
 						height="h-1"
 						rounded="rounded-none"
 						meter="variant-filled-primary"
@@ -524,8 +525,8 @@
 			<!-- <Timeline {process} {documents} /> -->
 
 			<div class="section-wrapper space-y-8 p-8">
-				<p>Skipped Files smaller than {formatFileSize(process.settings.skipFiles)}</p>
-				{#if process.settings.sortBySize}
+				<p>Skipped Files smaller than {formatFileSize(process.settings.minimum_size)}</p>
+				{#if process.settings.sort_by_size}
 					<p>Files are being processed in ascending order</p>
 				{/if}
 				{#if loaded}
@@ -542,11 +543,11 @@
 				{/if}
 			</div>
 
-			{#if process.pipelineStatus}
+			{#if process.pipeline_status}
 				<div class="section-wrapper grid items-start p-8 space-y-4">
 					<h2 class="h2">Pipeline Status</h2>
 					<div class="space-y-4">
-						{#each Object.entries(process.pipelineStatus) as [key, status]}
+						{#each Object.entries(process.pipeline_status) as [key, status]}
 							<div class="flex items-center justify-between gap-4 md:justify-start">
 								<p>{key}</p>
 								<p class="badge variant-soft-primary">{status}</p>

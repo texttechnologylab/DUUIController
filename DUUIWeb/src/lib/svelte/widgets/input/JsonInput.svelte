@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { faCheck, faClose, faPen, faPlus, faUndo } from '@fortawesome/free-solid-svg-icons'
-	import { getToastStore } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
 	import TextInput from './TextInput.svelte'
 
@@ -16,39 +15,12 @@
 		method: 'create' | 'remove' | 'update'
 	}
 
-	let history: Action[] = []
-
-	const undo = () => {
-		if (history.length === 0) return
-		const action: Action | undefined = history.pop()
-		if (action === undefined) return
-
-		history = history
-
-		if (action.method === 'create') {
-			data.delete(key)
-		} else {
-			data.set(action.key, action.value)
-		}
-
-		data = data
-	}
-
 	const remove = (key: string) => {
-		history.push({ key: key, value: data.get(key), method: 'remove' })
-		history = history
-
 		data.delete(key)
 		data = data
 	}
 
 	const create = () => {
-		if (data.has(key)) {
-			history.push({ key: key, value: data.get(key), method: 'update' })
-		} else {
-			history.push({ key: key, value: value, method: 'create' })
-		}
-
 		if (value === 'true') {
 			data.set(key, true)
 		} else if (value === 'false') {
@@ -58,71 +30,14 @@
 		} else {
 			data.set(key, value)
 		}
-		history = history
 		data = data
 		edit = false
 	}
 </script>
 
-<label class="label flex flex-col">
+<div class="label flex flex-col">
 	<span class="form-label">Settings</span>
-	<div class="input-no-highlight p-4">
-		<div class="flex items-center gap-2 mb-4">
-			{#if !edit}
-				<button
-					class="button button-primary"
-					on:click={() => {
-						key = ''
-						value = ''
-						edit = true
-					}}><span>New</span><Fa icon={faPlus} /></button
-				>
-				{#if history.length > 0}
-					<button disabled={history.length === 0} class="btn variant-soft-primary" on:click={undo}>
-						<span>Undo</span>
-						<Fa icon={faUndo} />
-					</button>
-				{/if}
-			{:else}
-				<div class="flex items-center gap-4">
-					<div>
-						<TextInput
-							bind:value={key}
-							placeholder="Key"
-							on:keydown={(event) => {
-								if (event.key !== 'Enter') return
-								if (key && value) {
-									create()
-								}
-							}}
-						/>
-						<TextInput
-							bind:value
-							placeholder="Value"
-							on:keydown={(event) => {
-								if (event.key !== 'Enter') return
-								if (key && value) {
-									create()
-								}
-							}}
-						/>
-					</div>
-					<div class="flex flex-col items-start justify-center gap-4">
-						<button
-							disabled={!key || !value}
-							class="aspect-square rounded-full {key && value
-								? 'hover:text-success-500 transition-colors'
-								: 'opacity-50'}"
-							on:click={create}><Fa icon={faCheck} size="lg" /></button
-						>
-						<button
-							class="aspect-square rounded-full hover:text-error-500 transition-colors"
-							on:click={() => (edit = false)}><Fa icon={faClose} size="lg" /></button
-						>
-					</div>
-				</div>
-			{/if}
-		</div>
+	<div class="input-no-highlight p-4 space-y-4">
 		{#if data.size === 0}
 			<div class="text-sm max-w-[60ch] space-y-4">
 				<p>Click new, then enter both a key and value then press enter or click confirm.</p>
@@ -134,6 +49,69 @@
 				</p>
 			</div>
 		{/if}
+		<div class="flex items-center gap-2 mb-4">
+			{#if !edit}
+				<button
+					class="button button-primary"
+					on:click={() => {
+						key = ''
+						value = ''
+						edit = true
+					}}><span>New</span><Fa icon={faPlus} /></button
+				>
+				{#if data.size > 0}
+					<button
+						class="button button-error"
+						on:click={() => {
+							data.clear()
+							data = data
+						}}
+					>
+						<span>Clear All</span>
+						<Fa icon={faClose} />
+					</button>
+				{/if}
+			{:else}
+				<div class="grid items-center">
+					<div class="flex items-center gap-4">
+						<TextInput
+							bind:value={key}
+							placeholder="Key"
+							on:keydown={(event) => {
+								if (event.key !== 'Enter') return
+								if (key && value) {
+									create()
+								}
+							}}
+						/>
+						<button
+							disabled={!key || !value}
+							class="aspect-square rounded-full {key && value
+								? 'hover:text-success-500 transition-colors'
+								: 'opacity-50'}"
+							on:click={create}><Fa icon={faCheck} size="lg" /></button
+						>
+					</div>
+					<div class="flex items-center gap-4">
+						<TextInput
+							bind:value
+							placeholder="Value"
+							on:keydown={(event) => {
+								if (event.key !== 'Enter') return
+								if (key && value) {
+									create()
+								}
+							}}
+						/>
+						<button
+							class="aspect-square rounded-full hover:text-error-500 transition-colors"
+							on:click={() => (edit = false)}><Fa icon={faClose} size="lg" /></button
+						>
+					</div>
+				</div>
+			{/if}
+		</div>
+
 		<div class="flex flex-wrap justify-start items-start gap-2">
 			{#each data.entries() as [_key, _value]}
 				<div class="bg-fancy rounded-md p-4 border border-color">
@@ -165,4 +143,4 @@
 			{/each}
 		</div>
 	</div>
-</label>
+</div>

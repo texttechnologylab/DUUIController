@@ -28,19 +28,28 @@
 	export let data
 	const { user, dropbBoxURL } = data
 
+	if (user && $userSession) {
+		$userSession.connections = user.connections
+	}
 	let connections = {
-		dropbox: !!user?.dropbox || false,
-		minio: !!user?.minio || false,
-		mongodb: !!user?.mongoDBConnectionURI || false
+		dropbox:
+			$userSession?.connections.dropbox.access_token !== null &&
+			$userSession?.connections.dropbox.refresh_token !== null,
+
+		minio:
+			$userSession?.connections.minio.access_key !== null &&
+			$userSession?.connections.minio.endpoint !== null &&
+			$userSession?.connections.minio.secret_key !== null,
+		mongodb: $userSession?.connections.mongoDB.uri !== null,
+		key: $userSession?.connections.key != null
 	}
 
 	const toastStore = getToastStore()
 
-	let minioAccessKey: string = $userSession?.minio?.access_key || ''
-	let minioEndpoint: string = $userSession?.minio?.endpoint || ''
-	let minioSecretKey: string = $userSession?.minio?.secret_key || ''
-
-	let mongoDBConnectionURI: string = $userSession?.mongoDBConnectionURI || ''
+	let minioAccessKey: string = $userSession?.connections.minio.access_key || ''
+	let minioEndpoint: string = $userSession?.connections.minio.endpoint || ''
+	let minioSecretKey: string = $userSession?.connections.minio.secret_key || ''
+	let mongoDBURI: string = $userSession?.connections.mongoDB.uri || ''
 
 	const updateUser = async (data: object) => {
 		const response = await fetch('/api/users', { method: 'PUT', body: JSON.stringify(data) })
@@ -49,7 +58,7 @@
 	}
 
 	const generateApiKey = async () => {
-		if (user.key) {
+		if (user.connections.key) {
 			const confirm = await showConfirmModal(
 				'Regenarate API Key',
 				'If you regenarate your API key, the old one will lose its access. Make sure to update your API key in all applications its used in.',
@@ -61,9 +70,10 @@
 
 		const response = await fetch('/api/users/auth/key', { method: 'PUT' })
 
-		if (response.ok) {
-			const userResponse = await response.json()
-			user.key = userResponse.user.key
+		if (response.ok && $userSession) {
+			const item = await response.json()
+			$userSession.connections.key = item.user.connections.key
+			connections.key = true
 		}
 	}
 
@@ -122,8 +132,9 @@
 
 		const response = await fetch('/api/users/auth/key', { method: 'DELETE' })
 
-		if (response.ok) {
-			user.key = ''
+		if (response.ok && $userSession) {
+			$userSession.connections.key = ''
+			connections.key = false
 		}
 	}
 
@@ -133,16 +144,16 @@
 
 	const modalStore = getModalStore()
 
-	const revokeDropboxAccess = async () => {
+	const deleteDropboxAccess = async () => {
 		new Promise<boolean>((resolve) => {
 			const modal: ModalSettings = {
 				type: 'component',
 				component: 'deleteModal',
 				meta: {
-					title: 'Revoke Access for Dropbox',
+					title: 'Delete Access for Dropbox',
 					body: `Are you sure you want to revoke access?
 					 You will have to go through the OAuth process again to reconnect.`,
-					deleteText: 'Revoke'
+					deleteText: 'Delete'
 				},
 				response: (r: boolean) => {
 					resolve(r)
@@ -153,27 +164,15 @@
 		}).then(async (accepted: boolean) => {
 			if (!accepted) return
 
-			const response = await makeApiCall(Api.Dropbox, 'DELETE', {})
+			const response = await updateUser({
+				'connections.dropbox.access_token': null,
+				'connections.dropbox.refresh_token': null
+			})
 
 			if (response.ok) {
 				connections.dropbox = false
 			}
 		})
-	}
-
-	const connectMinio = async () => {
-		const response = await makeApiCall(Api.Minio, 'POST', {
-			endpoint: minioEndpoint,
-			accessKey: minioAccessKey,
-			secretKey: minioSecretKey
-		})
-
-		if (response.ok) {
-			const data = await response.json()
-			minioEndpoint = data.endpoint
-			minioAccessKey = data.access_key
-			minioSecretKey = data.secret_key
-		}
 	}
 
 	const revokeMinioAccess = async () => {
@@ -182,9 +181,9 @@
 				type: 'component',
 				component: 'deleteModal',
 				meta: {
-					title: 'Revoke Access for Min.io',
-					body: `Are you sure you want to revoke access?`,
-					deleteText: 'Revoke'
+					title: 'Delete Access for Min.io',
+					body: `Are you sure you want to delete access?`,
+					deleteText: 'Delete'
 				},
 				response: (r: boolean) => {
 					resolve(r)
@@ -195,7 +194,11 @@
 		}).then(async (accepted: boolean) => {
 			if (!accepted) return
 
-			const response = await makeApiCall(Api.Minio, 'DELETE', {})
+			const response = await updateUser({
+				'connections.minio.endpoint': null,
+				'connections.minio.access_key': null,
+				'connections.minio.secret_key': null
+			})
 
 			if (response.ok) {
 				connections.minio = false
@@ -208,16 +211,19 @@
 
 	$: {
 		if (!$userSession) {
-			connections = { dropbox: false, minio: false, mongodb: false }
+			connections = { dropbox: false, minio: false, mongodb: false, key: false }
 		} else {
 			connections = {
-				dropbox: !!$userSession?.dropbox?.access_token && !!$userSession?.dropbox?.refresh_token,
-				minio: !$userSession?.minio
-					? false
-					: !!$userSession?.minio?.access_key &&
-					  !!$userSession?.minio?.secret_key &&
-					  !!$userSession?.minio?.endpoint,
-				mongodb: true
+				dropbox:
+					$userSession?.connections.dropbox.access_token !== null &&
+					$userSession?.connections.dropbox.refresh_token !== null,
+
+				minio:
+					$userSession?.connections.minio.access_key !== null &&
+					$userSession?.connections.minio.endpoint !== null &&
+					$userSession?.connections.minio.secret_key !== null,
+				mongodb: $userSession?.connections.mongoDB.uri !== null,
+				key: $userSession?.connections.key != null
 			}
 		}
 	}
@@ -258,13 +264,13 @@
 				<Fa icon={faKey} size="lg" />
 			</div>
 			<div class="space-y-8">
-				{#if user.key}
+				{#if connections.key}
 					<div class="space-y-2">
-						<Secret value={user.key} />
+						<Secret value={$userSession?.connections.key} />
 						<div class="flex items-center gap-2 text-sm">
 							<p
 								class="text-primary-500 hover:text-primary-400 cursor-pointer transition-colors px-2 border-r"
-								use:clipboard={user.key}
+								use:clipboard={$userSession?.connections.key || ''}
 							>
 								Copy
 							</p>
@@ -314,10 +320,16 @@
 							<span>Create files and folders in your <strong>Dropbox Storage</strong> </span>
 						</p>
 					</div>
-					<button class="button-error" on:click={revokeDropboxAccess}>
-						<Fa icon={faXmarkCircle} />
-						<span>Revoke access</span>
-					</button>
+					<div class="flex justify-between">
+						<button class="button-primary" on:click={startDropboxOauth}>
+							<Fa icon={faLink} />
+							<span>Reconnect</span>
+						</button>
+						<button class="button-error" on:click={deleteDropboxAccess}>
+							<Fa icon={faXmarkCircle} />
+							<span>Delete</span>
+						</button>
+					</div>
 				{:else}
 					<p class="mb-8">
 						By connecting Dropbox and DUUI you can directly read and write data from and to your
@@ -357,14 +369,23 @@
 				<Secret label="Secret Key" name="secretKey" bind:value={minioSecretKey} />
 			</div>
 			<div class="flex gap-4 justify-between">
-				<button class="button-primary" on:click={connectMinio}>
+				<button
+					class="button-primary"
+					disabled={!minioEndpoint || !minioAccessKey || !minioSecretKey}
+					on:click={() =>
+						updateUser({
+							'connections.minio.endpoint': minioEndpoint,
+							'connections.minio.access_key': minioAccessKey,
+							'connections.minio.secret_key': minioSecretKey
+						})}
+				>
 					<Fa icon={connections.minio ? faRefresh : faLink} />
 					<span>{connections.minio ? 'Update' : 'Connect'}</span>
 				</button>
 				{#if connections.minio}
 					<button class="button-error" on:click={revokeMinioAccess}>
 						<Fa icon={faXmarkCircle} />
-						<span>Revoke access</span>
+						<span>Delete</span>
 					</button>
 				{/if}
 			</div>
@@ -416,21 +437,28 @@
 						</li>
 					</ul>
 				{/if}
-				<Secret label="Connection URI" name="connectionURI" bind:value={mongoDBConnectionURI} />
+				<Secret label="Connection URI" name="connectionURI" bind:value={mongoDBURI} />
 			</div>
 			<div class="flex gap-4 justify-between">
-				<ActionButton
-					text={connections.mongodb ? 'Update' : 'Connect'}
-					icon={connections.mongodb ? faRefresh : faLink}
-					on:click={() => updateUser({ mongoDBConnectionURI: mongoDBConnectionURI })}
-				/>
+				<button
+					class="button-primary"
+					disabled={mongoDBURI == ''}
+					on:click={() => updateUser({ 'connections.mongoDB.uri': mongoDBURI })}
+				>
+					<Fa icon={connections.mongodb ? faRefresh : faLink} />
+					<span>
+						{connections.mongodb ? 'Update' : 'Connect'}
+					</span>
+				</button>
+
 				{#if connections.mongodb}
-					<ActionButton
-						icon={faXmarkCircle}
-						text="Revoke access"
-						variant="variant-filled-error dark:variant-soft-error"
-						on:click={() => updateUser({ mongoDBConnectionURI: '' })}
-					/>
+					<button
+						class="button-error"
+						on:click={() => updateUser({ 'connections.mongoDB.uri': null })}
+					>
+						<Fa icon={faXmarkCircle} />
+						<span>Delete</span>
+					</button>
 				{/if}
 			</div>
 			<p class="text-surface-500 dark:text-surface-200">
