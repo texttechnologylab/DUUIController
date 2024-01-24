@@ -16,8 +16,12 @@ interface UserProperties {
 	role: 'None' | 'User' | 'Admin' | 'Trial' | 'System'
 	session: string
 	expires?: string
+	preferences: {
+		tutorial: boolean
+		step: number
+	}
 	connections: {
-		key: string
+		key: string | null
 		dropbox: {
 			access_token: string | null
 			refresh_token: string | null

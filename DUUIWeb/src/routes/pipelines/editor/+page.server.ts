@@ -20,13 +20,16 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 	}
 
 	const fetchPipelineTemplates = async () => {
-		const response = await fetch(`${API_URL}/pipelines?limit=25&sort=times_used&order=-1`, {
-			method: 'GET',
-			mode: 'cors',
-			headers: {
-				Authorization: cookies.get('session') || ''
+		const response = await fetch(
+			`${API_URL}/pipelines?limit=25&sort=times_used&order=-1&templates=true`,
+			{
+				method: 'GET',
+				mode: 'cors',
+				headers: {
+					Authorization: cookies.get('session') || ''
+				}
 			}
-		})
+		)
 		if (response.ok) {
 			return await response.json()
 		}
