@@ -4,7 +4,7 @@
 
 	export let label: string = ''
 	export let name: string = ''
-	export let value: string = ''
+	export let value: string | null = ''
 	export let style: string = ''
 
 	export let readonly: boolean = false
