@@ -54,14 +54,14 @@ export const GET: RequestHandler = async (event) => {
 	const id = searchParams.get('pipeline_id') || ''
 	let limit: number = Math.min(+(searchParams.get('limit') || '10'), 50)
 	let skip: number = Math.max(+(searchParams.get('skip') || '0'), 0)
-	let by: string = searchParams.get('by') || 'startTime'
+	let sort: string = searchParams.get('sort') || 'startTime'
 	let order: string = searchParams.get('order') || 'ascending'
 	let filter: string = searchParams.get('filter') || 'Any'
 
 	const keys: string[] = ['started_at', 'input', 'count', 'progress', 'status', 'duration']
 
-	if (!keys.includes(by)) {
-		by = 'started_at'
+	if (!keys.includes(sort)) {
+		sort = 'started_at'
 	}
 
 	const fetchProcesses = async () => {
@@ -70,7 +70,7 @@ export const GET: RequestHandler = async (event) => {
 			?pipeline_id=${id}
 			&limit=${limit}
 			&skip=${skip}
-			&sort=${by}
+			&sort=${sort}
 			&order=${order}
 			&filter=${filter}`,
 			{

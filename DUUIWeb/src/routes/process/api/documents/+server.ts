@@ -5,12 +5,12 @@ export const GET: RequestHandler = async (event) => {
 	const { cookies } = event
 	const searchParams = event.url.searchParams
 
-	const keys: string[] = ['name', 'progress', 'status', 'size', 'duration']
+	const keys: string[] = ['name', 'progress', 'status', 'size', 'duration_total']
 
 	let process_id: string = searchParams.get('process_id') || ''
 	let limit: number = Math.min(+(searchParams.get('limit') || '10'), 50)
 	let skip: number = Math.max(+(searchParams.get('skip') || '0'), 0)
-	let sort: string = searchParams.get('by') || 'name'
+	let sort: string = searchParams.get('sort') || 'name'
 	if (!keys.includes(sort)) {
 		sort = 'name'
 	}
@@ -21,7 +21,6 @@ export const GET: RequestHandler = async (event) => {
 	let filter: string = searchParams.get('filter') || 'Any'
 
 	const fetchDocuments = async () => {
-		
 		const response = await fetch(
 			`${API_URL}/processes/${process_id}/documents
 			?limit=${limit}
@@ -38,7 +37,7 @@ export const GET: RequestHandler = async (event) => {
 				}
 			}
 		)
-			
+
 		return await response.json()
 	}
 

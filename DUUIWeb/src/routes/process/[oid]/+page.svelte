@@ -10,8 +10,8 @@
 	import { Status, isActive } from '$lib/duui/monitor.js'
 	import { processToSeachParams } from '$lib/duui/process.js'
 	import { Api, makeApiCall } from '$lib/duui/utils/api'
-	import { equals, formatFileSize, progresAsPercent } from '$lib/duui/utils/text'
-	import { formatMilliseconds } from '$lib/duui/utils/time'
+	import { equals, formatFileSize, progresAsPercent, snakeToTitleCase } from '$lib/duui/utils/text'
+	import { formatMilliseconds, getDuration } from '$lib/duui/utils/time'
 	import {
 		documentStatusNames,
 		getDocumentStatusIcon,
@@ -48,7 +48,6 @@
 	const toastStore = getToastStore()
 
 	let { pipeline, process, documentQuery, timeline } = data
-	
 
 	let documents: DUUIDocument[] = documentQuery.documents
 
@@ -79,7 +78,7 @@
 	let searchText: string = ''
 
 	let filter: string[] = [Status.Any]
-	let maxProgress = pipeline.components.length + (isCloudProvider(process.output.provider) ? 1 : 0)
+	let maxProgress = pipeline.components.length
 
 	let ApexCharts
 	let loaded: boolean = false
@@ -236,10 +235,11 @@
 
 	const cancelProcess = async () => {
 		const response = await makeApiCall(Api.Processes, 'PUT', { oid: process.oid })
+		process.status = Status.Cancelled
+		process.is_finished = true
+
 		if (response.ok) {
 			toastStore.trigger(successToast('Process has been cancelled'))
-			process.status = Status.Cancelled
-			process.is_finished = true
 		} else {
 			toastStore.trigger(infoToast('Process has already been cancelled'))
 		}
@@ -265,7 +265,7 @@
 			const response = await makeApiCall(Api.Processes, 'DELETE', { oid: process.oid })
 			if (response.ok) {
 				toastStore.trigger(infoToast('Process has been deleted'))
-				goto(`/pipelines/${pipeline.oid}?tab=1`)
+				goto(`/pipelines/${pipeline.oid}`)
 			}
 		})
 	}
@@ -332,7 +332,6 @@
 
 		documents = data.documents
 		paginationSettings.total = data.count
-	
 	}
 
 	const modalStore = getModalStore()
@@ -357,38 +356,15 @@
 	}
 </script>
 
-<!-- <SpeedDial>
-	<svelte:fragment slot="content">
-		<a href={`/pipelines/${pipeline.oid}?tab=1`}>
-			<Fa icon={faArrowLeft} />
-		</a>
-		{#if isCloudProvider(process.input.provider)}
-			<IconButton icon={faFileDownload} on:click={() => window.open(getInput())} />
-		{/if}
-		{#if isCloudProvider(process.output.provider)}
-			<IconButton icon={faFileUpload} on:click={() => window.open(getOutput())} />
-		{/if}
-
-		{#if !process.is_finished}
-			<IconButton icon={faCancel} on:click={cancelProcess} />
-		{:else}
-			<IconButton icon={faRefresh} on:click={restart} />
-			<IconButton icon={faTrash} on:click={deleteProcess} />
-		{/if}
-	</svelte:fragment>
-</SpeedDial> -->
-
 <div class="">
 	<div class="grid">
 		<div
 			class="page-wrapper bg-solid md:top-0 z-10 left-0 bottom-0 right-0 row-start-2 fixed md:sticky md:row-start-1"
 		>
 			<div class="grid grid-cols-3 md:flex items-center md:justify-start gap-4 relative">
-
-				<a class="button-primary" href={`/pipelines/${pipeline.oid}?tab=1`}>
+				<a class="button-primary" href={`/pipelines/${pipeline.oid}`}>
 					<Fa icon={faArrowLeft} />
 					<span class="hidden md:inline">Back</span>
-
 				</a>
 				{#if process.is_finished}
 					<button class="button-primary" on:click={restart}>
@@ -409,7 +385,15 @@
 		</div>
 		<div class="p-4 md:p-8 space-y-4">
 			<div class="flex items-center justify-between gap-4 mb-8">
-				<h1 class="h1">{pipeline.name}</h1>
+				<div class="space-y-2">
+					<h1 class="h1">{pipeline.name}</h1>
+					<div>
+						<p>Total process duration: {getDuration(process.started_at, process.finished_at)}</p>
+						<p>
+							{process.progress} of {process.document_names.length} Documents have been processed.
+						</p>
+					</div>
+				</div>
 
 				<div class="flex items-center gap-4">
 					<Fa
@@ -525,10 +509,46 @@
 			<!-- <Timeline {process} {documents} /> -->
 
 			<div class="section-wrapper space-y-8 p-8">
-				<p>Skipped Files smaller than {formatFileSize(process.settings.minimum_size)}</p>
-				{#if process.settings.sort_by_size}
-					<p>Files are being processed in ascending order</p>
-				{/if}
+				<div class="grid md:grid-cols-2 gap-4">
+					<div class="space-y-8">
+						<h2 class="h2">Settings</h2>
+						<div class="grid grid-cols-2 gap-4">
+							{#each Object.entries(process.settings) as [key, value]}
+								<p>{snakeToTitleCase(key)}</p>
+								<p>
+									{key === 'minimum_size'
+										? formatFileSize(+value)
+										: value === true
+										? 'Yes'
+										: value === false
+										? 'No'
+										: value}
+								</p>
+							{/each}
+							{#if process.initial}
+								<p>Documents found</p>
+								<p>{process.initial}</p>
+								<p>Documents skipped</p>
+								<p>{process.skipped}</p>
+								<p>Documents kept</p>
+								<p>{process.initial - process.skipped}</p>
+							{/if}
+						</div>
+					</div>
+
+					{#if process.pipeline_status}
+						<div class="space-y-8">
+							<h2 class="h2">Pipeline Status</h2>
+							<div class="grid grid-cols-2 gap-4">
+								{#each Object.entries(process.pipeline_status) as [key, status]}
+									<p>{key}</p>
+									<p>{status}</p>
+								{/each}
+							</div>
+						</div>
+					{/if}
+				</div>
+
 				{#if loaded}
 					<!-- <div>
 						<h2 class="h2">Timeline</h2>
@@ -542,20 +562,6 @@
 					</div> -->
 				{/if}
 			</div>
-
-			{#if process.pipeline_status}
-				<div class="section-wrapper grid items-start p-8 space-y-4">
-					<h2 class="h2">Pipeline Status</h2>
-					<div class="space-y-4">
-						{#each Object.entries(process.pipeline_status) as [key, status]}
-							<div class="flex items-center justify-between gap-4 md:justify-start">
-								<p>{key}</p>
-								<p class="badge variant-soft-primary">{status}</p>
-							</div>
-						{/each}
-					</div>
-				</div>
-			{/if}
 		</div>
 	</div>
 </div>

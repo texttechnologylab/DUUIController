@@ -45,25 +45,40 @@
 	let hasChanges: boolean = false
 	let tabSet: number = 0
 
-	let parameters: Map<string, string> = new Map(Object.entries(component.settings.parameters))
-	let options: Map<string, string> = new Map(Object.entries(component.settings.options))
+	let parameters: Map<string, string> = new Map(Object.entries(component.parameters))
+	let options: Map<string, string> = new Map(Object.entries(component.options))
 
-	$: hasChanges = !isEqual(component, componentCopy)
+	$: hasChanges =
+		!isEqual(component, componentCopy) ||
+		!isEqual(
+			{
+				parameters: Object.fromEntries(parameters.entries()),
+				options: Object.fromEntries(options.entries())
+			},
+			{ parameters: component.parameters, options: component.options }
+		)
 
 	const onUpdate = async () => {
 		if (!isNew) {
+			component.parameters = Object.fromEntries(parameters)
+			component.options = Object.fromEntries(options)
 			const response = await makeApiCall(Api.Components, 'PUT', component)
+
 			if (response.ok) {
 				toastStore.trigger(successToast('Component updated successfully'))
 				componentCopy = cloneDeep(component)
+				parameters = new Map(Object.entries(component.parameters))
+				options = new Map(Object.entries(component.options))
 			}
+
+			dispatcher('updated', { ...component })
 		}
 	}
 
 	const discardChanges = () => {
 		component = cloneDeep(componentCopy)
-		parameters = new Map(Object.entries(component.settings.parameters))
-		options = new Map(Object.entries(component.settings.options))
+		parameters = new Map(Object.entries(component.parameters))
+		options = new Map(Object.entries(component.options))
 	}
 
 	const onRemove = () => {
@@ -121,7 +136,7 @@
 		class="flex justify-between gap-4 items-center px-4 py-2 bg-surface-50/100 dark:bg-surface-900/25"
 	>
 		<div class="md:flex md:items-center grid gap-4">
-			<DriverIcon driver={component.settings.driver} />
+			<DriverIcon driver={component.driver} />
 			<p class="{expanded ? 'hidden md:block' : ''} md:h4 grow">{component.name}</p>
 		</div>
 		<div
@@ -164,16 +179,16 @@
 					label="Driver"
 					name="driver"
 					options={DUUIDrivers}
-					bind:value={component.settings.driver}
+					bind:value={component.driver}
 				/>
 				<Text
 					style="md:col-span-2"
 					label="Target"
 					name="target"
-					bind:value={component.settings.target}
+					bind:value={component.target}
 				/>
 
-				<Chips style="md:col-span-2" label="Categories" bind:values={component.categories} />
+				<Chips style="md:col-span-2" label="Tags" bind:values={component.tags} />
 				<TextArea
 					style="md:col-span-2"
 					label="Description"
@@ -191,23 +206,11 @@
 				<div class="md:col-span-2">
 					{#if tabSet === 0}
 						<JsonPreview bind:data={parameters} />
-						<!-- <Mapper
-							label="Parameters"
-							bind:map={parameters}
-							on:update={(event) => {
-								component.settings.parameters = Object.fromEntries(event.detail.map.entries())
-							}}
-						/> -->
+				
 					{:else if tabSet === 1}
 						<JsonPreview bind:data={options} />
 
-						<!-- <Mapper
-							label="Options"
-							bind:map={options}
-							on:update={(event) => {
-								component.settings.options = Object.fromEntries(event.detail.map.entries())
-							}}
-						/> -->
+			
 					{/if}
 				</div>
 			</div>
@@ -215,7 +218,7 @@
 
 			{#if hasChanges}
 				<footer class="bg-surface-50/100 dark:bg-surface-900/25">
-					<div class="flex items-center justify-end px-4 py-2 gap-4">
+					<div class="grid md:flex items-center md:justify-end px-4 py-2 gap-4">
 						<ActionButton
 							visible={hasChanges && !isNew}
 							variant={variantSuccess}

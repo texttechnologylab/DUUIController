@@ -40,34 +40,31 @@ export interface DUUIComponent {
 	oid: string
 	id: string // Drag & Drop
 	name: string
-	categories: string[]
 	description: string
+	tags: string[]
 	status: string
-	settings: {
-		driver: DUUIDriver
-		target: string
-		options: _Object
-		parameters: _Object
-	}
+	driver: DUUIDriver
+	target: string
+	options: any
+	parameters: any
 	pipelineId: string | null
 	userId: string | null
 	index: number
 }
+
 
 export const blankComponent = (pipelineId: string, index: number) =>
 	<DUUIComponent>{
 		oid: uuidv4(),
 		id: uuidv4(),
 		name: 'New Component ' + index,
-		categories: [],
+		tags: [],
 		description: '',
 		status: '',
-		settings: {
-			driver: DUUIDockerDriver,
-			target: '',
-			options: {},
-			parameters: {}
-		},
+		driver: DUUIDockerDriver,
+		target: '',
+		options: {},
+		parameters: {},
 		pipelineId: pipelineId,
 		userId: null,
 		index: index
@@ -76,9 +73,12 @@ export const blankComponent = (pipelineId: string, index: number) =>
 export const componentToJson = (component: DUUIComponent) => {
 	return {
 		name: component.name,
-		categories: component.categories,
+		categories: component.tags,
 		description: component.description,
-		settings: component.settings,
+		driver: component.driver,
+		target: component.target,
+		options: component.options,
+		parameters: component.parameters,
 		index: component.index
 	}
 }

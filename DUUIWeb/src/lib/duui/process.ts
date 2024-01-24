@@ -20,6 +20,7 @@ export interface DUUIProcess {
 		sort_by_size: boolean
 		minimum_size: number
 		worker_count: number
+		ignore_errors: boolean
 	}
 	document_names: string[]
 	is_finished: boolean
@@ -27,10 +28,8 @@ export interface DUUIProcess {
 	duration_instantiation: number
 	count: number
 	pipeline_status: Map<string, string>
-}
-
-export const progressMaximum = (process: DUUIProcess, pipeline: DUUIPipeline) => {
-	return process.document_names.length
+	initial: number
+	skipped: number
 }
 
 export const processToSeachParams = (process: DUUIProcess) => {
@@ -49,5 +48,6 @@ export const processToSeachParams = (process: DUUIProcess) => {
 		&sort_by_size=${process.settings.sort_by_size || 'false'}
 		&minimum_size=${process.settings.minimum_size || '0'}
 		&worker_count=${process.settings.worker_count || '5'}
+		&ignore_errors=${process.settings.ignore_errors || 'false'}
 		`
 }

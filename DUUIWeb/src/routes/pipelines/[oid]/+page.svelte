@@ -34,13 +34,12 @@
 	import { markedForDeletionStore } from '$lib/store'
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import Chips from '$lib/svelte/widgets/input/Chips.svelte'
-	import JsonPreview from '$lib/svelte/widgets/input/JsonInput.svelte'
+	import JsonInput from '$lib/svelte/widgets/input/JsonInput.svelte'
 	import Select from '$lib/svelte/widgets/input/Select.svelte'
 	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
 	import Text from '$lib/svelte/widgets/input/TextInput.svelte'
 	import Paginator from '$lib/svelte/widgets/navigation/Paginator.svelte'
 	import { getToastStore, Tab, TabGroup } from '@skeletonlabs/skeleton'
-	import { onDestroy, onMount } from 'svelte'
 	import type { PageServerData } from './$types'
 
 	import lodash from 'lodash'
@@ -65,30 +64,8 @@
 
 	let sort: Sort = {
 		by: 0,
-		order: 1
+		order: -1
 	}
-
-	let interval: NodeJS.Timeout
-
-	const update = async () => {
-		const fetchUpdate = async () => {
-			const response = await fetch(`/pipelines/api/update?id=${pipeline.oid}`, {
-				method: 'GET'
-			})
-			const json = await response.json()
-			pipeline.status = json.state
-		}
-		interval = setInterval(fetchUpdate, 500)
-		fetchUpdate()
-	}
-
-	onDestroy(() => {
-		clearInterval(interval)
-	})
-
-	onMount(() => {
-		return () => clearInterval(interval)
-	})
 
 	const sortMap: Map<number, string> = new Map([
 		[0, 'startTime'],
@@ -121,7 +98,8 @@
 	const handleDndFinalize = (event: CustomEvent<DndEvent<DUUIComponent>>) => {
 		pipeline.components = [...event.detail.items]
 		pipeline.components.forEach(
-			(c) => (c.index = pipeline.components.map((c) => c.oid).indexOf(c.oid))
+			(c: { index: any; oid: any }) =>
+				(c.index = pipeline.components.map((c: DUUIComponent) => c.oid).indexOf(c.oid))
 		)
 
 		if (pipeline.components.length <= 1) {
@@ -131,7 +109,7 @@
 
 	const updatePipeline = async () => {
 		pipeline.settings = Object.fromEntries(settings.entries())
-		pipeline.components = pipeline.components.map((c) => {
+		pipeline.components = pipeline.components.map((c: DUUIComponent) => {
 			return { ...c, index: pipeline.components.indexOf(c) }
 		})
 
@@ -217,25 +195,34 @@
 		if (pipeline.status === Status.Setup || pipeline.status === Status.Shutdown) {
 			return
 		}
-		update()
+
 		pipeline.status === Status.Inactive ? startService() : stopService()
 	}
 
 	const startService = async () => {
+		pipeline.status = Status.Setup
 		const response = await makeApiCall(Api.Services, 'POST', pipeline)
 
 		if (response.ok) {
-			pipeline.status = Status.Idle
-			clearInterval(interval)
+			const result = await response.json()
+			pipeline.status = result.status
+		} else {
+			pipeline.status = Status.Inactive
 		}
 	}
 
 	const stopService = async () => {
+		pipeline.status = Status.Shutdown
+
 		const response = await makeApiCall(Api.Services, 'PUT', pipeline)
 
 		if (response.ok) {
+			const result = await response.json()
+			pipeline.status = result.status
+		} else if (response.status === 404) {
 			pipeline.status = Status.Inactive
-			clearInterval(interval)
+		} else {
+			pipeline.status = Status.Idle
 		}
 	}
 
@@ -284,6 +271,8 @@
 		const data = json.processInfo
 		processes = data.processes
 		count = data.count
+		paginationSettings.total = count
+
 		sortedProcessses = processes
 	}
 
@@ -357,26 +346,29 @@
 		>
 			<div
 				class="grid {hasChanges
-					? 'grid-cols-7'
-					: 'grid-cols-5'} md:flex items-center md:justify-start gap-4 relative"
+					? 'grid-cols-5'
+					: 'grid-cols-5'} md:flex items-center md:justify-start relative md:gap-4"
 			>
 				<a href="/pipelines" class="button-primary">
 					<Fa icon={faArrowLeft} />
-					<span class="hidden md:inline">Pipelines</span>
+					<span class="text-xs md:text-base">Pipelines</span>
 				</a>
 
 				<button class="button-primary" on:click={exportPipeline}>
 					<Fa icon={faFileExport} />
-					<span class="hidden md:inline">Export</span>
+					<span class="text-xs md:text-base">Export</span>
 				</button>
 
 				<button class="button-primary" on:click={copyPipeline}>
 					<Fa icon={faFileClipboard} />
-					<span class="hidden md:inline">Copy</span>
+					<span class="text-xs md:text-base">Copy</span>
 				</button>
 
 				<button
-					class="button-primary md:ml-auto"
+					class="button-primary md:ml-auto {pipeline.status === Status.Setup ||
+					pipeline.status === Status.Shutdown
+						? 'aspect-square !px-4'
+						: ''}"
 					on:click={manageService}
 					disabled={pipeline.status === Status.Setup || pipeline.status === Status.Shutdown}
 				>
@@ -384,29 +376,25 @@
 						<Fa icon={faRotate} spin />
 					{:else}
 						<Fa icon={pipeline.status === Status.Idle ? faPause : faPlay} />
+						<span class="text-xs md:text-base"
+							>{pipeline.status === Status.Inactive ? 'Setup' : 'Shutdown'}</span
+						>
 					{/if}
-					<span class="hidden md:inline"
-						>{pipeline.status === Status.Inactive
-							? 'Setup'
-							: pipeline.status === Status.Idle
-							? 'Shutdown'
-							: 'Processing'}</span
-					>
 				</button>
 
 				{#if hasChanges}
 					<button class="button-success" on:click={updatePipeline}>
 						<Fa icon={faFileCircleCheck} />
-						<span class="hidden md:inline">Save changes</span>
+						<span class="text-xs md:text-base">Save changes</span>
 					</button>
 					<button class="button-error" on:click={discardChanges}>
 						<Fa icon={faFileCircleXmark} />
-						<span class="hidden md:inline">Discard changes</span>
+						<span class="text-xs md:text-base">Discard changes</span>
 					</button>
 				{/if}
 				<button class="button-error" on:click={deletePipeline}>
 					<Fa icon={faTrash} />
-					<span class="hidden md:inline">Delete</span>
+					<span class="text-xs md:text-base">Delete</span>
 				</button>
 			</div>
 		</div>
@@ -432,14 +420,16 @@
 					<div
 						class="ml-auto flex overflow-hidden justify-between section-wrapper !shadow-none !border-b-0 !rounded-b-none z-10"
 					>
-						<button
-							class="inline-flex gap-4 items-center px-4 bg-fancy"
-							on:click={() => goto('/process?pipeline_id=' + pipeline.oid)}
-						>
-							<Fa icon={faPlus} />
-							<span class="hidden md:inline">New Process</span>
-						</button>
-
+						{#if pipeline.userId !== null}
+							<a
+								class="inline-flex gap-4 items-center px-4 bg-fancy"
+								href={`/process?pipeline_id=${pipeline.oid}`}
+							>
+								<Fa icon={faPlus} />
+								<span class="hidden md:inline">New Process</span>
+							</a>
+						{/if}
+						
 						<Select
 							on:change={updateTable}
 							style="z-50 !rounded-none hidden md:flex"
@@ -465,7 +455,7 @@
 
 						<Chips label="Tags" placeholder="Add a tag..." bind:values={pipeline.tags} />
 					</div>
-					<JsonPreview bind:data={settings} />
+					<JsonInput bind:data={settings} label="Settings" />
 					<div class="md:col-span-2 space-y-4">
 						<h2 class="h2">Components</h2>
 						<div
@@ -482,7 +472,6 @@
 									<div animate:flip={{ duration: 300 }}>
 										<PipelineComponent
 											{component}
-											on:update={updatePipeline}
 											on:deleteComponent={(event) => {
 												pipeline.components = pipeline.components.filter(
 													(c) => c.oid !== event.detail.oid

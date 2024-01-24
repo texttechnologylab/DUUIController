@@ -17,6 +17,10 @@ h6 {
 	font-weight: bold;
 }
 
+p {
+	max-width: 65ch;
+}
+
 #page {
 	@apply scroll-smooth gradient;
 }
@@ -134,24 +138,28 @@ h6 {
 	@apply hover:text-primary-500 transition-colors duration-300;
 }
 
+.button {
+	@apply btn max-h-[64px] md:max-h-none rounded-none md:rounded-md py-3 flex-col md:flex-row gap-2;
+}
+
 .button-primary {
-	@apply btn variant-filled-primary dark:variant-soft-primary py-3;
+	@apply button variant-filled-primary dark:variant-soft-primary;
 }
 
 .button-surface {
-	@apply btn variant-filled-surface dark:variant-soft-surface py-3;
+	@apply button variant-filled-surface dark:variant-soft-surface;
 }
 
 .button-success {
-	@apply btn variant-filled-success dark:variant-soft-success py-3;
+	@apply button variant-filled-success dark:variant-soft-success;
 }
 
 .button-error {
-	@apply btn variant-filled-error dark:variant-soft-error py-3 font-bold;
+	@apply button variant-filled-error dark:variant-soft-error font-bold;
 }
 
 .button-modal {
-	@apply px-8 py-3 font-bold;
+	@apply !px-8 !py-3 !font-bold !rounded-md;
 }
 
 ::-webkit-scrollbar {

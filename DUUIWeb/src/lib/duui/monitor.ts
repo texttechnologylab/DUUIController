@@ -27,7 +27,7 @@ export const statusNames: string[] = [
 	'Shutdown',
 	'Starting',
 	'Skipped',
-	'Unknow',
+	'Unknown',
 	'Waiting'
 ]
 
@@ -49,7 +49,7 @@ export enum Status {
 	Shutdown = 'Shutdown',
 	Skipped = 'Skipped',
 	ImageStart = 'Starting',
-	Unknown = 'Unknow',
+	Unknown = 'Unknown',
 	Waiting = 'Waiting'
 }
 

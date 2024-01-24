@@ -10,6 +10,11 @@ export const toTitleCase = (text: string) => {
 	return text[0].toUpperCase() + text.slice(1)
 }
 
+export const snakeToTitleCase = (text: string) =>
+	text
+		.replace(/^[-_]*(.)/, (_: any, c: string) => c.toUpperCase()) // Initial char (after -/_)
+		.replace(/[-_]+(.)/g, (_: any, c: string) => ' ' + c.toUpperCase()) // First char after each -/_
+
 export const dateToString = (date: Date) => {
 	const options: Intl.DateTimeFormatOptions = {
 		year: 'numeric',

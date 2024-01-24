@@ -43,9 +43,9 @@ export const pipelineToExportableJson = (pipeline: DUUIPipeline) => {
 }
 
 export const usedDrivers = (pipeline: DUUIPipeline) =>
-	new Set(pipeline.components.map((c) => c.settings.driver))
+	new Set(pipeline.components.map((c) => c.driver))
 
 export const getPipelineCategories = (pipeline: DUUIPipeline) => {
-	const categories = pipeline.components.map((c) => c.categories.join(' ')).join(' ')
+	const categories = pipeline.components.map((c) => c.tags.join(' ')).join(' ')
 	return categories
 }

@@ -31,6 +31,9 @@ export default {
 					'90%': { transform: 'rotate(360.0deg)' },
 					'100%': { transform: 'rotate(360.0deg)' }
 				}
+			},
+			gridTemplateColumns: {
+				'auto-fit-420': 'repeat(auto-fit, minmax(min(100%, 420px), 1fr))'
 			}
 		}
 	},

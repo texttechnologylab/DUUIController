@@ -71,9 +71,10 @@ export const getDocumentStatusIcon = (document: DUUIDocument) => {
 	if (equals(document.status, Status.Deserialize)) return faFileArchive
 	if (equals(document.status, Status.Skipped)) return faSlash
 	if (equals(document.status, Status.Waiting)) return faHourglass
+	if (equals(document.status, Status.Inactive)) return faHourglass
 	if (equals(document.status, Status.Cancelled)) return document.error ? faClose : faCancel
 	if (equals(document.status, Status.Output)) return document.error ? faClose : faFileUpload
-	if (equals(document.status, Status.Failed)) return document.error ? faWarning : faCheck
+	if (equals(document.status, Status.Failed)) return faWarning
 	if (equals(document.status, Status.Completed)) return document.error ? faClose : faCheckDouble
 
 	return document.error ? faClose : document.finished ? faCheck : faRefresh

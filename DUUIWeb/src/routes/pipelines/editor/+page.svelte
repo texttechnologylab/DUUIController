@@ -11,7 +11,7 @@
 	import { Api, makeApiCall } from '$lib/duui/utils/api'
 	import { includes } from '$lib/duui/utils/text'
 	import { scrollIntoView, successToast } from '$lib/duui/utils/ui'
-	import { currentPipelineStore } from '$lib/store'
+	import { currentPipelineStore, userSession } from '$lib/store'
 	import DriverIcon from '$lib/svelte/DriverIcon.svelte'
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import PipelineCard from '$lib/svelte/widgets/duui/PipelineCard.svelte'
@@ -82,6 +82,11 @@
 		)
 	}
 
+	const updateUser = async (data: object) => {
+		const response = await fetch('/api/users', { method: 'PUT', body: JSON.stringify(data) })
+		return response
+	}
+
 	const toastStore = getToastStore()
 
 	const handleDndConsider = (event: CustomEvent<DndEvent<DUUIComponent>>) => {
@@ -145,7 +150,7 @@
 			return { ...c, id: uuidv4(), index: $currentPipelineStore.components.indexOf(c) }
 		})
 
-		goto('/pipelines/editor?step=1')
+		goto('/pipelines/editor')
 		step = 1
 	}
 
@@ -199,7 +204,14 @@
 			<div class="grid grid-cols-2 md:flex items-center md:justify-between gap-4 relative">
 				<button
 					class="button-primary"
-					on:click={() => (step === 0 ? goto('/pipelines') : (step -= 1))}
+					on:click={() => {
+						if (step == 0) {
+							goto('/pipelines')
+						} else {
+							step -= 1
+							scrollIntoView('top')
+						}
+					}}
 				>
 					<Fa icon={faArrowLeft} />
 					<span>{step === 0 ? 'Pipelines' : step === 1 ? 'Start' : 'Settings'}</span>
@@ -215,7 +227,14 @@
 				{/if}
 				<button
 					class={step === 2 ? 'button-success' : 'button-primary'}
-					on:click={() => (step === 2 ? createPipeline() : (step += 1))}
+					on:click={() => {
+						if (step === 2) {
+							createPipeline()
+						} else {
+							step += 1
+							scrollIntoView('top')
+						}
+					}}
 					disabled={(step === 1 && !$currentPipelineStore.name) ||
 						(step === 2 && $currentPipelineStore.components.length === 0)}
 				>
@@ -232,9 +251,9 @@
 
 			{#if step === 0}
 				<div class="space-y-8">
-					<div class="grid md:grid-cols-3 gap-4">
+					<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-8">
 						<button
-							class="card-fancy text-left grid grid-rows-[auto_1fr_80px]"
+							class="card-fancy text-left grid items-start min-h-[300px]"
 							on:click={() => selectPipelineTemplate()}
 						>
 							<div class="flex items-center gap-4 justify-between">
@@ -242,32 +261,47 @@
 								<p class="variant-soft badge">New</p>
 							</div>
 
-							<p class="row-span-2">An empty Pipeline.</p>
+							<p class="row-span-2">A new Pipeline without any predefined settings.</p>
 							<div class="flex items-center justify-end gap-4 self-end">
 								{#each DUUIDrivers as driver}
 									<DriverIcon {driver} />
 								{/each}
 							</div>
 						</button>
+						{#if $userSession?.preferences.tutorial && $userSession.preferences.step === 2}
+							<div class="card-fancy text-left grid items-start min-h-[300px]">
+								<p>You have two options now:</p>
+								<p>
+									Create a pipeline from scratch or chose a template to start from. You can also
+									just create a copy of the pipeline
+								</p>
+							</div>
+						{/if}
 					</div>
 					<hr class="hr !my-16 !md:block !hidden" />
 					<div class="space-y-8">
 						<div class="md:flex justify-between items-end space-y-4">
 							<h2 class="h2 font-bold">Templates</h2>
 							<Search
-								style="row-start-2 col-span-2"
+								style="input-wrapper row-start-2 col-span-2"
 								bind:query={searchText}
 								icon={faSearch}
 								placeholder="Search..."
 							/>
 						</div>
-						<div class="grid gap-4 md:gap-8 md:grid-cols-2 lg:grid-cols-3">
+						<div class="grid gap-4 md:gap-8 md:grid-cols-2 xl:grid-cols-3">
 							{#each filteredTemplatePipelines as pipeline}
 								<button
-									class="card-fancy text-left grid grid-rows-[auto_1fr_80px]"
+									class="card-fancy text-left grid min-h-[300px] items-start"
 									on:click={() => selectPipelineTemplate(pipeline)}
 								>
-									<PipelineCard {pipeline} />
+									<PipelineCard
+										on:clone={() => {
+											selectPipelineTemplate(pipeline)
+											createPipeline()
+										}}
+										{pipeline}
+									/>
 								</button>
 							{/each}
 						</div>

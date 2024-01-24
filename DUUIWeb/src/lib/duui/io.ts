@@ -28,13 +28,12 @@ export type DUUIDocumentProvider = {
 	fileExtension: FileExtension
 }
 
-export type IOProvider = 'Dropbox' | 'Minio' | 'MongoDB' | 'File' | 'Text' | 'None'
+export type IOProvider = 'Dropbox' | 'Minio' | 'File' | 'Text' | 'None'
 export type FileExtension = '.txt' | '.xmi' | '.gz' | ''
 
 export enum Input {
 	Dropbox = 'Dropbox',
 	Minio = 'Minio',
-	MongoDB = 'MongoDB',
 	Text = 'Text',
 	File = 'File'
 }
@@ -42,7 +41,6 @@ export enum Input {
 export enum Output {
 	Dropbox = 'Dropbox',
 	Minio = 'Minio',
-	MongoDB = 'MongoDB',
 	File = 'File',
 	None = 'None'
 }
@@ -51,15 +49,14 @@ export enum IO {
 	Dropbox = 'Dropbox',
 	File = 'File',
 	Minio = 'Minio',
-	MongoDB = 'MongoDB',
 	Text = 'Text'
 }
 
-export const InputSources: string[] = ['Dropbox', 'File', 'Minio', 'MongoDB', 'Text']
+export const InputSources: string[] = ['Dropbox', 'File', 'Minio', 'Text']
 
 export const InputFileExtensions: string[] = ['.txt', '.xmi', '.gz']
 
-export const OutputTargets: string[] = ['Dropbox', 'File', 'Minio', 'MongoDB', 'None']
+export const OutputTargets: string[] = ['Dropbox', 'File', 'Minio', 'None']
 
 export const OutputFileExtensions: string[] = ['.txt', '.xmi']
 

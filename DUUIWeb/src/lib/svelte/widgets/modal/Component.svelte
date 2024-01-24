@@ -20,10 +20,13 @@
 
 	let tabSet: number = 0
 
-	let parameters: Map<string, string> = new Map(Object.entries(component.settings.parameters))
-	let options: Map<string, string> = new Map(Object.entries(component.settings.options))
+	let parameters: Map<string, string> = new Map(Object.entries(component.parameters))
+	let options: Map<string, string> = new Map(Object.entries(component.options))
 
 	const createComponent = async () => {
+		component.options = Object.fromEntries(options.entries())
+		component.parameters = Object.fromEntries(parameters.entries())
+
 		if ($modalStore[0].response) {
 			$modalStore[0].response({ accepted: true, component: component })
 		}
@@ -31,6 +34,9 @@
 	}
 
 	const uploadComponent = async () => {
+		component.options = Object.fromEntries(options.entries())
+		component.parameters = Object.fromEntries(parameters.entries())
+
 		const response = await fetch('/api/components', {
 			method: 'POST',
 			body: JSON.stringify({
@@ -48,7 +54,7 @@
 	<div
 		class="flex justify-between items-center bg-surface-200/20 dark:bg-surface-900/25 p-4 py-3 sticky top-0"
 	>
-		<DriverIcon driver={component.settings.driver} />
+		<DriverIcon driver={component.driver} />
 		<button
 			class="transition-colors text-surface-700 hover:text-error-500"
 			on:click={() => modalStore.close()}
@@ -60,21 +66,11 @@
 
 	<div class="grid md:grid-cols-2 gap-4 p-4 max-h-[20rem] md:max-h-[40rem] overflow-y-scroll">
 		<Text label="Name" name="name" bind:value={component.name} />
-		<Dropdown
-			label="Driver"
-			name="driver"
-			options={DUUIDrivers}
-			bind:value={component.settings.driver}
-		/>
-		<Text
-			style="md:col-span-2"
-			label="Target"
-			name="target"
-			bind:value={component.settings.target}
-		/>
+		<Dropdown label="Driver" name="driver" options={DUUIDrivers} bind:value={component.driver} />
+		<Text style="md:col-span-2" label="Target" name="target" bind:value={component.target} />
 		<!-- <SettingsMapper /> -->
 
-		<Chips style="md:col-span-2" label="Categories" bind:values={component.categories} />
+		<Chips style="md:col-span-2" label="Categories" bind:values={component.tags} />
 		<TextArea
 			style="md:col-span-2"
 			label="Description"
@@ -88,23 +84,8 @@
 		<div class="md:col-span-2">
 			{#if tabSet === 0}
 				<JsonPreview bind:data={parameters} />
-				<!-- <Mapper
-							label="Parameters"
-							bind:map={parameters}
-							on:update={(event) => {
-								component.settings.parameters = Object.fromEntries(event.detail.map.entries())
-							}}
-						/> -->
 			{:else if tabSet === 1}
 				<JsonPreview bind:data={options} />
-
-				<!-- <Mapper
-							label="Options"
-							bind:map={options}
-							on:update={(event) => {
-								component.settings.options = Object.fromEntries(event.detail.map.entries())
-							}}
-						/> -->
 			{/if}
 		</div>
 	</div>
@@ -114,14 +95,14 @@
 		<div class="grid grid-cols-2 gap-4">
 			{#if $userSession?.role === 'Admin'}
 				<ActionButton
-					disabled={!component.name || !component.settings.driver || !component.settings.target}
+					disabled={!component.name || !component.driver || !component.target}
 					text="Upload"
 					icon={faFileUpload}
 					on:click={uploadComponent}
 				/>
 			{/if}
 			<ActionButton
-				disabled={!component.name || !component.settings.driver || !component.settings.target}
+				disabled={!component.name || !component.driver || !component.target}
 				text="Create"
 				icon={faFilePen}
 				on:click={createComponent}

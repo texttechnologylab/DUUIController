@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { faCheck, faClose, faPen, faPlus, faUndo } from '@fortawesome/free-solid-svg-icons'
+	import { faCheck, faClose, faPen, faPlus } from '@fortawesome/free-solid-svg-icons'
 	import Fa from 'svelte-fa'
 	import TextInput from './TextInput.svelte'
 
@@ -8,12 +8,7 @@
 	let edit: boolean = false
 	let key: string = ''
 	let value: string = ''
-
-	type Action = {
-		key: string
-		value: string
-		method: 'create' | 'remove' | 'update'
-	}
+	export let label: string = ''
 
 	const remove = (key: string) => {
 		data.delete(key)
@@ -36,7 +31,9 @@
 </script>
 
 <div class="label flex flex-col">
-	<span class="form-label">Settings</span>
+	{#if label}
+		<span class="form-label">{label}</span>
+	{/if}
 	<div class="input-no-highlight p-4 space-y-4">
 		{#if data.size === 0}
 			<div class="text-sm max-w-[60ch] space-y-4">

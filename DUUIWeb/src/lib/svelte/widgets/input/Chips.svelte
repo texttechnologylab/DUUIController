@@ -9,7 +9,7 @@
 	export let label: string
 	export let values: string[]
 	export let style: string = ''
-	export let placeholder: string = 'Category'
+	export let placeholder: string = 'Tag'
 
 	let current: string = ''
 

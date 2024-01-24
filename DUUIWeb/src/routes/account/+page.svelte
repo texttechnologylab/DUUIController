@@ -1,14 +1,11 @@
 <script lang="ts">
-	import { Api, makeApiCall } from '$lib/duui/utils/api'
-	import { infoToast } from '$lib/duui/utils/ui.js'
 	import { userSession } from '$lib/store.js'
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
-	import Checkbox from '$lib/svelte/widgets/input/Checkbox.svelte'
-	import Dropdown from '$lib/svelte/widgets/input/Dropdown.svelte'
 	import Secret from '$lib/svelte/widgets/input/Secret.svelte'
 	import Text from '$lib/svelte/widgets/input/TextInput.svelte'
 	import {
 		faAdd,
+		faArrowRight,
 		faCheck,
 		faFilePen,
 		faFileText,
@@ -21,14 +18,18 @@
 		clipboard,
 		getModalStore,
 		getToastStore,
-		type ModalSettings
+		popup,
+		type ModalSettings,
+		type PopupSettings
 	} from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
+	import { fly } from 'svelte/transition'
 
 	export let data
 	const { user, dropbBoxURL } = data
 
 	if (user && $userSession) {
+		$userSession.preferences = user.preferences
 		$userSession.connections = user.connections
 	}
 	let connections = {
@@ -40,7 +41,6 @@
 			$userSession?.connections.minio.access_key !== null &&
 			$userSession?.connections.minio.endpoint !== null &&
 			$userSession?.connections.minio.secret_key !== null,
-		mongodb: $userSession?.connections.mongoDB.uri !== null,
 		key: $userSession?.connections.key != null
 	}
 
@@ -49,11 +49,9 @@
 	let minioAccessKey: string = $userSession?.connections.minio.access_key || ''
 	let minioEndpoint: string = $userSession?.connections.minio.endpoint || ''
 	let minioSecretKey: string = $userSession?.connections.minio.secret_key || ''
-	let mongoDBURI: string = $userSession?.connections.mongoDB.uri || ''
 
 	const updateUser = async (data: object) => {
 		const response = await fetch('/api/users', { method: 'PUT', body: JSON.stringify(data) })
-		toastStore.trigger(infoToast(response.statusText))
 		return response
 	}
 
@@ -133,7 +131,7 @@
 		const response = await fetch('/api/users/auth/key', { method: 'DELETE' })
 
 		if (response.ok && $userSession) {
-			$userSession.connections.key = ''
+			$userSession.connections.key = null
 			connections.key = false
 		}
 	}
@@ -211,7 +209,7 @@
 
 	$: {
 		if (!$userSession) {
-			connections = { dropbox: false, minio: false, mongodb: false, key: false }
+			connections = { dropbox: false, minio: false, key: false }
 		} else {
 			connections = {
 				dropbox:
@@ -222,25 +220,87 @@
 					$userSession?.connections.minio.access_key !== null &&
 					$userSession?.connections.minio.endpoint !== null &&
 					$userSession?.connections.minio.secret_key !== null,
-				mongodb: $userSession?.connections.mongoDB.uri !== null,
 				key: $userSession?.connections.key != null
 			}
 		}
 	}
+	let name: string = 'Name'
 
-	let name: string = 'Temp'
+	const popupUIMA: PopupSettings = {
+		event: 'hover',
+		target: 'popupUIMA',
+		placement: 'top'
+	}
 </script>
 
 <svelte:head>
 	<title>Account</title>
 </svelte:head>
+<div
+	data-popup="popupUIMA"
+	in:fly={{ y: 50 }}
+	class="variant-filled-primary max-w-[40ch] p-2 rounded-md text-sm"
+>
+	<p>
+		UIMA is a framework by itself that defines a common structure for otherwise unstructured data,
+		mainly in the form of natural written or spoken language.
+	</p>
+	<div class="arrow variant-filled-primary" />
+</div>
 
-<div class="grid md:grid-cols-2 gap-4 max-w-7xl md:py-16">
-	<div class="section-wrapper p-8 space-y-4 scroll-mt-4" id="profile">
+<div class="gap-4 max-w-7xl md:py-16 grid md:grid-cols-2 items-start">
+	<div class="section-wrapper p-8 space-y-4">
 		<h2 class="h3 font-bold">Profile</h2>
-		<Text disabled label="Name" name="name" bind:value={name} />
-		<Text disabled label="E-Mail" name="email" bind:value={user.email} />
-		<Dropdown
+		<Text label="Name" name="name" bind:value={name} />
+		{#if $userSession && $userSession.preferences.step === 0}
+			<p>Welcome to DUUI-Web!</p>
+
+			<p>
+				Since this is the first time you are here, are you interested in a short tour that explains
+				what you can do?
+			</p>
+			<button
+				class="button-primary"
+				on:click={() => {
+					updateUser({ 'preferences.tutorial': true, 'preferences.step': 0 })
+
+					$userSession.preferences.tutorial = true
+					$userSession.preferences.step = 0
+				}}
+			>
+				Let's go
+			</button>
+		{:else if $userSession && $userSession.preferences.tutorial}
+			<div>
+				<h4 class="h4 mb-4">Alright! Let's get started.</h4>
+				<p>
+					<a class="anchor" href="https://github.com/texttechnologylab/DockerUnifiedUIMAInterface"
+						>DUUI
+					</a>
+					is a Framework for big data analysis of natural language. Analysis is done through so-called
+					<a class="anchor" href="/documentation#pipeline">Pipelines</a> that manage the flow of
+					data through Analysis Engines according to
+					<span class="cursor-pointer underline font-bold" use:popup={popupUIMA}>UIMA</span> standards.
+				</p>
+				<div class="flex gap-4 items-start justify-between mt-8">
+					<p>
+						New things are best learned when done - <br /> so let's focus on creating your first pipeline.
+					</p>
+					<a
+						href="/pipelines"
+						class="button-primary"
+						on:click={() => {
+							updateUser({ 'preferences.step': 1 })
+							$userSession.preferences.step = 1
+						}}
+					>
+						Continue <Fa icon={faArrowRight} /></a
+					>
+				</div>
+			</div>
+		{/if}
+		<!-- <Text disabled label="E-Mail" name="email" bind:value={user.email} /> -->
+		<!-- <Dropdown
 			label="Language"
 			name="language"
 			bind:value={user.preferences.language}
@@ -255,8 +315,9 @@
 			label="Enable notifications to get informed when a pipeline is finished."
 			name="notifications"
 			bind:checked={user.preferences.notifications}
-		/>
+		/> -->
 	</div>
+
 	<div class="space-y-4">
 		<div class="section-wrapper p-8 space-y-8 scroll-mt-4" id="authorization">
 			<div class="flex items-center justify-between gap-4">
@@ -298,9 +359,9 @@
 				{/if}
 			</div>
 			<p class="text-surface-500 dark:text-surface-200">
-				Visit the
+				Check the
 				<a href="/documentation/api" target="_blank" class="anchor">API Reference</a>
-				for further reading.
+				for examples and use cases.
 			</p>
 		</div>
 		<div class="section-wrapper p-8 grid grid-rows-[auto_1fr_auto] gap-8">
@@ -312,12 +373,12 @@
 						<p class="flex items-center gap-4">
 							<Fa icon={faCheck} size="lg" class="text-primary-500" />
 							<span
-								>Read files and folders contained in your <strong>Dropbox Storage</strong>
+								>Read files and folders contained in your <strong>Dropbox Account</strong>
 							</span>
 						</p>
 						<p class="flex items-center gap-4 mb-4">
 							<Fa icon={faCheck} size="lg" class="text-primary-500" />
-							<span>Create files and folders in your <strong>Dropbox Storage</strong> </span>
+							<span>Create files and folders in your <strong>Dropbox Account</strong> </span>
 						</p>
 					</div>
 					<div class="flex justify-between">
@@ -333,7 +394,11 @@
 				{:else}
 					<p class="mb-8">
 						By connecting Dropbox and DUUI you can directly read and write data from and to your
-						Dropbox storage.
+						Dropbox storage. After a succesfull OAuth2 authorization at <a
+							href="https://dropbox.com"
+							class="anchor">Dropbox</a
+						> an app folder called DUUI is created in your storage that is used as the root folder for
+						read and write operations.
 					</p>
 					<p class="flex items-center gap-[22px]">
 						<Fa icon={faFileText} size="lg" class="text-primary-500" />
@@ -392,78 +457,6 @@
 			<p class="text-surface-500 dark:text-surface-200">
 				Visit
 				<a href="https://min.io/" target="_blank" class="anchor">Minio</a>
-				for further reading.
-			</p>
-		</div>
-		<div class="section-wrapper p-8 grid grid-rows-[auto_1fr_auto] gap-8">
-			<h2 class="h3 font-bold">MongoDB</h2>
-			<div class="space-y-4">
-				{#if connections.mongodb}
-					<p>You are now ready to use Data stored in your MongoDB Cluster</p>
-				{:else}
-					<p>
-						To allow DUUI to read and write specific Databases in your MongoDB Cluster follow these
-						steps:
-					</p>
-					<ul class="list-decimal px-8 space-y-1">
-						<li>
-							Visit <a class="anchor" href="https://www.mongodb.com/cloud/atlas/register"
-								>MongoDB Atlas</a
-							> and sign in to your Account.
-						</li>
-						<li>
-							Go to Organization {'>'} Project {'>'} Security {'>'} Database Access {'>'} Custom Roles.
-						</li>
-						<li>
-							Add a new Custom Role that allows at least <span class="badge variant-soft-primary"
-								>Find</span
-							>
-							and <span class="badge variant-soft-primary">Insert</span> access for the collections you
-							need.
-						</li>
-						<li>
-							Next go back to Organization {'>'} Project {'>'} Security {'>'} Database Access {'>'} Database
-							Users.
-						</li>
-						<li>
-							Add a new Database User, enter a username, password and select the Custom Role you
-							just created.
-						</li>
-						<li>
-							Optionally you can check the <span class="badge variant-soft-primary"
-								>Temporary User</span
-							>
-							settings to allow only temporary access for DUUI.
-						</li>
-					</ul>
-				{/if}
-				<Secret label="Connection URI" name="connectionURI" bind:value={mongoDBURI} />
-			</div>
-			<div class="flex gap-4 justify-between">
-				<button
-					class="button-primary"
-					disabled={mongoDBURI == ''}
-					on:click={() => updateUser({ 'connections.mongoDB.uri': mongoDBURI })}
-				>
-					<Fa icon={connections.mongodb ? faRefresh : faLink} />
-					<span>
-						{connections.mongodb ? 'Update' : 'Connect'}
-					</span>
-				</button>
-
-				{#if connections.mongodb}
-					<button
-						class="button-error"
-						on:click={() => updateUser({ 'connections.mongoDB.uri': null })}
-					>
-						<Fa icon={faXmarkCircle} />
-						<span>Delete</span>
-					</button>
-				{/if}
-			</div>
-			<p class="text-surface-500 dark:text-surface-200">
-				Visit
-				<a href="https://www.mongodb.com" target="_blank" class="anchor">MongoDB</a>
 				for further reading.
 			</p>
 		</div>

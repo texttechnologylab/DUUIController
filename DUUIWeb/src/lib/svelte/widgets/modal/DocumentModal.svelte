@@ -1,10 +1,5 @@
 <script lang="ts">
-	import {
-		URLFromProvider,
-		getTotalDuration,
-		type DUUIDocument,
-		type DUUIDocumentProvider
-	} from '$lib/duui/io'
+	import { URLFromProvider, type DUUIDocument, type DUUIDocumentProvider } from '$lib/duui/io'
 	import { formatFileSize } from '$lib/duui/utils/text'
 	import { formatMilliseconds } from '$lib/duui/utils/time'
 	import { scrollIntoView } from '$lib/duui/utils/ui'
@@ -19,18 +14,116 @@
 
 	let document: DUUIDocument = $modalStore[0].meta.document
 
-	let URLIn: string = URLFromProvider(input) + '/' + document.path
-	let URLOut: string = URLFromProvider(output) + '/' + document.path
+	let URLIn: string = URLFromProvider(input) + document.path
+	let URLOut: string = URLFromProvider(output) + output.path + '/' + document.name
+
+	let ApexCharts
+	let loaded: boolean = false
+
+	const chart = (node: HTMLDivElement, options: any) => {
+		if (!loaded) return
+
+		let _chart = new ApexCharts(node, options)
+		_chart.render()
+
+		return {
+			update(options: any) {
+				_chart.updateOptions(options)
+			},
+			destroy() {
+				_chart.destroy()
+			}
+		}
+	}
+	let annotations: Map<string, number> = new Map()
+
+	if (document.annotations) {
+		for (let annotation of Object.entries(document.annotations)) {
+			const name: string | undefined = annotation[0].split('.').at(-1)
+			if (!name) continue
+
+			const value: number | undefined = annotation[1]
+			if (!value) continue
+
+			if (annotations.has(name)) {
+				annotations.set(name, annotations.get(name) || 0 + value)
+			} else {
+				annotations.set(name, value)
+			}
+		}
+	}
+
+	let options = {
+		series: Array.from(annotations.values()),
+		chart: {
+			type: 'donut',
+			height: '500px'
+		},
+		title: {
+			text: 'Annotations',
+			align: 'center',
+			offsetX: 0,
+			offsetY: 0,
+			floating: false,
+			style: {
+				fontSize: '32px',
+				fontWeight: 'bold'
+			}
+		},
+		dataLabels: {
+			dropShadow: {
+				blur: 3,
+				opacity: 0.8
+			}
+		},
+		labels: Array.from(annotations.keys()),
+		theme: {
+			monochrome: {
+				enabled: true,
+				color: '#006c98'
+			}
+		},
+		legend: {
+			show: false,
+			position: 'bottom',
+			horizontalAlign: 'left'
+		},
+		plotOptions: {
+			pie: {
+				donut: {
+					labels: {
+						show: true,
+						total: {
+							show: true,
+							formatter: (w) => {
+								return w.globals.seriesTotals.reduce((a, b) => {
+									return a + b
+								})
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 
 	onMount(() => {
 		scrollIntoView('scroll-top')
+		async function loadApexCharts() {
+			const module = await import('apexcharts')
+			ApexCharts = module.default
+			window.ApexCharts = ApexCharts
+			loaded = true
+		}
+
+		loadApexCharts()
 	})
 </script>
 
-<div class="section-wrapper container max-w-6xl sticky top-0 max-h-[80vh] !overflow-y-auto">
+<div class="section-wrapper container max-w-6xl sticky top-0 max-h-[90vh] !overflow-y-auto">
 	<div id="scroll-top" />
 	<div
-		class="font-bold text-2xl p-4 border-surface-200 dark:border-surface-500 text-center flex items-center justify-between sticky top-0 z-10 gradient"
+		class="font-bold text-2xl p-4 border-surface-200 dark:border-surface-500 text-center flex items-center justify-between sticky top-0 z-10 bg-surface-100-800-token"
 	>
 		<p>{document.name}</p>
 		{#if document.error}
@@ -94,7 +187,7 @@
 				<p>{document.size ? formatFileSize(document.size) : 'Unknown'}</p>
 			</div>
 		</div>
-		<div class="grid grid-cols-3 justify-center items-center section-wrapper rounded-md text-sm">
+		<div class="grid grid-cols-3 section-wrapper rounded-md text-sm">
 			<div
 				class="bg-fancy flex flex-col items-start justify-center gap-2 border-r border-surface-200 dark:border-surface-500 p-4"
 			>
@@ -111,14 +204,36 @@
 				<p class="font-bold">Process</p>
 				<p>{formatMilliseconds(document.duration_process)}</p>
 			</div>
-			<p
+			<div
 				class="bg-fancy col-span-3 border-t border-surface-200 dark:border-surface-500 p-4 text-center font-bold text-lg"
 			>
-				Total {formatMilliseconds(document.duration_total || 0)}
-			</p>
+				<p class="mx-auto">
+					Total {formatMilliseconds(document.duration_total || 0)}
+				</p>
+			</div>
 		</div>
 		{#if document.annotations}
+			{#if loaded}
+				<div class="section-wrapper p-4 text-center">
+					<div use:chart={options} />
+				</div>
+			{/if}
 			<div class="section-wrapper text-sm">
+				{#each Object.entries(document.annotations) as entry}
+					<div class="grid sm:grid-cols-2 border-b border-surface-200 dark:border-surface-500">
+						<div class="bg-fancy flex md:flex-col items-start justify-start gap-2 p-4">
+							<p class="font-bold">Class</p>
+							<p class="">{entry[0].split('.').slice(-1)}</p>
+						</div>
+						<div class="bg-fancy flex md:flex-col items-start justify-start gap-2 p-4">
+							<p class="font-bold">Count</p>
+							<p>{entry[1]}</p>
+						</div>
+					</div>
+				{/each}
+			</div>
+
+			<!-- <div class="section-wrapper text-sm">
 				{#each Object.entries(document.annotations) as entry}
 					<div class="grid md:grid-cols-2 border-b border-surface-200 dark:border-surface-500">
 						<div class="bg-fancy flex md:flex-col items-start justify-center gap-2 p-4">
@@ -137,15 +252,7 @@
 						</div>
 					</div>
 				{/each}
-				<!-- <pre class="text-sm">{JSON.stringify(document.annotations, null, 2)}</pre> -->
-			</div>
+			</div> -->
 		{/if}
-
-		<!-- <Chart
-					{data}
-					type="pie"
-					title="Processing Step Duration (ms)"
-					colors={['#006c98', '#4d98b7', '#006189', '#005172']}
-				/> -->
 	</div>
 </div>

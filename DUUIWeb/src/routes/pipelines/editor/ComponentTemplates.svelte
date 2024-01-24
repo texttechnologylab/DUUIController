@@ -27,7 +27,7 @@
 				return filteredComponents
 			}
 			default: {
-				return filteredComponents.filter((component) => equals(component.settings.driver, filter))
+				return filteredComponents.filter((component) => equals(component.driver, filter))
 			}
 		}
 	}
@@ -37,8 +37,8 @@
 			(component: DUUIComponent) =>
 				includes(
 					`${component.name} ${component.description} ${
-						component.settings.driver
-					} ${component.categories.join(' ')}`,
+						component.driver
+					} ${component.tags.join(' ')}`,
 					searchText
 				) || !searchText
 		)
@@ -59,18 +59,18 @@
 	<div class="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
 		{#each filteredComponents as component (component.oid)}
 			<button
-				class="card-fancy text-left grid grid-rows-[auto_1fr_auto] items-start"
+				class="card-fancy text-left grid min-h-[300px] items-start col-span-1"
 				on:click={() => onSelect(component)}
 			>
 				<div class="flex items-start justify-between gap-4">
 					<p class="text-lg font-bold break-words">{component.name}</p>
-					<DriverIcon driver={component.settings.driver} />
+					<DriverIcon driver={component.driver} />
 				</div>
 				<p>{component.description}</p>
-				<div class="flex flex-wrap gap-2 mt-8">
-					{#each component.categories as category}
+				<div class="flex flex-wrap gap-2 items-start">
+					{#each component.tags as tag}
 						<span class="chip variant-glass-primary">
-							{category}
+							{tag}
 						</span>
 					{/each}
 				</div>

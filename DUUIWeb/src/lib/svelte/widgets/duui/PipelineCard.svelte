@@ -2,23 +2,33 @@
 	import { page } from '$app/stores'
 	import DriverIcon from '$lib/svelte/DriverIcon.svelte'
 	import { usedDrivers, type DUUIPipeline } from '$lib/duui/pipeline'
+	import { faClone } from '@fortawesome/free-solid-svg-icons'
+	import Fa from 'svelte-fa'
+	import { createEventDispatcher } from 'svelte'
 
 	export let pipeline: DUUIPipeline
 	const editor: boolean = $page.url.pathname === '/pipelines'
+	const dispatcher = createEventDispatcher()
+
+	const onClone = () => {
+		dispatcher('clone', pipeline)
+	}
 </script>
 
 <div class="flex items-center gap-4 justify-between">
 	<h4 class="h4 font-bold">{pipeline.name}</h4>
 	{#if pipeline.user_id === null || pipeline.user_id === undefined}
-		<p class="badge variant-soft-tertiary">DUUI</p>
+		<button on:click={onClone} class="btn variant-soft gap-4 animate-text"
+			><Fa icon={faClone} size="lg" /> Clone template</button
+		>
 	{:else}
 		<p class="badge variant-soft-primary {editor ? 'hidden' : ''}">User</p>
 	{/if}
 </div>
 
-<p class="row-span-2">{pipeline.description}</p>
+<p class="">{pipeline.description}</p>
 
-<div class="flex flex-wrap gap-2 mt-8">
+<div class="flex flex-wrap gap-2">
 	{#each pipeline.tags as tag}
 		<span class="chip variant-glass-primary">
 			{tag}

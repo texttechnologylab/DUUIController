@@ -42,7 +42,8 @@
 			userSession.set(result.user)
 			goto(redirectTo)
 		} else {
-			message = result
+			if (response.status === 503) message = 'Could not reach the server. Try again later.'
+			else message = result
 		}
 	}
 
@@ -78,8 +79,7 @@
 				<a class="block text-center anchor text-sm" href="/account/recover">Forgot Password? </a>
 				<button
 					on:click={loginUser}
-					class="button-primary button-modal uppercase tracking-widest self-center"
-					>sign in</button
+					class="button-primary button-modal uppercase tracking-widest self-center">sign in</button
 				>
 			</div>
 			<a href="/account/register" class="block">
