@@ -1,7 +1,6 @@
 package api.requests.validation;
 
-import api.duui.users.DUUIUserController;
-import api.duui.users.Role;
+import api.routes.users.DUUIUserController;
 import org.bson.Document;
 import spark.Response;
 
@@ -12,11 +11,6 @@ public class UserValidator {
     public static String unauthorized(Response response) {
         response.status(401);
         return "Unauthorized";
-    }
-
-    public static String unauthorized(Response response, String message) {
-        response.status(401);
-        return new Document("message", message).toJson();
     }
 
     public static String expired(Response response) {

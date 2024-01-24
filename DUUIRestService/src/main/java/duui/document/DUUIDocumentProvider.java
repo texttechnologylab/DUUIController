@@ -1,14 +1,35 @@
-package api.duui.document;
+package duui.document;
 
 import org.bson.Document;
 
 import java.util.Objects;
 
+/**
+ * This class is a utility to have easier access to input and output settings of an
+ * {@link api.routes.processes.IDUUIProcessHandler}. Providers include Dropbox, Minio and Text but is
+ * designed to support any future cloud or database providers.
+ * <p>
+ */
 public class DUUIDocumentProvider {
 
+    /**
+     * The name of the data provider ({@link Provider}) e.g. dropbox
+     */
     private final String provider;
+
+    /**
+     * Optional. The path from where to read data if the provider is not {@link Provider}
+     */
     private final String path;
+
+    /**
+     * Optional. If the provider is plain text, the content holds the text to be analyzed.
+     */
     private final String content;
+
+    /**
+     * Optional. A filter to only select matching file extensions.
+     */
     private final String fileExtension;
 
     public DUUIDocumentProvider(Document document) {
@@ -62,21 +83,21 @@ public class DUUIDocumentProvider {
         return Objects.hash(provider);
     }
 
-    public boolean writesToExternalSource() {
-        return !provider.equals(IOProvider.TEXT) && !provider.equals(IOProvider.NONE);
+    public boolean hasNoOutput() {
+        return provider.equals(Provider.TEXT) || provider.equals(Provider.NONE);
     }
 
     public boolean isText() {
-        return provider.equals(IOProvider.TEXT) || provider.equals(IOProvider.FILE);
+        return provider.equals(Provider.TEXT);
     }
 
     public boolean isCloudProvider() {
-        return provider.equalsIgnoreCase(IOProvider.DROPBOX)
-            || provider.equalsIgnoreCase(IOProvider.MINIO)
-            || provider.equalsIgnoreCase(IOProvider.ONEDRIVE);
+        return provider.equalsIgnoreCase(Provider.DROPBOX)
+            || provider.equalsIgnoreCase(Provider.MINIO)
+            || provider.equalsIgnoreCase(Provider.ONEDRIVE);
     }
 
     public boolean isDatabaseProvider() {
-        return provider.equalsIgnoreCase(IOProvider.MONGODB);
+        return provider.equalsIgnoreCase(Provider.MONGODB);
     }
 }

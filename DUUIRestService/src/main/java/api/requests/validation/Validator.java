@@ -9,7 +9,7 @@ public class Validator {
 
     public static String missingField(Response response, String field) {
         response.status(400);
-        return new Document("message", "Missing field <" + field + ">").toJson();
+        return String.format("Missing field %s", field);
     }
 
     public static boolean isNullOrEmpty(String value) {

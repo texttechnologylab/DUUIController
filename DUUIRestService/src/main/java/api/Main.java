@@ -1,24 +1,27 @@
 package api;
 
-import api.duui.component.DUUIComponentController;
-import api.duui.pipeline.DUUIPipelineController;
-//import api.duui.routines.process.DUUIProcessController;
-//import api.duui.routines.service.DUUIService;
-import api.duui.pipeline.DUUIPipelineRequestHandler;
-import api.duui.routines.process.DUUIProcessController;
-import api.duui.routines.service.DUUIService;
-import api.duui.users.DUUIUserController;
+import api.routes.components.DUUIComponentController;
+import api.routes.pipelines.DUUIPipelineController;
+import api.routes.pipelines.DUUIPipelineRequestHandler;
+import api.routes.processes.DUUIReusableProcessHandler;
+import api.routes.processes.DUUIProcessController;
+import api.routes.users.DUUIUserController;
 import api.http.DUUIRequestHandler;
-import api.http.RequestUtils;
 import api.metrics.DUUIMetricsManager;
 import api.metrics.DUUIMetricsProvider;
 import api.metrics.DUUIMongoMetricsProvider;
 import api.metrics.DUUISystemMetricsProvider;
 import api.storage.DUUIMongoDBStorage;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
 import com.sun.management.OperatingSystemMXBean;
-import io.github.cdimascio.dotenv.Dotenv;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
 
+import java.io.File;
 import java.lang.management.ManagementFactory;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -62,12 +65,17 @@ public class Main {
     }
 
     public static void main(String[] args) {
-
-
         monitor =
             ManagementFactory.getPlatformMXBean(
                 com.sun.management.OperatingSystemMXBean.class
             );
+
+        File fileUploadDirectory = Paths.get("fileUploads").toFile();
+
+        if (!fileUploadDirectory.exists()) {
+            boolean ignored = fileUploadDirectory.mkdirs();
+        }
+
 
         _metricsProvider = new DUUIMetricsProvider.Builder()
             .withMetricsProvider(
@@ -144,6 +152,8 @@ public class Main {
             get("/:id", DUUIUserController::fetchUser);
             post("", DUUIUserController::insertOne);
             put("/:id", DUUIUserController::updateOne);
+            put("/reset-password", DUUIUserController::resetPassword);
+            put("/recover-password", DUUIUserController::recoverPassword);
             delete("/:id", DUUIUserController::deleteOne);
 
             path("/auth", () -> {
@@ -152,10 +162,6 @@ public class Main {
             });
         });
 
-        put("/users/authorization", DUUIUserController::updateApiKey);
-        put("/users/reset-password", DUUIUserController::resetPassword);
-        put("/users/:id/minio", DUUIUserController::updateMinioCredentials);
-        post("/users/recover-password", DUUIUserController::recoverPassword);
 
         /* Components */
         path("/components", () -> {
@@ -180,10 +186,10 @@ public class Main {
                     halt(401, "Unauthorized");
                 }
             });
-            get("/:id", DUUIPipelineRequestHandler::getOne);
-            get("", DUUIPipelineRequestHandler::getMany);
-            post("", DUUIPipelineController::insertOne);
-            put("/:id", DUUIPipelineController::updateOne);
+            get("/:id", DUUIPipelineRequestHandler::findOne);
+            get("", DUUIPipelineRequestHandler::findMany);
+            post("", DUUIPipelineRequestHandler::insertOne);
+            put("/:id", DUUIPipelineRequestHandler::updateOne);
             put("/:id/start", DUUIPipelineController::startService);
             put("/:id/stop", DUUIPipelineController::stopService);
             delete("/:id", DUUIPipelineRequestHandler::deleteOne);
@@ -208,7 +214,6 @@ public class Main {
             get("/:id/documents", DUUIProcessController::findDocuments);
         });
 
-
         get(
             "/metrics",
             (request, response) -> {
@@ -231,15 +236,20 @@ public class Main {
                 TimeUnit.SECONDS
             );
 
-        Thread _shutdownHook = new Thread(() -> service.cancel(true));
-        Runtime.getRuntime().addShutdownHook(_shutdownHook);
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> service.cancel(true)));
         Runtime.getRuntime().addShutdownHook(
             new Thread(
-                () -> DUUIPipelineController
-                    .getServices()
-                    .values()
-                    .forEach(DUUIService::onApplicationShutdown)
+                () -> {
+                    DUUIPipelineController
+                        .getReusableProcesses()
+                        .values()
+                        .forEach(DUUIReusableProcessHandler::onServerStopped);
+
+                    DUUIMongoDBStorage.Pipelines().updateMany(
+                        Filters.exists("status", true),
+                        Updates.set("status", DUUIStatus.INACTIVE)
+                    );
+                }
             ));
     }
-
 }

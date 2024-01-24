@@ -1,4 +1,4 @@
-package api.duui.users;
+package api.routes.users;
 
 public class Role {
     public static final String NONE = "None";

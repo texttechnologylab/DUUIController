@@ -3,15 +3,15 @@ package api.storage;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Updates;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import spark.Request;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class DUUIMongoDBStorage {
 
@@ -127,25 +127,45 @@ public class DUUIMongoDBStorage {
         return getClient().getDatabase("duui").getCollection("events");
     }
 
+
     /**
      * Combine a Document containing key value pairs representing an update action into a merged BSON object.
      *
-     * @param updates   The Document containing the updates.
-     * @param whiteList A Set of field names that are allowed to be updated.
-     * @return The combined Updates as a BSON object.
+     * @param collection     The collection on which to perform the update
+     * @param filter         A set of filters so that only matching documents are updated.
+     * @param updates        The Document containing the updates.
+     * @param allowedUpdates A Set of field names that are allowed to be updated.
+     * @param skipInvalid    Wether to skip invalid keys or return when encountered. Default true.
      */
-    public static Bson mergeUpdates(Document updates, Set<String> whiteList) {
-        return Updates.combine(updates
-            .entrySet()
-            .stream()
-            .filter(entry -> whiteList.contains(entry.getKey()))
-            .map(entry -> Updates.set(
-                entry.getKey(),
-                entry.getValue()))
-            .collect(Collectors.toList())
-        );
+    public static void updateDocument(MongoCollection<Document> collection,
+                                      Bson filter,
+                                      Document updates,
+                                      Set<String> allowedUpdates,
+                                      boolean skipInvalid) {
+
+        List<Bson> __updates = new ArrayList<>();
+        for (Map.Entry<String, Object> entry : updates.entrySet()) {
+            if (!allowedUpdates.contains(entry.getKey())) {
+                if (skipInvalid) continue;
+                else return;
+            }
+
+            __updates.add(Updates.set(entry.getKey(), entry.getValue()));
+        }
+
+        collection.updateOne(
+            filter,
+            __updates.isEmpty()
+                ? new Document()
+                : Updates.combine(__updates));
+
     }
 
-
+    public static void updateDocument(MongoCollection<Document> collection,
+                                      Bson filter,
+                                      Document updates,
+                                      Set<String> allowedUpdates) {
+        updateDocument(collection, filter, updates, allowedUpdates, true);
+    }
 
 }

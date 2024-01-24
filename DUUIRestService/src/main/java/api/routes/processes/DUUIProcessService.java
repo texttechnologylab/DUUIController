@@ -1,7 +1,7 @@
-package api.duui.routines.process;
+package api.routes.processes;
 
-import api.duui.document.IOProvider;
-import api.duui.users.DUUIUserController;
+import duui.document.Provider;
+import api.routes.users.DUUIUserController;
 import com.dropbox.core.DbxException;
 import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.oauth.DbxCredential;
@@ -15,10 +15,7 @@ import org.bson.Document;
 import org.dkpro.core.io.xmi.XmiWriter;
 import org.junit.jupiter.params.aggregator.ArgumentAccessException;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.DUUIComposer;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.DUUIDocument;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.DUUIDropboxDocumentHandler;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.DUUIMinioDocumentHandler;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.IDUUIDocumentHandler;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.*;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.*;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIEvent;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
@@ -35,59 +32,79 @@ import static org.apache.uima.fit.factory.AnalysisEngineFactory.createEngineDesc
 
 public class DUUIProcessService {
 
-    public static final String REMOTE_DRIVER = "DUUIRemoteDriver";
-    public static final String DOCKER_DRIVER = "DUUIDockerDriver";
-    public static final String SWARM_DRIVER = "DUUISwarmDriver";
-    public static final String UIMA_DRIVER = "DUUIUIMADriver";
-    public static final String KUBERNETES_DRIVER = "DUUIKubernetesDriver";
-
     public static IDUUIDriverInterface getDriverFromString(String driver)
         throws IOException, UIMAException, SAXException {
         return switch (driver) {
-            case REMOTE_DRIVER -> new DUUIRemoteDriver();
-            case DOCKER_DRIVER -> new DUUIDockerDriver();
-            case SWARM_DRIVER -> new DUUISwarmDriver();
-            case UIMA_DRIVER -> new DUUIUIMADriver();
-            case KUBERNETES_DRIVER -> new DUUIKubernetesDriver();
+            case "DUUIDockerDriver" -> new DUUIDockerDriver();
+            case "DUUISwarmDriver" -> new DUUISwarmDriver();
+            case "DUUIRemoteDriver" -> new DUUIRemoteDriver();
+            case "DUUIUIMADriver" -> new DUUIUIMADriver();
+            case "DUUIKubernetesDriver" -> new DUUIKubernetesDriver();
             default -> null;
         };
     }
 
     public static DUUIPipelineComponent getComponent(Document component) throws URISyntaxException, IOException, InvalidXMLException, SAXException {
-        Document settings = component.get("settings", Document.class);
-        Document options = settings.get("options", Document.class);
+        Document options = component.get("options", Document.class);
+        Document parameters = component.get("parameters", Document.class);
 
-        String target = settings.getString("target");
-        String driver = settings.getString("driver");
+        String target = component.getString("target");
+        String driver = component.getString("driver");
 
         boolean useGPU = false;
         boolean dockerImageFetching = false;
+        boolean ignore200Error = false;
+        int scale = 1;
 
         if (options != null && !options.isEmpty()) {
             useGPU = options.getBoolean("useGPU", true);
             dockerImageFetching = options.getBoolean("dockerImageFetching", true);
+            scale = Integer.parseInt(options.getOrDefault("scale", "1").toString());
+            ignore200Error = options.getBoolean("ignore200Error", false);
         }
 
         String name = component.getString("name");
 
-        return switch (driver) {
-            case DOCKER_DRIVER -> new DUUIDockerDriver.Component(target).withName(name)
-                .withImageFetching(dockerImageFetching).withGPU(useGPU).build();
-            case SWARM_DRIVER -> new DUUISwarmDriver.Component(target).build().withName(name);
-            case REMOTE_DRIVER -> new DUUIRemoteDriver.Component(target).withName(name).build();
-            case UIMA_DRIVER -> new DUUIUIMADriver.Component(
-                AnalysisEngineFactory.createEngineDescription(
-                    target)).withName(name).build();
-            case KUBERNETES_DRIVER -> new DUUIKubernetesDriver.Component(target).withName(name).build();
-            default -> throw new IllegalArgumentException("Driver cannot be empty");
+        DUUIPipelineComponent pipelineComponent = switch (driver) {
+            case "DUUIDockerDriver" -> new DUUIDockerDriver
+                .Component(target)
+                .withImageFetching(dockerImageFetching)
+                .withGPU(useGPU)
+                .withScale(scale)
+                .build();
+            case "DUUISwarmDriver" -> new DUUISwarmDriver
+                .Component(target)
+                .withScale(scale)
+                .build();
+            case "DUUIRemoteDriver" -> new DUUIRemoteDriver
+                .Component(target)
+                .withIgnoring200Error(ignore200Error)
+                .withScale(scale)
+                .build();
+            case "DUUIUIMADriver" -> new DUUIUIMADriver
+                .Component(AnalysisEngineFactory
+                .createEngineDescription(target))
+                .withScale(scale)
+                .build();
+            case "DUUIKubernetesDriver" -> new DUUIKubernetesDriver
+                .Component(target)
+                .withScale(scale)
+                .build();
+            default -> throw new IllegalStateException("Unexpected value: " + driver);
         };
+
+        if (parameters != null) {
+            parameters.forEach((key, value) -> pipelineComponent.withParameter(key, (String) value));
+        }
+
+        return pipelineComponent.withName(name);
     }
 
-    public static IDUUIDocumentHandler buildDocumentHandler(String provider, String userId) throws DbxException {
+    public static IDUUIDocumentHandler getHandler(String provider, String userId) throws DbxException {
         Document user = DUUIUserController.getUserById(userId);
 
 
-        if (provider.equalsIgnoreCase(IOProvider.DROPBOX)) {
+        if (provider.equalsIgnoreCase(Provider.DROPBOX)) {
             Document credentials = DUUIUserController.getDropboxCredentials(user);
             Dotenv dotenv = Dotenv.load();
 
@@ -101,36 +118,25 @@ public class DUUIProcessService {
                     dotenv.get("DBX_APP_SECRET")
                 )
             );
-        } else if (provider.equalsIgnoreCase(IOProvider.MINIO)) {
+        } else if (provider.equalsIgnoreCase(Provider.MINIO)) {
             Document credentials = DUUIUserController.getMinioCredentials(user);
             return new DUUIMinioDocumentHandler(
                 credentials.getString("endpoint"),
                 credentials.getString("access_key"),
                 credentials.getString("secret_key"));
-        } else if (provider.equalsIgnoreCase(IOProvider.MONGODB)) {
-            return null;
-//            Document projection = DUUIMongoDBStorage
-//                .Users()
-//                .find(Filters.eq(user.getObjectId("_id")))
-//                .projection(Projections.include("mongoDBConnectionURI"))
-//                .first();
-//
-//            if (!isNullOrEmpty(projection)) {
-//                return new DUUIMongoDBDocumentHandler(
-//                    (String) projection.getOrDefault("mongoDBConnectionURI", "")
-//                );
-//            }
+        } else if (provider.equalsIgnoreCase(Provider.FILE)) {
+            return new DUUILocalDocumentHandler();
         }
 
         return null;
     }
 
-    public static boolean setupDrivers(DUUIComposer composer, Document pipeline) throws IOException, UIMAException, SAXException {
+    public static boolean setupDrivers(DUUIComposer composer, Document pipeline) {
         List<String> addedDrivers = new ArrayList<>();
         for (Document component : pipeline.getList("components", Document.class)) {
             try {
                 IDUUIDriverInterface driver = DUUIProcessService
-                    .getDriverFromString(component.get("settings", Document.class).getString("driver"));
+                    .getDriverFromString(component.getString("driver"));
 
                 if (driver == null) {
                     throw new ArgumentAccessException("Driver cannot be empty.");
@@ -164,7 +170,7 @@ public class DUUIProcessService {
                 XmiWriter.PARAM_OVERWRITE, true,
                 XmiWriter.PARAM_VERSION, "1.1",
                 XmiWriter.PARAM_FILENAME_EXTENSION, fileExtension
-            ));
+            )).withName("Writer");
     }
 
     public static boolean deleteTempOutputDirectory(File directory) {
@@ -186,5 +192,4 @@ public class DUUIProcessService {
         dataReader.writeDocument(document, outputFolder);
     }
 
-//    docker.texttechnologylab.org/flair/pos:latest
 }
