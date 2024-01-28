@@ -1,9 +1,8 @@
 import { DROPBOX_CLIENT_ID, DROPBOX_CLIENT_SECRET, SERVER_API_KEY } from '$env/static/private'
 import { API_URL } from '$lib/config'
+import { redirect } from '@sveltejs/kit'
 import { DropboxAuth, type DropboxResponse } from 'dropbox'
 import type { PageServerLoad } from './$types'
-import { goto } from '$app/navigation'
-import { redirect } from '@sveltejs/kit'
 
 const dbxAuth = new DropboxAuth({
 	clientId: DROPBOX_CLIENT_ID,
@@ -12,11 +11,17 @@ const dbxAuth = new DropboxAuth({
 
 const redirectURI = `http://localhost:5173/account/dropbox`
 
+type OAuthResult = {
+	access_token: string
+	refresh_token: string
+}
+
 const connect = async (code: string, user: User) => {
 	const token: DropboxResponse<object> = await dbxAuth.getAccessTokenFromCode(redirectURI, code)
+	const result: OAuthResult = token.result as OAuthResult
 
-	const access_token: string = token.result.access_token
-	const refresh_token: string = token.result.refresh_token
+	const access_token: string = result.access_token
+	const refresh_token: string = result.refresh_token
 
 	const response = await fetch(`${API_URL}/users/${user?.oid}`, {
 		method: 'PUT',

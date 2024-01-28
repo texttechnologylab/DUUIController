@@ -1,22 +1,51 @@
 <script lang="ts">
-	import { URLFromProvider, type DUUIDocument, type DUUIDocumentProvider } from '$lib/duui/io'
+	import { type DUUIDocument, type DUUIDocumentProvider } from '$lib/duui/io'
+	import type { DUUIProcess } from '$lib/duui/process'
 	import { formatFileSize } from '$lib/duui/utils/text'
 	import { formatMilliseconds } from '$lib/duui/utils/time'
-	import { scrollIntoView } from '$lib/duui/utils/ui'
+	import { getStatusIcon, scrollIntoView } from '$lib/duui/utils/ui'
 	import { faCheckDouble, faWarning } from '@fortawesome/free-solid-svg-icons'
 	import { getModalStore } from '@skeletonlabs/skeleton'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
+	import Timeline from './Timeline.svelte'
+	import { DropboxAppURL } from '$lib/config'
+	import { userSession } from '$lib/store'
 
 	export let input: DUUIDocumentProvider
 	export let output: DUUIDocumentProvider
 	const modalStore = getModalStore()
 
 	let document: DUUIDocument = $modalStore[0].meta.document
+	let process: DUUIProcess = $modalStore[0].meta.process
+	let URLIn: string = ''
+	let URLOut: string = ''
 
-	let URLIn: string = URLFromProvider(input) + document.path
-	let URLOut: string = URLFromProvider(output) + output.path + '/' + document.name
+	switch (input.provider) {
+		case 'Dropbox':
+			URLIn = DropboxAppURL + '/' + document.name
+			break
+		case 'Minio':
+			URLIn = $userSession?.connections.minio.endpoint || ''
+			break
+		default:
+			URLIn = ''
+	}
 
+	switch (output.provider) {
+		case 'Dropbox':
+			URLOut =
+				DropboxAppURL +
+				output.path +
+				'/' +
+				document.name.replace('.' + document.name.split('.').at(-1), output.fileExtension)
+			break
+		case 'Minio':
+			URLOut = $userSession?.connections.minio.endpoint || ''
+			break
+		default:
+			URLOut = ''
+	}
 	let ApexCharts
 	let loaded: boolean = false
 
@@ -123,17 +152,19 @@
 <div class="section-wrapper container max-w-6xl sticky top-0 max-h-[90vh] !overflow-y-auto">
 	<div id="scroll-top" />
 	<div
-		class="font-bold text-2xl p-4 border-surface-200 dark:border-surface-500 text-center flex items-center justify-between sticky top-0 z-10 bg-surface-100-800-token"
+		class="font-bold text-2xl p-4 border-surface-200 dark:border-surface-500 text-center flex items-center justify-between sticky top-0 z-10 bg-surface-50-900-token"
 	>
 		<p>{document.name}</p>
 		{#if document.error}
 			<Fa icon={faWarning} size="lg" class="text-error-500" />
 		{:else if document.finished}
 			<Fa icon={faCheckDouble} size="lg" class="text-success-500" />
+		{:else}
+			<Fa icon={getStatusIcon(document.status)} size="lg" />
 		{/if}
 	</div>
 
-	<div class="p-4 space-y-8">
+	<div class="p-4 space-y-8 bg-surface-100-800-token opacity-75">
 		{#if document.error}
 			<p class="section-wrapper text-lg text-error-500 font-bold p-4">
 				{document.error}
@@ -191,15 +222,16 @@
 			<div
 				class="bg-fancy flex flex-col items-start justify-center gap-2 border-r border-surface-200 dark:border-surface-500 p-4"
 			>
-				<p class="font-bold">Setup</p>
-				<p>{formatMilliseconds(document.duration_decode + document.duration_deserialize)}</p>
+				<p class="font-bold">Wait</p>
+				<p>{formatMilliseconds(document.duration_wait)}</p>
 			</div>
 			<div
 				class="bg-fancy flex flex-col items-start justify-center gap-2 border-r border-surface-200 dark:border-surface-500 p-4"
 			>
-				<p class="font-bold">Wait</p>
-				<p>{formatMilliseconds(document.duration_wait)}</p>
+				<p class="font-bold">Setup</p>
+				<p>{formatMilliseconds(document.duration_decode + document.duration_deserialize)}</p>
 			</div>
+
 			<div class="bg-fancy flex flex-col items-start justify-center gap-2 p-4">
 				<p class="font-bold">Process</p>
 				<p>{formatMilliseconds(document.duration_process)}</p>
@@ -208,7 +240,7 @@
 				class="bg-fancy col-span-3 border-t border-surface-200 dark:border-surface-500 p-4 text-center font-bold text-lg"
 			>
 				<p class="mx-auto">
-					Total {formatMilliseconds(document.duration_total || 0)}
+					Total {formatMilliseconds(document.duration || 0)}
 				</p>
 			</div>
 		</div>
@@ -232,7 +264,9 @@
 					</div>
 				{/each}
 			</div>
-
+			{#if document.events}
+				<Timeline {process} {document} />
+			{/if}
 			<!-- <div class="section-wrapper text-sm">
 				{#each Object.entries(document.annotations) as entry}
 					<div class="grid md:grid-cols-2 border-b border-surface-200 dark:border-surface-500">

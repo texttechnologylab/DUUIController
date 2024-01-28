@@ -12,8 +12,6 @@ public interface IDUUIProcessHandler extends Runnable {
 
     void process();
 
-    void startOutput();
-
     void update();
 
     void onException(Exception exception);

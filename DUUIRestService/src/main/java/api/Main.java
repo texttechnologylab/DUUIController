@@ -3,10 +3,11 @@ package api;
 import api.routes.components.DUUIComponentController;
 import api.routes.pipelines.DUUIPipelineController;
 import api.routes.pipelines.DUUIPipelineRequestHandler;
+import api.routes.processes.DUUIProcessRequestHandler;
 import api.routes.processes.DUUIReusableProcessHandler;
 import api.routes.processes.DUUIProcessController;
 import api.routes.users.DUUIUserController;
-import api.http.DUUIRequestHandler;
+import api.routes.DUUIRequestHandler;
 import api.metrics.DUUIMetricsManager;
 import api.metrics.DUUIMetricsProvider;
 import api.metrics.DUUIMongoMetricsProvider;
@@ -19,8 +20,6 @@ import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
@@ -99,7 +98,7 @@ public class Main {
             metrics.put(entry.getKey(), new AtomicLong(entry.getValue()));
         }
 
-
+        ipAddress("192.168.2.122");
         port(2605);
 
         options(
@@ -190,7 +189,7 @@ public class Main {
             get("", DUUIPipelineRequestHandler::findMany);
             post("", DUUIPipelineRequestHandler::insertOne);
             put("/:id", DUUIPipelineRequestHandler::updateOne);
-            put("/:id/start", DUUIPipelineController::startService);
+            post("/:id/start", DUUIPipelineController::startService);
             put("/:id/stop", DUUIPipelineController::stopService);
             delete("/:id", DUUIPipelineRequestHandler::deleteOne);
         });
@@ -204,11 +203,11 @@ public class Main {
                     halt(401, "Unauthorized");
                 }
             });
-            get("", DUUIProcessController::findMany);
-            get("/:id", DUUIProcessController::findOne);
-            post("", DUUIProcessController::startOne);
+            get("/:id", DUUIProcessRequestHandler::findOne);
+            get("", DUUIProcessRequestHandler::findMany);
+            post("", DUUIProcessController::startProcess);
             post("/file", DUUIProcessController::uploadFile);
-            put("/:id", DUUIProcessController::stopOne);
+            put("/:id", DUUIProcessController::stopProcess);
             delete("/:id", DUUIProcessController::deleteOne);
             get("/:id/events", DUUIProcessController::findEvents);
             get("/:id/documents", DUUIProcessController::findDocuments);

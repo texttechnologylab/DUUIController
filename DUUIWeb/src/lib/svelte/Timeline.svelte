@@ -44,7 +44,7 @@
 	}
 </script>
 
-<div class="hidden sm:block section-wrapper p-8 pb-16 space-y-4">
+<div class="hidden sm:block section-wrapper p-8 pb-20 space-y-4">
 	<h2 class="h2">Timeline</h2>
 	<div class="w-full flex gap-2 mb-8">
 		<div>

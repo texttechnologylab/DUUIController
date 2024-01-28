@@ -1,6 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
 import { componentToJson, type DUUIComponent } from './component'
-import type { _Object } from '$lib/config'
 
 export interface DUUIPipeline {
 	oid: string
@@ -15,6 +14,14 @@ export interface DUUIPipeline {
 	settings: Object
 	user_id: string | null // if null -> Template
 	components: DUUIComponent[]
+	statistics: {
+		status: AggreationResult
+		errors: AggreationResult
+		input: AggreationResult
+		output: AggreationResult
+		usage: AggreationResult
+		size: AggreationResult
+	}
 }
 
 export const blankPipeline = () =>
@@ -30,7 +37,15 @@ export const blankPipeline = () =>
 		user_id: null,
 		components: [],
 		tags: [],
-		status: 'Inactive'
+		status: 'Inactive',
+		statistics: {
+			status: [],
+			errors: [],
+			input: [],
+			output: [],
+			usage: [],
+			size: []
+		}
 	}
 
 export const pipelineToExportableJson = (pipeline: DUUIPipeline) => {

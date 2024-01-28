@@ -1,6 +1,5 @@
 import { equals } from '$lib/duui/utils/text'
-import { Input, type DUUIDocumentProvider } from './io'
-import type { DUUIPipeline } from './pipeline'
+import { type DUUIDocumentProvider } from './io'
 
 export interface DUUIProcess {
 	oid: string
@@ -36,7 +35,7 @@ export const processToSeachParams = (process: DUUIProcess) => {
 	return `
 		&input-provider=${process.input.provider}
 		&input-path=${process.input.path}
-		&input-content=${equals(process.input.provider, Input.Text) ? process.input.content : ''}
+		&input-content=${equals(process.input.provider, IO.Text) ? process.input.content : ''}
 		&input-file-extension=${process.input.fileExtension}
 		&output-provider=${process.output.provider}
 		&output-path=${process.output.path}

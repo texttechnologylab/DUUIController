@@ -3,15 +3,13 @@ package api.storage;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Updates;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class DUUIMongoDBStorage {
 
@@ -43,6 +41,17 @@ public class DUUIMongoDBStorage {
         String id = document.getObjectId(field).toString();
         document.remove(field);
         document.put(newName, id);
+    }
+
+
+    public static void convertDateToTimestamp(Document document) {
+        try {
+            Date timestamp = document.get("timestamp", Date.class);
+            document.remove("timestamp");
+            document.put("timestamp", timestamp.toInstant().toEpochMilli());
+        } catch (NullPointerException ignored) {
+
+        }
     }
 
     public static String getConnectionURI() {
@@ -123,6 +132,13 @@ public class DUUIMongoDBStorage {
         return getClient().getDatabase("duui").getCollection("processes");
     }
 
+    public static Bson projectObjectID() {
+        return Projections.fields(
+            Projections.computed("oid", new Document("$toString", "$_id")),
+            Projections.excludeId()
+        );
+    }
+
     public static MongoCollection<Document> Events() {
         return getClient().getDatabase("duui").getCollection("events");
     }
@@ -167,5 +183,6 @@ public class DUUIMongoDBStorage {
                                       Set<String> allowedUpdates) {
         updateDocument(collection, filter, updates, allowedUpdates, true);
     }
+
 
 }

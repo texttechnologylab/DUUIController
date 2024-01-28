@@ -4,12 +4,13 @@
 	import Fa from 'svelte-fa'
 
 	const modalStore = getModalStore()
+
 	export let title: string = $modalStore[0].meta['title'] || 'Delete'
-	export let body: string = $modalStore[0].meta['body'] || 'Are you sure?'
+	export let message: string = $modalStore[0].meta['message'] || 'Are you sure?'
 	export let deleteText: string = $modalStore[0].meta['deleteText'] || 'Delete'
 </script>
 
-<div class="z-50 bg-modal w-modal">
+<div class="z-50 bg-surface-50-900-token w-modal">
 	<div
 		class="p-4 flex items-center justify-between gap-4 border-b border-color bg-surface-100 dark:bg-surface-700"
 	>
@@ -23,7 +24,7 @@
 	</div>
 	<div class=" space-y-8">
 		<div class="p-8">
-			<p>{body}</p>
+			<p>{message}</p>
 		</div>
 		<div class="p-4 px-8 border-t border-color grid grid-cols-2 items-center gap-4 justify-end">
 			<button

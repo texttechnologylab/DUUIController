@@ -11,7 +11,7 @@
 
 <a
 	on:click={() => drawerStore.close()}
-	class="hover:text-primary-500 transition-colors
+	class="hover:text-primary-500 transition-colors text-start
 		   animate-underline
 			{dimmed ? 'dimmed' : ''}
 			{underline ? 'anchor' : ''}"

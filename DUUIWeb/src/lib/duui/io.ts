@@ -1,24 +1,26 @@
-import { DropboxAppURL } from '$lib/config'
 import { equals } from '$lib/duui/utils/text'
+import type { DUUIEvent } from './monitor'
 
 export interface DUUIDocument {
+	oid: string
 	name: string
 	path: string
 	status: string
 	progress: number
-	finished: boolean
-	error: string
+	is_finished: boolean
+	error: string | null
 	duration_decode: number
 	duration_deserialize: number
 	duration_wait: number
 	duration_process: number
-	duration_total: number | undefined
+	duration: number
 	size: number
 	started_at: number
 	finished_at: number
 	annotations: {
-		string: number
+		[key: string]: number
 	}
+	events: DUUIEvent[]
 }
 
 export type DUUIDocumentProvider = {
@@ -29,35 +31,20 @@ export type DUUIDocumentProvider = {
 }
 
 export type IOProvider = 'Dropbox' | 'Minio' | 'File' | 'Text' | 'None'
-export type FileExtension = '.txt' | '.xmi' | '.gz' | ''
-
-export enum Input {
-	Dropbox = 'Dropbox',
-	Minio = 'Minio',
-	Text = 'Text',
-	File = 'File'
-}
-
-export enum Output {
-	Dropbox = 'Dropbox',
-	Minio = 'Minio',
-	File = 'File',
-	None = 'None'
-}
+export type FileExtension = '.txt' | '.xmi' | '.gz'
 
 export enum IO {
 	Dropbox = 'Dropbox',
 	File = 'File',
 	Minio = 'Minio',
-	Text = 'Text'
+	Text = 'Text',
+	None = 'None'
 }
 
 export const InputSources: string[] = ['Dropbox', 'File', 'Minio', 'Text']
-
 export const InputFileExtensions: string[] = ['.txt', '.xmi', '.gz']
 
-export const OutputTargets: string[] = ['Dropbox', 'File', 'Minio', 'None']
-
+export const OutputTargets: string[] = ['Dropbox', 'Minio', 'None']
 export const OutputFileExtensions: string[] = ['.txt', '.xmi']
 
 export const isCloudProvider = (provider: string) => {
@@ -68,55 +55,87 @@ export const isValidIO = (
 	input: DUUIDocumentProvider,
 	output: DUUIDocumentProvider,
 	files: FileList
-) => {
+): boolean => {
 	return isValidInput(input, files) && isValidOutput(output)
 }
 
-export const isValidInput = (input: DUUIDocumentProvider, files: FileList) => {
-	if (equals(input.provider, Input.Text)) {
-		return input.content && input.content.length > 0
+/**
+ * Check if the input settings are valid.
+ *
+ * @param input The input settings for the process.
+ * @param files The list of files that have to be uploaded as the data source.
+ * @returns whether the input settings are valid.
+ */
+export const isValidInput = (input: DUUIDocumentProvider, files: FileList): boolean => {
+	if (equals(input.provider, IO.Text)) {
+		return !!input.content && input.content.length > 0
 	}
 
-	if (equals(input.provider, Input.File)) {
+	if (equals(input.provider, IO.File)) {
 		return files?.length > 0
 	}
 
-	if (equals(input.provider, Input.Minio)) {
+	if (equals(input.provider, IO.Minio)) {
 		return isValidS3BucketName(input.path || '').length === 0
 	}
 
-	if (equals(input.provider, Input.Dropbox)) {
-		return input.path && input.path.length > 0 && input.path.startsWith('/')
-	}
-
 	return true
 }
 
-export const isValidOutput = (output: DUUIDocumentProvider) => {
-	if (equals(output.provider, Output.Minio)) {
+/**
+ * Check if the output settings are valid.
+ *
+ * @param output The output settings for the process.
+ * @returns whether the output settings are valid.
+ */
+export const isValidOutput = (output: DUUIDocumentProvider): boolean => {
+	if (equals(output.provider, IO.Minio)) {
 		return isValidS3BucketName(output.path || '').length === 0
 	}
 
-	if (equals(output.provider, Output.Dropbox)) {
-		return output.path && output.path.length > 0
-	}
-
 	return true
 }
 
-export const areSettingsValid = (workerCount: number, size: number) => {
+/**
+ * Check if the process settings are valid.
+ *
+ * @param workerCount The maximum number of threads usable by the composer.
+ * @param minimumSize The minimum file size in bytes.
+ * @returns whether the settings are valid.
+ */
+export const areSettingsValid = (workerCount: number, minimumSize: number): string => {
 	if (workerCount < 1 || workerCount > 20) {
 		return 'Worker count must be between 1 and 20'
 	}
 
-	if (size < 0 || size > 2147483647) {
+	if (minimumSize < 0 || minimumSize > 2147483647) {
 		return 'File size must be between 0 and 2147483647 bytes'
 	}
 
 	return ''
 }
 
-export const isValidS3BucketName = (bucket: string) => {
+/**
+ * Given a path as a string, check if the bucket name component of the path is valid. The bucket is expected to be
+ * the part before the first forward slash or, if non exists the entire path.
+ *
+ * @param path The path to check
+ * @returns
+ */
+export const isValidS3BucketName = (path: string): string => {
+	if (path.startsWith('/')) return 'Bucket name must not begin with a forward slash'
+	if (path.endsWith('/')) return 'Path name must not end with a forward slash'
+
+	let bucket: string = ''
+
+	if (!path.includes('/')) {
+		bucket = path
+	} else {
+		const parts: string[] = path.split('/')
+		if (parts.length === 1) return 'Bucket name can not be empty'
+		bucket = parts.at(0) as string
+	}
+
 	if (bucket.length < 3 || bucket.length > 63)
 		return 'Bucket name must be between 3 (min) and 63 (max) characters long'
 
@@ -158,6 +177,12 @@ export const isValidS3BucketName = (bucket: string) => {
 	return ''
 }
 
+/**
+ * Helper function to sum the duration of all steps for a document.
+ *
+ * @param document a Document that is being or has been processed.
+ * @returns the total duration in the pipeline.
+ */
 export const getTotalDuration = (document: DUUIDocument) => {
 	return (
 		document.duration_decode +
@@ -165,9 +190,4 @@ export const getTotalDuration = (document: DUUIDocument) => {
 		document.duration_wait +
 		document.duration_process
 	)
-}
-
-export const URLFromProvider = (provider: DUUIDocumentProvider) => {
-	if (provider.provider === 'Dropbox') return DropboxAppURL
-	return ''
 }

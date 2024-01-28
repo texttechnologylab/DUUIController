@@ -73,49 +73,36 @@
 			<div class="gap-8 flex flex-col">
 				<div class="space-y-4">
 					<Text bind:value={email} label="Email" name="email" />
-					<Password bind:value={password} label="Password" name="password" />
-				</div>
-
-				<a class="block text-center anchor text-sm" href="/account/recover">Forgot Password? </a>
-				<button
-					on:click={loginUser}
-					class="button-primary button-modal uppercase tracking-widest self-center">sign in</button
-				>
-			</div>
-			<a href="/account/register" class="block">
-				Don't have an Account?
-				<p class="anchor inline">Register</p>
-			</a>
-		</div>
-		<div class="space-y-8 md:p-16 md:px-8 col-start-2 hidden md:invisible">
-			<h2 class="h2 font-bold mb-16">Register</h2>
-			<div class="flex flex-col gap-8">
-				<div class="space-y-4">
-					<Text disabled={true} bind:value={email} label="Email" name="email" />
-					<Password disabled={true} bind:value={password} label="Password" name="password" />
 					<Password
-						disabled={true}
-						bind:value={password2}
-						label="Repeat Password"
-						name="password2"
+						bind:value={password}
+						label="Password"
+						name="password"
+						on:keydown={(event) => {
+							if (event.key === 'Enter') {
+								loginUser()
+							}
+						}}
 					/>
 				</div>
-				<a class="block text-center anchor text-sm" href="/account/recover">Forgot Password? </a>
-				<button class="button-primary button-modal uppercase tracking-widest self-center">
-					sign up
-				</button>
+
+				<a tabindex="-1" class="block mx-auto text-center anchor" href="/account/recover"
+					>Forgot Password?
+				</a>
+				<button on:click={loginUser} class="button-primary button-modal self-center">Sign In</button
+				>
 			</div>
-			<a href="/account/login" class="block">
-				Already have an Account?
-				<p class="anchor inline">Login</p>
-			</a>
+			<p class="text-center">
+				Don't have an Account?
+				<a class="anchor" href="/account/register">Register</a>
+			</p>
 		</div>
 
 		<div
 			in:fly={{ x: 300, opacity: 100, duration: 800 }}
-			class="hidden md:flex absolute top-0 w-1/2 transition-all duration-700 ease-in-out h-full rounded-bl-[10%]
+			class="hidden md:flex absolute top-0 w-1/2 transition-all duration-700 ease-in-out h-full
+				   rounded-bl-[10%]
 				   bg-gradient-to-tr from-primary-500 to-primary-600 text-white
-				    flex-col justify-center items-center gap-16 translate-x-full"
+				   flex-col justify-center items-center gap-16 translate-x-full"
 		>
 			<h2 class="h2 font-bold text-3xl text-center max-w-[15ch]">
 				{login ? 'Welcome Back' : 'Nice to meet you'}

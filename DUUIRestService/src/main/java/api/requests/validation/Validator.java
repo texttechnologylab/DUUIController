@@ -12,15 +12,5 @@ public class Validator {
         return String.format("Missing field %s", field);
     }
 
-    public static boolean isNullOrEmpty(String value) {
-        return value == null || value.isEmpty();
-    }
 
-    public static boolean isNullOrEmpty(Document value) {
-        return value == null || value.isEmpty();
-    }
-
-    public static boolean isNullOrEmpty(List<?> list) {
-        return list == null || list.isEmpty();
-    }
 }

@@ -69,7 +69,7 @@
 				{/if}
 				<Text label="Email" name="email" bind:value={recoverAddress} />
 				<button
-					class="button-primary button-modal uppercase tracking-widest self-center"
+				class="button-primary button-modal self-center dark:!variant-filled-primary"
 					on:click={recover}
 				>
 					<Fa icon={faEnvelope} size="lg" />

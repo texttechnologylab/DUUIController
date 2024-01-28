@@ -27,13 +27,11 @@ import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static api.routes.processes.DUUIProcessService.setupComponents;
 import static api.routes.processes.DUUIProcessService.setupDrivers;
@@ -124,7 +122,7 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
 
 
         if (input.isText()) {
-            DUUIProcessController.setDocumentNames(getProcessID(), Set.of("Text"));
+            DUUIProcessController.setDocumentPaths(getProcessID(), Set.of("Text"));
             DUUIProcessController.updateDocuments(getProcessID(), Set.of(
                     new DUUIDocument(
                         "Text",
@@ -155,7 +153,7 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
                 .withRecursive(settings.getBoolean("recursive", false))
                 .build();
 
-            DUUIProcessController.setDocumentNames(getProcessID(), composer.getDocumentNames());
+            DUUIProcessController.setDocumentPaths(getProcessID(), composer.getDocumentPaths());
 
             if (composer.getDocuments().isEmpty()) {
                 onCompletion();
@@ -222,48 +220,36 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
         }
     }
 
-    @Override
-    public void startOutput() {
-        if (output.hasNoOutput() || output == null) return;
-        DUUIProcessController.setStatus(getProcessID(), DUUIStatus.OUTPUT);
-
-        composer
-            .getDocuments()
-            .forEach(document -> {
-                if (!document.getFileExtension().equals(output.getFileExtension())) {
-                    if (document.getFileExtension().isEmpty()) {
-                        document.setOutputName(document.getName() + output.getFileExtension());
-                    } else {
-                        document.setOutputName(document
-                            .getName()
-                            .replace(document.getFileExtension(), output.getFileExtension()));
-                    }
-                }
-            });
-
-        try {
-            outputHandler
-                .writeDocuments(
-                    new ArrayList<>(
-                        composer.getDocuments()
-                    )
-                        .stream()
-                        .filter(document -> document.getError() == null)
-                        .collect(Collectors.toList())
-                    , output.getPath()
-                );
-        } catch (IOException exception) {
-            onException(exception);
-        }
-    }
 
     @Override
     public void update() {
         if (composer == null) return;
 
+        DUUIProcessController.updatePipelineStatus(getProcessID(), composer.getPipelineStatus());
         DUUIProcessController.setProgress(getProcessID(), composer.getProgress());
-        DUUIProcessController.updateTimeline(getProcessID(), composer.getEvents());
         DUUIProcessController.updateDocuments(getProcessID(), composer.getDocuments());
+
+
+        for (DUUIDocument document : composer.getDocuments()) {
+            if (!output.hasNoOutput()
+                && document.getStatus().equals(DUUIStatus.OUTPUT)
+                && document.isFinished()
+                && !document.isUploadStarted()) {
+
+                document.setUploadStarted(true);
+                try {
+                    outputHandler.writeDocument(document, output.getPath());
+                    document.setStatus(DUUIStatus.COMPLETED);
+                } catch (IOException exception) {
+                    if (composer.getIgnoreErrors()) {
+                        document.setStatus(DUUIStatus.FAILED);
+                    } else {
+                        onException(exception);
+                    }
+                }
+            }
+        }
+
     }
 
     @Override
@@ -271,7 +257,7 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
         DUUIProcessController.setStatus(getProcessID(), DUUIStatus.FAILED);
         DUUIProcessController.setError(
             getProcessID(),
-            String.format("%s\n%s", exception.getClass().getCanonicalName(), exception.getMessage()));
+            String.format("%s - %s", exception.getClass().getCanonicalName(), exception.getMessage()));
 
         DUUIProcessController.setFinishedAt(getProcessID());
         DUUIProcessController.setFinished(getProcessID(), true);
@@ -363,6 +349,7 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
             }
 
             DUUIProcessController.updatePipelineStatus(getProcessID(), composer.getPipelineStatus());
+            DUUIProcessController.insertEvents(getProcessID(), composer.getEvents());
         }
 
         updater.cancel(true);
@@ -394,20 +381,6 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
     public String getStatus() {
         return status;
     }
-
-//    private void addXmiWriter(boolean includesUIMADriver) throws Exception {
-//        if (!output.writesToExternalSource()) return;
-//
-//        if (!includesUIMADriver) {
-//            composer.addDriver(new DUUIUIMADriver());
-//        }
-//
-//        String writerPath = Paths.get("temp/duui/%s".formatted(getProcessID()), output.getPath()).toString();
-//
-//        composer.add(DUUIProcessService
-//            .getXmiWriter(writerPath, output.getFileExtension())
-//            .withName("XMIWriter"));
-//    }
 
     @Override
     public void run() {
@@ -456,8 +429,6 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
             exit();
             return;
         }
-
-        startOutput();
 
         onCompletion();
 

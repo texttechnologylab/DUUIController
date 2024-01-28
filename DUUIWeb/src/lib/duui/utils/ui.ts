@@ -77,7 +77,7 @@ export const getDocumentStatusIcon = (document: DUUIDocument) => {
 	if (equals(document.status, Status.Failed)) return faWarning
 	if (equals(document.status, Status.Completed)) return document.error ? faClose : faCheckDouble
 
-	return document.error ? faClose : document.finished ? faCheck : faRefresh
+	return document.error ? faClose : document.is_finished ? faCheck : faRefresh
 }
 
 export const successToast = (message: string, duration: number = 4000): ToastSettings => {

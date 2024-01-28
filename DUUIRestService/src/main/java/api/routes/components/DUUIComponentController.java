@@ -1,6 +1,6 @@
 package api.routes.components;
 
-import api.http.DUUIRequestHandler;
+import api.routes.DUUIRequestHandler;
 import api.storage.DUUIMongoDBStorage;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Aggregates;
@@ -20,11 +20,8 @@ import java.util.List;
 import java.util.Set;
 
 
-import static api.http.RequestUtils.getLimit;
-import static api.http.RequestUtils.getSkip;
-import static api.http.ResponseUtils.notFound;
-import static api.requests.validation.Validator.isNullOrEmpty;
 import static api.requests.validation.Validator.missingField;
+import static api.routes.DUUIRequestHandler.*;
 import static api.storage.DUUIMongoDBStorage.convertObjectIdToString;
 
 public class DUUIComponentController {
@@ -54,6 +51,7 @@ public class DUUIComponentController {
      * @return Response message
      */
     public static String insertOne(Request request, Response response) {
+        String userId = getUserId(request);
         Document data = Document.parse(request.body());
 
         String name = data.getString("name");
@@ -62,6 +60,7 @@ public class DUUIComponentController {
         if (isNullOrEmpty(data.getString("driver"))) return missingField(response, "driver");
         if (isNullOrEmpty(data.getString("target"))) return missingField(response, "target");
 
+        boolean isTemplate = request.queryParamOrDefault("template", "false").equals("true");
         Document component = new Document()
             .append("name", name)
             .append("tags", data.getList("tags", String.class))
@@ -73,8 +72,8 @@ public class DUUIComponentController {
             .append("parameters", data.get("parameters", Document.class))
             .append("created_at", Instant.now().toEpochMilli())
             .append("modified_at", Instant.now().toEpochMilli())
-            .append("pipeline_id", data.getString("pipeline_id"))
-            .append("user_id", data.getString("user_id"))
+            .append("pipeline_id", isTemplate ? null : data.getString("pipeline_id"))
+            .append("user_id", isTemplate ? null : userId)
             .append("index", data.getInteger("index"));
 
         DUUIMongoDBStorage
@@ -99,7 +98,7 @@ public class DUUIComponentController {
             .find(Filters.eq(new ObjectId(id)))
             .first();
 
-        if (isNullOrEmpty(component)) return notFound(response, "Component");
+        if (isNullOrEmpty(component)) return DUUIRequestHandler.notFound(response);
 
         convertObjectIdToString(component);
         response.status(200);
@@ -113,7 +112,7 @@ public class DUUIComponentController {
      * @return A Json String containing the components or a not found message.
      */
     public static String findMany(Request request, Response response) {
-        String userID = DUUIRequestHandler.getUserID(request);
+        String userID = DUUIRequestHandler.getUserId(request);
 
         int limit = getLimit(request);
         int skip = getSkip(request);

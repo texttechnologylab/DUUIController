@@ -1,17 +1,16 @@
 package api.routes.processes;
 
+import api.requests.validation.UserValidator;
+import api.routes.DUUIRequestHandler;
 import api.routes.documents.DUUIDocumentController;
-import duui.document.DUUIDocumentProvider;
 import api.routes.pipelines.DUUIPipelineController;
 import api.routes.users.DUUIUserController;
-import api.http.DUUIRequestHandler;
-import api.requests.validation.UserValidator;
+import api.storage.AggregationProps;
 import api.storage.DUUIMongoDBStorage;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.*;
-import org.apache.commons.io.IOUtils;
-import org.apache.uima.resource.ResourceInitializationException;
+import duui.document.DUUIDocumentProvider;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
@@ -25,12 +24,9 @@ import spark.Response;
 import javax.servlet.MultipartConfigElement;
 import javax.servlet.ServletException;
 import javax.servlet.http.Part;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -40,10 +36,10 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static api.http.RequestUtils.*;
 import static api.requests.validation.UserValidator.authenticate;
-import static api.requests.validation.Validator.isNullOrEmpty;
 import static api.requests.validation.Validator.missingField;
+import static api.routes.DUUIRequestHandler.*;
+import static api.routes.pipelines.DUUIPipelineController.getPipelineById;
 import static api.storage.DUUIMongoDBStorage.convertObjectIdToString;
 
 public class DUUIProcessController {
@@ -84,25 +80,16 @@ public class DUUIProcessController {
 
     private static final Map<String, IDUUIProcessHandler> processes = new HashMap<>();
 
-    public static String findOne(Request request, Response response) {
-        String authorization = request.headers("Authorization");
-
-        Document user = authenticate(authorization);
-        if (isNullOrEmpty(user)) return UserValidator.unauthorized(response);
-
-        String id = request.params(":id");
-
+    public static Document getProcess(String id) {
         Document process = DUUIMongoDBStorage
             .Processses()
             .find(Filters.eq(new ObjectId(id)))
             .first();
 
-        if (process == null) return DUUIRequestHandler.notFound(response);
+        if (process == null) return null;
 
-        convertObjectIdToString(process);
-        process.put("count", documentCount(id));
-        response.status(200);
-        return process.toJson();
+        process.append("count", documentCount(id));
+        return process;
     }
 
     private static long documentCount(String id) {
@@ -111,44 +98,40 @@ public class DUUIProcessController {
             .countDocuments(Filters.eq("process_id", id));
     }
 
-    public static String findMany(Request request, Response response) {
-        String pipelineId = request.queryParamOrDefault("pipeline_id", null);
+    public static Document getProcesses(String pipelineId, AggregationProps props) {
+        return getProcesses(pipelineId, props, List.of(DUUIStatus.ANY));
+    }
 
-        if (isNullOrEmpty(pipelineId))
-            DUUIRequestHandler.badRequest(response, "Missing pipeline_id parameter.");
-
-        int limit = getLimit(request);
-        int skip = getSkip(request);
-        int order = getOrder(request);
-
-        String sort = request.queryParamOrDefault("sort", "started_at");
-        List<String> filters = List.of(
-            request.queryParamOrDefault("filter", DUUIStatus.ANY).split(";"));
-
+    public static Document getProcesses(String pipelineId, AggregationProps props, List<String> statusNames) {
         List<Bson> aggregation = new ArrayList<>();
+
+        statusNames = statusNames
+            .stream()
+            .map(DUUIRequestHandler::toTitleCase)
+            .toList();
 
         aggregation.add(Aggregates.addFields(
             new Field<>("count", new Document("$size", "$document_names")),
             new Field<>("duration", new Document("$subtract", List.of("$finished_at", "$started_at"))),
-            new Field<>("filter", filters)
+            new Field<>("filter", statusNames)
         ));
 
         aggregation.add(Aggregates.match(
             Filters.and(
                 Filters.eq("pipeline_id", pipelineId),
-                filters.contains(DUUIStatus.ANY) ?
+                statusNames.contains(DUUIStatus.ANY) ?
                     Filters.exists("status") :
-                    Filters.in("status", filters)
+                    Filters.in("status", statusNames)
             )
         ));
 
         List<Bson> processFacet = new ArrayList<>();
-        if (!sort.isEmpty() && SORTABLE_FIELDS_PROCESSES.contains(sort)) {
-            processFacet.add(Aggregates.sort(order == 1 ? Sorts.ascending(sort) : Sorts.descending(sort)));
+        if (!props.getSort().isEmpty() && SORTABLE_FIELDS_PROCESSES.contains(props.getSort())) {
+            processFacet.add(Aggregates.sort(props.getOrder() == 1 ? Sorts.ascending(props.getSort()) : Sorts.descending(props.getSort())));
         }
 
-        if (skip > 0) processFacet.add(Aggregates.skip(skip));
-        if (limit > 0) processFacet.add(Aggregates.limit(limit));
+        if (props.getSkip() > 0) processFacet.add(Aggregates.skip(props.getSkip()));
+        if (props.getLimit() > 0) processFacet.add(Aggregates.limit(props.getLimit()));
 
         aggregation.add(Aggregates.facet(
             new Facet("processes", processFacet),
@@ -160,7 +143,6 @@ public class DUUIProcessController {
             .Processses()
             .aggregate(aggregation);
 
-
         Document result = documents.into(new ArrayList<>()).get(0);
         List<Document> findings = result.getList("processes", Document.class);
         findings.forEach(DUUIMongoDBStorage::convertObjectIdToString);
@@ -171,8 +153,7 @@ public class DUUIProcessController {
             count = 0;
         }
 
-        response.status(200);
-        return new Document("processes", findings).append("count", count).toJson();
+        return new Document("processes", findings).append("count", count);
     }
 
     public static String deleteOne(Request request, Response response) {
@@ -191,7 +172,7 @@ public class DUUIProcessController {
         return "Deleted";
     }
 
-    public static String startOne(Request request, Response response) throws ResourceInitializationException, URISyntaxException, IOException, SAXException {
+    public static String startProcess(Request request, Response response) throws URISyntaxException, IOException {
         Document body = Document.parse(request.body());
         String pipelineID = body.getString("pipeline_id");
 
@@ -204,7 +185,7 @@ public class DUUIProcessController {
         if (!error.isEmpty()) return missingField(response, error);
 
         Document settings = body.get("settings", Document.class);
-        Document pipeline = DUUIPipelineController.getPipelineById(pipelineID);
+        Document pipeline = getPipelineById(pipelineID);
 
         if (pipeline == null) return DUUIRequestHandler.notFound(response);
 
@@ -265,7 +246,7 @@ public class DUUIProcessController {
         return process.toJson();
     }
 
-    public static String stopOne(Request request, Response response) {
+    public static String stopProcess(Request request, Response response) {
         String id = request.params(":id");
 
         Document process = DUUIMongoDBStorage
@@ -295,18 +276,18 @@ public class DUUIProcessController {
 
     public static String findDocuments(Request request, Response response) {
         String processId = request.params(":id");
-        String userID = DUUIRequestHandler.getUserID(request);
+        String userID = DUUIRequestHandler.getUserId(request);
         Document process = DUUIMongoDBStorage.Processses().find(Filters.eq(new ObjectId(processId))).first();
         if (isNullOrEmpty(process)) return DUUIRequestHandler.notFound(response);
 
-        Document pipeline = DUUIPipelineController.getPipelineById(process.getString("pipeline_id"));
+        Document pipeline = getPipelineById(process.getString("pipeline_id"));
         if (isNullOrEmpty(pipeline)) return DUUIRequestHandler.notFound(response);
 
         if (!pipeline.getString("user_id").equals(userID)) return DUUIRequestHandler.notFound(response);
 
         int limit = getLimit(request);
         int skip = getSkip(request);
-        int order = getOrder(request);
+        int order = getOrder(request, 1);
 
         String sort = request.queryParamOrDefault("sort", "name");
         String text = request.queryParamOrDefault("text", "");
@@ -327,7 +308,7 @@ public class DUUIProcessController {
         aggregation.add(Aggregates.addFields(new Field<>("oid", new Document("$toString", "$_id"))));
         aggregation.add(Aggregates.project(Projections.excludeId()));
         aggregation.add(Aggregates.addFields(new Field<>(
-            "duration_total",
+            "duration",
             new Document(
                 "$sum",
                 List.of(
@@ -345,31 +326,52 @@ public class DUUIProcessController {
             new Facet("count", Aggregates.count())
         ));
 
-        if (!sort.isEmpty() && SORTABLE_FIELDS_DOCUMENTS.contains(sort)) {
-            aggregation.add(Aggregates.sort(
-                order == 1 ? Sorts.ascending(sort) : Sorts.descending(sort)
-            ));
-        }
-
-        if (skip > 0) aggregation.add(Aggregates.skip(skip));
-        if (limit > 0) aggregation.add(Aggregates.limit(limit));
-
         AggregateIterable<Document> documents = DUUIMongoDBStorage
             .Documents()
             .aggregate(aggregation);
 
-        Document result = documents.into(new ArrayList<>()).get(0);
-        List<Document> findings = result.getList("documents", Document.class);
-        findings.forEach(DUUIMongoDBStorage::convertObjectIdToString);
+        List<Document> pipelineProgressList = DUUIMongoDBStorage
+            .Documents()
+            .aggregate(
+                List.of(
+                    Aggregates.match(Filters.eq("process_id", processId)),
+                    Aggregates.group("$progress", Accumulators.sum("count", 1))
+                )
+            ).into(new ArrayList<>());
+
+        Document pipelineProgress = new Document();
+        if (!isNullOrEmpty(pipelineProgressList)) {
+            for (Document document : pipelineProgressList) {
+                pipelineProgress.put(
+                    String.valueOf(document.getInteger("_id")),
+                    document.getInteger("count"));
+            }
+        }
+
         int count;
+        Document result;
         try {
+            result = documents.into(new ArrayList<>()).get(0);
+
             count = result.getList("count", Document.class).get(0).getInteger("count");
         } catch (IndexOutOfBoundsException exception) {
+            result = new Document("documents", new ArrayList<>());
             count = 0;
         }
 
+        List<Document> findings = result.getList("documents", Document.class);
+        findings.forEach(document -> {
+            convertObjectIdToString(document);
+            List<Document> events = getEvents(document.getString("oid"));
+            events.forEach(DUUIMongoDBStorage::convertObjectIdToString);
+            events.forEach(DUUIMongoDBStorage::convertDateToTimestamp);
+            document.append("events", events).toJson();
+        });
+
         response.status(200);
-        return new Document("documents", findings).append("count", count).toJson();
+        return new Document("documents", findings)
+            .append("pipelineProgress", pipelineProgress)
+            .append("count", count).toJson();
     }
 
     public static void updatePipelineStatus(String id, Map<String, String> pipelineStatus) {
@@ -433,29 +435,32 @@ public class DUUIProcessController {
             .updateOne(Filters.eq(new ObjectId(id)), Updates.set("status", status));
     }
 
-    public static long timelineCount(String id) {
-        return DUUIMongoDBStorage
+
+    public static void insertEvents(String processId, List<DUUIEvent> events) {
+        Document latestInsert = DUUIMongoDBStorage
             .Events()
-            .countDocuments(Filters.eq("process_id", id));
-    }
+            .find(Filters.eq("event.process_id", processId))
+            .sort(Sorts.descending("timestamp"))
+            .limit(1)
+            .first();
 
-    public static void updateTimeline(String id, List<DUUIEvent> events) {
-        int start_index = (int) timelineCount(id);
-        List<DUUIEvent> newEvents = events.subList(start_index, events.size());
-
-        if (newEvents.isEmpty()) {
-            return;
+        if (latestInsert != null) {
+            String message = latestInsert.get("event", Document.class).getString("message");
+            long timestamp = latestInsert.get("timestamp", Date.class).toInstant().toEpochMilli();
+            events = events.stream().filter(event -> event.getTimestamp() >= timestamp
+                && !event.getMessage().equals(message)).toList();
         }
+
+        if (events.isEmpty()) return;
 
         DUUIMongoDBStorage
             .Events()
-            .insertMany(newEvents.stream().map(event -> new Document(
+            .insertMany(events.stream().map(event -> new Document(
                 "timestamp", new Date(event.getTimestamp()))
                 .append("event",
-                    new Document("process_id", id)
+                    new Document("process_id", processId)
                         .append("sender", event.getSender())
                         .append("message", event.getMessage())
-                        .append("index", events.indexOf(event))
                 )
             ).collect(Collectors.toList()));
     }
@@ -500,12 +505,12 @@ public class DUUIProcessController {
             .updateOne(Filters.eq(new ObjectId(id)), Updates.set("error", error));
     }
 
-    public static void setDocumentNames(String id, Set<String> documentNames) {
+    public static void setDocumentPaths(String id, Set<String> documentPaths) {
         DUUIMongoDBStorage
             .Processses()
             .updateOne(
                 Filters.eq(new ObjectId(id)),
-                Updates.set("document_names", documentNames));
+                Updates.set("document_names", documentPaths));
     }
 
     public static void setInstantiationDuration(String id, long instantiationDuration) {
@@ -581,5 +586,81 @@ public class DUUIProcessController {
         for (Document document : effected) {
             DUUIDocumentController.cascade(document.getObjectId("_id").toString());
         }
+    }
+
+    public static ArrayList<Document> getEvents(String documentId) {
+        Document document = DUUIMongoDBStorage
+            .Documents()
+            .find(Filters.eq(new ObjectId(documentId)))
+            .first();
+
+        if (document == null) return new ArrayList<>();
+
+        String processId = document.getString("process_id");
+        String path = document.getString("path");
+        AggregateIterable<Document> result = DUUIMongoDBStorage
+            .Events()
+            .aggregate(
+                List.of(
+                    Aggregates.match(
+                        Filters.and(
+                            Filters.eq("event.process_id", processId),
+                            new Document(
+                                "event.message",
+                                Pattern.compile(path, Pattern.CASE_INSENSITIVE))
+                        )
+                    ),
+                    Aggregates.sort(Sorts.ascending("timestamp"))
+                )
+            );
+
+        return result.into(new ArrayList<>());
+    }
+
+    /**
+     * This function performs a set of Aggregations to generate statistics for the usage of a pipeline.
+     * These Aggregations include
+     * - a grouping by status (Completed, Failed, etc.)
+     * - a grouping by errors
+     * - a grouping by input provider
+     * - a grouping by output provider
+     * - a grouping by usage per month
+     * - a sum of the total number documents procesed.
+     *
+     * @param pipelineId The identifier for the pipeline
+     * @return A BSON Document with the aggregation result.
+     */
+    public static Document getStatisticsForPipeline(String pipelineId) {
+        List<Document> facets = DUUIMongoDBStorage
+            .Processses()
+            .aggregate(
+                List.of(
+                    Aggregates.match(Filters.eq("pipeline_id", pipelineId)),
+                    Aggregates.facet(
+                        new Facet("status", Aggregates.group("$status", Accumulators.sum("count", 1))),
+                        new Facet("errors", Aggregates.match(Filters.ne("error", null)),
+                            Aggregates.addFields(new Field<>("errorName", new Document("$arrayElemAt", Arrays.asList(new Document("$split", Arrays.asList("$error", " - ")), 0)))),
+                            Aggregates.project(Projections.include("errorName")),
+                            Aggregates.group("$errorName", Accumulators.sum("count", 1))
+                        ),
+                        new Facet("usage",
+                            Aggregates.project(Projections.computed("convertedDate", new Document("$toDate", "$started_at"))),
+                            new Document("$group", new Document("_id",
+                                new Document("year", new Document("$year", "$convertedDate"))
+                                    .append("month", new Document("$month", "$convertedDate")))
+                                .append("count", new Document("$sum", 1)))
+                        ),
+                        new Facet("input", Aggregates.group("$input.provider", Accumulators.sum("count", 1))),
+                        new Facet("output", Aggregates.group("$output.provider", Accumulators.sum("count", 1))),
+                        new Facet("size", new Document("$group", new Document("_id", null).append("count", new Document("$sum", new Document("$size", "$document_names")))))
+                    )
+                )
+            ).into(new ArrayList<>());
+
+        Document result = new Document();
+        if (isNullOrEmpty(facets)) return result;
+        result = facets.get(0);
+
+        return result;
     }
 }

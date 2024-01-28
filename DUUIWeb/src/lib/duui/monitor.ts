@@ -1,12 +1,13 @@
 import { includes } from '$lib/duui/utils/text'
 import type { DUUIPipeline } from './pipeline'
 
-export interface DUUIStatusEvent {
-	oid: string
-	process_id: string
+export interface DUUIEvent {
 	timestamp: number
-	sender: string
-	message: string
+	event: {
+		process_id: string
+		sender: string
+		message: string
+	}
 }
 
 export const statusNames: string[] = [
@@ -59,11 +60,11 @@ export const isActive = (status: string) => {
 	return activeStatusList.includes(status)
 }
 
-export const documentIsProcessed = (log: DUUIStatusEvent[], document: string) => {
+export const documentIsProcessed = (events: DUUIEvent[], document: string) => {
 	const name = document.split('/').at(-1) || ''
 
-	for (let event of log) {
-		if (includes(event.message, name + ' has been processed')) {
+	for (let item of events) {
+		if (includes(item.event.message, name + ' has been processed')) {
 			return true
 		}
 	}

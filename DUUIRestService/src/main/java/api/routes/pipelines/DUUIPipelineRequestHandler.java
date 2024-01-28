@@ -3,7 +3,7 @@ package api.routes.pipelines;
 import api.routes.components.DUUIComponentController;
 import api.routes.processes.DUUIProcessController;
 import api.routes.users.Role;
-import api.http.DUUIRequestHandler;
+import api.routes.DUUIRequestHandler;
 import api.storage.AggregationProps;
 import api.storage.DUUIMongoDBStorage;
 import org.bson.Document;
@@ -15,9 +15,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 
+import static api.routes.DUUIRequestHandler.*;
 import static api.routes.pipelines.DUUIPipelineController.getPipelineById;
-import static api.http.RequestUtils.*;
-import static api.requests.validation.Validator.isNullOrEmpty;
 
 public class DUUIPipelineRequestHandler {
 
@@ -28,7 +27,7 @@ public class DUUIPipelineRequestHandler {
      * @return A Json String containing the matched pipeline.
      */
     public static String findOne(Request request, Response response) {
-        String userID = DUUIRequestHandler.getUserID(request);
+        String userID = DUUIRequestHandler.getUserId(request);
         String userRole = DUUIRequestHandler.getUserProps(request, Set.of("role")).getString("role");
         String pipelineID = request.params(":id");
 
@@ -42,7 +41,9 @@ public class DUUIPipelineRequestHandler {
             return DUUIRequestHandler.notFound(response);
         }
 
-        response.status(200);
+        Document statistics = DUUIProcessController.getStatisticsForPipeline(pipelineID);
+
+        result.append("statistics", statistics);
         return result.toJson();
     }
 
@@ -53,12 +54,12 @@ public class DUUIPipelineRequestHandler {
      * @apiNote Allowed parameters are components, limit, skip, sort and order
      */
     public static String findMany(Request request, Response response) {
-        String userID = DUUIRequestHandler.getUserID(request);
+        String userID = DUUIRequestHandler.getUserId(request);
         String userRole = DUUIRequestHandler.getUserProps(request, Set.of("role")).getString("role");
 
         int limit = getLimit(request);
         int skip = getSkip(request);
-        int order = getOrder(request);
+        int order = getOrder(request, 1);
 
         boolean templates = request.queryParamOrDefault(
             "templates",
@@ -94,10 +95,9 @@ public class DUUIPipelineRequestHandler {
     }
 
     public static String insertOne(Request request, Response response) {
-        String userID = DUUIRequestHandler.getUserID(request);
+        String userID = DUUIRequestHandler.getUserId(request);
 
         Document body = Document.parse(request.body());
-
         String name = body.getString("name");
         if (isNullOrEmpty(name)) return DUUIRequestHandler.badRequest(response, "Missing field name");
 
@@ -150,7 +150,7 @@ public class DUUIPipelineRequestHandler {
     }
 
     public static String updateOne(Request request, Response response) {
-        String userID = DUUIRequestHandler.getUserID(request);
+        String userID = DUUIRequestHandler.getUserId(request);
 
         Document user = DUUIRequestHandler.getUserProps(request, Set.of("role"));
         String role = user.getString("role");
@@ -177,7 +177,7 @@ public class DUUIPipelineRequestHandler {
     }
 
     public static String deleteOne(Request request, Response response) {
-        String userID = DUUIRequestHandler.getUserID(request);
+        String userID = DUUIRequestHandler.getUserId(request);
 
         Document user = DUUIRequestHandler.getUserProps(request, Set.of("role"));
         String role = user.getString("role");

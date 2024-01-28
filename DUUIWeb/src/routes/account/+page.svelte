@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { successToast } from '$lib/duui/utils/ui.js'
+	import { showModal } from '$lib/utils/modal.js'
 	import { userSession } from '$lib/store.js'
 	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import Secret from '$lib/svelte/widgets/input/Secret.svelte'
@@ -19,7 +21,6 @@
 		getModalStore,
 		getToastStore,
 		popup,
-		type ModalSettings,
 		type PopupSettings
 	} from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
@@ -27,11 +28,13 @@
 
 	export let data
 	const { user, dropbBoxURL } = data
+	const toastStore = getToastStore()
 
 	if (user && $userSession) {
 		$userSession.preferences = user.preferences
 		$userSession.connections = user.connections
 	}
+
 	let connections = {
 		dropbox:
 			$userSession?.connections.dropbox.access_token !== null &&
@@ -44,23 +47,29 @@
 		key: $userSession?.connections.key != null
 	}
 
-	const toastStore = getToastStore()
-
 	let minioAccessKey: string = $userSession?.connections.minio.access_key || ''
 	let minioEndpoint: string = $userSession?.connections.minio.endpoint || ''
 	let minioSecretKey: string = $userSession?.connections.minio.secret_key || ''
 
 	const updateUser = async (data: object) => {
 		const response = await fetch('/api/users', { method: 'PUT', body: JSON.stringify(data) })
+		if (response.ok) {
+			toastStore.trigger(successToast('Update successful'))
+		}
 		return response
 	}
 
 	const generateApiKey = async () => {
 		if (user.connections.key) {
-			const confirm = await showConfirmModal(
-				'Regenarate API Key',
-				'If you regenarate your API key, the old one will lose its access. Make sure to update your API key in all applications its used in.',
-				'Regenerate'
+			const confirm = await showModal(
+				{
+					title: 'Regenerate API Key',
+					message:
+						'If you regenarate your API key, the old one will lose its access. Make sure to update your API key in all applications its used in.',
+					confirmText: 'Regenerate'
+				},
+				'confirmModal',
+				modalStore
 			)
 
 			if (!confirm) return
@@ -75,55 +84,15 @@
 		}
 	}
 
-	const showConfirmModal = async (
-		title: string,
-		message: string,
-		confirmText: string = 'Confirm'
-	) => {
-		const response = new Promise<boolean>((resolve) => {
-			const modal: ModalSettings = {
-				type: 'component',
-				component: 'confirmModal',
-				meta: {
-					title: title,
-					body: message,
-					confirmText: confirmText
-				},
-				response: (r: boolean) => {
-					resolve(r)
-				}
-			}
-
-			modalStore.trigger(modal)
-		})
-
-		return await response
-	}
-
-	const showDeleteModal = async (title: string, message: string) => {
-		const response = new Promise<boolean>((resolve) => {
-			const modal: ModalSettings = {
-				type: 'component',
-				component: 'deleteModal',
-				meta: {
-					title: title,
-					body: message
-				},
-				response: (r: boolean) => {
-					resolve(r)
-				}
-			}
-
-			modalStore.trigger(modal)
-		})
-
-		return await response
-	}
-
 	const deleteApiKey = async () => {
-		const confirm = await showDeleteModal(
-			'Delete API Key',
-			'Deleting your API Key remove the ability to make requests with it. You can always generate a new one here.'
+		const confirm = await showModal(
+			{
+				title: 'Delete API Key',
+				message:
+					'Deleting your API Key remove the ability to make requests with it. You can always generate a new one here.'
+			},
+			'deleteModal',
+			modalStore
 		)
 
 		if (!confirm) return
@@ -143,68 +112,52 @@
 	const modalStore = getModalStore()
 
 	const deleteDropboxAccess = async () => {
-		new Promise<boolean>((resolve) => {
-			const modal: ModalSettings = {
-				type: 'component',
-				component: 'deleteModal',
-				meta: {
-					title: 'Delete Access for Dropbox',
-					body: `Are you sure you want to revoke access?
-					 You will have to go through the OAuth process again to reconnect.`,
-					deleteText: 'Delete'
-				},
-				response: (r: boolean) => {
-					resolve(r)
-				}
-			}
+		const confirm = await showModal(
+			{
+				title: 'Delete Access for Dropbox',
+				message: `Are you sure you want to revoke access?
+					 You will have to go through the OAuth process again to reconnect.`
+			},
+			'deleteModal',
+			modalStore
+		)
 
-			modalStore.trigger(modal)
-		}).then(async (accepted: boolean) => {
-			if (!accepted) return
+		if (!confirm) return
 
-			const response = await updateUser({
-				'connections.dropbox.access_token': null,
-				'connections.dropbox.refresh_token': null
-			})
-
-			if (response.ok) {
-				connections.dropbox = false
-			}
+		const response = await updateUser({
+			'connections.dropbox.access_token': null,
+			'connections.dropbox.refresh_token': null
 		})
+
+		if (response.ok) {
+			connections.dropbox = false
+		}
 	}
 
 	const revokeMinioAccess = async () => {
-		new Promise<boolean>((resolve) => {
-			const modal: ModalSettings = {
-				type: 'component',
-				component: 'deleteModal',
-				meta: {
-					title: 'Delete Access for Min.io',
-					body: `Are you sure you want to delete access?`,
-					deleteText: 'Delete'
-				},
-				response: (r: boolean) => {
-					resolve(r)
-				}
-			}
+		const confirm = await showModal(
+			{
+				title: 'Delete Access for Min.io',
+				message: `Are you sure you want to delete access?`
+			},
+			'deleteModal',
+			modalStore
+		)
 
-			modalStore.trigger(modal)
-		}).then(async (accepted: boolean) => {
-			if (!accepted) return
+		if (!confirm) return
 
-			const response = await updateUser({
-				'connections.minio.endpoint': null,
-				'connections.minio.access_key': null,
-				'connections.minio.secret_key': null
-			})
-
-			if (response.ok) {
-				connections.minio = false
-				minioEndpoint = ''
-				minioAccessKey = ''
-				minioSecretKey = ''
-			}
+		const response = await updateUser({
+			'connections.minio.endpoint': null,
+			'connections.minio.access_key': null,
+			'connections.minio.secret_key': null
 		})
+
+		if (response.ok) {
+			connections.minio = false
+			minioEndpoint = ''
+			minioAccessKey = ''
+			minioSecretKey = ''
+		}
 	}
 
 	$: {
@@ -327,7 +280,7 @@
 			<div class="space-y-8">
 				{#if connections.key}
 					<div class="space-y-2">
-						<Secret value={$userSession?.connections.key} />
+						<Secret value={$userSession?.connections.key} style="pt-2" />
 						<div class="flex items-center gap-2 text-sm">
 							<p
 								class="text-primary-500 hover:text-primary-400 cursor-pointer transition-colors px-2 border-r"
@@ -394,20 +347,23 @@
 				{:else}
 					<p class="mb-8">
 						By connecting Dropbox and DUUI you can directly read and write data from and to your
-						Dropbox storage. After a succesfull OAuth2 authorization at <a
-							href="https://dropbox.com"
-							class="anchor">Dropbox</a
+						Dropbox storage. After a succesfull OAuth2 authorization at <span class="font-bold"
+							>Dropbox</span
 						> an app folder called DUUI is created in your storage that is used as the root folder for
 						read and write operations.
 					</p>
-					<p class="flex items-center gap-[22px]">
-						<Fa icon={faFileText} size="lg" class="text-primary-500" />
-						<span>Read files and folders contained in your <strong>Dropbox Storage</strong> </span>
-					</p>
-					<p class="flex items-center gap-4 mb-4">
-						<Fa icon={faFilePen} size="lg" class="text-primary-500" />
-						<span>Create files and folders in your <strong>Dropbox Storage</strong> </span>
-					</p>
+					<div class="space-y-2">
+						<p class="flex items-center gap-[22px]">
+							<Fa icon={faFileText} size="lg" class="text-primary-500" />
+							<span
+								>Read files and folders contained in your <strong>Dropbox Storage</strong>
+							</span>
+						</p>
+						<p class="flex items-center gap-4 mb-4">
+							<Fa icon={faFilePen} size="lg" class="text-primary-500" />
+							<span>Create files and folders in your <strong>Dropbox Storage</strong> </span>
+						</p>
+					</div>
 					<ActionButton icon={faLink} text="Connect" on:click={startDropboxOauth} />
 				{/if}
 			</div>
@@ -430,8 +386,8 @@
 					<p>Enter your AWS credentials below to establish a connection.</p>
 				{/if}
 				<Text label="Endpoint" style="grow" name="endpoint" bind:value={minioEndpoint} />
-				<Secret label="Access Key" name="accessKey" bind:value={minioAccessKey} />
-				<Secret label="Secret Key" name="secretKey" bind:value={minioSecretKey} />
+				<Secret label="Username (Access Key)" name="accessKey" bind:value={minioAccessKey} />
+				<Secret label="Password (Secret Key)" name="secretKey" bind:value={minioSecretKey} />
 			</div>
 			<div class="flex gap-4 justify-between">
 				<button

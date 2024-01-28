@@ -34,6 +34,9 @@ export default {
 			},
 			gridTemplateColumns: {
 				'auto-fit-420': 'repeat(auto-fit, minmax(min(100%, 420px), 1fr))'
+			},
+			transitionProperty: {
+				width: 'width'
 			}
 		}
 	},

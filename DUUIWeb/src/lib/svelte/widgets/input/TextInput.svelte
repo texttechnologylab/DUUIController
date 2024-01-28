@@ -41,10 +41,9 @@
 		<span class="pl-1 text-xs text-error-500 font-bold">{error}</span>
 	{/if}
 	<input
-		autocomplete="off"
 		{disabled}
 		{placeholder}
-		class="input-wrapper {error ? 'text-error-500 font-bold' : ''}"
+		class="input-wrapper {error ? 'input-error' : ''}"
 		use:popup={helpPopup}
 		type="text"
 		{name}

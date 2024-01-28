@@ -1,9 +1,8 @@
 package api.routes.pipelines;
 
+import api.routes.DUUIRequestHandler;
 import api.routes.components.DUUIComponentController;
 import api.routes.processes.DUUIReusableProcessHandler;
-import api.http.DUUIRequestHandler;
-import api.requests.validation.UserValidator;
 import api.storage.AggregationProps;
 import api.storage.DUUIMongoDBStorage;
 import com.mongodb.client.AggregateIterable;
@@ -19,10 +18,9 @@ import spark.Response;
 import java.time.Instant;
 import java.util.*;
 
-import static api.requests.validation.UserValidator.authenticate;
-import static api.requests.validation.Validator.isNullOrEmpty;
-import static api.requests.validation.Validator.missingField;
-import static api.storage.DUUIMongoDBStorage.*;
+import static api.routes.DUUIRequestHandler.isNullOrEmpty;
+import static api.storage.DUUIMongoDBStorage.Pipelines;
+import static api.storage.DUUIMongoDBStorage.convertObjectIdToString;
 
 public class DUUIPipelineController {
     private static final Map<String, DUUIReusableProcessHandler> reusablePipelines = new HashMap<>();
@@ -45,10 +43,6 @@ public class DUUIPipelineController {
         "status",
         "times_used"
     );
-
-    public static Set<String> getUpdatableFields() {
-        return UPDATABLE_FIELDS;
-    }
 
 
     /**
@@ -116,6 +110,8 @@ public class DUUIPipelineController {
         if (props.getSkip() > 0) facet.add(Aggregates.skip(props.getSkip()));
         if (props.getLimit() > 0) facet.add(Aggregates.limit(props.getLimit()));
 
+        facet.add(Aggregates.sort(Sorts.descending("user_id")));
+
         aggregation.add(Aggregates.facet(
             new Facet("pipelines", facet),
             new Facet("count", Aggregates.count())
@@ -151,60 +147,6 @@ public class DUUIPipelineController {
 
     }
 
-    public static String insertOne(Request request, Response response) {
-        String authorization = request.headers("Authorization");
-
-        Document user = authenticate(authorization);
-        if (isNullOrEmpty(user)) return UserValidator.unauthorized(response);
-
-        Document body = Document.parse(request.body());
-
-        String name = body.getString("name");
-        if (name.isEmpty()) return missingField(response, "name");
-
-        List<Document> components = body.getList("components", Document.class);
-        if (components.isEmpty()) return missingField(response, "components");
-
-        String template = request.queryParamOrDefault("template", "false").toLowerCase();
-        List<String> tags = body.getList("tags", String.class);
-
-        Document pipeline = new Document("name", name)
-            .append("description", body.getString("description"))
-            .append("created_at", Instant.now().toEpochMilli())
-            .append("modified_at", Instant.now().toEpochMilli())
-            .append("settings", body.get("settings", Document.class))
-            .append("times_used", 0)
-            .append("last_used", null)
-            .append("status"
-                , DUUIStatus.INACTIVE)
-            .append("tags", tags)
-            .append("user_id", template.equals("true") ? null : user.getObjectId("_id").toString());
-
-        DUUIMongoDBStorage
-            .Pipelines()
-            .insertOne(pipeline);
-
-        convertObjectIdToString(pipeline);
-        String id = pipeline.getString("oid");
-        components.forEach(c -> {
-                c.put("pipeline_id", id);
-                c.remove("oid");
-                c.remove("id");
-                c.put("index", components.indexOf(c));
-            }
-        );
-
-        DUUIMongoDBStorage
-            .Components()
-            .insertMany(components);
-
-
-        Document updatePipeline = getPipelineById(id);
-        if (updatePipeline == null) return DUUIRequestHandler.notFound(response);
-
-        response.status(201);
-        return updatePipeline.toJson();
-    }
 
     public static void updateOne(String id, Document updates) {
         updates.append("modified_at", Instant.now().toEpochMilli());
@@ -286,25 +228,10 @@ public class DUUIPipelineController {
     }
 
 
-    public static void setServiceStartTime(String id, long serviceStartTime) {
-        DUUIMongoDBStorage
-            .getClient()
-            .getDatabase("duui")
-            .getCollection("pipelines")
-            .findOneAndUpdate(
-                Filters.eq(new ObjectId(id)),
-                Updates.set("serviceStartTime", serviceStartTime)
-            );
-    }
-
-
     public static Map<String, DUUIReusableProcessHandler> getReusableProcesses() {
         return reusablePipelines;
     }
 
-    public static DUUIReusableProcessHandler getReusableProcess(String pipelineId) {
-        return reusablePipelines.get(pipelineId);
-    }
 
     public static void removeReusableProcess(String pipelineID) {
         reusablePipelines.remove(pipelineID);

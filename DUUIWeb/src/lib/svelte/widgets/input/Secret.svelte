@@ -32,16 +32,16 @@
 		{#if hidden}
 			<input
 				{disabled}
-				class="pl-12 bg-transparent border-0 grow text-xs p-3 input-wrapper"
+				class="pl-12 bg-transparent border-0 grow text-xs p-3 !py-4 input-wrapper"
 				type="text"
 				{name}
 				value={cipher}
-				{readonly}
+				readonly
 			/>
 		{:else}
 			<input
 				{disabled}
-				class="pl-12 bg-transparent border-0 grow text-xs p-3 input-wrapper"
+				class="pl-12 bg-transparent border-0 grow p-3 input-wrapper"
 				type="text"
 				{name}
 				bind:value

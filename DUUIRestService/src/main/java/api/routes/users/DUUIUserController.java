@@ -1,6 +1,6 @@
 package api.routes.users;
 
-import api.http.DUUIRequestHandler;
+import api.routes.DUUIRequestHandler;
 import api.storage.DUUIMongoDBStorage;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
@@ -15,8 +15,8 @@ import spark.Response;
 import java.util.*;
 
 import static api.requests.validation.UserValidator.*;
-import static api.requests.validation.Validator.isNullOrEmpty;
 import static api.requests.validation.Validator.missingField;
+import static api.routes.DUUIRequestHandler.isNullOrEmpty;
 import static api.storage.DUUIMongoDBStorage.convertObjectIdToString;
 
 
@@ -37,7 +37,7 @@ public class DUUIUserController {
         "connections.dropbox.access_token",
         "connections.dropbox.refresh_token",
         "connections.mongoDB.uri"
-        );
+    );
 
 
     public static Document getDropboxCredentials(Document user) {
@@ -65,7 +65,7 @@ public class DUUIUserController {
             return new Document();
         }
 
-        return projection.get("minio", Document.class);
+        return projection.get("connections", Document.class).get("minio", Document.class);
     }
 
     public static Document getUserById(ObjectId id) {
@@ -97,15 +97,15 @@ public class DUUIUserController {
         return getUserById(new ObjectId(id), includeFields);
     }
 
-    public static Document getUserByAuthorization(String authorization) {
+    public static Document matchApiKey(String authorization) {
         return DUUIMongoDBStorage
             .Users()
-            .find(Filters.eq("key", authorization))
+            .find(Filters.eq("connections.key", authorization))
             .projection(Projections.exclude("password", "password_reset_token", "reset_token_expiration"))
             .first();
     }
 
-    public static Document getUserBySession(String session) {
+    public static Document matchSession(String session) {
         return DUUIMongoDBStorage
             .Users()
             .find(Filters.eq("session", session))

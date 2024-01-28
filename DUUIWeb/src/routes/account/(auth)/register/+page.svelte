@@ -64,21 +64,6 @@
 
 <div class="grid md:flex items-center md:justify-center h-full md:m-16 w-full scroll-mt-4" id="top">
 	<div class="grid relative md:grid-cols-2 section-wrapper lg:min-w-[900px] p-4 md:p-0">
-		<div class="space-y-8 md:p-16 md:px-8 hidden md:invisible">
-			<h2 class="h2 font-bold mb-16">Login</h2>
-			<div class="space-y-4">
-				<Text disabled={true} bind:value={email} label="Email" name="email" />
-				<Password disabled={true} bind:value={password1} label="Password" name="password" />
-				<a class="block text-center anchor text-sm" href="/account/recover">Forgot Password? </a>
-				<button disabled class="button-primary button-modal uppercase tracking-widest self-center"
-					>sign in</button
-				>
-			</div>
-			<a href="/account/register" class="block">
-				Don't have an Account?
-				<p class="anchor inline">Register</p>
-			</a>
-		</div>
 		<div
 			in:fly={{ x: -600, opacity: 100, duration: 800 }}
 			class="relative space-y-8 md:p-16 md:px-8 md:col-start-2"
@@ -93,20 +78,29 @@
 				<div class="space-y-4">
 					<Text bind:value={email} label="Email" name="email" required />
 					<Password bind:value={password1} label="Password" name="password" required />
-					<Password bind:value={password2} label="Repeat Password" name="password2" required />
+					<Password
+						bind:value={password2}
+						label="Repeat Password"
+						name="password2"
+						required
+						on:keydown={(event) => {
+							if (event.key === 'Enter') {
+								register()
+							}
+						}}
+					/>
 				</div>
-				<a class="block text-center anchor text-sm" href="/account/recover">Forgot Password? </a>
-				<button
-					on:click={register}
-					class="button-primary button-modal uppercase tracking-widest self-center"
-				>
-					sign up
+				<a tabindex="-1" class="block mx-auto text-center anchor" href="/account/recover"
+					>Forgot Password?
+				</a>
+				<button on:click={register} class="button-primary button-modal self-center dark:!variant-filled-primary">
+					Sign Up
 				</button>
 			</div>
-			<a href="/account/login" class="block">
+			<p class="text-center">
 				Already have an Account?
-				<p class="anchor inline">Login</p>
-			</a>
+				<a class="anchor" href="/account/login">Login</a>
+			</p>
 		</div>
 
 		<div

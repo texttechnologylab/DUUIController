@@ -17,16 +17,16 @@
 	const toggleVisibility = () => {
 		hidden = !hidden
 		input.type = hidden ? 'password' : 'text'
-		input.readOnly = hidden
 	}
 </script>
 
-<label class="label flex flex-col {style}">
-	<span class="form-label">{label}</span>
-	<div class="flex items-center relative">
+<div>
+	<label class="label flex flex-col {style} relative">
+		<span class="form-label">{label}</span>
 		<input
+			on:keydown
 			{disabled}
-			class="bg-transparent border-0 grow text-xs p-3 input-wrapper"
+			class="bg-transparent border-0 grow input-wrapper pr-[60px]"
 			type="password"
 			{name}
 			bind:value
@@ -34,13 +34,14 @@
 			{required}
 			{readonly}
 		/>
-
-		<button
-			class="btn btn-sm absolute right-0 top-1/2 -translate-y-1/2 text-surface-400 hover:text-black transition-colors"
-			on:click|preventDefault={toggleVisibility}
-			tabindex="-1"
-		>
-			<Fa class="w-4" icon={hidden ? faEyeSlash : faEye} />
-		</button>
-	</div>
-</label>
+		<div class="flex items-center absolute right-4 top-1/2 translate-y-[20%]">
+			<button
+				class=" text-surface-400 hover:text-black transition-colors"
+				on:click|preventDefault={toggleVisibility}
+				tabindex="-1"
+			>
+				<Fa class="w-4" icon={hidden ? faEyeSlash : faEye} />
+			</button>
+		</div>
+	</label>
+</div>

@@ -2,8 +2,7 @@
 	import Logo from '$lib/assets/Logo.svg'
 	import '../app.postcss'
 
-	import { faGithub, faXTwitter } from '@fortawesome/free-brands-svg-icons'
-	import { faArrowRightFromBracket, faBars, faGlobe } from '@fortawesome/free-solid-svg-icons'
+	import { faArrowRightFromBracket, faBars } from '@fortawesome/free-solid-svg-icons'
 	import {
 		AppBar,
 		AppShell,
@@ -29,7 +28,6 @@
 	import { arrow, autoUpdate, computePosition, flip, offset, shift } from '@floating-ui/dom'
 	import { Modal } from '@skeletonlabs/skeleton'
 
-	import ComponentModal from '$lib/svelte/widgets/modal/Component.svelte'
 	import PromptModal from '$lib/svelte/widgets/modal/PromptModal.svelte'
 	import Help from '$lib/svelte/widgets/navigation/Help.svelte'
 	import HelpToggle from '$lib/svelte/widgets/navigation/HelpToggle.svelte'
@@ -37,6 +35,7 @@
 	import hljs from 'highlight.js/lib/core'
 	import { default as java, default as xml } from 'highlight.js/lib/languages/java'
 	import 'highlight.js/styles/github-dark.css'
+	import ComponentDrawer from '$lib/svelte/widgets/ComponentDrawer.svelte'
 
 	export let data
 	let { user } = data
@@ -48,7 +47,7 @@
 	const sidebarDrawer: DrawerSettings = {
 		id: 'sidebar',
 		width: 'w-[80%] sm:w-[360px]',
-		rounded: 'rounded-md'
+		rounded: 'rounded-none'
 	}
 
 	hljs.registerLanguage('java', java)
@@ -84,13 +83,12 @@
 		deleteModal: { ref: DeleteModal },
 		documentModal: { ref: DocumentModal },
 		promptModal: { ref: PromptModal },
-		confirmModal: { ref: ConfirmModal },
-		componentModal: { ref: ComponentModal }
+		confirmModal: { ref: ConfirmModal }
 	}
 </script>
 
 <Modal components={modalRegistry} />
-<Toast position="br" />
+<Toast position="b" />
 <Drawer rounded="rounded-md">
 	{#if $drawerStore.id === 'sidebar'}
 		<Sidebar />
@@ -100,6 +98,9 @@
 			hic, ipsam odio illum voluptate nihil quae laudantium, quibusdam porro, sed aperiam atque
 			minus quasi ullam eaque. Soluta?
 		</p>
+	{/if}
+	{#if $drawerStore.id === 'component'}
+		<ComponentDrawer />
 	{/if}
 </Drawer>
 
@@ -149,6 +150,8 @@
 						<Link href="/account/login">Login</Link>
 						<Link href="/account/register">Register</Link>
 					{/if}
+
+					<!-- Sidebar on the right -->
 					<HelpToggle />
 				</div>
 
@@ -173,83 +176,4 @@
 
 	<!-- Page Route Content -->
 	<slot />
-
-	<svelte:fragment slot="pageFooter">
-		<footer>
-			<div class="border-t border-surface-400/20 bg-white dark:bg-surface-900/50">
-				<div
-					class="relative
-				 lg:after:visible after:invisible after:absolute after:w-[2px] after:h-full after:scale-y-[80%] after:bg-surface-400/20 after:left-1/2 after:top-0 after:rounded-full
-				 flex flex-col md:flex-row gap-4 md:justify-between py-16 max-w-7xl container mx-auto p-4 space-y-16 md:space-y-0"
-				>
-					<div class="space-y-4 md:my-0 md:border-none">
-						<div class="flex flex-col md:flex-row justify-center space-y-8">
-							<div class="grid grid-cols-1 gap-4 place-items-center">
-								<img src={Logo} class="max-h-8" alt="" />
-								<p class="!text-sm">Lightweight NLP Framework</p>
-							</div>
-						</div>
-						<div class="flex flex-col md:flex-row justify-center items-center md:items-start gap-4">
-							<div class="flex items-center gap-8 0">
-								<a
-									target="_blank"
-									href="https://github.com/texttechnologylab"
-									class="transition-opacity opacity-70 hover:opacity-100"
-								>
-									<Fa icon={faGithub} size="2x" />
-								</a>
-								<a
-									target="_blank"
-									href="https://twitter.com/ttlab_ffm"
-									class="transition-opacity opacity-70 hover:opacity-100"
-								>
-									<Fa icon={faXTwitter} size="2x" />
-								</a>
-								<a
-									target="_blank"
-									href="https://www.texttechnologylab.org/"
-									class="transition-opacity opacity-70 hover:opacity-100"
-								>
-									<Fa icon={faGlobe} size="2x" />
-								</a>
-							</div>
-						</div>
-					</div>
-
-					<div
-						class="flex flex-col md:flex-row gap-8 md:gap-16 justify-between text-base
-							   text-center md:text-left"
-					>
-						<div class="flex flex-col gap-2 justify-center items-center">
-							<p class="text-black dark:text-surface-100 font-bold md:mb-4">Pipelines</p>
-							<Link href="/pipelines" dimmed={true}>Dashboard</Link>
-							<Link href="/pipelines/editor" dimmed={true}>Editor</Link>
-						</div>
-						<div class="flex flex-col gap-2 justify-center items-center">
-							<p class="text-black dark:text-surface-100 font-bold md:mb-4">Documentation</p>
-							<Link href="/documentation" dimmed={true}>Framework</Link>
-							<Link href="/documentation/api" dimmed={true}>API Reference</Link>
-						</div>
-						<div class="flex flex-col gap-2 justify-center items-center">
-							<p class="text-black dark:text-surface-100 font-bold md:mb-4">Account</p>
-							{#if $userSession}
-								<Link href="/account" dimmed={true}>Account</Link>
-
-								<button
-									class="inline md:text-start hover:text-primary-500 transition-colors
-									text-surface-400 dark:text-surface-200 animate-underline"
-									on:click={logout}
-								>
-									Logout
-								</button>
-							{:else}
-								<Link href="/account/login" dimmed={true}>Login</Link>
-								<Link href="/account/register" dimmed={true}>Register</Link>
-							{/if}
-						</div>
-					</div>
-				</div>
-			</div>
-		</footer>
-	</svelte:fragment>
 </AppShell>

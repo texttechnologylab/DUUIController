@@ -1,8 +1,9 @@
 import { DROPBOX_CLIENT_ID, DROPBOX_CLIENT_SECRET, SERVER_API_KEY } from '$env/static/private'
 import { API_URL } from '$lib/config'
-import { fail } from '@sveltejs/kit'
+import { fail, redirect } from '@sveltejs/kit'
 import { DropboxAuth } from 'dropbox'
 import type { Actions, PageServerLoad } from './$types'
+import { handleLoginRedirect } from '$lib/utils'
 
 const dbxAuth = new DropboxAuth({
 	clientId: DROPBOX_CLIENT_ID,
@@ -11,8 +12,12 @@ const dbxAuth = new DropboxAuth({
 
 const redirectURI = `http://localhost:5173/account/dropbox`
 
-export const load: PageServerLoad = async ({ locals, cookies }) => {
-	const getAuthURL = async () => {
+export const load: PageServerLoad = async ({ locals, cookies, url }) => {
+	if (!locals.user) {
+		redirect(302, handleLoginRedirect(url))
+	}
+
+	const getDropboxAuthURL = async () => {
 		const response = await dbxAuth.getAuthenticationUrl(
 			redirectURI,
 			cookies.get('session') || '',
@@ -41,7 +46,7 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
 	}
 
 	return {
-		dropbBoxURL: getAuthURL(),
+		dropbBoxURL: getDropboxAuthURL(),
 		user: (await fetchProfile()).user
 	}
 }

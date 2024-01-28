@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { blankPipeline } from '$lib/duui/pipeline'
 	import { includes } from '$lib/duui/utils/text'
 	import {
 		faArrowRight,
-		faCirclePlus,
+		faChevronUp,
 		faClose,
+		faFilter,
 		faPlus,
 		faRefresh,
 		faSearch
@@ -12,10 +12,15 @@
 
 	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
-	import { currentPipelineStore, userSession } from '$lib/store.js'
+	import { DUUIDrivers, type DUUIDriver } from '$lib/duui/component'
+	import { usedDrivers } from '$lib/duui/pipeline'
+
+	import { userSession } from '$lib/store.js'
 	import PipelineCard from '$lib/svelte/widgets/duui/PipelineCard.svelte'
+	import Dropdown from '$lib/svelte/widgets/input/Dropdown.svelte'
 	import Search from '$lib/svelte/widgets/input/Search.svelte'
 	import Fa from 'svelte-fa'
+	import { popup, type PopupSettings } from '@skeletonlabs/skeleton'
 
 	export let data
 
@@ -29,25 +34,18 @@
 
 	let unused: boolean = false
 
-	let importFiles: FileList
-
-	const importPipeline = async () => {
-		if (!importFiles) return
-		const file: File = importFiles[0]
-		const pipeline = JSON.parse(await file.text())
-		$currentPipelineStore = blankPipeline()
-		$currentPipelineStore.name = pipeline.name
-		$currentPipelineStore.description = pipeline.description
-		$currentPipelineStore.components = pipeline.components
-		$currentPipelineStore.settings = pipeline.settings
-
-		goto('/pipelines/editor?import=true')
-	}
+	let driverFilter: DUUIDriver | string = 'Any'
 
 	$: {
-		filteredPipelines = pipelines.filter(
-			(pipeline) => includes(pipeline.name + ' ' + pipeline.description, searchText) || !searchText
-		)
+		filteredPipelines = pipelines
+			.filter(
+				(pipeline) =>
+					includes(pipeline.name + ' ' + pipeline.description, searchText) || !searchText
+			)
+			.filter(
+				(pipeline) =>
+					driverFilter === 'Any' || usedDrivers(pipeline).has(driverFilter as DUUIDriver)
+			)
 
 		filteredPipelines = filteredPipelines.filter((pipeline) => pipeline.times_used === 0 || !unused)
 	}
@@ -72,13 +70,54 @@
 		const response = await fetch('/api/users', { method: 'PUT', body: JSON.stringify(data) })
 		return response
 	}
+
+	const mobileFilter: PopupSettings = {
+		event: 'click',
+		target: 'mobile-filter',
+		placement: 'top-end',
+		closeQuery: '',
+		middleware: {
+			offset: 4
+		}
+	}
 </script>
 
 <svelte:head>
 	<title>Pipelines</title>
 </svelte:head>
 
-<div class="h-full">
+<!-- Mobile Menu -->
+
+<div data-popup="mobile-filter" class="popup-solid space-y-2 z-50 p-4">
+	<Dropdown
+		name="driverMobile"
+		icon={faChevronUp}
+		placement="top-start"
+		options={['Any'].concat(DUUIDrivers)}
+		bind:value={driverFilter}
+	/>
+
+	<Search
+		bind:query={searchText}
+		icon={faSearch}
+		placeholder="Search..."
+		style="input-wrapper !rounded-none md:!rounded-sm p-4 md:p-3"
+	/>
+</div>
+
+<div class="menu-mobile">
+	<a class="button-mobile" href="/pipelines/editor">
+		<Fa icon={faPlus} />
+		<span class="text-xs md:text-base">Editor</span>
+	</a>
+
+	<button class="button-mobile" use:popup={mobileFilter}>
+		<Fa icon={searchOpen ? faClose : faFilter} />
+		<span class="text-xs md:text-base">Filter</span>
+	</button>
+</div>
+
+<div class="h-full relative">
 	{#if pipelines.length === 0}
 		<div class="h-full flex items-center justify-center">
 			<div class="flex flex-col justify-center items-center">
@@ -131,64 +170,50 @@
 			</div>
 		</div>
 	{:else}
-		<div class="grid">
+		<div class="grid relative pb-16">
 			<div
-				class="page-wrapper bg-solid md:top-0 z-10 left-0 bottom-0 right-0 row-start-2 fixed md:sticky md:row-start-1"
+				class="sticky top-0 bg-surface-50-900-token border-y p-4 border-color hidden md:block z-10"
 			>
-				<div class="grid md:flex items-center md:justify-between relative">
-					<div
-						class="grid {searchOpen ? 'grid-cols-3' : 'grid-cols-3'} md:flex items-center md:gap-4"
-					>
-						<a class="button button-primary" href="/pipelines/editor">
-							<Fa icon={faPlus} />
-							<span class="text-xs md:text-base">Editor</span>
-						</a>
+				<div class="grid md:flex items-center md:justify-between relative gap-4">
+					<a class="button button-primary mr-auto" href="/pipelines/editor">
+						<Fa icon={faPlus} />
+						<span class="text-xs md:text-base">Editor</span>
+					</a>
+					<Dropdown
+						name="driver"
+						placement="bottom-end"
+						options={['Any'].concat(DUUIDrivers)}
+						bind:value={driverFilter}
+					/>
 
-						<button class="button button-primary" on:click={() => (searchOpen = !searchOpen)}>
-							<Fa icon={searchOpen ? faClose : faSearch} />
-							<span class="text-xs md:text-base">Search</span>
-						</button>
-						<!-- 
-						<FileButton
-							name="files"
-							bind:files={importFiles}
-							on:change={importPipeline}
-							button="button-primary w-full"
-							accept=".json"
-						>
-							<Fa icon={faFileImport} />
-							<span class="text-xs md:text-base">Import</span>
-						</FileButton> -->
-					</div>
-
-					<div class="md:ml-auto {searchOpen ? 'block' : 'hidden md:block'}">
-						<Search
-							bind:query={searchText}
-							icon={faSearch}
-							placeholder="Search..."
-							style="input-wrapper !rounded-none md:!rounded-md p-4 md:p-3"
-						/>
-					</div>
+					<Search
+						bind:query={searchText}
+						icon={faSearch}
+						placeholder="Search..."
+						style="input-wrapper !rounded-none md:!rounded-sm p-4 md:p-3"
+					/>
 				</div>
 			</div>
-			<div class="md:min-h-[800px] p-4 md:p-8 space-y-4">
-				<h1 class="h1 font-bold mb-8">Pipelines</h1>
-				<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-8 relative">
-					{#each filteredPipelines as pipeline}
-						<a class="card-fancy grid items-start min-h-[300px]" href="/pipelines/{pipeline.oid}">
-							<PipelineCard {pipeline} />
-						</a>
-					{/each}
-					{#if count - pipelines.length > 0}
-						<div class="flex items-center justify-center row-span-4">
-							<button class="button-primary {loading ? 'aspect-square' : ''}" on:click={loadMore}>
-								<Fa icon={faRefresh} spin={loading} />
-								{#if !loading}
-									<span>Load more</span>
-								{/if}
-							</button>
-						</div>
-					{/if}
+
+			<div class="h-full sticky top-32">
+				<div class="md:min-h-[800px] p-4 space-y-4">
+					<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-8 relative">
+						{#each filteredPipelines as pipeline}
+							<a class="card-fancy grid items-start min-h-[300px]" href="/pipelines/{pipeline.oid}">
+								<PipelineCard {pipeline} />
+							</a>
+						{/each}
+						{#if count - pipelines.length > 0}
+							<div class="flex items-center justify-center row-span-4">
+								<button class="button-primary {loading ? 'aspect-square' : ''}" on:click={loadMore}>
+									<Fa icon={faRefresh} spin={loading} />
+									{#if !loading}
+										<span>Load more</span>
+									{/if}
+								</button>
+							</div>
+						{/if}
+					</div>
 				</div>
 			</div>
 		</div>

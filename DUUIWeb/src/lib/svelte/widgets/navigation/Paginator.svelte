@@ -30,20 +30,23 @@
 		dispatcher('change')
 	}
 	const toLast = () => {
-		settings.page = Math.floor(settings.total / settings.limit)
+		settings.page = Math.ceil(settings.total / settings.limit)
 		dispatcher('change')
 	}
 </script>
 
-<div class="grid justify-center md:flex items-center md:justify-between gap-4 text-sm md:text-base">
+<div
+	class="grid justify-center md:flex items-center md:justify-between gap-4 text-sm md:text-base py-4"
+>
 	<Dropdown
 		on:change={() => dispatcher('change')}
 		bind:value={settings.limit}
 		options={settings.sizes}
+		style="input-wrapper !py-2"
 	/>
 	<div
-		class="input-wrapper flex items-center justify-center bg-surface-100 dark:variant-soft-surface
-			   border border-surface-200 dark:border-surface-500 !rounded-full overflow-hidden"
+		class="input-no-highlight !py-0 flex items-center justify-center bg-surface-100 dark:variant-soft-surface
+			   border border-surface-200 dark:border-surface-500"
 	>
 		{#if showJumpButtons}
 			<IconButton

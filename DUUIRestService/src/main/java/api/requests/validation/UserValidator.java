@@ -4,7 +4,7 @@ import api.routes.users.DUUIUserController;
 import org.bson.Document;
 import spark.Response;
 
-import static api.requests.validation.Validator.isNullOrEmpty;
+import static api.routes.DUUIRequestHandler.isNullOrEmpty;
 
 public class UserValidator {
 
@@ -26,9 +26,9 @@ public class UserValidator {
     public static Document authenticate(String authorization) {
         if (isNullOrEmpty(authorization)) return null;
 
-        Document user = DUUIUserController.getUserByAuthorization(authorization);
+        Document user = DUUIUserController.matchApiKey(authorization);
         if (isNullOrEmpty(user)) {
-            user = DUUIUserController.getUserBySession(authorization);
+            user = DUUIUserController.matchSession(authorization);
         }
 
         return user;

@@ -9,10 +9,8 @@ import io.github.cdimascio.dotenv.Dotenv;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.uima.UIMAException;
 import org.apache.uima.fit.factory.AnalysisEngineFactory;
-import org.apache.uima.resource.ResourceInitializationException;
 import org.apache.uima.util.InvalidXMLException;
 import org.bson.Document;
-import org.dkpro.core.io.xmi.XmiWriter;
 import org.junit.jupiter.params.aggregator.ArgumentAccessException;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.DUUIComposer;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.*;
@@ -26,8 +24,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.apache.uima.fit.factory.AnalysisEngineFactory.createEngineDescription;
 
 
 public class DUUIProcessService {
@@ -57,10 +53,10 @@ public class DUUIProcessService {
         int scale = 1;
 
         if (options != null && !options.isEmpty()) {
-            useGPU = options.getBoolean("useGPU", true);
-            dockerImageFetching = options.getBoolean("dockerImageFetching", true);
-            scale = Integer.parseInt(options.getOrDefault("scale", "1").toString());
-            ignore200Error = options.getBoolean("ignore200Error", false);
+            useGPU = options.getBoolean("use_GPU", true);
+            dockerImageFetching = options.getBoolean("docker_image_fetching", true);
+            scale = Math.max(1, Integer.parseInt(options.getOrDefault("scale", "1").toString()));
+            ignore200Error = options.getBoolean("ignore_200_error", true);
         }
 
         String name = component.getString("name");
@@ -159,18 +155,6 @@ public class DUUIProcessService {
         for (Document component : pipeline.getList("components", Document.class)) {
             composer.add(DUUIProcessService.getComponent(component));
         }
-    }
-
-    public static DUUIUIMADriver.Component getXmiWriter(String path, String fileExtension) throws ResourceInitializationException, IOException, URISyntaxException, SAXException {
-        return new DUUIUIMADriver.Component(
-            createEngineDescription(
-                XmiWriter.class,
-                XmiWriter.PARAM_TARGET_LOCATION, path,
-                XmiWriter.PARAM_STRIP_EXTENSION, true,
-                XmiWriter.PARAM_OVERWRITE, true,
-                XmiWriter.PARAM_VERSION, "1.1",
-                XmiWriter.PARAM_FILENAME_EXTENSION, fileExtension
-            )).withName("Writer");
     }
 
     public static boolean deleteTempOutputDirectory(File directory) {

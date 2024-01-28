@@ -1,15 +1,10 @@
-
-
-const urlRegex =
-	'https?://(www.)?[-a-zA-Z0-9@:%._+~#=]{1,256}.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)'
-
-const regex = new RegExp(urlRegex)
-
-export const validateURL = (url: string) => {
-	if (url.match(regex)) return true
-	return false
-}
-
+/**
+ * Displays a notification
+ *
+ * @param url The url to redirect to after logging in.
+ * @param message The message do display as the notification.
+ * @returns a url to the login page wiht the origin as a search parameter.
+ */
 export const handleLoginRedirect = (
 	url: URL,
 	message: string = 'You must be logged in to access this ressource.'

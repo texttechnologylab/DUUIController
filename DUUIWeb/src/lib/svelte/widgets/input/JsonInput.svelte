@@ -2,6 +2,8 @@
 	import { faCheck, faClose, faPen, faPlus } from '@fortawesome/free-solid-svg-icons'
 	import Fa from 'svelte-fa'
 	import TextInput from './TextInput.svelte'
+	import { showModal } from '$lib/utils/modal'
+	import { getModalStore } from '@skeletonlabs/skeleton'
 
 	export let data: Map<string, any> = new Map()
 
@@ -10,9 +12,20 @@
 	let value: string = ''
 	export let label: string = ''
 
-	const remove = (key: string) => {
-		data.delete(key)
-		data = data
+	const remove = async (key: string) => {
+		const confirm = await showModal(
+			{
+				title: 'Delete Parameter',
+				message: `Please confirm the deletion of ${key}.`
+			},
+			'deleteModal',
+			modalStore
+		)
+
+		if (confirm) {
+			data.delete(key)
+			data = data
+		}
 	}
 
 	const create = () => {
@@ -28,42 +41,47 @@
 		data = data
 		edit = false
 	}
+
+	const modalStore = getModalStore()
+	const clearParameters = async () => {
+		const confirm = await showModal(
+			{
+				title: 'Clear all Parameters',
+				message: 'Please confirm the deletion of ALL Parameters.'
+			},
+			'deleteModal',
+			modalStore
+		)
+
+		if (confirm) {
+			data.clear()
+			data = data
+		}
+	}
 </script>
 
 <div class="label flex flex-col">
 	{#if label}
 		<span class="form-label">{label}</span>
 	{/if}
-	<div class="input-no-highlight p-4 space-y-4">
+	<div class=" space-y-4">
 		{#if data.size === 0}
 			<div class="text-sm max-w-[60ch] space-y-4">
 				<p>Click new, then enter both a key and value then press enter or click confirm.</p>
-				<p>
-					By setting the option
-					<span class="italic font-bold">withDockerImageFetching</span>
-					to true for a component, the Pipeline attempts to download the image from Docker Hub if it
-					is not already present locally.
-				</p>
 			</div>
 		{/if}
 		<div class="flex items-center gap-2 mb-4">
 			{#if !edit}
 				<button
-					class="button button-primary"
+					class="button input-wrapper"
 					on:click={() => {
 						key = ''
 						value = ''
 						edit = true
-					}}><span>New</span><Fa icon={faPlus} /></button
+					}}><Fa icon={faPlus} /><span>New</span></button
 				>
 				{#if data.size > 0}
-					<button
-						class="button button-error"
-						on:click={() => {
-							data.clear()
-							data = data
-						}}
-					>
+					<button class="button input-wrapper" on:click={clearParameters}>
 						<span>Clear All</span>
 						<Fa icon={faClose} />
 					</button>
@@ -111,30 +129,24 @@
 
 		<div class="flex flex-wrap justify-start items-start gap-2">
 			{#each data.entries() as [_key, _value]}
-				<div class="bg-fancy rounded-md p-4 border border-color">
-					<div class="flex items-center gap-2">
+				<div class="input-wrapper p-4 min-w-[180px]">
+					<div class="flex items-center gap-4 justify-between">
+						<p class="text-lg font-bold">{_value}</p>
 						<button
-							class="spect-square rounded-full hover:text-error-500 transition-colors"
+							class="rounded-full hover:text-error-500 transition-colors"
 							on:click={() => remove(_key)}><Fa icon={faClose} size="lg" /></button
 						>
-						<span class="text-sm text-primary-600">{typeof _value}</span>
 					</div>
-					<div class="flex items-center gap-2">
+					<div class="flex items-center gap-4 justify-between">
+						<p class="dimmed text-sm leading-tight">{_key}</p>
 						<button
 							class="aspect-square rounded-full hover:text-primary-500 transition-colors"
 							on:click={() => {
 								edit = true
 								key = _key
 								value = _value
-							}}><Fa icon={faPen} /></button
+							}}><Fa icon={faPen} size="sm" /></button
 						>
-
-						<span class="text-start">
-							{_key}
-						</span>
-						<span class="text-start">
-							{_value}
-						</span>
 					</div>
 				</div>
 			{/each}

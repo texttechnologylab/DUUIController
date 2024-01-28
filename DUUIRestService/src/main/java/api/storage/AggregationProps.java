@@ -1,7 +1,5 @@
 package api.storage;
 
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * A class that contains common steps when making a database query.
@@ -11,7 +9,7 @@ public class AggregationProps {
     private Builder builder;
 
     public static class Builder {
-        private int limit = 10;
+        private int limit = 50;
         private int skip = 0;
         private int order = 1;
         private String sort = "";

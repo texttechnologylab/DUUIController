@@ -82,3 +82,8 @@ type Method = {
 	throws: string[]
 	returns?: string
 }
+
+type AggregationStep = { _id: string; count: number[] }
+type AggreationResult = AggreationStep[]
+
+

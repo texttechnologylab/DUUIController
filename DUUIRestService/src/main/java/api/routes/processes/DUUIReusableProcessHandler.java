@@ -28,7 +28,6 @@ import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -37,7 +36,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 import static api.routes.processes.DUUIProcessService.*;
 
@@ -155,7 +153,7 @@ public class DUUIReusableProcessHandler extends Thread implements IDUUIProcessHa
 
 
         if (input.isText()) {
-            DUUIProcessController.setDocumentNames(getProcessID(), Set.of("Text"));
+            DUUIProcessController.setDocumentPaths(getProcessID(), Set.of("Text"));
             DUUIProcessController.updateDocuments(getProcessID(), Set.of(
                     new DUUIDocument(
                         "Text",
@@ -186,7 +184,7 @@ public class DUUIReusableProcessHandler extends Thread implements IDUUIProcessHa
                 .withRecursive(settings.getBoolean("recursive", false))
                 .build();
 
-            DUUIProcessController.setDocumentNames(getProcessID(), composer.getDocumentNames());
+            DUUIProcessController.setDocumentPaths(getProcessID(), composer.getDocumentPaths());
 
             if (composer.getDocuments().isEmpty()) {
                 onCompletion();
@@ -257,47 +255,26 @@ public class DUUIReusableProcessHandler extends Thread implements IDUUIProcessHa
     }
 
     @Override
-    public void startOutput() {
-        if (output.hasNoOutput() || output == null) return;
-        DUUIProcessController.setStatus(getProcessID(), DUUIStatus.OUTPUT);
-
-        composer
-            .getDocuments()
-            .forEach(document -> {
-                if (!document.getFileExtension().equals(output.getFileExtension())) {
-                    if (document.getFileExtension().isEmpty()) {
-                        document.setOutputName(document.getName() + output.getFileExtension());
-                    } else {
-                        document.setOutputName(document
-                            .getName()
-                            .replace(document.getFileExtension(), output.getFileExtension()));
-                    }
-                }
-            });
-
-        try {
-            outputHandler
-                .writeDocuments(
-                    new ArrayList<>(
-                        composer.getDocuments()
-                    )
-                        .stream()
-                        .filter(document -> document.getError() == null)
-                        .collect(Collectors.toList())
-                    , output.getPath()
-                );
-        } catch (IOException exception) {
-            onException(exception);
-        }
-    }
-
-    @Override
     public void update() {
         if (composer == null) return;
 
+        DUUIProcessController.updatePipelineStatus(getProcessID(), composer.getPipelineStatus());
         DUUIProcessController.setProgress(getProcessID(), composer.getProgress());
-        DUUIProcessController.updateTimeline(getProcessID(), composer.getEvents());
         DUUIProcessController.updateDocuments(getProcessID(), composer.getDocuments());
+
+        if (output.hasNoOutput()) return;
+
+        for (DUUIDocument document : composer.getDocuments()) {
+            if (document.getStatus().equals(DUUIStatus.OUTPUT) && !document.isUploadStarted()) {
+                document.setUploadStarted(true);
+                try {
+                    outputHandler.writeDocument(document, output.getPath());
+                    document.setStatus(DUUIStatus.COMPLETED);
+                } catch (IOException ignored) {
+                    document.setStatus(DUUIStatus.FAILED);
+                }
+            }
+        }
     }
 
     @Override
@@ -306,7 +283,7 @@ public class DUUIReusableProcessHandler extends Thread implements IDUUIProcessHa
             DUUIProcessController.setStatus(getProcessID(), DUUIStatus.FAILED);
             DUUIProcessController.setError(
                 getProcessID(),
-                String.format("%s\n%s", exception.getClass().getCanonicalName(), exception.getMessage()));
+                String.format("%s - %s", exception.getClass().getCanonicalName(), exception.getMessage()));
 
             DUUIProcessController.setFinishedAt(getProcessID());
             DUUIProcessController.setFinished(getProcessID(), true);
@@ -371,7 +348,7 @@ public class DUUIReusableProcessHandler extends Thread implements IDUUIProcessHa
 
     @Override
     public void exit() {
-        if (input.getProvider().equals(Provider.FILE)) {
+        if (input != null && input.getProvider().equals(Provider.FILE)) {
             try {
                 if (DUUIProcessService.deleteTempOutputDirectory(
                     new File(Paths.get(input.getPath()).toString())
@@ -395,6 +372,7 @@ public class DUUIReusableProcessHandler extends Thread implements IDUUIProcessHa
         if (process != null) {
             Main.metrics.get("active_processes").decrementAndGet();
             DUUIProcessController.removeProcess(getProcessID());
+            DUUIProcessController.insertEvents(getProcessID(), composer.getEvents());
             DUUIProcessController.updatePipelineStatus(getProcessID(), composer.getPipelineStatus());
         }
 
@@ -494,8 +472,6 @@ public class DUUIReusableProcessHandler extends Thread implements IDUUIProcessHa
             exit();
             return;
         }
-
-        startOutput();
 
         onCompletion();
 

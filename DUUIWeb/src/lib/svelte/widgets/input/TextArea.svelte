@@ -15,7 +15,7 @@
 		<span class="pl-1 text-xs text-error-500">{error}</span>
 	{/if}
 	<textarea
-		class="input-wrapper pb-5"
+		class="input-wrapper py-4"
 		style="--webkit-overflow-scrolling: touch;"
 		{required}
 		{name}

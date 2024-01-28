@@ -4,7 +4,7 @@ import type { DUUIProcess } from '$lib/duui/process'
 import type { PageServerLoad } from './$types'
 
 export const load: PageServerLoad = async ({ params, cookies, url }) => {
-	const loadPipeline = async () => {
+	const loadPipeline = async (): Promise<DUUIPipeline> => {
 		const response = await fetch(`${API_URL}/pipelines/${params.oid}`, {
 			method: 'GET',
 			mode: 'cors',
@@ -13,11 +13,7 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 			}
 		})
 
-		if (response.ok) {
-			return await response.json()
-		}
-		
-		return {}
+		return await response.json()
 	}
 
 	const loadProcesses = async (): Promise<{ processes: DUUIProcess[]; count: number }> => {

@@ -6,6 +6,7 @@
 		faArrowsAlt,
 		faCheck,
 		faCloud,
+		faGlobe,
 		faRecycle,
 		faUserGroup
 	} from '@fortawesome/free-solid-svg-icons'
@@ -16,9 +17,23 @@
 
 	import { scrollIntoView } from '$lib/duui/utils/ui'
 	import { userSession } from '$lib/store'
-	import { faAmazon, faDropbox } from '@fortawesome/free-brands-svg-icons'
+	import { faAmazon, faDropbox, faGithub, faXTwitter } from '@fortawesome/free-brands-svg-icons'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
+	import Link from '$lib/svelte/Link.svelte'
+	import Logo from '$lib/assets/Logo.svg'
+	import { goto } from '$app/navigation'
+
+	const logout = async () => {
+		const response = await fetch('/account/logout', { method: 'PUT' })
+		if (response.ok) {
+			userSession.set(undefined)
+
+			goto('/account/login')
+		} else {
+			console.error(response.status, response.statusText)
+		}
+	}
 
 	onMount(() => {
 		scrollIntoView('top')
@@ -38,7 +53,7 @@
 		>
 			<div class="space-y-8 md:space-y-16 2xl:my-8 grid justify-center sm:justify-start">
 				<div class="space-y-4">
-					<p class="text-surface-400 dark:text-surface-200 text-lg md:text-2xl">
+					<p class="text-surface-500 dark:text-surface-200 text-lg md:text-2xl">
 						Natural Language Processing
 					</p>
 					<h1 class="text-3xl md:text-5xl font-bold !my-8 max-w-[20ch]">
@@ -118,10 +133,9 @@
 				>
 					<div class="space-y-4 p-4">
 						<h2 class="text-2xl font-bold">Integrated Cloud Storage</h2>
-						<p class="max-w-[50ch] text-surface-400 dark:text-surface-200">
-							Lorem ipsum dolor sit amet consectetur adipisicing elit. Perspiciatis, vero molestias
-							aliquam quae impedit nostrum, iusto itaque excepturi voluptatibus molestiae sed eos
-							dolor, illo nihil dolore voluptates minus quaerat quia!
+						<p class="text-surface-500 dark:text-surface-200">
+							DUUI has built in support for connections to multiple cloud providers like Dropbox,
+							Amazon Web Services (AWS) and OneDrive.
 						</p>
 					</div>
 					<div class="space-y-4 text-white p-4 justify-start">
@@ -171,7 +185,7 @@
 								<Fa icon={faCheck} size="2x" class="text-primary-500" />
 								<div class=" gap-4 items-center">
 									<p class="font-bold">Vertical Scaling</p>
-									<p class="text-surface-400 dark:text-surface-200">
+									<p class="text-surface-500 dark:text-surface-200">
 										The Docker deamon enables machine-specific resource management.
 									</p>
 								</div>
@@ -180,7 +194,7 @@
 								<Fa icon={faCheck} size="2x" class="text-primary-500" />
 								<div class=" gap-4 items-center">
 									<p class="font-bold">Horizontal Scaling</p>
-									<p class="text-surface-400 dark:text-surface-200">
+									<p class="text-surface-500 dark:text-surface-200">
 										DUUI utilizes Kubernetes and the Docker Swarm Network
 									</p>
 								</div>
@@ -189,10 +203,8 @@
 					</div>
 					<div class="space-y-4 p-4">
 						<h2 class="text-2xl font-bold">Scalability through Containers</h2>
-						<p class="max-w-[50ch] text-surface-400 dark:text-surface-200">
-							Lorem ipsum dolor sit amet consectetur adipisicing elit. Perspiciatis, vero molestias
-							aliquam quae impedit nostrum, iusto itaque excepturi voluptatibus molestiae sed eos
-							dolor, illo nihil dolore voluptates minus quaerat quia!
+						<p class="max-w-[50ch] text-surface-500 dark:text-surface-200">
+							Docker and Kubernetes are essential parts of DUUI. 
 						</p>
 					</div>
 				</section>
@@ -200,3 +212,80 @@
 		</div>
 	</div>
 </main>
+
+<footer>
+	<div class="border-t border-surface-400/20 bg-white dark:bg-surface-900/50">
+		<div
+			class="relative
+		 lg:after:visible after:invisible after:absolute after:w-[2px] after:h-full after:scale-y-[80%] after:bg-surface-400/20 after:left-1/2 after:top-0 after:rounded-full
+		 flex flex-col md:flex-row gap-4 md:justify-between py-16 max-w-7xl container mx-auto p-4 space-y-16 md:space-y-0"
+		>
+			<div class="space-y-4 md:my-0 md:border-none">
+				<div class="flex flex-col md:flex-row justify-center space-y-8">
+					<div class="grid grid-cols-1 gap-4 place-items-center">
+						<img src={Logo} class="max-h-8" alt="" />
+						<p class="!text-sm">Lightweight NLP Framework</p>
+					</div>
+				</div>
+				<div class="flex flex-col md:flex-row justify-center items-center md:items-start gap-4">
+					<div class="flex items-center gap-8 0">
+						<a
+							target="_blank"
+							href="https://github.com/texttechnologylab"
+							class="transition-opacity opacity-70 hover:opacity-100"
+						>
+							<Fa icon={faGithub} size="2x" />
+						</a>
+						<a
+							target="_blank"
+							href="https://twitter.com/ttlab_ffm"
+							class="transition-opacity opacity-70 hover:opacity-100"
+						>
+							<Fa icon={faXTwitter} size="2x" />
+						</a>
+						<a
+							target="_blank"
+							href="https://www.texttechnologylab.org/"
+							class="transition-opacity opacity-70 hover:opacity-100"
+						>
+							<Fa icon={faGlobe} size="2x" />
+						</a>
+					</div>
+				</div>
+			</div>
+
+			<div
+				class="flex flex-col md:flex-row gap-8 md:gap-16 justify-between text-base
+					   text-center md:text-left"
+			>
+				<div class="flex flex-col gap-2 justify-center items-center">
+					<p class="text-black dark:text-surface-100 font-bold md:mb-4">Pipelines</p>
+					<Link href="/pipelines" dimmed={true}>Dashboard</Link>
+					<Link href="/pipelines/editor" dimmed={true}>Editor</Link>
+				</div>
+				<div class="flex flex-col gap-2 justify-center items-center">
+					<p class="text-black dark:text-surface-100 font-bold md:mb-4">Documentation</p>
+					<Link href="/documentation" dimmed={true}>Framework</Link>
+					<Link href="/documentation/api" dimmed={true}>API Reference</Link>
+				</div>
+				<div class="flex flex-col gap-2 justify-center items-center">
+					<p class="text-black dark:text-surface-100 font-bold md:mb-4">Account</p>
+					{#if $userSession}
+						<Link href="/account" dimmed={true}>Account</Link>
+
+						<button
+							class="inline md:text-start hover:text-primary-500 transition-colors
+							text-surface-500 dark:text-surface-200 animate-underline"
+							on:click={logout}
+						>
+							Logout
+						</button>
+					{:else}
+						<Link href="/account/login" dimmed={true}>Login</Link>
+						<Link href="/account/register" dimmed={true}>Register</Link>
+					{/if}
+				</div>
+			</div>
+		</div>
+	</div>
+</footer>
