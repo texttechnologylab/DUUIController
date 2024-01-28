@@ -1,6 +1,6 @@
 package api.routes.components;
 
-import api.routes.DUUIRequestHandler;
+import api.routes.DUUIRequestHelper;
 import api.storage.DUUIMongoDBStorage;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Aggregates;
@@ -21,7 +21,7 @@ import java.util.Set;
 
 
 import static api.requests.validation.Validator.missingField;
-import static api.routes.DUUIRequestHandler.*;
+import static api.routes.DUUIRequestHelper.*;
 import static api.storage.DUUIMongoDBStorage.convertObjectIdToString;
 
 public class DUUIComponentController {
@@ -98,7 +98,7 @@ public class DUUIComponentController {
             .find(Filters.eq(new ObjectId(id)))
             .first();
 
-        if (isNullOrEmpty(component)) return DUUIRequestHandler.notFound(response);
+        if (isNullOrEmpty(component)) return DUUIRequestHelper.notFound(response);
 
         convertObjectIdToString(component);
         response.status(200);
@@ -112,7 +112,7 @@ public class DUUIComponentController {
      * @return A Json String containing the components or a not found message.
      */
     public static String findMany(Request request, Response response) {
-        String userID = DUUIRequestHandler.getUserId(request);
+        String userID = DUUIRequestHelper.getUserId(request);
 
         int limit = getLimit(request);
         int skip = getSkip(request);
@@ -162,7 +162,7 @@ public class DUUIComponentController {
             response.status(200);
             return component.toJson();
         }
-        return DUUIRequestHandler.notFound(response);
+        return DUUIRequestHelper.notFound(response);
     }
 
     /**

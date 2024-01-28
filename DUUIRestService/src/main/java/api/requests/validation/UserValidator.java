@@ -4,7 +4,7 @@ import api.routes.users.DUUIUserController;
 import org.bson.Document;
 import spark.Response;
 
-import static api.routes.DUUIRequestHandler.isNullOrEmpty;
+import static api.routes.DUUIRequestHelper.isNullOrEmpty;
 
 public class UserValidator {
 

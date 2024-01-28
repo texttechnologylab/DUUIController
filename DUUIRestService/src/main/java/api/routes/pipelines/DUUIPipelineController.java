@@ -1,6 +1,6 @@
 package api.routes.pipelines;
 
-import api.routes.DUUIRequestHandler;
+import api.routes.DUUIRequestHelper;
 import api.routes.components.DUUIComponentController;
 import api.routes.processes.DUUIReusableProcessHandler;
 import api.storage.AggregationProps;
@@ -18,7 +18,7 @@ import spark.Response;
 import java.time.Instant;
 import java.util.*;
 
-import static api.routes.DUUIRequestHandler.isNullOrEmpty;
+import static api.routes.DUUIRequestHelper.isNullOrEmpty;
 import static api.storage.DUUIMongoDBStorage.Pipelines;
 import static api.storage.DUUIMongoDBStorage.convertObjectIdToString;
 
@@ -181,7 +181,7 @@ public class DUUIPipelineController {
 
         try {
             Document pipeline = getPipelineById(pipeline_id);
-            if (pipeline == null) return DUUIRequestHandler.notFound(response);
+            if (pipeline == null) return DUUIRequestHelper.notFound(response);
 
             DUUIReusableProcessHandler handler = new DUUIReusableProcessHandler(pipeline);
             reusablePipelines.put(pipeline_id, handler);
@@ -204,7 +204,7 @@ public class DUUIPipelineController {
         String pipeline_id = request.params(":id");
 
         DUUIReusableProcessHandler handler = reusablePipelines.get(pipeline_id);
-        if (handler == null) return DUUIRequestHandler.notFound(response);
+        if (handler == null) return DUUIRequestHelper.notFound(response);
 
         DUUIMongoDBStorage.Pipelines().findOneAndUpdate(
             Filters.eq(new ObjectId(pipeline_id)),

@@ -3,7 +3,7 @@ package api.routes.pipelines;
 import api.routes.components.DUUIComponentController;
 import api.routes.processes.DUUIProcessController;
 import api.routes.users.Role;
-import api.routes.DUUIRequestHandler;
+import api.routes.DUUIRequestHelper;
 import api.storage.AggregationProps;
 import api.storage.DUUIMongoDBStorage;
 import org.bson.Document;
@@ -15,7 +15,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 
-import static api.routes.DUUIRequestHandler.*;
+import static api.routes.DUUIRequestHelper.*;
 import static api.routes.pipelines.DUUIPipelineController.getPipelineById;
 
 public class DUUIPipelineRequestHandler {
@@ -27,18 +27,18 @@ public class DUUIPipelineRequestHandler {
      * @return A Json String containing the matched pipeline.
      */
     public static String findOne(Request request, Response response) {
-        String userID = DUUIRequestHandler.getUserId(request);
-        String userRole = DUUIRequestHandler.getUserProps(request, Set.of("role")).getString("role");
+        String userID = DUUIRequestHelper.getUserId(request);
+        String userRole = DUUIRequestHelper.getUserProps(request, Set.of("role")).getString("role");
         String pipelineID = request.params(":id");
 
         Document result = getPipelineById(pipelineID);
-        if (result == null) return DUUIRequestHandler.notFound(response);
+        if (result == null) return DUUIRequestHelper.notFound(response);
 
         String pipelineOwnerId = result.getString("user_id");
         if (
             (pipelineOwnerId == null && !userRole.equalsIgnoreCase(Role.ADMIN))
                 || (pipelineOwnerId != null && !userID.equals(pipelineOwnerId))) {
-            return DUUIRequestHandler.notFound(response);
+            return DUUIRequestHelper.notFound(response);
         }
 
         Document statistics = DUUIProcessController.getStatisticsForPipeline(pipelineID);
@@ -54,8 +54,8 @@ public class DUUIPipelineRequestHandler {
      * @apiNote Allowed parameters are components, limit, skip, sort and order
      */
     public static String findMany(Request request, Response response) {
-        String userID = DUUIRequestHandler.getUserId(request);
-        String userRole = DUUIRequestHandler.getUserProps(request, Set.of("role")).getString("role");
+        String userID = DUUIRequestHelper.getUserId(request);
+        String userRole = DUUIRequestHelper.getUserProps(request, Set.of("role")).getString("role");
 
         int limit = getLimit(request);
         int skip = getSkip(request);
@@ -87,7 +87,7 @@ public class DUUIPipelineRequestHandler {
         );
 
         if (result == null) {
-            return DUUIRequestHandler.notFound(response);
+            return DUUIRequestHelper.notFound(response);
         }
 
         response.status(200);
@@ -95,15 +95,15 @@ public class DUUIPipelineRequestHandler {
     }
 
     public static String insertOne(Request request, Response response) {
-        String userID = DUUIRequestHandler.getUserId(request);
+        String userID = DUUIRequestHelper.getUserId(request);
 
         Document body = Document.parse(request.body());
         String name = body.getString("name");
-        if (isNullOrEmpty(name)) return DUUIRequestHandler.badRequest(response, "Missing field name");
+        if (isNullOrEmpty(name)) return DUUIRequestHelper.badRequest(response, "Missing field name");
 
         List<Document> components = body.getList("components", Document.class);
         if (isNullOrEmpty(components))
-            return DUUIRequestHandler.badRequest(response, "Missing field components");
+            return DUUIRequestHelper.badRequest(response, "Missing field components");
 
         boolean isTemplate = request
             .queryParamOrDefault("template", "false")
@@ -143,16 +143,16 @@ public class DUUIPipelineRequestHandler {
 
 
         Document insert = getPipelineById(id);
-        if (insert == null) return DUUIRequestHandler.badRequest(response, "Insertion failed.");
+        if (insert == null) return DUUIRequestHelper.badRequest(response, "Insertion failed.");
 
         response.status(201);
         return insert.toJson();
     }
 
     public static String updateOne(Request request, Response response) {
-        String userID = DUUIRequestHandler.getUserId(request);
+        String userID = DUUIRequestHelper.getUserId(request);
 
-        Document user = DUUIRequestHandler.getUserProps(request, Set.of("role"));
+        Document user = DUUIRequestHelper.getUserProps(request, Set.of("role"));
         String role = user.getString("role");
 
         String pipelineID = request.params(":id");
@@ -164,22 +164,22 @@ public class DUUIPipelineRequestHandler {
             || (pipeline.getString("user_id") == null && !role.equalsIgnoreCase(Role.ADMIN))
             // No permission to delete pipeline from another user
             || (pipeline.getString("user_id") != null && !pipeline.getString("user_id").equals(userID))
-        ) return DUUIRequestHandler.notFound(response);
+        ) return DUUIRequestHelper.notFound(response);
 
         Document update = Document.parse(request.body());
 
         DUUIPipelineController.updateOne(pipelineID, update);
         Document insert = getPipelineById(pipelineID);
-        if (insert == null) return DUUIRequestHandler.badRequest(response, "Update failed.");
+        if (insert == null) return DUUIRequestHelper.badRequest(response, "Update failed.");
 
         response.status(201);
         return insert.toJson();
     }
 
     public static String deleteOne(Request request, Response response) {
-        String userID = DUUIRequestHandler.getUserId(request);
+        String userID = DUUIRequestHelper.getUserId(request);
 
-        Document user = DUUIRequestHandler.getUserProps(request, Set.of("role"));
+        Document user = DUUIRequestHelper.getUserProps(request, Set.of("role"));
         String role = user.getString("role");
 
         String pipelineID = request.params(":id");
@@ -191,7 +191,7 @@ public class DUUIPipelineRequestHandler {
             || (pipeline.getString("user_id") == null && !role.equalsIgnoreCase(Role.ADMIN))
             // No permission to delete pipeline from another user
             || (pipeline.getString("user_id") != null && !pipeline.getString("user_id").equals(userID))
-        ) return DUUIRequestHandler.notFound(response);
+        ) return DUUIRequestHelper.notFound(response);
 
         DUUIPipelineController.interruptIfRunning(pipelineID);
 

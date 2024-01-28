@@ -7,7 +7,7 @@ import duui.document.Provider;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.DUUIDocument;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
 
-import static api.routes.DUUIRequestHandler.isNullOrEmpty;
+import static api.routes.DUUIRequestHelper.isNullOrEmpty;
 
 public class DUUIDocumentController {
 

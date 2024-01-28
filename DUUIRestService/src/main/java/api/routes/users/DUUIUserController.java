@@ -1,6 +1,6 @@
 package api.routes.users;
 
-import api.routes.DUUIRequestHandler;
+import api.routes.DUUIRequestHelper;
 import api.storage.DUUIMongoDBStorage;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
@@ -16,7 +16,7 @@ import java.util.*;
 
 import static api.requests.validation.UserValidator.*;
 import static api.requests.validation.Validator.missingField;
-import static api.routes.DUUIRequestHandler.isNullOrEmpty;
+import static api.routes.DUUIRequestHelper.isNullOrEmpty;
 import static api.storage.DUUIMongoDBStorage.convertObjectIdToString;
 
 
@@ -352,7 +352,7 @@ public class DUUIUserController {
         String id = request.params(":id");
         Document user = getUserProperties(id);
         if (isNullOrEmpty(user))
-            return DUUIRequestHandler.badRequest(
+            return DUUIRequestHelper.badRequest(
                 response,
                 "User not fetchable. Are you logged in or have you provided an API key?");
 

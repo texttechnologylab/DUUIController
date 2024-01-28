@@ -12,7 +12,7 @@ import java.util.Set;
 import static api.requests.validation.UserValidator.authenticate;
 import static com.mongodb.client.model.Filters.eq;
 
-public class DUUIRequestHandler {
+public class DUUIRequestHelper {
 
     /**
      * At this stage user should never be null. Get the user's ID by authentication.

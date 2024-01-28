@@ -1,7 +1,7 @@
 package api.routes.processes;
 
 import api.requests.validation.UserValidator;
-import api.routes.DUUIRequestHandler;
+import api.routes.DUUIRequestHelper;
 import api.routes.documents.DUUIDocumentController;
 import api.routes.pipelines.DUUIPipelineController;
 import api.routes.users.DUUIUserController;
@@ -17,7 +17,6 @@ import org.bson.types.ObjectId;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.DUUIDocument;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIEvent;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
-import org.xml.sax.SAXException;
 import spark.Request;
 import spark.Response;
 
@@ -38,7 +37,7 @@ import java.util.stream.Collectors;
 
 import static api.requests.validation.UserValidator.authenticate;
 import static api.requests.validation.Validator.missingField;
-import static api.routes.DUUIRequestHandler.*;
+import static api.routes.DUUIRequestHelper.*;
 import static api.routes.pipelines.DUUIPipelineController.getPipelineById;
 import static api.storage.DUUIMongoDBStorage.convertObjectIdToString;
 
@@ -107,7 +106,7 @@ public class DUUIProcessController {
 
         statusNames = statusNames
             .stream()
-            .map(DUUIRequestHandler::toTitleCase)
+            .map(DUUIRequestHelper::toTitleCase)
             .toList();
 
         aggregation.add(Aggregates.addFields(
@@ -187,7 +186,7 @@ public class DUUIProcessController {
         Document settings = body.get("settings", Document.class);
         Document pipeline = getPipelineById(pipelineID);
 
-        if (pipeline == null) return DUUIRequestHandler.notFound(response);
+        if (pipeline == null) return DUUIRequestHelper.notFound(response);
 
         int availableWorkers = DUUIUserController
             .getUserById(pipeline.getString("user_id"), List.of("worker_count"))
@@ -257,17 +256,17 @@ public class DUUIProcessController {
                     Filters.ne("is_finished", true)))
             .first();
 
-        if (isNullOrEmpty(process)) return DUUIRequestHandler.notFound(response);
+        if (isNullOrEmpty(process)) return DUUIRequestHelper.notFound(response);
         IDUUIProcessHandler processHandler = processes.get(id);
         if (processHandler == null) {
             DUUIProcessController.setStatus(id, DUUIStatus.CANCELLED);
             DUUIProcessController.setFinished(id, true);
 
-            return DUUIRequestHandler.notFound(response);
+            return DUUIRequestHelper.notFound(response);
         }
 
         String pipelineId = processHandler.getPipelineID();
-        if (pipelineId == null) return DUUIRequestHandler.notFound(response);
+        if (pipelineId == null) return DUUIRequestHelper.notFound(response);
 
         processHandler.cancel();
 
@@ -276,14 +275,14 @@ public class DUUIProcessController {
 
     public static String findDocuments(Request request, Response response) {
         String processId = request.params(":id");
-        String userID = DUUIRequestHandler.getUserId(request);
+        String userID = DUUIRequestHelper.getUserId(request);
         Document process = DUUIMongoDBStorage.Processses().find(Filters.eq(new ObjectId(processId))).first();
-        if (isNullOrEmpty(process)) return DUUIRequestHandler.notFound(response);
+        if (isNullOrEmpty(process)) return DUUIRequestHelper.notFound(response);
 
         Document pipeline = getPipelineById(process.getString("pipeline_id"));
-        if (isNullOrEmpty(pipeline)) return DUUIRequestHandler.notFound(response);
+        if (isNullOrEmpty(pipeline)) return DUUIRequestHelper.notFound(response);
 
-        if (!pipeline.getString("user_id").equals(userID)) return DUUIRequestHandler.notFound(response);
+        if (!pipeline.getString("user_id").equals(userID)) return DUUIRequestHelper.notFound(response);
 
         int limit = getLimit(request);
         int skip = getSkip(request);
@@ -542,7 +541,7 @@ public class DUUIProcessController {
 
         request.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement("/temp"));
         Collection<Part> parts = request.raw().getParts();
-        if (parts.isEmpty()) return DUUIRequestHandler.notFound(response);
+        if (parts.isEmpty()) return DUUIRequestHelper.notFound(response);
         String uuid = UUID.randomUUID().toString();
         Path root = Paths.get("fileUploads", uuid);
         boolean ignored = root.toFile().mkdirs();

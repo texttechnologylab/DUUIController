@@ -1,6 +1,6 @@
 package api.routes.processes;
 
-import api.routes.DUUIRequestHandler;
+import api.routes.DUUIRequestHelper;
 import api.storage.AggregationProps;
 import org.bson.Document;
 import spark.Request;
@@ -8,7 +8,7 @@ import spark.Response;
 
 import java.util.List;
 
-import static api.routes.DUUIRequestHandler.*;
+import static api.routes.DUUIRequestHelper.*;
 import static api.routes.processes.DUUIProcessController.getProcess;
 import static api.routes.processes.DUUIProcessController.getProcesses;
 import static api.storage.DUUIMongoDBStorage.convertObjectIdToString;
@@ -19,7 +19,7 @@ public class DUUIProcessRequestHandler {
         String id = request.params(":id");
 
         Document process = getProcess(id);
-        if (process == null) return DUUIRequestHandler.notFound(response);
+        if (process == null) return DUUIRequestHelper.notFound(response);
 
         convertObjectIdToString(process);
         response.status(200);
@@ -30,7 +30,7 @@ public class DUUIProcessRequestHandler {
         String pipelineId = request.queryParamOrDefault("pipeline_id", null);
 
         if (isNullOrEmpty(pipelineId))
-            return DUUIRequestHandler.badRequest(response,
+            return DUUIRequestHelper.badRequest(response,
                 "Missing pipeline_id parameter in url. Try /processes?pipeline_id=");
 
         int limit = getLimit(request);
@@ -67,7 +67,7 @@ public class DUUIProcessRequestHandler {
         }
 
 
-        if (result == null) return DUUIRequestHandler.notFound(response);
+        if (result == null) return DUUIRequestHelper.notFound(response);
 
         return result.toJson();
     }

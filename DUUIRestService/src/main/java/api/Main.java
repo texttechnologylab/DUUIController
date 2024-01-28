@@ -7,7 +7,7 @@ import api.routes.processes.DUUIProcessRequestHandler;
 import api.routes.processes.DUUIReusableProcessHandler;
 import api.routes.processes.DUUIProcessController;
 import api.routes.users.DUUIUserController;
-import api.routes.DUUIRequestHandler;
+import api.routes.DUUIRequestHelper;
 import api.metrics.DUUIMetricsManager;
 import api.metrics.DUUIMetricsProvider;
 import api.metrics.DUUIMongoMetricsProvider;
@@ -165,7 +165,7 @@ public class Main {
         /* Components */
         path("/components", () -> {
             before("/*", (request, response) -> {
-                boolean isAuthorized = DUUIRequestHandler.isAuthorized(request);
+                boolean isAuthorized = DUUIRequestHelper.isAuthorized(request);
                 if (!isAuthorized) {
                     halt(401, "Unauthorized");
                 }
@@ -180,7 +180,7 @@ public class Main {
         /* Pipelines */
         path("/pipelines", () -> {
             before("/*", (request, response) -> {
-                boolean isAuthorized = DUUIRequestHandler.isAuthorized(request);
+                boolean isAuthorized = DUUIRequestHelper.isAuthorized(request);
                 if (!isAuthorized) {
                     halt(401, "Unauthorized");
                 }
@@ -198,7 +198,7 @@ public class Main {
         /* Processes */
         path("/processes", () -> {
             before("/*", (request, response) -> {
-                boolean isAuthorized = DUUIRequestHandler.isAuthorized(request);
+                boolean isAuthorized = DUUIRequestHelper.isAuthorized(request);
                 if (!isAuthorized) {
                     halt(401, "Unauthorized");
                 }
