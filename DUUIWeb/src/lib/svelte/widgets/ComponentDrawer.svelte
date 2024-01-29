@@ -19,6 +19,7 @@
 	import JsonInput from './input/JsonInput.svelte'
 	import TextArea from './input/TextArea.svelte'
 	import TextInput from './input/TextInput.svelte'
+	import { showModal } from '$lib/utils/modal'
 	const { cloneDeep } = pkg
 
 	const drawerStore = getDrawerStore()
@@ -88,66 +89,53 @@
 		}
 	}
 
-	const onRemove = () => {
-		new Promise<boolean>((resolve) => {
-			const modal: ModalSettings = {
-				type: 'component',
-				component: 'deleteModal',
-				meta: {
-					title: 'Remove Component',
-					body: `Are you sure you want to remove ${component.name}?`
-				},
-				response: (r: boolean) => {
-					resolve(r)
-				}
-			}
+	const onRemove = async () => {
+		const confirm = await showModal(
+			{
+				title: 'Remove Component',
+				message: `Are you sure you want to remove ${component.name}?`
+			},
+			'deleteModal',
+			modalStore
+		)
 
-			modalStore.trigger(modal)
-		}).then(async (accepted: boolean) => {
-			if (!accepted) return
+		if (!confirm) return
+
+		$currentPipelineStore.components = $currentPipelineStore.components.filter(
+			(c) => c.id !== component.id
+		)
+
+		drawerStore.close()
+	}
+
+	const onDelete = async () => {
+		const confirm = await showModal(
+			{
+				title: 'Delete Component',
+				message: `Are you sure you want to delete ${component.name}?`
+			},
+			'deleteModal',
+			modalStore
+		)
+
+		if (!confirm) return
+
+		const response = await fetch('/api/components', {
+			method: 'DELETE',
+			body: JSON.stringify(component)
+		})
+		if (response.ok) {
+			toastStore.trigger(successToast('Component deleted successfully'))
+
+			drawerStore.close()
 			$currentPipelineStore.components = $currentPipelineStore.components.filter(
 				(c) => c.id !== component.id
 			)
 
-			drawerStore.close()
-		})
-	}
-
-	const onDelete = async () => {
-		new Promise<boolean>((resolve) => {
-			const modal: ModalSettings = {
-				type: 'component',
-				component: 'deleteModal',
-				meta: {
-					title: 'Delete Component',
-					body: `Are you sure you want to delete ${component.name}?`
-				},
-				response: (r: boolean) => {
-					resolve(r)
-				}
-			}
-
-			modalStore.trigger(modal)
-		}).then(async (accepted: boolean) => {
-			if (!accepted) return
-
-			const response = await fetch('/api/components', {
-				method: 'DELETE',
-				body: JSON.stringify(component)
-			})
-			if (response.ok) {
-				toastStore.trigger(successToast('Component deleted successfully'))
-
-				drawerStore.close()
-				$currentPipelineStore.components = $currentPipelineStore.components.filter(
-					(c) => c.id !== component.id
-				)
-
-				dispatcher('deleteComponent', { oid: component.oid })
-			} else {
-				toastStore.trigger(errorToast('Error: ' + response.statusText))
-			}
-		})
+			dispatcher('deleteComponent', { oid: component.oid })
+		} else {
+			toastStore.trigger(errorToast('Error: ' + response.statusText))
+		}
 	}
 </script>
 
