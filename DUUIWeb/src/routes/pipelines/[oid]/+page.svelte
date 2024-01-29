@@ -446,7 +446,6 @@
 			>
 				{#if $currentPipelineStore.status === Status.Setup || $currentPipelineStore.status === Status.Shutdown}
 					<Fa icon={faRotate} spin />
-					<span>Waiting</span>
 				{:else}
 					<Fa icon={$currentPipelineStore.status === Status.Idle ? faPause : faPlay} />
 					<span class="text-xs md:text-base"

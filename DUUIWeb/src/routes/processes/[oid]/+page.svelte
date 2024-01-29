@@ -41,6 +41,7 @@
 	import Paginator from '$lib/svelte/widgets/navigation/Paginator.svelte'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
+	import { showModal } from '$lib/utils/modal'
 
 	export let data
 	const toastStore = getToastStore()
@@ -120,31 +121,25 @@
 	}
 
 	const deleteProcess = async () => {
-		new Promise<boolean>((resolve) => {
-			const modal: ModalSettings = {
-				type: 'component',
-				component: 'deleteModal',
-				meta: {
-					title: 'Delete process',
-					body: 'Are you sure you want to delete this process?'
-				},
-				response: (r: boolean) => {
-					resolve(r)
-				}
-			}
-			modalStore.trigger(modal)
-		}).then(async (accepted: boolean) => {
-			if (!accepted) return
+		const confirm = await showModal(
+			{
+				title: 'Delete process',
+				message: 'Are you you want to delete this process?'
+			},
+			'deleteModal',
+			modalStore
+		)
 
-			const response = await fetch('/api/processes', {
-				method: 'DELETE',
-				body: JSON.stringify({ oid: process.oid })
-			})
-			if (response.ok) {
-				toastStore.trigger(infoToast('Process has been deleted'))
-				goto(`/pipelines/${pipeline.oid}`)
-			}
+		if (!confirm) return
+
+		const response = await fetch('/api/processes', {
+			method: 'DELETE',
+			body: JSON.stringify({ oid: process.oid })
 		})
+		if (response.ok) {
+			toastStore.trigger(infoToast('Process has been deleted'))
+			goto(`/pipelines/${pipeline.oid}`)
+		}
 	}
 
 	async function restart() {
@@ -177,6 +172,7 @@
 				method: 'GET'
 			}
 		)
+
 		const json: {
 			documents: DUUIDocument[]
 			pipelineProgress: { [key: number]: number }
@@ -277,7 +273,10 @@
 			<div class="flex items-center gap-4">
 				<Fa icon={faListCheck} size="lg" />
 				<p>
-					{process.progress} / {process.document_names.length} ({progresAsPercent(process.progress, process.document_names.length)}%)
+					{process.progress} / {process.document_names.length} ({progresAsPercent(
+						process.progress,
+						process.document_names.length
+					)}%)
 				</p>
 			</div>
 			<div class="flex items-center gap-4">
