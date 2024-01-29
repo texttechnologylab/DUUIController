@@ -19,29 +19,28 @@
 		faArrowLeft,
 		faArrowUpWideShort,
 		faCancel,
-		faCheckDouble,
-		faClose,
+		faClockRotateLeft,
 		faCopy,
+		faListCheck,
 		faRefresh,
 		faSearch,
 		faTrash
 	} from '@fortawesome/free-solid-svg-icons'
 	import {
 		ProgressBar,
+		clipboard,
 		getModalStore,
 		getToastStore,
 		type ModalComponent,
-		type ModalSettings,
-		clipboard
+		type ModalSettings
 	} from '@skeletonlabs/skeleton'
 
+	import DriverIcon from '$lib/svelte/DriverIcon.svelte'
 	import Search from '$lib/svelte/widgets/input/Search.svelte'
 	import Select from '$lib/svelte/widgets/input/Select.svelte'
 	import Paginator from '$lib/svelte/widgets/navigation/Paginator.svelte'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
-	import DriverIcon from '$lib/svelte/DriverIcon.svelte'
-	import Number from '$lib/svelte/widgets/input/Number.svelte'
 
 	export let data
 	const toastStore = getToastStore()
@@ -265,67 +264,33 @@
 			</div>
 		</div>
 		<div class="p-4 space-y-4">
-			<div class="section-wrapper p-4 grid md:grid-cols-[1fr_1fr] gap-8">
-				<div class="space-y-2">
-					<div class="flex items-center gap-4 justify-between">
-						<h2 class="h3">Status</h2>
-						<Fa
-							size="2x"
-							icon={getStatusIcon(process.status)}
-							class={equals(process.status, Status.Active) ? 'animate-spin-slow ' : ''}
-						/>
-					</div>
-					<div class="grid md:grid-cols-2 items-center justify-start">
-						<div>
-							<p>{process.status}</p>
-							<p>Total process duration: {getDuration(process.started_at, process.finished_at)}</p>
-							<p>
-								{process.progress} of {process.document_names.length} Documents have been processed.
-							</p>
-						</div>
-
-						{#if process.initial}
-							<div class="hidden md:grid grid-cols-2 gap-2">
-								<p>Documents found</p>
-								<p>{process.initial}</p>
-								<p>Documents skipped</p>
-								<p>{process.skipped}</p>
-								<p>Documents kept</p>
-								<p>{process.initial - process.skipped}</p>
-							</div>
-						{/if}
-					</div>
-				</div>
-				<div class="space-y-2">
-					<div class="flex items-center justify-between gap-2">
-						<h2 class="h3">Settings</h2>
-						<button use:clipboard={JSON.stringify(process.settings, null, 2)}>
-							<Fa icon={faCopy} size="2x" />
-						</button>
-					</div>
-					<div class="grid grid-cols-4 md:grid-cols-6 gap-2">
-						{#each Object.entries(process.settings) as [key, value]}
-							<p>{snakeToTitleCase(key)}</p>
-							<p>
-								{key === 'minimum_size'
-									? formatFileSize(+value)
-									: value === true
-									? 'Yes'
-									: value === false
-									? 'No'
-									: value}
-							</p>
-						{/each}
-					</div>
-				</div>
+			<div class="flex items-center gap-4">
+				<Fa
+					size="lg"
+					icon={getStatusIcon(process.status)}
+					class={equals(process.status, Status.Active) ? 'animate-spin-slow ' : ''}
+				/>
+				<p>
+					{process.status}
+				</p>
 			</div>
+			<div class="flex items-center gap-4">
+				<Fa icon={faListCheck} size="lg" />
+				<p>
+					{process.progress} / {process.document_names.length} ({progresAsPercent(process.progress, process.document_names.length)}%)
+				</p>
+			</div>
+			<div class="flex items-center gap-4">
+				<Fa icon={faClockRotateLeft} size="lg" />
+				<p>{getDuration(process.started_at, process.finished_at)}</p>
+			</div>
+			{#if process.error}
+				<p class="text-error-500 font-bold p-2 md:max-w-[60ch] max-w-[40ch]">
+					ERROR: {process.error}
+				</p>
+			{/if}
 			<div>
 				<div class=" md:text-base flex items-end">
-					{#if process.error}
-						<p class="text-error-500 font-bold p-2 md:max-w-[60ch] max-w-[40ch]">
-							ERROR: {process.error}
-						</p>
-					{/if}
 					<div
 						class="hidden ml-auto md:flex overflow-hidden justify-between section-wrapper !shadow-none !border-b-0 !rounded-b-none z-10"
 					>
@@ -431,7 +396,7 @@
 								{/if}
 							{/each}
 
-							{#each pipeline.components as component, index}
+							{#each pipeline.components as component}
 								<div
 									class="input-wrapper p-4 flex justify-between gap-4 items-start text-sm md:text-base"
 								>
@@ -446,6 +411,39 @@
 									</p>
 								</div>
 							{/each}
+						</div>
+					{/if}
+				</div>
+
+				<div class="space-y-2">
+					<div class="flex items-center justify-between gap-2">
+						<h2 class="h3">Settings</h2>
+						<button use:clipboard={JSON.stringify(process.settings, null, 2)}>
+							<Fa icon={faCopy} size="2x" />
+						</button>
+					</div>
+					<div class="grid grid-cols-4 md:grid-cols-6 gap-2">
+						{#each Object.entries(process.settings) as [key, value]}
+							<p>{snakeToTitleCase(key)}</p>
+							<p>
+								{key === 'minimum_size'
+									? formatFileSize(+value)
+									: value === true
+									? 'Yes'
+									: value === false
+									? 'No'
+									: value}
+							</p>
+						{/each}
+					</div>
+					{#if process.initial}
+						<div class="hidden md:grid grid-cols-2 gap-2">
+							<p>Documents found</p>
+							<p>{process.initial}</p>
+							<p>Documents skipped</p>
+							<p>{process.skipped}</p>
+							<p>Documents kept</p>
+							<p>{process.initial - process.skipped}</p>
 						</div>
 					{/if}
 				</div>

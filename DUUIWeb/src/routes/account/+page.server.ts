@@ -1,6 +1,6 @@
 import { DROPBOX_CLIENT_ID, DROPBOX_CLIENT_SECRET, SERVER_API_KEY } from '$env/static/private'
 import { API_URL } from '$lib/config'
-import { fail, redirect } from '@sveltejs/kit'
+import { error, fail, redirect } from '@sveltejs/kit'
 import { DropboxAuth } from 'dropbox'
 import type { Actions, PageServerLoad } from './$types'
 import { handleLoginRedirect } from '$lib/utils'
@@ -55,7 +55,7 @@ export const actions: Actions = {
 	async deleteAccount({ locals, cookies }) {
 		const user = locals.user
 		if (!user) {
-			return fail(400, { message: 'Not logged in' })
+			error(401, 'Unauthorized')
 		}
 
 		await fetch(`${API_URL}/users/${user.oid}`, {

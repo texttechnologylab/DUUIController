@@ -261,20 +261,6 @@ public class DUUIReusableProcessHandler extends Thread implements IDUUIProcessHa
         DUUIProcessController.updatePipelineStatus(getProcessID(), composer.getPipelineStatus());
         DUUIProcessController.setProgress(getProcessID(), composer.getProgress());
         DUUIProcessController.updateDocuments(getProcessID(), composer.getDocuments());
-
-        if (output.hasNoOutput()) return;
-
-        for (DUUIDocument document : composer.getDocuments()) {
-            if (document.getStatus().equals(DUUIStatus.OUTPUT) && !document.isUploadStarted()) {
-                document.setUploadStarted(true);
-                try {
-                    outputHandler.writeDocument(document, output.getPath());
-                    document.setStatus(DUUIStatus.COMPLETED);
-                } catch (IOException ignored) {
-                    document.setStatus(DUUIStatus.FAILED);
-                }
-            }
-        }
     }
 
     @Override

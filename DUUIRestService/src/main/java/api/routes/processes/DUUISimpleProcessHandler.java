@@ -228,28 +228,6 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
         DUUIProcessController.updatePipelineStatus(getProcessID(), composer.getPipelineStatus());
         DUUIProcessController.setProgress(getProcessID(), composer.getProgress());
         DUUIProcessController.updateDocuments(getProcessID(), composer.getDocuments());
-
-
-        for (DUUIDocument document : composer.getDocuments()) {
-            if (!output.hasNoOutput()
-                && document.getStatus().equals(DUUIStatus.OUTPUT)
-                && document.isFinished()
-                && !document.isUploadStarted()) {
-
-                document.setUploadStarted(true);
-                try {
-                    outputHandler.writeDocument(document, output.getPath());
-                    document.setStatus(DUUIStatus.COMPLETED);
-                } catch (IOException exception) {
-                    if (composer.getIgnoreErrors()) {
-                        document.setStatus(DUUIStatus.FAILED);
-                    } else {
-                        onException(exception);
-                    }
-                }
-            }
-        }
-
     }
 
     @Override

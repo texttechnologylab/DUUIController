@@ -157,7 +157,7 @@
 		<p>{document.name}</p>
 		{#if document.error}
 			<Fa icon={faWarning} size="lg" class="text-error-500" />
-		{:else if document.finished}
+		{:else if document.is_finished}
 			<Fa icon={faCheckDouble} size="lg" class="text-success-500" />
 		{:else}
 			<Fa icon={getStatusIcon(document.status)} size="lg" />

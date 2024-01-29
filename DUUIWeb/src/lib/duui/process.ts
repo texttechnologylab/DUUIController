@@ -1,5 +1,5 @@
 import { equals } from '$lib/duui/utils/text'
-import { type DUUIDocumentProvider } from './io'
+import { IO, type DUUIDocumentProvider } from './io'
 
 export interface DUUIProcess {
 	oid: string

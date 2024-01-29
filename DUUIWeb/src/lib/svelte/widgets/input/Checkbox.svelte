@@ -29,7 +29,7 @@
 <label class="flex {column ? 'flex-col-reverse' : ''} items-start gap-4 text-sm">
 	<button on:click={() => (checked = !checked)}>
 		<div
-			class="rounded-md p-1 aspect-square border-[1px] bg-white dark:bg-surface-600 border-surface-400/20"
+			class="input-wrapper aspect-square !p-1"
 		>
 			{#if iconUnchecked === null}
 				<Fa
@@ -44,6 +44,6 @@
 			{/if}
 		</div>
 	</button>
-	<input type="checkbox" {name} bind:checked class="appearance-none hidden" />
+	<input type="checkbox" {name} bind:checked class="sr-only" />
 	<span class="{column ? 'form-label' : ''} cursor-pointer">{label}</span>
 </label>
