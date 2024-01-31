@@ -8,6 +8,7 @@
 	import { createEventDispatcher } from 'svelte'
 	import IconButton from '../action/IconButton.svelte'
 	import Dropdown from '../input/Dropdown.svelte'
+	import Fa from 'svelte-fa'
 
 	const dispatcher = createEventDispatcher()
 
@@ -42,12 +43,9 @@
 		on:change={() => dispatcher('change')}
 		bind:value={settings.limit}
 		options={settings.sizes}
-		style="input-wrapper !py-2"
+		style="input-wrapper !bg-surface-50-900-token !py-2"
 	/>
-	<div
-		class="input-no-highlight !py-0 flex items-center justify-center bg-surface-100 dark:variant-soft-surface
-			   border border-surface-200 dark:border-surface-500"
-	>
+	<div class="input-no-highlight !bg-surface-50-900-token !py-0 flex items-center justify-center">
 		{#if showJumpButtons}
 			<IconButton
 				disabled={settings.page === 0}

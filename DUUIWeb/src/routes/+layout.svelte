@@ -49,7 +49,7 @@
 	const drawerStore = getDrawerStore()
 	const sidebarDrawer: DrawerSettings = {
 		id: 'sidebar',
-		width: 'w-[80%] sm:w-[360px]',
+		width: 'w-full sm:w-[40%]',
 		rounded: 'rounded-none'
 	}
 
@@ -134,14 +134,15 @@
 					{#if $userSession?.role === 'Admin' || $userSession?.role === 'Trial'}
 						<Link href="/feedback">Feedback</Link>
 					{/if}
-					<Link href="/pipelines">Pipelines</Link>
-					<Link href="/pipelines/editor">Editor</Link>
+					{#if $userSession}
+						<Link href="/pipelines">Pipelines</Link>
+						<Link href="/pipelines/editor">Editor</Link>
+					{/if}
 					<Link href="/documentation">Documentation</Link>
 					<Link href="/documentation/api">API Reference</Link>
 
 					{#if $userSession}
 						<Link href="/account">Account</Link>
-
 						<button
 							class="p-0 btn inline-flex items-center hover:text-primary-500 transition-colors
 							animate-underline"
@@ -154,9 +155,6 @@
 						<Link href="/account/login">Login</Link>
 						<Link href="/account/register">Register</Link>
 					{/if}
-
-					<!-- Sidebar on the right -->
-					<HelpToggle />
 				</div>
 
 				<a href="/">
@@ -172,6 +170,8 @@
 		<Documentation />
 	</svelte:fragment>
 
+	<!-- Sidebar on the right -->
+	<HelpToggle />
 	<svelte:fragment slot="sidebarRight">
 		{#if $helpStore}
 			<Help />

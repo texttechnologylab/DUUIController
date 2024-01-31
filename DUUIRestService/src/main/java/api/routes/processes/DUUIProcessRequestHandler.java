@@ -41,7 +41,7 @@ public class DUUIProcessRequestHandler {
         Document result;
 
         try {
-            List<String> status = List.of(request.queryMap("status").values());
+            List<String> status = List.of(request.queryParamOrDefault("filter", "Any").split(";"));
             result = getProcesses(
                 pipelineId,
                 AggregationProps

@@ -83,7 +83,9 @@
 	console.log(input)
 </script>
 
-<div class="section-wrapper w-3/4 sticky top-0 max-h-[90vh] !overflow-y-auto">
+<div
+	class="section-wrapper bg-surface-50-900-token w-full md:max-w-[80%] sticky top-0 max-h-[90vh] !overflow-y-auto"
+>
 	<div id="scroll-top" />
 	<div
 		class="font-bold text-2xl p-4 border-surface-200 dark:border-surface-500 flex items-center justify-between sticky top-0 z-10 bg-surface-50-900-token"
@@ -96,7 +98,7 @@
 		<Fa icon={getStatusIcon(document.status)} size="lg" class="dimmed" />
 	</div>
 
-	<div class="p-4 space-y-8 bg-surface-100-800-token opacity-75">
+	<div class="lg:p-4 space-y-8 bg-surface-100-800-token opacity-75">
 		{#if document.error}
 			<p class="section-wrapper text-lg text-error-500 font-bold p-4">
 				{document.error}
@@ -178,7 +180,7 @@
 		</div>
 		{#if document.annotations && Object.entries(document.annotations).length > 0}
 			{#if loaded}
-				<div class="section-wrapper p-4 text-center">
+				<div class="section-wrapper p-4 text-center hidden md:block">
 					<div use:chart={options} />
 				</div>
 			{/if}

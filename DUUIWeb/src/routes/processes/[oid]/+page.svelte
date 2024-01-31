@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
-	import { getTotalDuration, type DUUIDocument, IO } from '$lib/duui/io.js'
+	import { IO, getTotalDuration, type DUUIDocument } from '$lib/duui/io.js'
 	import { Status, isActive } from '$lib/duui/monitor.js'
 	import { processToSeachParams } from '$lib/duui/process.js'
 	import { equals, formatFileSize, progresAsPercent, snakeToTitleCase } from '$lib/duui/utils/text'
@@ -21,6 +21,7 @@
 		faCancel,
 		faClockRotateLeft,
 		faCopy,
+		faFilter,
 		faListCheck,
 		faRefresh,
 		faSearch,
@@ -39,9 +40,10 @@
 	import Search from '$lib/svelte/widgets/input/Search.svelte'
 	import Select from '$lib/svelte/widgets/input/Select.svelte'
 	import Paginator from '$lib/svelte/widgets/navigation/Paginator.svelte'
+	import { showModal } from '$lib/utils/modal'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
-	import { showModal } from '$lib/utils/modal'
+	import ButtonMenu from '$lib/svelte/widgets/navigation/ButtonMenu.svelte'
 
 	export let data
 	const toastStore = getToastStore()
@@ -50,11 +52,11 @@
 
 	let progressPercent: number = 0
 
-	let tableHeader: string[] = ['Path', 'Progress', 'Status', 'File Size', 'Duration']
+	let tableHeader: string[] = ['Name', 'Progress', 'Status', 'File Size', 'Duration']
 
 	let paginationSettings: PaginationSettings = {
 		page: 0,
-		limit: 10,
+		limit: 20,
 		total: count,
 		sizes: [5, 10, 20, 50]
 	}
@@ -138,7 +140,7 @@
 		})
 		if (response.ok) {
 			toastStore.trigger(infoToast('Process has been deleted'))
-			goto(`/pipelines/${pipeline.oid}`)
+			goto(`/pipelines/${pipeline.oid}?tab=1`)
 		}
 	}
 
@@ -211,7 +213,7 @@
 </script>
 
 <div class="menu-mobile">
-	<a class="button-mobile" href={`/pipelines/${pipeline.oid}`}>
+	<a class="button-mobile" href={`/pipelines/${pipeline.oid}?tab=1`}>
 		<Fa icon={faArrowLeft} />
 		<span>Pipeline</span>
 	</a>
@@ -230,6 +232,15 @@
 			<span>Cancel</span>
 		</button>
 	{/if}
+	<Select
+		style="button-mobile hover:!bg-transparent border-0 !flex-col-reverse"
+		label="Status"
+		name="status-mobile"
+		icon={faFilter}
+		on:change={updateTable}
+		bind:selected={filter}
+		options={documentStatusNames}
+	/>
 </div>
 
 <div>
@@ -238,7 +249,7 @@
 			class="sticky top-0 bg-surface-50-900-token border-y p-4 border-color hidden md:block z-10"
 		>
 			<div class="grid grid-cols-3 md:flex items-center md:justify-start gap-4 relative">
-				<a class="button-primary" href={`/pipelines/${pipeline.oid}`}>
+				<a class="button-primary" href={`/pipelines/${pipeline.oid}?tab=1`}>
 					<Fa icon={faArrowLeft} />
 					<span>Back</span>
 				</a>
@@ -259,29 +270,31 @@
 				{/if}
 			</div>
 		</div>
-		<div class="p-4 space-y-4">
-			<div class="flex items-center gap-4">
-				<Fa
-					size="lg"
-					icon={getStatusIcon(process.status)}
-					class={equals(process.status, Status.Active) ? 'animate-spin-slow ' : ''}
-				/>
-				<p>
-					{process.status}
-				</p>
-			</div>
-			<div class="flex items-center gap-4">
-				<Fa icon={faListCheck} size="lg" />
-				<p>
-					{process.progress} / {process.document_names.length} ({progresAsPercent(
-						process.progress,
-						process.document_names.length
-					)}%)
-				</p>
-			</div>
-			<div class="flex items-center gap-4">
-				<Fa icon={faClockRotateLeft} size="lg" />
-				<p>{getDuration(process.started_at, process.finished_at)}</p>
+		<div class="p-4 py-8 space-y-4">
+			<div class="mx-auto grid md:flex items-center gap-8 justify-center h3">
+				<div class="flex items-center gap-4">
+					<Fa
+						size="lg"
+						icon={getStatusIcon(process.status)}
+						class={equals(process.status, Status.Active) ? 'animate-spin-slow ' : ''}
+					/>
+					<p>
+						{process.status}
+					</p>
+				</div>
+				<div class="flex items-center gap-4">
+					<Fa icon={faListCheck} size="lg" />
+					<p>
+						{process.progress} / {process.document_names.length} ({progresAsPercent(
+							process.progress,
+							process.document_names.length
+						)}%)
+					</p>
+				</div>
+				<div class="flex items-center gap-4">
+					<Fa icon={faClockRotateLeft} size="lg" />
+					<p>{getDuration(process.started_at, process.finished_at)}</p>
+				</div>
 			</div>
 			{#if process.error}
 				<p class="text-error-500 font-bold p-2 md:max-w-[60ch] max-w-[40ch]">
@@ -289,7 +302,7 @@
 				</p>
 			{/if}
 			<div>
-				<div class=" md:text-base flex items-end">
+				<div class="md:text-base flex items-end">
 					<div
 						class="hidden ml-auto md:flex overflow-hidden justify-between section-wrapper !shadow-none !border-b-0 !rounded-b-none z-10"
 					>
@@ -353,16 +366,11 @@
 							grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 p-3 px-4 text-left items-center"
 								on:click={() => showDocumentModal(document)}
 							>
-								{#if process.input.provider === IO.File}
-									<p>{document.path.split(process.input.path.replace('\\', '/') + '/').at(-1)}</p>
-								{:else}
-									<p>{document.path}</p>
-								{/if}
-								<div class="md:flex items-center justify-start md:gap-4">
+								<p>{document.name}</p>
+								<div class="md:flex items-center justify-start md:gap-4 text-center">
 									<p>
 										{Math.round((Math.min(document.progress, maxProgress) / maxProgress) * 100)} %
 									</p>
-									<p>{Math.min(document.progress, maxProgress)} / {maxProgress}</p>
 								</div>
 								<p class="flex justify-start items-center gap-2 md:gap-4">
 									<Fa
@@ -389,7 +397,7 @@
 				<div class="max-w-md gap-4">
 					{#if process.pipeline_status}
 						<div class="space-y-4">
-							<h2 class="h2 mb-8">Pipeline Status</h2>
+							<h2 class="h3 mb-8">Pipeline Status</h2>
 							{#each Object.entries(process.pipeline_status) as [key, status]}
 								{#if key.endsWith('Driver')}
 									<div class="input-wrapper p-4 grid grid-cols-[1fr_1fr] gap-2">

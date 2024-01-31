@@ -127,9 +127,6 @@ public class Main {
         );
 
         before((request, response) -> {
-            if (!request.ip().equalsIgnoreCase("192.168.2.122")) {
-                halt(403, "Access Forbidden");
-            }
             if (!request.url().endsWith("metrics")) {
                 metrics.get("http_requests_in_progress").incrementAndGet();
             }

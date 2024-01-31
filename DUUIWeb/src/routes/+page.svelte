@@ -1,7 +1,6 @@
 <script lang="ts">
 	import Feature from '$lib/svelte/Feature.svelte'
 	import {
-		faArrowRight,
 		faArrowUpRightFromSquare,
 		faArrowsAlt,
 		faCheck,
@@ -11,14 +10,17 @@
 		faUserGroup
 	} from '@fortawesome/free-solid-svg-icons'
 
+	import { goto } from '$app/navigation'
+	import Logo from '$lib/assets/Logo.svg'
 	import { scrollIntoView } from '$lib/duui/utils/ui'
 	import { userSession } from '$lib/store'
+	import Link from '$lib/svelte/Link.svelte'
 	import { faAmazon, faDropbox, faGithub, faXTwitter } from '@fortawesome/free-brands-svg-icons'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
-	import Link from '$lib/svelte/Link.svelte'
-	import Logo from '$lib/assets/Logo.svg'
-	import { goto } from '$app/navigation'
+
+	import Pipeline from '$lib/assets/Screenshots/Pipeline.png'
+	import PipelineDark from '$lib/assets/Screenshots/Pipeline-Dark.png'
 
 	const logout = async () => {
 		const response = await fetch('/account/logout', { method: 'PUT' })
@@ -44,14 +46,10 @@
 	<div
 		class="text-center flex flex-col items-center bg-surface-200/30 dark:bg-surface-500/80 isolate"
 	>
-		<div
-			class="grid justify-center mx-auto text-center gap-4 p-8 md:my-12 container relative items-start max-w-7xl"
-		>
+		<div class="text-center p-8 md:my-12 self-stretch">
 			<div class="space-y-8 md:space-y-16 2xl:my-8 flex flex-col items-center">
 				<div class="space-y-2">
-					<p class="text-surface-500 dark:text-surface-200 text-lg md:text-xl font-thin mx-auto">
-						Natural Language Processing
-					</p>
+					<p class="text-lg md:text-xl py-4 mx-auto">Natural Language Processing</p>
 					<h1 class="text-3xl md:text-6xl font-bold !mb-8">Docker Unified UIMA Interface</h1>
 					<p class="max-w-[60ch] mx-auto dimmed md:text-lg font-medium">
 						A scalable, flexible, lightweight and feature rich NLP framework for automated and
@@ -59,50 +57,55 @@
 					</p>
 				</div>
 
-				<div class="grid grid-cols-2 gap-4">
+				<div class="grid grid-cols-2 gap-4 md:text-lg">
 					{#if $userSession === undefined}
-						<a href="/account/register" class="px-6 py-3 grow-from-left">
+						<a href="/account/register" class="px-6 md:px-12 py-3 md:py-4 grow-from-left">
 							<span> Get Started </span>
 						</a>
 					{:else}
-						<a href="/pipelines" class="px-6 py-3 grow-from-left">
+						<a href="/pipelines" class="px-6 md:px-12 py-3 md:py-4 grow-from-left">
 							<span> Get back to it </span>
 						</a>
 					{/if}
-					<a href="/documentation" class="px-6 py-3 variant-ghost-primary rounded-full">
+					<a
+						href="/documentation"
+						class="px-6 md:px-12 py-3 md:py-4 variant-ghost-primary rounded-full"
+					>
 						<span> Documentation </span>
 					</a>
 				</div>
 			</div>
 		</div>
+		<!-- <div class="max-w-[50%] pb-16 hidden lg:block">
+			<img src={Pipeline} alt="" class="dark:hidden block"/>
+			<img src={PipelineDark} alt="" class="hidden dark:block"/>
+		</div> -->
 
-		<section class="bg-white dark:bg-surface-900/50 w-screen lg:py-16">
-			<div class="container mx-auto p-4 md:py-8 gap-4 grid md:grid-cols-3 items-start max-w-7xl">
+		<section class="bg-surface-50-900-token w-screen py-4 lg:py-16 border-y-2 border-color">
+			<div
+				class="container mx-auto p-4 py-16 gap-12 md:gap-4 grid md:grid-cols-3 items-start isolate"
+			>
 				<Feature
 					icon={faUserGroup}
 					title="Accessible"
 					content="DUUI is a lightweight framework for running NLP routines. No extensive knowledge about computer science and programming is required."
 				/>
-				<div class="md:hidden">
-					<hr class="hr" />
-				</div>
 				<Feature
 					icon={faRecycle}
 					title="Reproducible"
 					content="Each pipeline component is fully serializable and annotates each processed document. All performed annotations, including analysis engines, models and settings can be fully reconstructed."
 				/>
-				<div class="md:hidden">
-					<hr class="hr" />
-				</div>
-
 				<Feature
 					icon={faArrowsAlt}
 					title="Scalable"
 					content="DUUI guarantees horizontal and vertical via a native Docker Swarm implementation. Docker enables machine-specific resource management."
 				/>
 			</div>
+			<p class="mx-auto md:text-lg max-w-[75ch]">
+				Docker Unified UIMA Interface is designed in a modular way...
+			</p>
 		</section>
-		<div class=" w-screen relative overflow-hidden">
+		<div class="w-screen relative overflow-hidden">
 			<div class="container max-w-7xl mx-auto space-y-8 my-8">
 				<section
 					class="flex flex-col md:flex-row gap-4 p-4 md:py-8 items-center text-left justify-between mx-auto"

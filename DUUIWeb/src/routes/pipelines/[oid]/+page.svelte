@@ -5,6 +5,7 @@
 		faArrowDownWideShort,
 		faArrowLeft,
 		faArrowUpWideShort,
+		faEllipsisV,
 		faFileCircleCheck,
 		faFileClipboard,
 		faFileExport,
@@ -50,6 +51,7 @@
 	import { getToastStore, Tab, TabGroup } from '@skeletonlabs/skeleton'
 	import type { PageServerData } from './$types'
 
+	import ButtonMenu from '$lib/svelte/widgets/navigation/ButtonMenu.svelte'
 	import { showModal } from '$lib/utils/modal'
 	import { onMount } from 'svelte'
 	import {
@@ -96,7 +98,7 @@
 
 	let paginationSettings: PaginationSettings = {
 		page: 0,
-		limit: 10,
+		limit: 20,
 		total: count,
 		sizes: [5, 10, 20, 50]
 	}
@@ -260,6 +262,7 @@
 		} else {
 			filter = filter.filter((status) => !equals(status, Status.Any))
 		}
+		console.log(filter)
 
 		const response = await fetch(
 			`/api/processes/batch
@@ -367,6 +370,18 @@
 				$currentPipelineStore.status === Status.Setup ||
 				$currentPipelineStore.status === Status.Shutdown
 		}
+
+		switch (tabSet) {
+			case 0:
+				$page.url.searchParams.set('tab', '0')
+				break
+			case 1:
+				$page.url.searchParams.set('tab', '1')
+				break
+			case 2:
+				$page.url.searchParams.set('tab', '2')
+				break
+		}
 	}
 </script>
 
@@ -375,10 +390,10 @@
 </svelte:head>
 
 <div class="menu-mobile-lg">
-	<button class="button-mobile" on:click={copyPipeline}>
-		<Fa icon={faFileClipboard} />
-		<span>Copy</span>
-	</button>
+	<a href="/pipelines" class="button-mobile">
+		<Fa icon={faArrowLeft} />
+		<span>Pipelines</span>
+	</a>
 
 	{#if $currentPipelineStore.user_id !== null}
 		<a
@@ -388,21 +403,7 @@
 			<Fa icon={faPlus} />
 			<span>Process</span>
 		</a>
-		<!-- <button class="button-mobile" on:click={exportPipeline}>
-			<Fa icon={faFileExport} />
-			<span>Export</span>
-		</button> -->
 	{/if}
-
-	<button class="button-mobile" on:click={manageService} disabled={isInstantiating}>
-		{#if isInstantiating}
-			<Fa icon={faRotate} spin />
-			<span>Waiting</span>
-		{:else}
-			<Fa icon={$currentPipelineStore.status === Status.Idle ? faPause : faPlay} />
-			<span>{$currentPipelineStore.status === Status.Inactive ? 'Instantiate' : 'Shutdown'}</span>
-		{/if}
-	</button>
 
 	<button class="button-mobile" on:click={updatePipeline}>
 		<Fa icon={faFileCircleCheck} />
@@ -413,6 +414,26 @@
 		<Fa icon={faTrash} />
 		<span>Delete</span>
 	</button>
+
+	<ButtonMenu>
+		<button class="button" on:click={copyPipeline}>
+			<Fa icon={faFileClipboard} />
+			<span>Copy</span>
+		</button>
+		<button class="button" on:click={exportPipeline}>
+			<Fa icon={faFileExport} />
+			<span>Export</span>
+		</button>
+		<button class="button" on:click={manageService} disabled={isInstantiating}>
+			{#if isInstantiating}
+				<Fa icon={faRotate} spin />
+				<span>Waiting</span>
+			{:else}
+				<Fa icon={$currentPipelineStore.status === Status.Idle ? faPause : faPlay} />
+				<span>{$currentPipelineStore.status === Status.Inactive ? 'Instantiate' : 'Shutdown'}</span>
+			{/if}
+		</button>
+	</ButtonMenu>
 </div>
 
 <div class="h-full">
@@ -537,13 +558,6 @@
 						>
 							{#each $currentPipelineStore.components as component (component.id)}
 								<div animate:flip={{ duration: 300 }} class="relative">
-									{#if component.index < $currentPipelineStore.components.length - 1}
-										<div
-											class="absolute bg-surface-200-700-token flex items-center justify-center
-											left-1/2 -translate-x-1/2 top-full w-2 h-full pointer-events-none
-											"
-										/>
-									{/if}
 									<PipelineComponent
 										{component}
 										cloneable={true}
@@ -594,7 +608,7 @@
 						<div class=" overflow-hidden flex flex-col border-b border-color">
 							{#each sortedProcessses as process}
 								<a
-									href={`/processes/${process.oid}?limit=10&skip=0`}
+									href={`/processes/${process.oid}?limit=20&skip=0`}
 									class="rounded-none first:border-t-0 border-t-[1px]
 						 dark:border-t-surface-500 dark:hover:variant-soft-primary hover:variant-filled-primary
 						 grid-cols-3 grid md:grid-cols-4 lg:grid-cols-6 gap-8 p-3 px-4 text-left text-xs md:text-sm"

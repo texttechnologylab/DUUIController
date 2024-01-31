@@ -48,7 +48,7 @@ interface UserConnections {
 
 type PaginationSettings = {
 	page: number = 0
-	limit: number = 10
+	limit: number = 20
 	total: number
 	sizes: number[] = [5, 10, 20, 50]
 }

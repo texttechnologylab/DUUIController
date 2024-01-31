@@ -2,7 +2,14 @@
 	import { DUUIDrivers, type DUUIComponent } from '$lib/duui/component'
 	import { errorToast, successToast } from '$lib/duui/utils/ui'
 	import { currentPipelineStore } from '$lib/store'
-	import { faCancel, faFileCircleCheck, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons'
+	import {
+		faAngleDoubleRight,
+		faCancel,
+		faClose,
+		faFileCircleCheck,
+		faPlus,
+		faTrash
+	} from '@fortawesome/free-solid-svg-icons'
 	import {
 		getDrawerStore,
 		getModalStore,
@@ -20,6 +27,7 @@
 	import TextArea from './input/TextArea.svelte'
 	import TextInput from './input/TextInput.svelte'
 	import { showModal } from '$lib/utils/modal'
+	import DriverIcon from '../DriverIcon.svelte'
 	const { cloneDeep } = pkg
 
 	const drawerStore = getDrawerStore()
@@ -144,7 +152,11 @@
 	}
 </script>
 
-<div class="menu-mobile">
+<div class="menu-mobile lg:!max-w-[50%]">
+	<button class="button-mobile" on:click={drawerStore.close}>
+		<Fa icon={faAngleDoubleRight} size="lg" />
+		<span>Close</span>
+	</button>
 	{#if creating}
 		<button
 			disabled={!component.driver || !component.name || !component.target}
@@ -182,7 +194,18 @@
 	<div
 		class="p-4 flex items-center gap-4 justify-between sticky top-0 z-10 bg-surface-100-800-token border-b border-color"
 	>
-		<h3 class="h3">{component.name}</h3>
+		<div class="flex items-center gap-4">
+			<button
+				class="hidden md:flex rounded-full variant-soft-surface p-3 aspect-square items-center"
+				on:click={drawerStore.close}
+			>
+				<Fa icon={faAngleDoubleRight} size="lg" />
+			</button>
+			<div class="flex items-center gap-4">
+				<DriverIcon driver={component.driver} />
+				<h3 class="h3">{component.name}</h3>
+			</div>
+		</div>
 
 		<div class="hidden md:block space-x-2">
 			{#if creating}

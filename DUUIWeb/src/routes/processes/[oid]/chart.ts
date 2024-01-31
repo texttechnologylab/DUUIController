@@ -9,7 +9,10 @@ const gridSettings = {
 }
 
 export const getAnnotationsPlotOptions = (document: DUUIDocument) => {
+	if (!document.annotations) return {}
+	
 	const annotations: Map<string, number> = new Map(Object.entries(document.annotations))
+
 
 	return {
 		series: [

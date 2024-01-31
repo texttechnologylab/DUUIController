@@ -35,7 +35,7 @@
 	})
 </script>
 
-<aside class="space-y-4 z-50">
+<aside class="space-y-4 z-50 bg-surface-50-900-token h-full">
 	<div class="p-4 sticky top-0 bg-surface-50-900-token flex items-center justify-between shadow-lg">
 		<button class="btn-icon" on:click={() => drawerStore.close()}>
 			<Fa icon={faBars} size="lg" />

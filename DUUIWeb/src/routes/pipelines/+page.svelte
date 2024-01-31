@@ -14,7 +14,7 @@
 	import { page } from '$app/stores'
 	import { DUUIDrivers, type DUUIDriver } from '$lib/duui/component'
 	import { usedDrivers } from '$lib/duui/pipeline'
-
+	import ButtonMenu from '$lib/svelte/widgets/navigation/ButtonMenu.svelte'
 	import { userSession } from '$lib/store.js'
 	import PipelineCard from '$lib/svelte/widgets/duui/PipelineCard.svelte'
 	import Dropdown from '$lib/svelte/widgets/input/Dropdown.svelte'
@@ -123,35 +123,16 @@
 			<div class="flex flex-col justify-center items-center">
 				<div class="section-wrapper p-8 space-y-8">
 					<h1 class="h2 font-bold">Your personal Pipeline collection</h1>
-					{#if $userSession?.preferences.tutorial && $userSession.preferences.step === 1}
-						<p>
-							In the future you will find all your Pipelines here. Everytime you want to start an
-							analysis process, update, or delete something, come back here.
-						</p>
-						<div class="flex justify-end">
-							<a
-								class="button-primary"
-								href="/pipelines/editor"
-								on:click={() => {
-									updateUser({ 'preferences.step': 2 })
-									$userSession.preferences.step = 2
-								}}
-							>
-								Continue
-								<Fa icon={faArrowRight} />
-							</a>
-						</div>
-					{:else}
-						<div>
-							<p>After you create a Pipeline, you will find it here.</p>
-						</div>
-						<div class="flex justify-end">
-							<a class="button-primary" href="/pipelines/editor">
-								New
-								<Fa icon={faArrowRight} />
-							</a>
-						</div>
-					{/if}
+
+					<div>
+						<p>After you create a Pipeline, you will find it here.</p>
+					</div>
+					<div class="flex justify-end">
+						<a class="button-primary" href="/pipelines/editor">
+							New
+							<Fa icon={faArrowRight} />
+						</a>
+					</div>
 
 					<!-- <div class="grid grid-cols-2 gap-4 p"> -->
 

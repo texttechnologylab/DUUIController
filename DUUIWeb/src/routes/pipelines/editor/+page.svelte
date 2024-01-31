@@ -219,7 +219,7 @@
 		<span>{step === 0 ? 'Back to Dashboard' : step === 1 ? 'Back' : 'Settings'}</span>
 	</button>
 	{#if user?.role === 'Admin' && step === 2 && $currentPipelineStore.components.length !== 0}
-		<button class="col-span-2 button-success md:ml-auto row-start-2" on:click={uploadPipeline}>
+		<button class="button-mobile" on:click={uploadPipeline}>
 			<Fa icon={faUpload} />
 			<span>Publish as Template</span>
 		</button>
@@ -308,15 +308,6 @@
 							{/each}
 						</div>
 					</button>
-					{#if $userSession?.preferences.tutorial && $userSession.preferences.step === 2}
-						<div class="card-fancy text-left grid items-start min-h-[300px]">
-							<p>You have two options now:</p>
-							<p>
-								Create a pipeline from scratch or chose a template to start from. You can also just
-								create a copy of the pipeline
-							</p>
-						</div>
-					{/if}
 				</div>
 				<hr class="hr !my-16" />
 				<div class="space-y-4">
@@ -338,7 +329,7 @@
 							/>
 						</div>
 					</div>
-					<div class="grid gap-4 md:gap-8 md:grid-cols-2 xl:grid-cols-3">
+					<div id="templates" class="grid gap-4 md:gap-8 md:grid-cols-2 xl:grid-cols-3">
 						{#each filteredTemplatePipelines as pipeline}
 							<button
 								class="card-fancy text-left grid min-h-[300px] items-start"
@@ -394,13 +385,6 @@
 					>
 						{#each $currentPipelineStore.components as component (component.id)}
 							<div animate:flip={{ duration: flipDurationMs }} class="relative">
-								{#if component.index < $currentPipelineStore.components.length - 1}
-									<div
-										class="absolute bg-surface-200-700-token flex items-center justify-center
-											left-1/2 -translate-x-1/2 top-full w-2 h-full pointer-events-none
-											"
-									/>
-								{/if}
 								<PipelineComponent
 									{component}
 									inEditor={true}
@@ -423,7 +407,7 @@
 					<div class="flex flex-col items-center gap-8">
 						<p class="text-center">Or choose a template</p>
 						<a
-							href="/pipelines/editor#templates"
+							href="/pipelines/editor#component-templates"
 							class="flex justify-center text-center transition-colors duration-300 text-surface-400 hover:text-primary-500"
 						>
 							<Fa icon={faArrowDown} size="3x" />
@@ -431,7 +415,7 @@
 					</div>
 				</div>
 				<hr class="hr !my-16" />
-				<div id="templates" class="scroll-mt-8 md:scroll-mt-24">
+				<div id="component-templates" class="scroll-mt-8 md:scroll-mt-24">
 					<ComponentTemplates
 						components={templateComponents}
 						on:select={(event) => addTemplate(event.detail.component)}

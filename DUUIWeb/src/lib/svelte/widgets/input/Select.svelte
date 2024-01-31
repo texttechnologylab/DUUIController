@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { faCheck, faChevronDown } from '@fortawesome/free-solid-svg-icons'
+	import { faCheck, faChevronDown, type IconDefinition } from '@fortawesome/free-solid-svg-icons'
 	import { ListBox, ListBoxItem, popup, type PopupSettings } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
 
@@ -16,6 +16,7 @@
 	export let style: string = 'input-wrapper'
 	export let rounded: string = 'rounded-md'
 	export let border: string = 'border'
+	export let icon: IconDefinition = faChevronDown
 
 	const columns: number = Math.floor(options.length / rows)
 
@@ -35,7 +36,7 @@
 	use:popup={menu}
 >
 	<span class="grow text-left">{label}</span>
-	<Fa icon={faChevronDown} />
+	<Fa {icon} />
 </button>
 
 <div class="popup-solid  z-50" data-popup={name}>

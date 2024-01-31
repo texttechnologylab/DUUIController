@@ -34,8 +34,10 @@ p {
 }
 
 #sidebar-right {
-	@apply border-l border-color shadow-lg scroll-smooth;
+	@apply border-l-2 border-color shadow-lg scroll-smooth;
 }
+
+
 
 .page-wrapper {
 	@apply p-4 space-y-8 md:px-8 z-[10];
@@ -132,7 +134,7 @@ p {
 }
 
 .button {
-	@apply btn max-h-[64px] md:max-h-none rounded-md py-3 gap-2;
+	@apply btn max-h-[64px] md:max-h-none rounded-md py-3 gap-2 justify-start items-center;
 }
 
 .button-primary {
@@ -152,7 +154,7 @@ p {
 }
 
 .button-modal {
-	@apply !px-8 !py-3 !font-bold !rounded-md;
+	@apply !px-8 !py-3 !font-bold !rounded-md !text-center !justify-center;
 }
 
 .button-mobile {
@@ -160,11 +162,11 @@ p {
 }
 
 .menu-mobile {
-	@apply flex justify-center md:hidden fixed bottom-0 z-10 border-t border-color w-full bg-surface-50-900-token;
+	@apply grid grid grid-flow-col md:hidden fixed bottom-0 z-10 border-t border-color w-full bg-surface-50-900-token;
 }
 
 .menu-mobile-lg {
-	@apply flex justify-center lg:hidden fixed bottom-0 z-10 border-t border-color w-full bg-surface-50-900-token;
+	@apply grid grid-flow-col lg:hidden fixed bottom-0 z-10 border-t border-color w-full bg-surface-50-900-token;
 }
 
 ::-webkit-scrollbar {

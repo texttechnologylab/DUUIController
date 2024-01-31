@@ -2,14 +2,14 @@
 	import DriverIcon from '$lib/svelte/DriverIcon.svelte'
 
 	import pkg from 'lodash'
-	const { cloneDeep, isEqual } = pkg
+	const { cloneDeep } = pkg
 
 	import { type DUUIComponent } from '$lib/duui/component'
 	import { slugify } from '$lib/duui/utils/text'
 	import { faClone, faEdit } from '@fortawesome/free-solid-svg-icons'
 	import { getDrawerStore, type DrawerSettings } from '@skeletonlabs/skeleton'
-	import Fa from 'svelte-fa'
 	import { createEventDispatcher } from 'svelte'
+	import Fa from 'svelte-fa'
 
 	export let component: DUUIComponent
 
@@ -21,7 +21,7 @@
 	const drawerStore = getDrawerStore()
 	const drawer: DrawerSettings = {
 		id: 'component',
-		width: 'w-full sm:w-1/2',
+		width: 'w-full lg:w-3/4',
 		position: 'right',
 		rounded: 'rounded-none',
 		meta: { component: component, inEditor: inEditor }

@@ -12,9 +12,9 @@
 	export let value: string | number
 
 	export let icon: IconDefinition = faChevronDown
-	export let placement: Placement = 'bottom-end'
+	export let placement: Placement = 'bottom-start'
 
-	export let offset: number = 4
+	export let offset: number = 8 
 
 	export let style: string = 'input-wrapper'
 	export let rounded: string = 'rounded-md'

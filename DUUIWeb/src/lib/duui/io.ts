@@ -79,6 +79,8 @@ export const isValidInput = (input: DUUIDocumentProvider, files: FileList): bool
 		return isValidS3BucketName(input.path || '').length === 0
 	}
 
+	if (equals(input.provider, IO.Dropbox) && input.path === '/') return false
+
 	return true
 }
 
@@ -92,6 +94,7 @@ export const isValidOutput = (output: DUUIDocumentProvider): boolean => {
 	if (equals(output.provider, IO.Minio)) {
 		return isValidS3BucketName(output.path || '').length === 0
 	}
+	if (equals(output.provider, IO.Dropbox) && output.path === '/') return false
 
 	return true
 }

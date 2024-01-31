@@ -52,7 +52,7 @@
 	let sortBySize: boolean = $page.url.searchParams.get('sort_by_size') === 'true' || false
 	let ignoreErrors: boolean = $page.url.searchParams.get('ignore_errors') === 'true' || false
 	let skipFiles: number = +($page.url.searchParams.get('minimum_size') || '0')
-	let workerCount: number = +($page.url.searchParams.get('worker_count') || '5')
+	let workerCount: number = +($page.url.searchParams.get('worker_count') || '1')
 
 	const pipeline_id: string = $page.url.searchParams.get('pipeline_id') || ''
 	let onCancelURL = $page.url.searchParams.get('from') || `/pipelines/${pipeline_id}`
@@ -157,7 +157,7 @@
 	</button>
 </div>
 
-<div class="h-full">
+<div class="h-full pb-16">
 	<div class="sticky top-0 bg-surface-50-900-token border-y p-4 border-color hidden md:block z-10">
 		<div class="grid grid-cols-2 md:justify-between md:flex items-center gap-4 relative">
 			<button class="button-primary" on:click={() => goto(onCancelURL)}>
@@ -232,7 +232,12 @@
 							bind:value={input.path}
 						/>
 					{:else}
-						<TextInput label="Path" name="inputPath" bind:value={input.path} />
+						<TextInput
+							label="Path"
+							name="inputPath"
+							bind:value={input.path}
+							error={input.path === '/' ? 'Leave the folder empty to select the root folder.' : ''}
+						/>
 					{/if}
 				</div>
 			</div>
@@ -271,9 +276,9 @@
 						/>
 					{:else if equals(output.provider, IO.Dropbox)}
 						<TextInput
-							label="Folder"
+							label="Path"
 							name="output-folder"
-							error={output.path === '' ? 'Path cannot be empty' : ''}
+							error={output.path === '/' ? 'Leave the folder empty to select the root folder.' : ''}
 							bind:value={output.path}
 						/>
 					{/if}

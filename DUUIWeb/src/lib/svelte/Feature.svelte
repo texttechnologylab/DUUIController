@@ -9,14 +9,20 @@
 </script>
 
 <div
-	class="border-surface-400/20
-	p-4 py-8 space-y-4
-	text-center md:text-left {classes}
-	flex flex-col justify-center md:items-start"
+	class="border-color border-2
+	p-4 py-12 space-y-4 relative bg-fancy
+	text-center {classes}
+	flex flex-col justify-start md:items-center md:border-l-2 md:pl-8 self-stretch
+	"
 >
-	<Fa size="4x" {icon} class="text-primary-500 md:max-h-10 md:mb-4 hidden md:block" />
-	<Fa size="2x" {icon} class="text-primary-500 md:max-h-10 md:mb-4 md:hidden block" />
+	<div
+		class="dimmed absolute rounded-full aspect-square p-4 bg-surface-50-900-token
+		border-color border-2 left-1/2 -translate-x-1/2 top-0 -translate-y-1/2"
+	>
+		<Fa size="4x" {icon} class=" md:max-h-10 md:mb-4 hidden md:block" />
+		<Fa size="2x" {icon} class=" md:max-h-10 md:mb-4 md:hidden block" />
+	</div>
 	<h3 class="text-2xl font-bold">{title}</h3>
-	<p class="text-surface-500 dark:text-surface-200">{content}</p>
+	<p class="max-w-[45ch] dimmed">{content}</p>
 	<slot />
 </div>

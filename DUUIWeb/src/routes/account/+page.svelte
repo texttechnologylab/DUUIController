@@ -204,70 +204,6 @@
 	<div class="section-wrapper p-8 space-y-4">
 		<h2 class="h3 font-bold">Profile</h2>
 		<Text label="Name" name="name" bind:value={name} />
-		{#if $userSession && $userSession.preferences.step === 0}
-			<p>Welcome to DUUI-Web!</p>
-
-			<p>
-				Since this is the first time you are here, are you interested in a short tour that explains
-				what you can do?
-			</p>
-			<button
-				class="button-primary"
-				on:click={() => {
-					updateUser({ 'preferences.tutorial': true, 'preferences.step': 0 })
-
-					$userSession.preferences.tutorial = true
-					$userSession.preferences.step = 0
-				}}
-			>
-				Let's go
-			</button>
-		{:else if $userSession && $userSession.preferences.tutorial}
-			<div>
-				<h4 class="h4 mb-4">Alright! Let's get started.</h4>
-				<p>
-					<a class="anchor" href="https://github.com/texttechnologylab/DockerUnifiedUIMAInterface"
-						>DUUI
-					</a>
-					is a Framework for big data analysis of natural language. Analysis is done through so-called
-					<a class="anchor" href="/documentation#pipeline">Pipelines</a> that manage the flow of
-					data through Analysis Engines according to
-					<span class="cursor-pointer underline font-bold" use:popup={popupUIMA}>UIMA</span> standards.
-				</p>
-				<div class="flex gap-4 items-start justify-between mt-8">
-					<p>
-						New things are best learned when done - <br /> so let's focus on creating your first pipeline.
-					</p>
-					<a
-						href="/pipelines"
-						class="button-primary"
-						on:click={() => {
-							updateUser({ 'preferences.step': 1 })
-							$userSession.preferences.step = 1
-						}}
-					>
-						Continue <Fa icon={faArrowRight} /></a
-					>
-				</div>
-			</div>
-		{/if}
-		<!-- <Text disabled label="E-Mail" name="email" bind:value={user.email} /> -->
-		<!-- <Dropdown
-			label="Language"
-			name="language"
-			bind:value={user.preferences.language}
-			options={['English', 'German']}
-		/>
-		<Checkbox
-			label="Show hints when using the editor."
-			name="hints"
-			bind:checked={user.preferences.tutorial}
-		/>
-		<Checkbox
-			label="Enable notifications to get informed when a pipeline is finished."
-			name="notifications"
-			bind:checked={user.preferences.notifications}
-		/> -->
 	</div>
 
 	<div class="space-y-4">
@@ -336,7 +272,7 @@
 							<span>Create files and folders in your <strong>Dropbox Account</strong> </span>
 						</p>
 					</div>
-					<div class="flex justify-between">
+					<div class="grid md:flex justify-between gap-4">
 						<button class="button-primary" on:click={startDropboxOauth}>
 							<Fa icon={faLink} />
 							<span>Reconnect</span>
@@ -394,7 +330,7 @@
 				<Secret label="Username (Access Key)" name="accessKey" bind:value={minioAccessKey} />
 				<Secret label="Password (Secret Key)" name="secretKey" bind:value={minioSecretKey} />
 			</div>
-			<div class="flex gap-4 justify-between">
+			<div class="grid md:flex justify-between gap-4">
 				<button
 					class="button-primary"
 					disabled={!minioEndpoint || !minioAccessKey || !minioSecretKey}
