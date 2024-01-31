@@ -33,7 +33,10 @@
 	import HelpToggle from '$lib/svelte/widgets/navigation/HelpToggle.svelte'
 	import { storeHighlightJs } from '@skeletonlabs/skeleton'
 	import hljs from 'highlight.js/lib/core'
-	import { default as java, default as xml } from 'highlight.js/lib/languages/java'
+	import java from 'highlight.js/lib/languages/java'
+	import xml from 'highlight.js/lib/languages/xml'
+	import typescript from 'highlight.js/lib/languages/typescript'
+
 	import 'highlight.js/styles/github-dark.css'
 	import ComponentDrawer from '$lib/svelte/widgets/ComponentDrawer.svelte'
 
@@ -52,6 +55,7 @@
 
 	hljs.registerLanguage('java', java)
 	hljs.registerLanguage('xml', xml)
+	hljs.registerLanguage('ts', typescript)
 	storeHighlightJs.set(hljs)
 
 	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow })
@@ -105,7 +109,7 @@
 </Drawer>
 
 <!-- App Shell  -->
-<AppShell class=" dark:bg-surface-700 ">
+<AppShell class="dark:bg-surface-700 ">
 	<svelte:fragment slot="header">
 		<!-- App Bar -->
 		<AppBar shadow="shadow-lg" background="bg-surface-50-900-token z-[100]">

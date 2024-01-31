@@ -88,7 +88,8 @@
 				<a tabindex="-1" class="block mx-auto text-center anchor" href="/account/recover"
 					>Forgot Password?
 				</a>
-				<button on:click={loginUser} class="button-primary button-modal self-center">Sign In</button
+				<button on:click={loginUser} class="variant-filled-primary button-modal self-center"
+					>Sign In</button
 				>
 			</div>
 			<p class="text-center">
@@ -100,8 +101,7 @@
 		<div
 			in:fly={{ x: 300, opacity: 100, duration: 800 }}
 			class="hidden md:flex absolute top-0 w-1/2 transition-all duration-700 ease-in-out h-full
-				   rounded-bl-[10%]
-				   bg-gradient-to-tr from-primary-500 to-primary-600 text-white
+				   rounded-bl-[10%] bg-gradient-to-tr from-primary-500 to-primary-600 text-white
 				   flex-col justify-center items-center gap-16 translate-x-full"
 		>
 			<h2 class="h2 font-bold text-3xl text-center max-w-[15ch]">

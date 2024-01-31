@@ -18,6 +18,7 @@
 			type="text"
 			bind:value={query}
 			on:keydown
+			on:keyup
 			on:focusout
 			{placeholder}
 		/>

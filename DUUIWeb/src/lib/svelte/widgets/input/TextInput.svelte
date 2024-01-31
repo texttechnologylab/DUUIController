@@ -34,7 +34,7 @@
 	</div>
 {/if}
 
-<label class="label flex flex-col {hidden ? 'hidden' : ''} {style}">
+<label class="{label ? 'label' : ''} flex flex-col {hidden ? 'hidden' : ''} {style}">
 	<span class="form-label flex items-center gap-4">{label} </span>
 
 	{#if error}

@@ -56,6 +56,7 @@ public class DUUIPipelineRequestHandler {
     public static String findMany(Request request, Response response) {
         String userID = DUUIRequestHelper.getUserId(request);
         String userRole = DUUIRequestHelper.getUserProps(request, Set.of("role")).getString("role");
+        if (userRole == null) return DUUIRequestHelper.unauthorized(response);
 
         int limit = getLimit(request);
         int skip = getSkip(request);

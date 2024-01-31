@@ -23,6 +23,7 @@ import spark.Response;
 import javax.servlet.MultipartConfigElement;
 import javax.servlet.ServletException;
 import javax.servlet.http.Part;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -406,10 +407,10 @@ public class DUUIProcessController {
                         Updates.set("progress_upload", document.getUploadProgress()),
                         Updates.set("progress_download", document.getDownloadProgress()),
                         Updates.set("started_at", document.getStartedAt()),
-                        Updates.set("annotations", new Document(document.getAnnotations())),
                         Updates.set("finished_at", document.getFinishedAt())
                     ),
-                    new UpdateOptions().upsert(true));
+                    new UpdateOptions().upsert(true)
+                );
         }
     }
 
@@ -661,5 +662,21 @@ public class DUUIProcessController {
         result = facets.get(0);
 
         return result;
+    }
+
+    public static void insertAnnotations(String processId, Set<DUUIDocument> documents) {
+        for (DUUIDocument document : documents) {
+            if (document.getError() != null) continue;
+
+            DUUIMongoDBStorage
+                .Documents()
+                .updateOne(
+                    Filters.and(
+                        Filters.eq("process_id", processId),
+                        Filters.eq("path", document.getPath())
+                    ),
+                    Updates.set("annotations", new Document(document.getAnnotations()))
+                );
+        }
     }
 }

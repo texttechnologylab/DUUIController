@@ -360,6 +360,7 @@ public class DUUIReusableProcessHandler extends Thread implements IDUUIProcessHa
             DUUIProcessController.removeProcess(getProcessID());
             DUUIProcessController.insertEvents(getProcessID(), composer.getEvents());
             DUUIProcessController.updatePipelineStatus(getProcessID(), composer.getPipelineStatus());
+            DUUIProcessController.insertAnnotations(getProcessID(), composer.getDocuments());
         }
 
         process = null;

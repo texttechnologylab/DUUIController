@@ -98,7 +98,6 @@ public class Main {
             metrics.put(entry.getKey(), new AtomicLong(entry.getValue()));
         }
 
-        ipAddress("192.168.2.122");
         port(2605);
 
         options(

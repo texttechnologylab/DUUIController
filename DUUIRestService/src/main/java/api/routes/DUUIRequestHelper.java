@@ -47,7 +47,6 @@ public class DUUIRequestHelper {
                 props.append(existing, user.get(existing));
             }
         }
-
         return props;
     }
 
@@ -83,6 +82,17 @@ public class DUUIRequestHelper {
         String key = request.headers("Authorization");
         if (key == null) return false;
         return validateSession(key) || validateApiKey(key);
+    }
+
+    /**
+     * Return a 401 - Unauthorized Response.
+     *
+     * @param response The response object.
+     * @return a message telling the request origin it's unauthorized to perform the action.
+     */
+    public static String unauthorized(Response response) {
+        response.status(401);
+        return "Unauthorized";
     }
 
     /**
@@ -198,4 +208,6 @@ public class DUUIRequestHelper {
     public static boolean isNullOrEmpty(List<?> list) {
         return list == null || list.isEmpty();
     }
+
+
 }

@@ -11,7 +11,7 @@
 	export let component: DUUIComponent
 </script>
 
-<div class="gap-2 flex flex-col items-start justify-center">
+<div class="gap-4 flex flex-col items-start justify-center">
 	{#if equals(component.driver, DUUIDockerDriver)}
 		<div class="space-y-1">
 			<label for="slider" class="flex items-center">

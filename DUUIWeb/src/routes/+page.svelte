@@ -11,10 +11,6 @@
 		faUserGroup
 	} from '@fortawesome/free-solid-svg-icons'
 
-	import Hosting from '$lib/assets/undraw_cloud_hosting_7xb1.svg'
-	import Futuristic from '$lib/assets/undraw_futuristic_interface_re_0cm6.svg'
-	import Reminder from '$lib/assets/undraw_reminder_re_fe15.svg'
-
 	import { scrollIntoView } from '$lib/duui/utils/ui'
 	import { userSession } from '$lib/store'
 	import { faAmazon, faDropbox, faGithub, faXTwitter } from '@fortawesome/free-brands-svg-icons'
@@ -49,54 +45,34 @@
 		class="text-center flex flex-col items-center bg-surface-200/30 dark:bg-surface-500/80 isolate"
 	>
 		<div
-			class="sm:grid grid-cols-2 sm:text-left gap-4 p-8 md:my-12 container relative items-start max-w-7xl"
+			class="grid justify-center mx-auto text-center gap-4 p-8 md:my-12 container relative items-start max-w-7xl"
 		>
-			<div class="space-y-8 md:space-y-16 2xl:my-8 grid justify-center sm:justify-start">
-				<div class="space-y-4">
-					<p class="text-surface-500 dark:text-surface-200 text-lg md:text-2xl">
+			<div class="space-y-8 md:space-y-16 2xl:my-8 flex flex-col items-center">
+				<div class="space-y-2">
+					<p class="text-surface-500 dark:text-surface-200 text-lg md:text-xl font-thin mx-auto">
 						Natural Language Processing
 					</p>
-					<h1 class="text-3xl md:text-5xl font-bold !my-8 max-w-[20ch]">
-						Accessiblity through Simplicity
-					</h1>
-					<p class="max-w-[45ch] text-surface-400 dark:text-white md:text-lg">
-						<span class="font-bold text-primary-500">Docker Unified UIMA Interface</span>
-						- A scalable, flexible, lightweight and feature rich Framework for automated and distributed
-						analysis of large text corpora.
+					<h1 class="text-3xl md:text-6xl font-bold !mb-8">Docker Unified UIMA Interface</h1>
+					<p class="max-w-[60ch] mx-auto dimmed md:text-lg font-medium">
+						A scalable, flexible, lightweight and feature rich NLP framework for automated and
+						distributed analysis of large text corpora.
 					</p>
 				</div>
 
-				<div class="flex flex-col sm:flex-row gap-4 items-center">
+				<div class="grid grid-cols-2 gap-4">
 					{#if $userSession === undefined}
-						<a href="/account/register" class="flex items-center gap-2 px-6 py-3 grow-from-left">
+						<a href="/account/register" class="px-6 py-3 grow-from-left">
 							<span> Get Started </span>
-							<Fa icon={faArrowRight} size="lg" />
 						</a>
 					{:else}
-						<a href="/pipelines" class="flex items-center gap-2 px-6 py-3 grow-from-left">
+						<a href="/pipelines" class="px-6 py-3 grow-from-left">
 							<span> Get back to it </span>
-							<Fa icon={faArrowRight} size="lg" />
 						</a>
 					{/if}
+					<a href="/documentation" class="px-6 py-3 variant-ghost-primary rounded-full">
+						<span> Documentation </span>
+					</a>
 				</div>
-			</div>
-
-			<div class="h-full relative">
-				<img
-					class="hidden lg:block absolute max-h-full translate-x-1/2 scale-75 xl:scale-100 2xl:translate-x-3/4 translate-y-1/3"
-					src={Hosting}
-					alt=""
-				/>
-				<img
-					class="hidden lg:block absolute max-h-full -translate-x-1/4 2xl:translate-x-0 scale-75 xl:scale-100"
-					src={Futuristic}
-					alt=""
-				/>
-				<img
-					class="hidden sm:block absolute max-h-full lg:translate-x-full 2xl:translate-x-[160%] lg:-translate-y-[20%] scale-75 sm:translate-x-1/4 md:translate-x-0"
-					src={Reminder}
-					alt=""
-				/>
 			</div>
 		</div>
 
@@ -204,7 +180,7 @@
 					<div class="space-y-4 p-4">
 						<h2 class="text-2xl font-bold">Scalability through Containers</h2>
 						<p class="max-w-[50ch] text-surface-500 dark:text-surface-200">
-							Docker and Kubernetes are essential parts of DUUI. 
+							Docker and Kubernetes are essential parts of DUUI.
 						</p>
 					</div>
 				</section>
@@ -214,7 +190,7 @@
 </main>
 
 <footer>
-	<div class="border-t border-surface-400/20 bg-white dark:bg-surface-900/50">
+	<div class="border-t border-surface-400/20 bg-surface-50-900-token">
 		<div
 			class="relative
 		 lg:after:visible after:invisible after:absolute after:w-[2px] after:h-full after:scale-y-[80%] after:bg-surface-400/20 after:left-1/2 after:top-0 after:rounded-full
@@ -259,17 +235,17 @@
 					   text-center md:text-left"
 			>
 				<div class="flex flex-col gap-2 justify-center items-center">
-					<p class="text-black dark:text-surface-100 font-bold md:mb-4">Pipelines</p>
+					<p class="text-surface-700-200-token font-bold md:mb-4">Pipelines</p>
 					<Link href="/pipelines" dimmed={true}>Dashboard</Link>
 					<Link href="/pipelines/editor" dimmed={true}>Editor</Link>
 				</div>
 				<div class="flex flex-col gap-2 justify-center items-center">
-					<p class="text-black dark:text-surface-100 font-bold md:mb-4">Documentation</p>
+					<p class="text-surface-700-200-token font-bold md:mb-4">Documentation</p>
 					<Link href="/documentation" dimmed={true}>Framework</Link>
 					<Link href="/documentation/api" dimmed={true}>API Reference</Link>
 				</div>
 				<div class="flex flex-col gap-2 justify-center items-center">
-					<p class="text-black dark:text-surface-100 font-bold md:mb-4">Account</p>
+					<p class="text-surface-700-200-token font-bold md:mb-4">Account</p>
 					{#if $userSession}
 						<Link href="/account" dimmed={true}>Account</Link>
 

@@ -108,12 +108,12 @@
 <div class="menu-mobile">
 	<a class="button-mobile" href="/pipelines/editor">
 		<Fa icon={faPlus} />
-		<span class="text-xs md:text-base">Editor</span>
+		<span>New</span>
 	</a>
 
 	<button class="button-mobile" use:popup={mobileFilter}>
 		<Fa icon={searchOpen ? faClose : faFilter} />
-		<span class="text-xs md:text-base">Filter</span>
+		<span>Filter</span>
 	</button>
 </div>
 
@@ -147,7 +147,7 @@
 						</div>
 						<div class="flex justify-end">
 							<a class="button-primary" href="/pipelines/editor">
-								Editor
+								New
 								<Fa icon={faArrowRight} />
 							</a>
 						</div>
@@ -177,7 +177,7 @@
 				<div class="grid md:flex items-center md:justify-between relative gap-4">
 					<a class="button button-primary mr-auto" href="/pipelines/editor">
 						<Fa icon={faPlus} />
-						<span class="text-xs md:text-base">Editor</span>
+						<span class="text-xs md:text-base">New</span>
 					</a>
 					<Dropdown
 						name="driver"
@@ -189,7 +189,7 @@
 					<Search
 						bind:query={searchText}
 						icon={faSearch}
-						placeholder="Search..."
+						placeholder="Search"
 						style="input-wrapper !rounded-none md:!rounded-sm p-4 md:p-3"
 					/>
 				</div>

@@ -18,7 +18,6 @@
 	import { scrollIntoView, successToast } from '$lib/duui/utils/ui'
 	import { currentPipelineStore, userSession } from '$lib/store'
 	import DriverIcon from '$lib/svelte/DriverIcon.svelte'
-	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import PipelineCard from '$lib/svelte/widgets/duui/PipelineCard.svelte'
 	import PipelineComponent from '$lib/svelte/widgets/duui/PipelineComponent.svelte'
 	import Chips from '$lib/svelte/widgets/input/Chips.svelte'
@@ -415,12 +414,10 @@
 						{/each}
 					</ul>
 					<div class="mx-auto flex items-center justify-center">
-						<ActionButton
-							text="Add"
-							icon={faPlus}
-							variant="variant-filled-primary dark:variant-soft-primary"
-							on:click={() => drawerStore.open(drawer)}
-						/>
+						<button class="button-primary" on:click={() => drawerStore.open(drawer)}>
+							<Fa icon={faPlus} />
+							<span>Add</span>
+						</button>
 					</div>
 
 					<div class="flex flex-col items-center gap-8">

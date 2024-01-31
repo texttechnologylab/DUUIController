@@ -44,7 +44,7 @@
 
 	<!-- Tags -->
 	<div class="flex flex-wrap gap-2 self-end">
-		{#each pipeline.tags as tag}
+		{#each pipeline.tags.sort((a, b) => (a < b ? -1 : 1)) as tag}
 			<span class="chip variant-ghost-primary">
 				{tag}
 			</span>

@@ -22,33 +22,31 @@
 			<Fa icon={faClose} scale={1.5} />
 		</button>
 	</div>
-	<div class=" space-y-8">
-		<div class="p-8">
-			<p>{message}</p>
-		</div>
-		<div class="p-4 px-8 border-t border-color grid grid-cols-2 items-center gap-4 justify-end">
-			<button
-				class="button-error button-modal"
-				on:click={() => {
-					if ($modalStore[0].response) {
-						$modalStore[0]?.response(true)
-						modalStore.close()
-					}
-				}}
-			>
-				<span>{deleteText}</span>
-			</button>
-			<button
-				class="button-primary button-modal"
-				on:click={() => {
-					if ($modalStore[0].response) {
-						$modalStore[0]?.response(false)
-						modalStore.close()
-					}
-				}}
-			>
-				<span>Cancel</span>
-			</button>
-		</div>
+	<div class="p-8">
+		<p>{message}</p>
+	</div>
+	<div class="p-4 px-8 grid grid-cols-2 items-center gap-4 justify-end">
+		<button
+			class="button-error button-modal"
+			on:click={() => {
+				if ($modalStore[0].response) {
+					$modalStore[0]?.response(true)
+					modalStore.close()
+				}
+			}}
+		>
+			<span>{deleteText}</span>
+		</button>
+		<button
+			class="button-primary button-modal"
+			on:click={() => {
+				if ($modalStore[0].response) {
+					$modalStore[0]?.response(false)
+					modalStore.close()
+				}
+			}}
+		>
+			<span>Cancel</span>
+		</button>
 	</div>
 </div>

@@ -21,7 +21,7 @@
 	const drawerStore = getDrawerStore()
 	const drawer: DrawerSettings = {
 		id: 'component',
-		width: 'w-full sm:w-[max(900px,40%)]',
+		width: 'w-full sm:w-1/2',
 		position: 'right',
 		rounded: 'rounded-none',
 		meta: { component: component, inEditor: inEditor }

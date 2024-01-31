@@ -30,7 +30,7 @@ p {
 }
 
 #sidebar-left {
-	@apply border-r border-color shadow-lg;
+	@apply border-r-2 border-color shadow-lg bg-surface-50-900-token;
 }
 
 #sidebar-right {
@@ -55,13 +55,18 @@ p {
 	src: url('/fonts/SpaceGrotesk.ttf');
 }
 
+@font-face {
+	font-family: 'Oxanium';
+	src: url('/fonts/Oxanium.ttf');
+}
+
 :root [data-theme='theme'] {
-	--theme-font-family-base: 'Space Grotesk', sans-serif;
-	--theme-font-family-heading: 'Space Grotesk', sans-serif;
+	--theme-font-family-base: 'Oxanium', sans-serif;
+	--theme-font-family-heading: 'Oxanium', sans-serif;
 }
 
 .section-wrapper {
-	@apply rounded-md border border-surface-200 dark:border-surface-500 shadow-lg overflow-hidden bg-surface-50-900-token;
+	@apply rounded-md border-2 border-surface-200 dark:border-surface-500 shadow-lg overflow-hidden bg-surface-50-900-token;
 }
 
 .section-inner {
@@ -89,7 +94,7 @@ p {
 }
 
 .card-fancy {
-	@apply section-wrapper hover:bg-surface-200/20 p-8 hover:variant-glass space-y-4 transition-colors duration-300;
+	@apply section-wrapper hover:bg-surface-200/20 p-8 hover:variant-glass space-y-4 transition-colors duration-300 hover:border-primary-500;
 }
 
 .popup-solid {
@@ -192,6 +197,10 @@ p {
 
 .input-no-highlight {
 	@apply input-wrapper focus-within:ring-0;
+}
+
+.endpoint {
+	@apply rounded-sm bordered-soft bg-surface-200/20 dark:bg-surface-800;
 }
 
 .sr-only:not(:focus):not(:active) {

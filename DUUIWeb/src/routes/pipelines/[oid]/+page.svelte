@@ -41,7 +41,6 @@
 		successToast
 	} from '$lib/duui/utils/ui'
 	import { currentPipelineStore } from '$lib/store'
-	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import Chips from '$lib/svelte/widgets/input/Chips.svelte'
 	import JsonInput from '$lib/svelte/widgets/input/JsonInput.svelte'
 	import Select from '$lib/svelte/widgets/input/Select.svelte'
@@ -51,7 +50,7 @@
 	import { getToastStore, Tab, TabGroup } from '@skeletonlabs/skeleton'
 	import type { PageServerData } from './$types'
 
-	import lodash from 'lodash'
+	import { showModal } from '$lib/utils/modal'
 	import { onMount } from 'svelte'
 	import {
 		getErrorsPlotOptions,
@@ -59,7 +58,6 @@
 		getStatusPlotOptions,
 		getUsagePlotOptions
 	} from './charts'
-	import { showModal } from '$lib/utils/modal'
 
 	const modalStore = getModalStore()
 	const toastStore = getToastStore()
@@ -287,7 +285,7 @@
 	const drawerStore = getDrawerStore()
 	const addDrawer: DrawerSettings = {
 		id: 'component',
-		width: 'w-full sm:w-[max(900px,40%)]',
+		width: 'w-full sm:w-1/2',
 		position: 'right',
 		rounded: 'rounded-none',
 		meta: {
@@ -304,7 +302,7 @@
 	const cloneComponent = ({ component }) => {
 		drawerStore.open({
 			id: 'component',
-			width: 'w-full sm:w-[max(900px,40%)]',
+			width: 'w-full sm:w-1/2',
 			position: 'right',
 			rounded: 'rounded-none',
 			meta: {
@@ -560,12 +558,10 @@
 							{/each}
 						</ul>
 						<div class="mx-auto flex items-center justify-center">
-							<ActionButton
-								text="Add"
-								icon={faPlus}
-								variant="variant-filled-primary dark:variant-soft-primary"
-								on:click={addComponent}
-							/>
+							<button class="button-primary" on:click={addComponent}>
+								<Fa icon={faPlus} />
+								<span>Add</span>
+							</button>
 						</div>
 					</div>
 				</div>

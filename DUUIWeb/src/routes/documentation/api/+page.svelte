@@ -1,9 +1,14 @@
+<script lang="ts">
+	import Endpoint from '$lib/svelte/Endpoint.svelte'
 
+	export let data
+	const { endpoints } = data
+</script>
 
-<div class="bg-repeat [&_p]:max-w-[70ch] md:text-left gradient py-8">
+<div class="bg-repeat gradient md:text-left py-8">
 	<div class=" max-w-7xl mx-auto space-y-8 p-4">
 		<h1 class="h1 font-bold scroll-mt-4 !mb-16" id="rest">API Reference</h1>
-		<div class="space-y-4 text-justify">
+		<div class="space-y-4 text-start">
 			<h2 class="h2 font-bold pb-4">REST</h2>
 			<div class=" space-y-8">
 				<p>The DUUI REST Api consists of 3 reachable endpoint</p>
@@ -13,24 +18,21 @@
 					{/each}
 				</div>
 			</div>
-			<h3 class="h3 font-bold pb-4 scroll-mt-4" id="pipeline">Pipeline</h3>
-			<p>
-				Lorem ipsum dolor sit amet consectetur adipisicing elit. Ad similique in iusto non iste.
-				Eius quam aut veritatis? Delectus blanditiis ipsa eum reprehenderit ut libero qui laudantium
-				adipisci, numquam cumque.
-			</p>
-			<h3 class="h3 font-bold pb-4 scroll-mt-4" id="component">Component</h3>
-			<p>
-				Lorem ipsum dolor sit amet consectetur adipisicing elit. Ad similique in iusto non iste.
-				Eius quam aut veritatis? Delectus blanditiis ipsa eum reprehenderit ut libero qui laudantium
-				adipisci, numquam cumque.
-			</p>
-			<h3 class="h3 font-bold pb-4 scroll-mt-4" id="process">Process</h3>
-			<p>
-				Lorem ipsum dolor sit amet consectetur adipisicing elit. Ad similique in iusto non iste.
-				Eius quam aut veritatis? Delectus blanditiis ipsa eum reprehenderit ut libero qui laudantium
-				adipisci, numquam cumque.
-			</p>
+			<h3 class="h3 font-bold pt-8 scroll-mt-4" id="pipeline">Pipelines</h3>
+			{#each endpoints.pipelines as endpoint}
+				<Endpoint {endpoint} />
+			{/each}
+
+			<h3 class="h3 font-bold pt-8 scroll-mt-4" id="component">Components</h3>
+			{#each endpoints.components as endpoint}
+				<Endpoint {endpoint} />
+			{/each}
+
+			<h3 class="h3 font-bold pt-8 scroll-mt-4" id="process">Processes</h3>
+
+			{#each endpoints.processes as endpoint}
+				<Endpoint {endpoint} />
+			{/each}
 		</div>
 		<hr class="hr !h-[2px] !my-16" />
 

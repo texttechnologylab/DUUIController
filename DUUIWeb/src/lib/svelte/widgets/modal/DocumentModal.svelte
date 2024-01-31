@@ -1,19 +1,20 @@
 <script lang="ts">
-	import { type DUUIDocument, type DUUIDocumentProvider } from '$lib/duui/io'
+	import { DropboxAppURL } from '$lib/config'
+	import { IO, type DUUIDocument, type DUUIDocumentProvider } from '$lib/duui/io'
 	import type { DUUIProcess } from '$lib/duui/process'
 	import { formatFileSize } from '$lib/duui/utils/text'
 	import { formatMilliseconds } from '$lib/duui/utils/time'
 	import { getStatusIcon, scrollIntoView } from '$lib/duui/utils/ui'
-	import { faCheckDouble, faWarning } from '@fortawesome/free-solid-svg-icons'
+	import { userSession } from '$lib/store'
 	import { getModalStore } from '@skeletonlabs/skeleton'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
+	import { getAnnotationsPlotOptions } from '../../../../routes/processes/[oid]/chart'
 	import Timeline from './Timeline.svelte'
-	import { DropboxAppURL } from '$lib/config'
-	import { userSession } from '$lib/store'
 
 	export let input: DUUIDocumentProvider
 	export let output: DUUIDocumentProvider
+
 	const modalStore = getModalStore()
 
 	let document: DUUIDocument = $modalStore[0].meta.document
@@ -64,77 +65,8 @@
 			}
 		}
 	}
-	let annotations: Map<string, number> = new Map()
 
-	if (document.annotations) {
-		for (let annotation of Object.entries(document.annotations)) {
-			const name: string | undefined = annotation[0].split('.').at(-1)
-			if (!name) continue
-
-			const value: number | undefined = annotation[1]
-			if (!value) continue
-
-			if (annotations.has(name)) {
-				annotations.set(name, annotations.get(name) || 0 + value)
-			} else {
-				annotations.set(name, value)
-			}
-		}
-	}
-
-	let options = {
-		series: Array.from(annotations.values()),
-		chart: {
-			type: 'donut',
-			height: '500px'
-		},
-		title: {
-			text: 'Annotations',
-			align: 'center',
-			offsetX: 0,
-			offsetY: 0,
-			floating: false,
-			style: {
-				fontSize: '32px',
-				fontWeight: 'bold'
-			}
-		},
-		dataLabels: {
-			dropShadow: {
-				blur: 3,
-				opacity: 0.8
-			}
-		},
-		labels: Array.from(annotations.keys()),
-		theme: {
-			monochrome: {
-				enabled: true,
-				color: '#006c98'
-			}
-		},
-		legend: {
-			show: false,
-			position: 'bottom',
-			horizontalAlign: 'left'
-		},
-		plotOptions: {
-			pie: {
-				donut: {
-					labels: {
-						show: true,
-						total: {
-							show: true,
-							formatter: (w) => {
-								return w.globals.seriesTotals.reduce((a, b) => {
-									return a + b
-								})
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+	let options = getAnnotationsPlotOptions(document)
 
 	onMount(() => {
 		scrollIntoView('scroll-top')
@@ -147,21 +79,21 @@
 
 		loadApexCharts()
 	})
+
+	console.log(input)
 </script>
 
-<div class="section-wrapper container max-w-6xl sticky top-0 max-h-[90vh] !overflow-y-auto">
+<div class="section-wrapper w-3/4 sticky top-0 max-h-[90vh] !overflow-y-auto">
 	<div id="scroll-top" />
 	<div
-		class="font-bold text-2xl p-4 border-surface-200 dark:border-surface-500 text-center flex items-center justify-between sticky top-0 z-10 bg-surface-50-900-token"
+		class="font-bold text-2xl p-4 border-surface-200 dark:border-surface-500 flex items-center justify-between sticky top-0 z-10 bg-surface-50-900-token"
 	>
-		<p>{document.name}</p>
-		{#if document.error}
-			<Fa icon={faWarning} size="lg" class="text-error-500" />
-		{:else if document.is_finished}
-			<Fa icon={faCheckDouble} size="lg" class="text-success-500" />
+		{#if input.provider === IO.File}
+			<p>{document.path.split(input.path.replace('\\', '/') + '/').at(-1)}</p>
 		{:else}
-			<Fa icon={getStatusIcon(document.status)} size="lg" />
+			<p>{document.path}</p>
 		{/if}
+		<Fa icon={getStatusIcon(document.status)} size="lg" class="dimmed" />
 	</div>
 
 	<div class="p-4 space-y-8 bg-surface-100-800-token opacity-75">
@@ -244,7 +176,7 @@
 				</p>
 			</div>
 		</div>
-		{#if document.annotations}
+		{#if document.annotations && Object.entries(document.annotations).length > 0}
 			{#if loaded}
 				<div class="section-wrapper p-4 text-center">
 					<div use:chart={options} />
@@ -267,26 +199,6 @@
 			{#if document.events}
 				<Timeline {process} {document} />
 			{/if}
-			<!-- <div class="section-wrapper text-sm">
-				{#each Object.entries(document.annotations) as entry}
-					<div class="grid md:grid-cols-2 border-b border-surface-200 dark:border-surface-500">
-						<div class="bg-fancy flex md:flex-col items-start justify-center gap-2 p-4">
-							<p class="font-bold">Class</p>
-							<p class="">{entry[0].split('.').slice(-1)}</p>
-						</div>
-						<div class="bg-fancy flex md:flex-col items-start justify-center gap-2 p-4">
-							<p class="font-bold">Count</p>
-							<p>{entry[1]}</p>
-						</div>
-						<div
-							class="bg-fancy md:flex flex-col items-start justify-center gap-2 p-4 col-span-2 hidden"
-						>
-							<p class="font-bold">Annotation</p>
-							<p class="">{entry[0]}</p>
-						</div>
-					</div>
-				{/each}
-			</div> -->
 		{/if}
 	</div>
 </div>

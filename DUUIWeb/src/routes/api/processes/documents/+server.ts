@@ -22,7 +22,7 @@ export const GET: RequestHandler = async (event) => {
 	let order: number = searchParams.get('order') === '1' ? 1 : -1
 
 	let text: string = searchParams.get('text') || ''
-	let statusFilters: string = searchParams.get('status') || 'Any'
+	let statusFilters: string = searchParams.get('filter') || 'Any'
 
 	const fetchDocuments = async (): Promise<{
 		documents: DUUIDocument[]
@@ -36,7 +36,7 @@ export const GET: RequestHandler = async (event) => {
 			&sort=${sort}
 			&order=${order}
 			&text=${text}
-			&status=${statusFilters}`,
+			&filter=${statusFilters}`,
 			{
 				method: 'GET',
 				mode: 'cors',

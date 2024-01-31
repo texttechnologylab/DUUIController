@@ -47,8 +47,9 @@
 
 			dispatcher('updated', { ...component })
 			$currentPipelineStore.components[component.index] = component
-			drawerStore.close()
 		}
+
+		drawerStore.close()
 	}
 
 	const onCreate = async () => {
@@ -63,7 +64,6 @@
 		})
 
 		if (response.ok) {
-			drawerStore.close()
 			const result: DUUIComponent = await response.json()
 
 			$currentPipelineStore.components = [
@@ -73,6 +73,7 @@
 		} else {
 			errorToast(response.statusText)
 		}
+		drawerStore.close()
 	}
 
 	const onEdited = async () => {
@@ -87,13 +88,16 @@
 		} else {
 			$currentPipelineStore.components[component.index] = component
 		}
+
+		drawerStore.close()
 	}
 
 	const onRemove = async () => {
 		const confirm = await showModal(
 			{
 				title: 'Remove Component',
-				message: `Are you sure you want to remove ${component.name}?`
+				message: `Are you sure you want to remove ${component.name}?`,
+				deleteText: 'Remove'
 			},
 			'deleteModal',
 			modalStore
@@ -127,7 +131,6 @@
 		if (response.ok) {
 			toastStore.trigger(successToast('Component deleted successfully'))
 
-			drawerStore.close()
 			$currentPipelineStore.components = $currentPipelineStore.components.filter(
 				(c) => c.id !== component.id
 			)
@@ -136,6 +139,8 @@
 		} else {
 			toastStore.trigger(errorToast('Error: ' + response.statusText))
 		}
+
+		drawerStore.close()
 	}
 </script>
 
@@ -208,7 +213,7 @@
 					on:click={() => (inEditor ? onRemove() : onDelete())}
 				>
 					<Fa icon={faTrash} />
-					Delete
+					{inEditor ? 'Remove' : 'Delete'}
 				</button>
 			{/if}
 		</div>

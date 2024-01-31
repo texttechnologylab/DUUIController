@@ -65,11 +65,6 @@
 		<span class="form-label">{label}</span>
 	{/if}
 	<div class=" space-y-4">
-		{#if data.size === 0}
-			<div class="text-sm max-w-[60ch] space-y-4">
-				<p>Click new, then enter both a key and value then press enter or click confirm.</p>
-			</div>
-		{/if}
 		<div class="flex items-center gap-2 mb-4">
 			{#if !edit}
 				<button
@@ -87,7 +82,7 @@
 					</button>
 				{/if}
 			{:else}
-				<div class="grid items-center">
+				<div class="grid gap-1">
 					<div class="flex items-center gap-4">
 						<TextInput
 							bind:value={key}
@@ -126,6 +121,11 @@
 				</div>
 			{/if}
 		</div>
+		{#if data.size === 0}
+			<div class="text-sm max-w-[60ch] space-y-4">
+				<p>Click new, then enter both a key and value then press enter or click confirm.</p>
+			</div>
+		{/if}
 
 		<div class="flex flex-wrap justify-start items-start gap-2">
 			{#each data.entries() as [_key, _value]}

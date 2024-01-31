@@ -49,7 +49,7 @@
 			}}
 		/>
 		<div class={values.length === 0 ? 'hidden' : 'flex flex-wrap gap-2 px-2 pb-2'}>
-			{#each values as value}
+			{#each values.sort((a, b) => (a < b ? -1 : 1)) as value}
 				<div class="flex items-center gap-1 chip variant-ghost-primary">
 					<span>{value}</span>
 					<button class="animate-text" on:click={() => discard(value)}>

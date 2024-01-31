@@ -64,9 +64,9 @@
 					<DriverIcon driver={component.driver} />
 				</div>
 				<p>{component.description}</p>
-				<div class="flex flex-wrap gap-2 items-start">
-					{#each component.tags as tag}
-						<span class="chip variant-glass-primary">
+				<div class="flex flex-wrap gap-2 self-end">
+					{#each component.tags.sort((a, b) => (a < b ? -1 : 1)) as tag}
+						<span class="chip variant-ghost-primary">
 							{tag}
 						</span>
 					{/each}

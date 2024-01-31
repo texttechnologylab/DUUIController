@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { successToast } from '$lib/duui/utils/ui.js'
-	import { showModal } from '$lib/utils/modal.js'
 	import { userSession } from '$lib/store.js'
-	import ActionButton from '$lib/svelte/widgets/action/ActionButton.svelte'
 	import Secret from '$lib/svelte/widgets/input/Secret.svelte'
 	import Text from '$lib/svelte/widgets/input/TextInput.svelte'
+	import { showModal } from '$lib/utils/modal.js'
 	import {
 		faAdd,
 		faArrowRight,
@@ -308,7 +307,10 @@
 					</p>
 				{:else}
 					<p class="text-surface-500 dark:text-surface-200">Generate a key to use the Api.</p>
-					<ActionButton text="Generate" icon={faAdd} on:click={generateApiKey} />
+					<button class="button-primary" on:click={generateApiKey}>
+						<Fa icon={faAdd} />
+						<span>Generate</span>
+					</button>
 				{/if}
 			</div>
 			<p class="text-surface-500 dark:text-surface-200">
@@ -364,7 +366,10 @@
 							<span>Create files and folders in your <strong>Dropbox Storage</strong> </span>
 						</p>
 					</div>
-					<ActionButton icon={faLink} text="Connect" on:click={startDropboxOauth} />
+					<button class="button-primary" on:click={startDropboxOauth}>
+						<Fa icon={faLink} />
+						<span>Connect</span>
+					</button>
 				{/if}
 			</div>
 			<p class="text-surface-500 dark:text-surface-200">

@@ -328,6 +328,7 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
 
             DUUIProcessController.updatePipelineStatus(getProcessID(), composer.getPipelineStatus());
             DUUIProcessController.insertEvents(getProcessID(), composer.getEvents());
+            DUUIProcessController.insertAnnotations(getProcessID(), composer.getDocuments());
         }
 
         updater.cancel(true);

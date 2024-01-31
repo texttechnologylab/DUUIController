@@ -272,15 +272,11 @@ export const getUsagePlotOptions = (pipeline: DUUIPipeline) => {
 		dataLabels: {
 			enabled: true
 		},
-		stroke: {
-			curve: 'smooth'
-		},
 		title: {
 			text: 'Usage per month',
 			align: 'center'
 		},
 		grid: gridSettings,
-
 		xaxis: {
 			categories: xLabels
 		},

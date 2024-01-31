@@ -71,9 +71,9 @@
 				formData.append('file', file, file.name)
 			}
 
-			const fileUpload = await fetch('/api/processes/files/upload', {
+			const fileUpload = await fetch('/api/files/upload', {
 				method: 'Post',
-				body: JSON.stringify(formData)
+				body: formData
 			})
 
 			if (!fileUpload.ok) {

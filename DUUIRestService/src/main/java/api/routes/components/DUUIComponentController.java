@@ -41,6 +41,21 @@ public class DUUIComponentController {
         "index"
     );
 
+    private static final Document DEFAULT_OPTIONS = new Document()
+        .append("scale", 1)
+        .append("use_GPU", true)
+        .append("docker_image_fetching", true)
+        .append("keep_alive", false)
+        .append("constraints", new ArrayList<>())
+        .append("labels", new ArrayList<>())
+        .append("host", "")
+        .append("ignore_200_error", true)
+        .append("registry_auth",
+            new Document()
+                .append("username", "")
+                .append("password", "")
+        );
+
     /**
      * Inserts a new Component into the Database. If no user_id or no pipeline_id is specified, the component is
      * inserted as a template.
@@ -59,8 +74,21 @@ public class DUUIComponentController {
 
         if (isNullOrEmpty(data.getString("driver"))) return missingField(response, "driver");
         if (isNullOrEmpty(data.getString("target"))) return missingField(response, "target");
-
         boolean isTemplate = request.queryParamOrDefault("template", "false").equals("true");
+
+        if (isNullOrEmpty(String.valueOf(data.getInteger("index"))) && !isTemplate)
+            return missingField(response, "index");
+
+        Document options = data.get("options", Document.class);
+        if (isNullOrEmpty(options)) {
+            options = DEFAULT_OPTIONS;
+        } else {
+            for (String key : DEFAULT_OPTIONS.keySet()) {
+                if (!options.containsKey(key)) {
+                    options.put(key, DEFAULT_OPTIONS.get(key));
+                }
+            }
+        }
         Document component = new Document()
             .append("name", name)
             .append("tags", data.getList("tags", String.class))
@@ -68,7 +96,7 @@ public class DUUIComponentController {
             .append("status", DUUIStatus.INACTIVE)
             .append("driver", data.getString("driver"))
             .append("target", data.getString("target"))
-            .append("options", data.get("options", Document.class))
+            .append("options", options)
             .append("parameters", data.get("parameters", Document.class))
             .append("created_at", Instant.now().toEpochMilli())
             .append("modified_at", Instant.now().toEpochMilli())
@@ -113,6 +141,8 @@ public class DUUIComponentController {
      */
     public static String findMany(Request request, Response response) {
         String userID = DUUIRequestHelper.getUserId(request);
+        String userRole = DUUIRequestHelper.getUserProps(request, Set.of("role")).getString("role");
+        if (userRole == null) return DUUIRequestHelper.unauthorized(response);
 
         int limit = getLimit(request);
         int skip = getSkip(request);
