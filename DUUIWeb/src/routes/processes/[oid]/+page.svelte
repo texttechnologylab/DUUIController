@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
-	import { getTotalDuration, type DUUIDocument } from '$lib/duui/io.js'
+	import { getTotalDuration, type DUUIDocument, IO } from '$lib/duui/io.js'
 	import { Status, isActive } from '$lib/duui/monitor.js'
 	import { processToSeachParams } from '$lib/duui/process.js'
 	import { equals, formatFileSize, progresAsPercent, snakeToTitleCase } from '$lib/duui/utils/text'
@@ -353,7 +353,11 @@
 							grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 p-3 px-4 text-left items-center"
 								on:click={() => showDocumentModal(document)}
 							>
-								<p class="break-words">{document.path}</p>
+								{#if process.input.provider === IO.File}
+									<p>{document.path.split(process.input.path.replace('\\', '/') + '/').at(-1)}</p>
+								{:else}
+									<p>{document.path}</p>
+								{/if}
 								<div class="md:flex items-center justify-start md:gap-4">
 									<p>
 										{Math.round((Math.min(document.progress, maxProgress) / maxProgress) * 100)} %
