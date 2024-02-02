@@ -20,7 +20,6 @@
 		faArrowUpWideShort,
 		faCancel,
 		faClockRotateLeft,
-		faCopy,
 		faFilter,
 		faListCheck,
 		faRefresh,
@@ -29,21 +28,19 @@
 	} from '@fortawesome/free-solid-svg-icons'
 	import {
 		ProgressBar,
-		clipboard,
 		getModalStore,
 		getToastStore,
 		type ModalComponent,
 		type ModalSettings
 	} from '@skeletonlabs/skeleton'
 
-	import DriverIcon from '$lib/svelte/components/DriverIcon.svelte'
+	import KeyValue from '$lib/svelte/components/KeyValue.svelte'
 	import Paginator from '$lib/svelte/components/Paginator.svelte'
 	import Search from '$lib/svelte/components/Search.svelte'
 	import Select from '$lib/svelte/components/Select.svelte'
 	import { showConfirmationModal } from '$lib/svelte/utils/modal'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
-	import KeyValue from '$lib/svelte/components/KeyValue.svelte'
 
 	export let data
 	const toastStore = getToastStore()
@@ -77,7 +74,7 @@
 	let searchText: string = ''
 
 	let filter: string[] = [Status.Any]
-	let maxProgress = pipeline.components.length
+	let maxProgress = process.size || pipeline.components.length
 
 	onMount(() => {
 		async function updateProcess() {
@@ -205,10 +202,6 @@
 		sort.by = index
 		updateTable()
 	}
-
-	$: pipelineStatus = new Map<string, string>(
-		process.pipeline_status ? Object.entries(process.pipeline_status) : Object.entries({})
-	)
 </script>
 
 <div class="menu-mobile">
@@ -395,7 +388,9 @@
 			<div class="section-wrapper space-y-8 p-4 !mb-32">
 				<div class="space-y-8">
 					<h2 class="h3">Settings</h2>
-					<div class="grid md:grid-cols-4 gap-2">
+					<div class="grid md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-2">
+						<KeyValue key="Input" value={process.input.provider} />
+						<KeyValue key="Output" value={process.output.provider} />
 						{#each Object.entries(process.settings) as [key, value]}
 							<KeyValue
 								key={snakeToTitleCase(key)}

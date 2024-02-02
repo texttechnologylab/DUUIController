@@ -200,9 +200,9 @@ public class Main {
             });
             get("/:id", DUUIProcessRequestHandler::findOne);
             get("", DUUIProcessRequestHandler::findMany);
-            post("", DUUIProcessController::startProcess);
+            post("", DUUIProcessController::start);
+            put("/:id", DUUIProcessController::stop);
             post("/file", DUUIProcessController::uploadFile);
-            put("/:id", DUUIProcessController::stopProcess);
             delete("/:id", DUUIProcessController::deleteOne);
             get("/:id/events", DUUIProcessController::findEvents);
             get("/:id/documents", DUUIProcessController::findDocuments);

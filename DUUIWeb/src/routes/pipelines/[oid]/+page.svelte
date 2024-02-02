@@ -189,7 +189,7 @@
 			if (response.ok) {
 				const data = await response.json()
 				toastStore.trigger(infoToast('Pipeline copied successfully'))
-				goto(`/pipelines/${data.oid}`, { replaceState: true })
+				goto(`/pipelines?id=${data.oid}`)
 			} else {
 			}
 		})

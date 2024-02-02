@@ -11,6 +11,7 @@ export interface DUUIProcess {
 	finished_at: number
 	input: DUUIDocumentProvider
 	output: DUUIDocumentProvider
+	size: number
 	settings: {
 		notify: boolean
 		check_target: boolean

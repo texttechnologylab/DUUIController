@@ -179,7 +179,7 @@ public class DUUIProcessController {
         return "Deleted";
     }
 
-    public static String startProcess(Request request, Response response) throws URISyntaxException, IOException {
+    public static String start(Request request, Response response) throws URISyntaxException, IOException {
         Document body = Document.parse(request.body());
         String pipelineId = body.getString("pipeline_id");
 
@@ -217,6 +217,7 @@ public class DUUIProcessController {
             .append("status", DUUIStatus.SETUP)
             .append("error", null)
             .append("progress", 0)
+            .append("size", pipeline.getList("components", Document.class).size())
             .append("started_at", Instant.now().toEpochMilli())
             .append("finished_at", null)
             .append("input", input.toDocument())
@@ -262,7 +263,7 @@ public class DUUIProcessController {
         return process.toJson();
     }
 
-    public static String stopProcess(Request request, Response response) {
+    public static String stop(Request request, Response response) {
         String id = request.params(":id");
 
         Document process = DUUIMongoDBStorage

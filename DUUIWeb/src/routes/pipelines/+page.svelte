@@ -19,6 +19,7 @@
 	import Search from '$lib/svelte/components/Search.svelte'
 	import { popup, type PopupSettings } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
+	import { onMount } from 'svelte'
 
 	export let data
 
@@ -33,6 +34,12 @@
 	let unused: boolean = false
 
 	let driverFilter: DUUIDriver | string = 'Any'
+
+	onMount(() => {
+		if ($page.url.searchParams.get('id')) {
+			goto(`/pipelines/${$page.url.searchParams.get('id')}`)
+		}
+	})
 
 	$: {
 		filteredPipelines = pipelines
