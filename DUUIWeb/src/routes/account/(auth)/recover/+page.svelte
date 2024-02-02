@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { scrollIntoView } from '$lib/duui/utils/ui'
-	import Text from '$lib/svelte/widgets/input/TextInput.svelte'
+	import Text from '$lib/svelte/components/TextInput.svelte'
 	import {
 		faEnvelope,
 		faEnvelopeCircleCheck

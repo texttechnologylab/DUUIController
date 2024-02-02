@@ -18,7 +18,7 @@ h6 {
 }
 
 p {
-	max-width: 65ch;
+	max-width: min(100%, 65ch);
 }
 
 #page {
@@ -34,10 +34,8 @@ p {
 }
 
 #sidebar-right {
-	@apply border-l-2 border-color shadow-lg scroll-smooth;
+	@apply md:border-l-2 border-color shadow-lg scroll-smooth;
 }
-
-
 
 .page-wrapper {
 	@apply p-4 space-y-8 md:px-8 z-[10];
@@ -104,7 +102,7 @@ p {
 }
 
 .dimmed {
-	@apply text-surface-500 dark:text-surface-200;
+	@apply text-surface-500 dark:text-surface-200 transition-colors duration-300;
 }
 
 .container-full-h {
@@ -112,7 +110,11 @@ p {
 }
 
 .hr {
-	@apply bg-surface-400/20 !border-0 rounded-full h-1 w-1/2 mx-auto;
+	@apply bg-surface-400/20 !border-0 rounded-full h-[1px] w-1/2 mx-auto;
+}
+
+.hr-4 {
+	@apply bg-surface-400/20 !border-0 rounded-full h-4 w-1/2 mx-auto;
 }
 
 .grow-from-left {
@@ -137,20 +139,28 @@ p {
 	@apply btn max-h-[64px] md:max-h-none rounded-md py-3 gap-2 justify-start items-center;
 }
 
+.cta {
+	@apply button variant-filled-primary;
+}
+
 .button-primary {
-	@apply button variant-filled-primary dark:variant-soft-primary;
+	@apply button variant-filled-primary;
 }
 
 .button-surface {
-	@apply button variant-filled-surface dark:variant-soft-surface;
+	@apply button variant-filled-surface;
 }
 
 .button-success {
-	@apply button variant-filled-success dark:variant-soft-success;
+	@apply button variant-filled-success;
 }
 
 .button-error {
-	@apply button variant-filled-error dark:variant-soft-error font-bold;
+	@apply button variant-filled-error font-bold;
+}
+
+.button-neutral {
+	@apply button bordered-soft hover:bg-surface-200-700-token transition-colors duration-300;
 }
 
 .button-modal {
@@ -158,7 +168,7 @@ p {
 }
 
 .button-mobile {
-	@apply inline-flex flex-col gap-1 bg-fancy items-center justify-center px-2 py-3 text-sm;
+	@apply inline-flex flex-col gap-1 bg-fancy items-center justify-center px-2 py-3 text-sm disabled:opacity-50;
 }
 
 .menu-mobile {
@@ -202,7 +212,7 @@ p {
 }
 
 .endpoint {
-	@apply rounded-sm bordered-soft bg-surface-200/20 dark:bg-surface-800;
+	@apply rounded-sm bordered-soft bg-surface-200/50 dark:bg-surface-800;
 }
 
 .sr-only:not(:focus):not(:active) {
@@ -213,4 +223,16 @@ p {
 	position: absolute;
 	white-space: nowrap;
 	width: 1px;
+}
+
+.modal-header {
+	@apply p-4 gap-4 flex items-center justify-between border-b border-color;
+}
+
+.apexcharts-title-text.apexcharts-theme-light {
+	text: black;
+}
+
+.apexcharts-title-text.apexcharts-theme-dark {
+	text: black;
 }

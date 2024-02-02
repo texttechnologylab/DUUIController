@@ -236,9 +236,9 @@ public class Main {
             new Thread(
                 () -> {
                     DUUIPipelineController
-                        .getReusableProcesses()
-                        .values()
-                        .forEach(DUUIReusableProcessHandler::onServerStopped);
+                        .getReusablePipelines()
+                        .keySet()
+                        .forEach(DUUIPipelineController::shutdownPipeline);
 
                     DUUIMongoDBStorage.Pipelines().updateMany(
                         Filters.exists("status", true),

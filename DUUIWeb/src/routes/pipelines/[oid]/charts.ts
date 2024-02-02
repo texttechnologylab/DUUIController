@@ -9,13 +9,21 @@ const gridSettings = {
 	}
 }
 
+const theme = {
+	palette: 'palette2', // upto palette10
+	monochrome: {
+		enabled: false
+	}
+}
+
 export const getStatusPlotOptions = (pipeline: DUUIPipeline) => {
+	if (!pipeline.statistics) return {}
+
 	return {
 		series: [
 			{
 				name: 'Status',
-				data: pipeline.statistics.status.map((s) => s.count),
-				color: '#006c98'
+				data: pipeline.statistics.status.map((s) => s.count)
 			}
 		],
 		chart: {
@@ -64,17 +72,27 @@ export const getStatusPlotOptions = (pipeline: DUUIPipeline) => {
 		},
 		title: {
 			text: 'Status of executed processes',
-			align: 'center'
-		}
+			align: 'center',
+			style: {
+				color: 'black',
+				fontSize: '20px'
+			}
+		},
+		theme: theme
 	}
 }
 
 export const getErrorsPlotOptions = (pipeline: DUUIPipeline) => {
+	if (!pipeline.statistics) return {}
+
+	const x = pipeline.statistics ? pipeline.statistics.errors.map((s) => s._id) : []
+	const y = pipeline.statistics ? pipeline.statistics.errors.map((s) => s.count) : []
+
 	return {
 		series: [
 			{
 				name: 'Error',
-				data: pipeline.statistics.errors.map((s) => s.count),
+				data: y,
 				color: '#f95959'
 			}
 		],
@@ -89,7 +107,7 @@ export const getErrorsPlotOptions = (pipeline: DUUIPipeline) => {
 		},
 		grid: gridSettings,
 		xaxis: {
-			categories: pipeline.statistics.errors.map((s) => s._id),
+			categories: x,
 			position: 'top',
 			axisBorder: {
 				show: false
@@ -123,12 +141,19 @@ export const getErrorsPlotOptions = (pipeline: DUUIPipeline) => {
 		},
 		title: {
 			text: 'Errors of executed processes',
-			align: 'center'
-		}
+			align: 'center',
+			style: {
+				color: 'black',
+				fontSize: '20px'
+			}
+		},
+		theme: theme
 	}
 }
 
 export const getIOPlotOptions = (pipeline: DUUIPipeline) => {
+	if (!pipeline.statistics) return {}
+
 	const labels: string[] = ['File', 'Minio', 'None', 'Text', 'Dropbox']
 	const input: number[] = [0, 0, 0, 0, 0]
 	const output: number[] = [0, 0, 0, 0, 0]
@@ -152,13 +177,11 @@ export const getIOPlotOptions = (pipeline: DUUIPipeline) => {
 		series: [
 			{
 				name: 'Input',
-				data: input,
-				color: '#006c98'
+				data: input
 			},
 			{
 				name: 'Output',
-				data: output,
-				color: '#e99b26'
+				data: output
 			}
 		],
 		chart: {
@@ -206,12 +229,18 @@ export const getIOPlotOptions = (pipeline: DUUIPipeline) => {
 		},
 		title: {
 			text: 'Input and Output',
-			align: 'center'
-		}
+			align: 'center',
+			style: {
+				color: 'black',
+				fontSize: '20px'
+			}
+		},
+		theme: theme
 	}
 }
 
 export const getUsagePlotOptions = (pipeline: DUUIPipeline) => {
+	if (!pipeline.statistics) return {}
 	const year = new Date().getFullYear()
 
 	const xLabels: string[] = [
@@ -245,9 +274,15 @@ export const getUsagePlotOptions = (pipeline: DUUIPipeline) => {
 				data: yValues
 			}
 		],
+		plotOptions: {
+			bar: {
+				borderRadius: 8
+			}
+		},
 		chart: {
 			height: 350,
-			type: 'line',
+			type: 'bar',
+
 			dropShadow: {
 				enabled: true,
 				color: '#000',
@@ -268,14 +303,18 @@ export const getUsagePlotOptions = (pipeline: DUUIPipeline) => {
 				}
 			}
 		},
-		colors: ['#006c98'],
 		dataLabels: {
 			enabled: true
 		},
 		title: {
 			text: 'Usage per month',
-			align: 'center'
+			align: 'center',
+			style: {
+				color: 'black',
+				fontSize: '20px'
+			}
 		},
+		theme: theme,
 		grid: gridSettings,
 		xaxis: {
 			categories: xLabels

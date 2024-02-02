@@ -36,7 +36,7 @@ public class DUUIDocumentProvider {
         provider = document.getString("provider");
         path = document.getString("path");
         content = document.getString("content");
-        fileExtension = document.getString("fileExtension");
+        fileExtension = document.getString("file_extension");
     }
 
     public DUUIDocumentProvider(String provider, String path, String content, String fileExtension) {
@@ -67,7 +67,7 @@ public class DUUIDocumentProvider {
             .append("provider", provider)
             .append("path", path)
             .append("content", content)
-            .append("fileExtension", fileExtension);
+            .append("file_extension", fileExtension);
     }
 
     @Override

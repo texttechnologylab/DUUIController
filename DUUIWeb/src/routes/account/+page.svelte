@@ -1,16 +1,14 @@
 <script lang="ts">
 	import { successToast } from '$lib/duui/utils/ui.js'
 	import { userSession } from '$lib/store.js'
-	import Secret from '$lib/svelte/widgets/input/Secret.svelte'
-	import Text from '$lib/svelte/widgets/input/TextInput.svelte'
-	import { showModal } from '$lib/utils/modal.js'
+	import { showConfirmationModal } from '$lib/svelte/utils/modal.js'
+	import Secret from '$lib/svelte/components/Secret.svelte'
+	import Text from '$lib/svelte/components/TextInput.svelte'
 	import {
 		faAdd,
-		faArrowRight,
 		faCheck,
 		faFilePen,
 		faFileText,
-		faKey,
 		faLink,
 		faRefresh,
 		faXmarkCircle
@@ -18,12 +16,9 @@
 	import {
 		clipboard,
 		getModalStore,
-		getToastStore,
-		popup,
-		type PopupSettings
+		getToastStore
 	} from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
-	import { fly } from 'svelte/transition'
 
 	export let data
 	const { user, dropbBoxURL } = data
@@ -60,14 +55,13 @@
 
 	const generateApiKey = async () => {
 		if (user.connections.key) {
-			const confirm = await showModal(
+			const confirm = await showConfirmationModal(
 				{
 					title: 'Regenerate API Key',
 					message:
-						'If you regenarate your API key, the old one will lose its access. Make sure to update your API key in all applications its used in.',
-					confirmText: 'Regenerate'
+						'If you regenarate your API key, the current one will not work anymore. Make sure to update your API key in all applications its used in.',
+					textYes: 'Regenerate'
 				},
-				'confirmModal',
 				modalStore
 			)
 
@@ -84,13 +78,13 @@
 	}
 
 	const deleteApiKey = async () => {
-		const confirm = await showModal(
+		const confirm = await showConfirmationModal(
 			{
 				title: 'Delete API Key',
 				message:
-					'Deleting your API Key remove the ability to make requests with it. You can always generate a new one here.'
+					'Deleting your API Key remove the ability to make requests with it. You can always generate a new one here.',
+				textYes: 'Delete'
 			},
-			'deleteModal',
 			modalStore
 		)
 
@@ -111,13 +105,13 @@
 	const modalStore = getModalStore()
 
 	const deleteDropboxAccess = async () => {
-		const confirm = await showModal(
+		const confirm = await showConfirmationModal(
 			{
 				title: 'Delete Access for Dropbox',
 				message: `Are you sure you want to revoke access?
-					 You will have to go through the OAuth process again to reconnect.`
+					 You will have to go through the OAuth process again to reconnect.`,
+				textYes: 'Delete'
 			},
-			'deleteModal',
 			modalStore
 		)
 
@@ -134,12 +128,12 @@
 	}
 
 	const revokeMinioAccess = async () => {
-		const confirm = await showModal(
+		const confirm = await showConfirmationModal(
 			{
 				title: 'Delete Access for Min.io',
-				message: `Are you sure you want to delete access?`
+				message: `Are you sure you want to delete access?`,
+				textYes: 'Delete'
 			},
-			'deleteModal',
 			modalStore
 		)
 
@@ -177,28 +171,11 @@
 		}
 	}
 	let name: string = 'Name'
-
-	const popupUIMA: PopupSettings = {
-		event: 'hover',
-		target: 'popupUIMA',
-		placement: 'top'
-	}
 </script>
 
 <svelte:head>
 	<title>Account</title>
 </svelte:head>
-<div
-	data-popup="popupUIMA"
-	in:fly={{ y: 50 }}
-	class="variant-filled-primary max-w-[40ch] p-2 rounded-md text-sm"
->
-	<p>
-		UIMA is a framework by itself that defines a common structure for otherwise unstructured data,
-		mainly in the form of natural written or spoken language.
-	</p>
-	<div class="arrow variant-filled-primary" />
-</div>
 
 <div class="gap-4 max-w-7xl md:py-16 grid md:grid-cols-2 items-start">
 	<div class="section-wrapper p-8 space-y-4">
@@ -208,10 +185,7 @@
 
 	<div class="space-y-4">
 		<div class="section-wrapper p-8 space-y-8 scroll-mt-4" id="authorization">
-			<div class="flex items-center justify-between gap-4">
-				<h2 class="h3 font-bold">API Key</h2>
-				<Fa icon={faKey} size="lg" />
-			</div>
+			<h2 class="h3 font-bold">API Key</h2>
 			<div class="space-y-8">
 				{#if connections.key}
 					<div class="space-y-2">
@@ -273,7 +247,7 @@
 						</p>
 					</div>
 					<div class="grid md:flex justify-between gap-4">
-						<button class="button-primary" on:click={startDropboxOauth}>
+						<button class="button-neutral" on:click={startDropboxOauth}>
 							<Fa icon={faLink} />
 							<span>Reconnect</span>
 						</button>
@@ -302,7 +276,7 @@
 							<span>Create files and folders in your <strong>Dropbox Storage</strong> </span>
 						</p>
 					</div>
-					<button class="button-primary" on:click={startDropboxOauth}>
+					<button class="button-neutral" on:click={startDropboxOauth}>
 						<Fa icon={faLink} />
 						<span>Connect</span>
 					</button>
@@ -332,7 +306,7 @@
 			</div>
 			<div class="grid md:flex justify-between gap-4">
 				<button
-					class="button-primary"
+					class="button-neutral"
 					disabled={!minioEndpoint || !minioAccessKey || !minioSecretKey}
 					on:click={() =>
 						updateUser({

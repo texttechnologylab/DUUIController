@@ -1,4 +1,3 @@
-import { DUUIDrivers } from '$lib/duui/component'
 import type { PageLoad } from './$types'
 
 const endpoints: { [key: string]: APIEndpoint[] } = {
@@ -10,6 +9,19 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 			returns: [
 				{ code: 200, message: 'Pipeline' },
 				{ code: 404, message: 'Not found' }
+			],
+			parameters: [
+				{ name: 'id', description: "The pipeline's id.", type: 'Query' },
+				{
+					name: 'statistics',
+					description: 'Wether to include statistic for the pipeline. Default is false.',
+					type: 'Query'
+				},
+				{
+					name: 'components',
+					description: 'Wether to include components. Default is true.',
+					type: 'Query'
+				}
 			],
 			exampleRequest: `const response = await fetch('/pipelines/65b3db5c8c997c4ce3c4efb3', {
 	method: 'GET',
@@ -28,6 +40,35 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 				{ code: 400, message: 'Missing parameter' },
 				{ code: 404, message: 'Not found' }
 			],
+			parameters: [
+				{ name: 'limit', description: 'The maximum number of pipelines to return.', type: 'Query' },
+				{
+					name: 'skip',
+					description: 'The pipelines to skip before a limit is applied.',
+					type: 'Query'
+				},
+				{
+					name: 'sort',
+					description:
+						'The field to sort by. Can be name, description, created_at, modified_at, status and times_used.',
+					type: 'Query'
+				},
+				{
+					name: 'order',
+					description: 'The order to sort by. 1 is ascending and -1 is descending.',
+					type: 'Query'
+				},
+				{
+					name: 'statistics',
+					description: 'Wether to include statistic for the pipeline. Default is false.',
+					type: 'Query'
+				},
+				{
+					name: 'components',
+					description: 'Wether to include components. Default is true.',
+					type: 'Query'
+				}
+			],
 			exampleRequest: `const response = await fetch('/pipelines?limit=10&sort=times_used&order=-1', {
 	method: 'GET',
 	headers: {
@@ -38,10 +79,22 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 		{
 			method: 'POST' as APIMethod,
 			route: '/pipelines',
-			description: 'Create a new Pipeline, expects a JSON string.',
+			description:
+				'Create a new Pipeline. The body must at least contain the fields listed in parameters.',
 			returns: [
-				{ code: 200, message: 'Pipeline' },
-				{ code: 400, message: 'Missing parameter' }
+				{ code: 200, message: 'Inserted' },
+				{ code: 400, message: 'Missing field' }
+			],
+			parameters: [
+				{ name: 'name', description: 'The name of the pipeline.', type: 'Body' },
+				{ name: 'description', description: 'The description of the pipeline.', type: 'Body' },
+				{ name: 'tags', description: 'An array of tags to categorize the pipeline.', type: 'Body' },
+				{
+					name: 'components',
+					description:
+						"An array of components that must follow the structure as described in the section 'components'",
+					type: 'Body'
+				}
 			],
 			exampleRequest: `const response = await fetch('/pipelines?template=false', {
 	method: 'POST',
@@ -64,23 +117,48 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 		},
 		{
 			method: 'POST' as APIMethod,
-			route: '/pipelines/:id/start',
+			route: '/pipelines/id/start',
 			description: 'Instantiate a pipeline and wait idle for process requests.',
-			returns: [],
-			exampleRequest: ''
+			returns: [
+				{ code: 200, message: 'Instantiated' },
+				{ code: 500, message: 'Not instantiated' }
+			],
+			parameters: [{ name: 'id', description: "The pipeline's id.", type: 'Query' }],
+			exampleRequest: `const response = await fetch('/pipelines/65b3db5c8c997c4ce3c4efb3/start', {
+	method: 'POST',
+	headers: {
+		Authorization: API KEY HERE
+	}
+})`
 		},
 		{
 			method: 'PUT' as APIMethod,
-			route: '/pipelines/:id/stop',
-			description: 'Shutdown an instantiated pipeline. This also cancels running processes.',
-			returns: [],
-			exampleRequest: ''
+			route: '/pipelines/id/stop',
+			description: 'Shut down an instantiated pipeline. This also cancels running processes.',
+			returns: [
+				{ code: 200, message: 'Shut down' },
+				{ code: 404, message: 'Not found' },
+				{ code: 500, message: 'Not shut down' }
+			],
+			parameters: [{ name: 'id', description: "The pipeline's id.", type: 'Query' }],
+			exampleRequest: `const response = await fetch('/pipelines/65b3db5c8c997c4ce3c4efb3/stop', {
+	method: 'PUT',
+	headers: {
+		Authorization: API KEY HERE
+	}
+})`
 		},
 		{
 			method: 'PUT' as APIMethod,
-			route: '/pipelines/:id',
-			description: 'Update a pipeline given its id.',
-			returns: [],
+			route: '/pipelines/id',
+			description:
+				'Update a pipeline given its id. The body should be a JSON string defining updates.',
+			returns: [
+				{ code: 201, message: 'Updated' },
+				{ code: 400, message: 'Invalid field' },
+				{ code: 404, message: 'Not found' }
+			],
+			parameters: [{ name: 'id', description: "The pipeline's id.", type: 'Query' }],
 			exampleRequest: `const response = await fetch('/pipelines/65b3db5c8c997c4ce3c4efb3', {
 	method: 'PUT',
 	body: JSON.strinfigy({
@@ -93,12 +171,14 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 		},
 		{
 			method: 'DELETE' as APIMethod,
-			route: '/pipelines/:id',
+			route: '/pipelines/id',
 			description: 'Delete a pipeline given its id.',
 			returns: [
 				{ code: 200, message: 'Deleted' },
-				{ code: 500, message: 'Failed' }
+				{ code: 404, message: 'Not found' },
+				{ code: 500, message: 'Not deleted' }
 			],
+			parameters: [{ name: 'id', description: "The pipeline's id.", type: 'Query' }],
 			exampleRequest: `const response = await fetch('/pipelines/65b3db5c8c997c4ce3c4efb3', {
 	method: 'DELETE',
 	headers: {
@@ -116,6 +196,7 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 				{ code: 200, message: 'Component' },
 				{ code: 404, message: 'Not found' }
 			],
+			parameters: [{ name: 'id', description: "The pipeline's id.", type: 'Query' }],
 			exampleRequest: `const response = await fetch('/components/65b3db5c8c997c4ce3c4efb3', {
 	method: 'GET',
 	headers: {
@@ -126,14 +207,36 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 		{
 			method: 'GET' as APIMethod,
 			route: '/components',
-			description:
-				'Retrieve multiple component. Accepts limit, skip, sort, order and search query parameters. Use this endpoint to fetch templates.',
+			description: 'Retrieve multiple components.',
 			returns: [
 				{ code: 200, message: 'Components' },
 				{ code: 400, message: 'Missing parameter' },
 				{ code: 404, message: 'Not found' }
 			],
-			exampleRequest: `const response = await fetch('/components?limit=10&sort=times_used&order=-1', {
+			parameters: [
+				{
+					name: 'limit',
+					description: 'The maximum number of components to return.',
+					type: 'Query'
+				},
+				{
+					name: 'skip',
+					description: 'The pipelines to skip before a limit is applied.',
+					type: 'Query'
+				},
+				{
+					name: 'sort',
+					description:
+						'The field to sort by. Can be name, description, created_at, modified_at, status, driver and target.',
+					type: 'Query'
+				},
+				{
+					name: 'order',
+					description: 'The order to sort by. 1 is ascending and -1 is descending.',
+					type: 'Query'
+				}
+			],
+			exampleRequest: `const response = await fetch('/components?limit=5&sort=name&order=1', {
 	method: 'GET',
 	headers: {
 		Authorization: API KEY HERE
@@ -143,12 +246,48 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 		{
 			method: 'POST' as APIMethod,
 			route: '/components',
-			description: 'Create a new Component, expects a JSON string.',
+			description: 'Create a new component from the fields in the body.',
 			returns: [
-				{ code: 200, message: 'Component' },
-				{ code: 400, message: 'Missing parameter' }
+				{ code: 200, message: 'Inserted' },
+				{ code: 400, message: 'Missing field' }
 			],
-			exampleRequest: `const response = await fetch('/components?template=false', {
+			parameters: [
+				{
+					name: 'pipeline_id',
+					description: 'The id of the pipeline to add the component to.',
+					type: 'Body'
+				},
+				{ name: 'name', description: 'The name of the component.', type: 'Body' },
+				{ name: 'description', description: 'The description of the component.', type: 'Body' },
+				{
+					name: 'tags',
+					description: 'An array of tags to categorize the component.',
+					type: 'Body'
+				},
+				{
+					name: 'driver',
+					description: 'The driver of the component',
+					type: 'Body'
+				},
+				{
+					name: 'target',
+					description: 'The target (class path, docker image name or url) of the component',
+					type: 'Body'
+				},
+				{
+					name: 'options',
+					description:
+						'An object containing settings for the component. These settings are optional and the default values can be seen in the example request.',
+					type: 'Body'
+				},
+				{
+					name: 'parameters',
+					description:
+						'An object containing extra parameters for the component.',
+					type: 'Body'
+				}
+			],
+			exampleRequest: `const response = await fetch('/components', {
 	method: 'POST',
 	body: JSON.stringify({
 		pipeline_id: '65b3db5c8c997c4ce3c4efb3',
@@ -157,7 +296,18 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 		driver: 'DUUIUIMADriver',
 		target: 'de.tudarmstadt.ukp.dkpro.core.tokit.BreakIteratorSegmenter',
 		options: {
-			scale: 3
+			scale: 1,
+			use_GPU: true,
+			docker_image_fetching: true,
+			host: null,
+			registry_auth: {
+				username: null,
+				password: null
+			},
+			keep_alive: false,
+			ignore_200_error: true,
+			constraint: [],
+			labels: []
 		}
 	}),
 	headers: {
@@ -167,20 +317,41 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 		},
 		{
 			method: 'PUT' as APIMethod,
-			route: '/components/:id',
-			description: 'Update a component given its id.',
-			returns: [],
-			exampleRequest: ''
+			route: '/components/id',
+			description:
+				'Update a component given its id. The body should be a JSON string defining updates.',
+			returns: [
+				{ code: 201, message: 'Updated' },
+				{ code: 400, message: 'Invalid field' },
+				{ code: 404, message: 'Not found' }
+			],
+			parameters: [{ name: 'id', description: "The component's id.", type: 'Query' }],
+			exampleRequest: `const response = await fetch('/components/65b3db5c8c997c4ce3c4efb3', {
+	method: 'PUT',
+	body: JSON.strinfigy({
+		name: 'New Name'
+	})
+	headers: {
+		Authorization: API KEY HERE
+	}
+})`
 		},
 		{
 			method: 'DELETE' as APIMethod,
-			route: '/components/:id',
+			route: '/components/id',
 			description: 'Delete a component given its id.',
 			returns: [
 				{ code: 200, message: 'Deleted' },
-				{ code: 500, message: 'Failed' }
+				{ code: 404, message: 'Not found' },
+				{ code: 500, message: 'Not deleted' }
 			],
-			exampleRequest: ''
+			parameters: [{ name: 'id', description: "The component's id.", type: 'Query' }],
+			exampleRequest: `const response = await fetch('/components/65b3db5c8c997c4ce3c4efb3', {
+	method: 'DELETE',
+	headers: {
+		Authorization: API KEY HERE
+	}
+})`
 		}
 	],
 	processes: []

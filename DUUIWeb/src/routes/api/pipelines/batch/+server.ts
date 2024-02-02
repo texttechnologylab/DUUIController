@@ -7,7 +7,7 @@ export const GET: RequestHandler = async ({ fetch, locals, url, cookies }) => {
 		redirect(300, '/user/login')
 	}
 	const loadPipelines = async (): Promise<{ pipelines: DUUIPipeline[]; count: number }> => {
-		const limit = +(url.searchParams.get('limit') || '10')
+		const limit = +(url.searchParams.get('limit') || '50')
 
 		const response = await fetch(`${API_URL}/pipelines?limit=${limit}`, {
 			method: 'GET',

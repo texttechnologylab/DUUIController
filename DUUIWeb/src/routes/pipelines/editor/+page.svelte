@@ -16,15 +16,15 @@
 
 	import { includes } from '$lib/duui/utils/text'
 	import { scrollIntoView, successToast } from '$lib/duui/utils/ui'
-	import { currentPipelineStore, userSession } from '$lib/store'
-	import DriverIcon from '$lib/svelte/DriverIcon.svelte'
-	import PipelineCard from '$lib/svelte/widgets/duui/PipelineCard.svelte'
-	import PipelineComponent from '$lib/svelte/widgets/duui/PipelineComponent.svelte'
-	import Chips from '$lib/svelte/widgets/input/Chips.svelte'
-	import JsonInput from '$lib/svelte/widgets/input/JsonInput.svelte'
-	import Search from '$lib/svelte/widgets/input/Search.svelte'
-	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
-	import Text from '$lib/svelte/widgets/input/TextInput.svelte'
+	import { currentPipelineStore } from '$lib/store'
+	import Chips from '$lib/svelte/components/Chips.svelte'
+	import DriverIcon from '$lib/svelte/components/DriverIcon.svelte'
+	import JsonInput from '$lib/svelte/components/JsonInput.svelte'
+	import PipelineCard from '$lib/svelte/components/PipelineCard.svelte'
+	import PipelineComponent from '$lib/svelte/components/PipelineComponent.svelte'
+	import Search from '$lib/svelte/components/Search.svelte'
+	import TextArea from '$lib/svelte/components/TextArea.svelte'
+	import Text from '$lib/svelte/components/TextInput.svelte'
 	import {
 		faArrowDown,
 		faArrowLeft,
@@ -257,7 +257,7 @@
 				}}
 			>
 				<Fa icon={faArrowLeft} />
-				<span>{step === 0 ? 'Pipelines' : step === 1 ? 'Start' : 'Settings'}</span>
+				<span>Back</span>
 			</button>
 			{#if user?.role === 'Admin' && step === 2 && $currentPipelineStore.components.length !== 0}
 				<button class="col-span-2 button-success md:ml-auto row-start-2" on:click={uploadPipeline}>
@@ -278,7 +278,7 @@
 				disabled={(step === 1 && !$currentPipelineStore.name) ||
 					(step === 2 && $currentPipelineStore.components.length === 0)}
 			>
-				<span>{step === 0 ? 'Settings' : step === 1 ? 'Components' : 'Finish'}</span>
+				<span>{step <= 1 ? 'Next' : 'Finish'}</span>
 				<Fa icon={step === 2 ? faCheck : faArrowRight} />
 			</button>
 		</div>

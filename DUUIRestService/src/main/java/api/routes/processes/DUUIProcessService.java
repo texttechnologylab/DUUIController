@@ -1,22 +1,24 @@
 package api.routes.processes;
 
-import duui.document.Provider;
 import api.routes.users.DUUIUserController;
 import com.dropbox.core.DbxException;
 import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.oauth.DbxCredential;
+import duui.document.Provider;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.uima.UIMAException;
 import org.apache.uima.fit.factory.AnalysisEngineFactory;
 import org.apache.uima.util.InvalidXMLException;
 import org.bson.Document;
-import org.junit.jupiter.params.aggregator.ArgumentAccessException;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.DUUIComposer;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.*;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.DUUIDropboxDocumentHandler;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.DUUILocalDocumentHandler;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.DUUIMinioDocumentHandler;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.IDUUIDocumentHandler;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.*;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.lua.DUUILuaContext;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIEvent;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
 import org.xml.sax.SAXException;
 
 import java.io.File;
@@ -40,6 +42,12 @@ public class DUUIProcessService {
         };
     }
 
+    /**
+     * Creates a {@link DUUIPipelineComponent} from a settings {@link Document}
+     *
+     * @param component the settings for the component.
+     * @return the new pipeline component.
+     */
     public static DUUIPipelineComponent getComponent(Document component) throws URISyntaxException, IOException, InvalidXMLException, SAXException {
         Document options = component.get("options", Document.class);
         Document parameters = component.get("parameters", Document.class);
@@ -90,15 +98,22 @@ public class DUUIProcessService {
         };
 
         if (parameters != null) {
-            parameters.forEach((key, value) -> pipelineComponent.withParameter(key, (String) value));
+            parameters.forEach((key, value) -> pipelineComponent.withParameter(key, "" + value));
         }
 
         return pipelineComponent.withName(name);
     }
 
+    /**
+     * Constructs a IDUUIDocumentHandler given a {@link Provider} as a String.
+     *
+     * @param provider The type of provider to construct.
+     * @param userId   The id of the user that requested the handler.
+     * @return the created DocumentHandler.
+     * @throws DbxException if incorrect credentials for Dropbox are provided.
+     */
     public static IDUUIDocumentHandler getHandler(String provider, String userId) throws DbxException {
         Document user = DUUIUserController.getUserById(userId);
-
 
         if (provider.equalsIgnoreCase(Provider.DROPBOX)) {
             Document credentials = DUUIUserController.getDropboxCredentials(user);
@@ -120,6 +135,7 @@ public class DUUIProcessService {
                 credentials.getString("endpoint"),
                 credentials.getString("access_key"),
                 credentials.getString("secret_key"));
+
         } else if (provider.equalsIgnoreCase(Provider.FILE)) {
             return new DUUILocalDocumentHandler();
         }
@@ -127,7 +143,13 @@ public class DUUIProcessService {
         return null;
     }
 
-    public static boolean setupDrivers(DUUIComposer composer, Document pipeline) {
+    /**
+     * Loops over all components in the pipeline and add their respective driver to the composer.
+     *
+     * @param composer The composer that is being setup.
+     * @param pipeline The pipeline (MongoDB {@link Document}) containing all relevant components.
+     */
+    public static void setupDrivers(DUUIComposer composer, Document pipeline) {
         List<String> addedDrivers = new ArrayList<>();
         for (Document component : pipeline.getList("components", Document.class)) {
             try {
@@ -135,8 +157,9 @@ public class DUUIProcessService {
                     .getDriverFromString(component.getString("driver"));
 
                 if (driver == null) {
-                    throw new ArgumentAccessException("Driver cannot be empty.");
+                    throw new IllegalStateException("Driver cannot be empty.");
                 }
+
                 String name = driver.getClass().getSimpleName();
                 if (addedDrivers.contains(name)) {
                     continue;
@@ -147,9 +170,14 @@ public class DUUIProcessService {
                 composer.addEvent(DUUIEvent.Sender.COMPOSER, e.getMessage(), DUUIComposer.DebugLevel.ERROR);
             }
         }
-        return addedDrivers.contains(DUUIUIMADriver.class.getSimpleName());
     }
 
+    /**
+     * Set up the components for a pipeline in a composer.
+     *
+     * @param composer The composer to add components to.
+     * @param pipeline A {@link Document} containing all component settings.
+     */
     public static void setupComponents(DUUIComposer composer, Document pipeline)
         throws IOException, UIMAException, SAXException, URISyntaxException, CompressorException {
         for (Document component : pipeline.getList("components", Document.class)) {
@@ -157,6 +185,12 @@ public class DUUIProcessService {
         }
     }
 
+    /**
+     * A utility function that recursively deletes the content of a folder and the folder itself.
+     *
+     * @param directory The folder to delete.
+     * @return if the deletion was successful.
+     */
     public static boolean deleteTempOutputDirectory(File directory) {
         if (directory.getName().isEmpty()) {
             return false;
@@ -170,10 +204,29 @@ public class DUUIProcessService {
         return directory.delete();
     }
 
-    @Deprecated
-    public static void uploadDocument(IDUUIDocumentHandler dataReader, DUUIDocument document, String outputFolder) throws IOException {
-        if (!document.isFinished() || document.getStatus().equals(DUUIStatus.OUTPUT)) return;
-        dataReader.writeDocument(document, outputFolder);
-    }
+    /**
+     * Instantiate a pipeline given its settings in a {@link Document}. This function
+     * is used to instantiate a pipeline and return its composer for future use.
+     *
+     * @param pipeline The pipeline to instantiate (MongoDB {@link Document}).
+     * @return the composer containing the instantiated pipeline.
+     */
+    public static DUUIComposer instantiatePipeline(Document pipeline) {
+        try {
+            DUUIComposer composer = new DUUIComposer()
+                .withSkipVerification(true)
+                .withDebugLevel(DUUIComposer.DebugLevel.DEBUG)
+                .withLuaContext(new DUUILuaContext().withJsonLibrary());
 
+            setupDrivers(composer, pipeline);
+            setupComponents(composer, pipeline);
+            composer.instantiate_pipeline();
+            return composer;
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+
+    }
 }

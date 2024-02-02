@@ -18,27 +18,25 @@
 	import { beforeNavigate, goto, onNavigate } from '$app/navigation'
 	import { initializeStores, storePopup } from '@skeletonlabs/skeleton'
 
-	import { helpStore, userSession } from '$lib/store'
-	import Link from '$lib/svelte/Link.svelte'
-	import ConfirmModal from '$lib/svelte/widgets/modal/ConfirmModal.svelte'
-	import DeleteModal from '$lib/svelte/widgets/modal/DeleteModal.svelte'
-	import DocumentModal from '$lib/svelte/widgets/modal/DocumentModal.svelte'
-	import Documentation from '$lib/svelte/widgets/navigation/Documentation.svelte'
-	import Sidebar from '$lib/svelte/widgets/navigation/Sidebar.svelte'
+	import { userSession } from '$lib/store'
+	import ConfirmModal from '$lib/svelte/components/ConfirmModal.svelte'
+	import DocumentModal from '$lib/svelte/components/DocumentModal.svelte'
+	import Documentation from '$lib/svelte/components/Documentation.svelte'
+	import Link from '$lib/svelte/components/Link.svelte'
+	import Sidebar from '$lib/svelte/components/Sidebar.svelte'
 	import { arrow, autoUpdate, computePosition, flip, offset, shift } from '@floating-ui/dom'
 	import { Modal } from '@skeletonlabs/skeleton'
 
-	import PromptModal from '$lib/svelte/widgets/modal/PromptModal.svelte'
-	import Help from '$lib/svelte/widgets/navigation/Help.svelte'
-	import HelpToggle from '$lib/svelte/widgets/navigation/HelpToggle.svelte'
+	import PromptModal from '$lib/svelte/components/PromptModal.svelte'
 	import { storeHighlightJs } from '@skeletonlabs/skeleton'
 	import hljs from 'highlight.js/lib/core'
 	import java from 'highlight.js/lib/languages/java'
-	import xml from 'highlight.js/lib/languages/xml'
 	import typescript from 'highlight.js/lib/languages/typescript'
+	import xml from 'highlight.js/lib/languages/xml'
+	import python from 'highlight.js/lib/languages/python'
 
+	import ComponentDrawer from '$lib/svelte/components/ComponentDrawer.svelte'
 	import 'highlight.js/styles/github-dark.css'
-	import ComponentDrawer from '$lib/svelte/widgets/ComponentDrawer.svelte'
 
 	export let data
 	let { user } = data
@@ -56,6 +54,7 @@
 	hljs.registerLanguage('java', java)
 	hljs.registerLanguage('xml', xml)
 	hljs.registerLanguage('ts', typescript)
+	hljs.registerLanguage('py', python)
 	storeHighlightJs.set(hljs)
 
 	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow })
@@ -84,7 +83,6 @@
 	}
 
 	const modalRegistry: Record<string, ModalComponent> = {
-		deleteModal: { ref: DeleteModal },
 		documentModal: { ref: DocumentModal },
 		promptModal: { ref: PromptModal },
 		confirmModal: { ref: ConfirmModal }
@@ -96,12 +94,6 @@
 <Drawer rounded="rounded-md">
 	{#if $drawerStore.id === 'sidebar'}
 		<Sidebar />
-	{:else if $drawerStore.id === 'helpDrawer'}
-		<p>
-			Lorem, ipsum dolor sit amet consectetur adipisicing elit. Impedit temporibus asperiores aut
-			hic, ipsam odio illum voluptate nihil quae laudantium, quibusdam porro, sed aperiam atque
-			minus quasi ullam eaque. Soluta?
-		</p>
 	{/if}
 	{#if $drawerStore.id === 'component'}
 		<ComponentDrawer />
@@ -168,14 +160,6 @@
 
 	<svelte:fragment slot="sidebarLeft">
 		<Documentation />
-	</svelte:fragment>
-
-	<!-- Sidebar on the right -->
-	<HelpToggle />
-	<svelte:fragment slot="sidebarRight">
-		{#if $helpStore}
-			<Help />
-		{/if}
 	</svelte:fragment>
 
 	<!-- Page Route Content -->

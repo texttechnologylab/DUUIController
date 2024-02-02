@@ -14,13 +14,11 @@
 	import { page } from '$app/stores'
 	import { DUUIDrivers, type DUUIDriver } from '$lib/duui/component'
 	import { usedDrivers } from '$lib/duui/pipeline'
-	import ButtonMenu from '$lib/svelte/widgets/navigation/ButtonMenu.svelte'
-	import { userSession } from '$lib/store.js'
-	import PipelineCard from '$lib/svelte/widgets/duui/PipelineCard.svelte'
-	import Dropdown from '$lib/svelte/widgets/input/Dropdown.svelte'
-	import Search from '$lib/svelte/widgets/input/Search.svelte'
-	import Fa from 'svelte-fa'
+	import Dropdown from '$lib/svelte/components/Dropdown.svelte'
+	import PipelineCard from '$lib/svelte/components/PipelineCard.svelte'
+	import Search from '$lib/svelte/components/Search.svelte'
 	import { popup, type PopupSettings } from '@skeletonlabs/skeleton'
+	import Fa from 'svelte-fa'
 
 	export let data
 
@@ -30,7 +28,7 @@
 	let searchText: string = ''
 	let filteredPipelines = pipelines
 
-	let limit: number = +($page.url.searchParams.get('limit') || '10')
+	let limit: number = +($page.url.searchParams.get('limit') || '50')
 
 	let unused: boolean = false
 
@@ -54,7 +52,7 @@
 
 	const loadMore = async () => {
 		loading = true
-		const response = await fetch(`/api/pipelines?limit=${limit + 10}`, {
+		const response = await fetch(`/api/pipelines/batch?limit=${limit + 10}`, {
 			method: 'GET'
 		})
 
@@ -88,21 +86,24 @@
 
 <!-- Mobile Menu -->
 
-<div data-popup="mobile-filter" class="popup-solid space-y-2 z-50 p-4">
-	<Dropdown
-		name="driverMobile"
-		icon={faChevronUp}
-		placement="top-start"
-		options={['Any'].concat(DUUIDrivers)}
-		bind:value={driverFilter}
-	/>
+<div data-popup="mobile-filter" class="z-50">
+	<div class="flex flex-col bg-surface-50-900-token shadow-lg border border-color">
+		<Dropdown
+			rounded="!rounded-none"
+			name="driverMobile"
+			icon={faChevronUp}
+			placement="top-start"
+			options={['Any'].concat(DUUIDrivers)}
+			bind:value={driverFilter}
+		/>
 
-	<Search
-		bind:query={searchText}
-		icon={faSearch}
-		placeholder="Search..."
-		style="input-wrapper !rounded-none md:!rounded-sm p-4 md:p-3"
-	/>
+		<Search
+			bind:query={searchText}
+			icon={faSearch}
+			placeholder="Search..."
+			style="input-wrapper !rounded-none md:!rounded-sm p-4 md:p-3"
+		/>
+	</div>
 </div>
 
 <div class="menu-mobile">

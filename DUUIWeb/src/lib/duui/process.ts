@@ -36,10 +36,10 @@ export const processToSeachParams = (process: DUUIProcess) => {
 		&input-provider=${process.input.provider}
 		&input-path=${process.input.path}
 		&input-content=${equals(process.input.provider, IO.Text) ? process.input.content : ''}
-		&input-file-extension=${process.input.fileExtension}
+		&input-file-extension=${process.input.file_extension}
 		&output-provider=${process.output.provider}
 		&output-path=${process.output.path}
-		&output-file-extension=${process.output.fileExtension}
+		&output-file-extension=${process.output.file_extension}
 		&notify=${process.settings.notify || 'false'}
 		&check_target=${process.settings.check_target || 'false'}
 		&recursive=${process.settings.recursive || 'false'}

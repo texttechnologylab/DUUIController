@@ -8,5 +8,7 @@
 </script>
 
 <div id="top" class="scroll-mt-4">
-	<slot />
+	<div class="p-4 md:p-8 gradient bg-repeat">
+		<slot />
+	</div>
 </div>

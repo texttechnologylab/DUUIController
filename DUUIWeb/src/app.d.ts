@@ -87,12 +87,14 @@ type AggregationStep = { _id: string; count: number[] }
 type AggreationResult = AggreationStep[]
 
 type APIMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
-type APIParam = { name: string; optional: boolean; description: string }
+type ParameterType = 'Query' | 'Body'
+type APIParameter = { name: string; type: ParameterType; description: string }
 
 type APIEndpoint = {
 	method: APIMethod
 	route: string
 	returns: { code: number; message: string }[]
+	parameters: APIParameter[]
 	description: string
 	exampleRequest: string = ''
 }

@@ -1,8 +1,8 @@
-import { error, fail, json, redirect, type RequestEvent } from '@sveltejs/kit'
-import type { RequestHandler, RouteParams } from './$types'
 import { SERVER_API_KEY } from '$env/static/private'
 import { API_URL } from '$lib/config'
+import { error, fail, json, type RequestEvent } from '@sveltejs/kit'
 import bcrypt from 'bcrypt'
+import type { RequestHandler, RouteParams } from './$types'
 
 const login = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 	const data = await event.request.json()

@@ -18,11 +18,11 @@
 	} from '$lib/duui/io.js'
 	import { equals } from '$lib/duui/utils/text'
 	import { errorToast } from '$lib/duui/utils/ui'
-	import Checkbox from '$lib/svelte/widgets/input/Checkbox.svelte'
-	import Dropdown from '$lib/svelte/widgets/input/Dropdown.svelte'
-	import Number from '$lib/svelte/widgets/input/Number.svelte'
-	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
-	import TextInput from '$lib/svelte/widgets/input/TextInput.svelte'
+	import Checkbox from '$lib/svelte/components/Checkbox.svelte'
+	import Dropdown from '$lib/svelte/components/Dropdown.svelte'
+	import Number from '$lib/svelte/components/Number.svelte'
+	import TextArea from '$lib/svelte/components/TextArea.svelte'
+	import TextInput from '$lib/svelte/components/TextInput.svelte'
 	import { faArrowLeft, faCheck } from '@fortawesome/free-solid-svg-icons'
 	import { FileDropzone, getToastStore } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
@@ -33,14 +33,14 @@
 		provider: ($page.url.searchParams.get('input-provider') as IOProvider) || 'Text',
 		path: $page.url.searchParams.get('input-path') || '',
 		content: $page.url.searchParams.get('input-content') || 'Sample Text.',
-		fileExtension: ($page.url.searchParams.get('input-file-extension') as FileExtension) || '.txt'
+		file_extension: ($page.url.searchParams.get('input-file-extension') as FileExtension) || '.txt'
 	}
 
 	let output: DUUIDocumentProvider = {
 		provider: ($page.url.searchParams.get('output-provider') as IOProvider) || 'None',
 		path: $page.url.searchParams.get('output-path') || '',
 		content: $page.url.searchParams.get('output-content') || '',
-		fileExtension: ($page.url.searchParams.get('output-file-extension') as FileExtension) || '.txt'
+		file_extension: ($page.url.searchParams.get('output-file-extension') as FileExtension) || '.txt'
 	}
 
 	let files: FileList
@@ -198,7 +198,7 @@
 								label="File extension"
 								name="input-extension"
 								options={InputFileExtensions}
-								bind:value={input.fileExtension}
+								bind:value={input.file_extension}
 							/>
 						{/if}
 					</div>
@@ -216,7 +216,7 @@
 							<FileDropzone
 								name="inputFile"
 								bind:files
-								accept={input.fileExtension}
+								accept={input.file_extension}
 								multiple={true}
 								border="border border-color"
 								rounded="rounded-md"
@@ -262,7 +262,7 @@
 								label="File extension"
 								name="output-extension"
 								options={OutputFileExtensions}
-								bind:value={output.fileExtension}
+								bind:value={output.file_extension}
 							/>
 						{/if}
 					</div>

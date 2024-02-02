@@ -1,7 +1,6 @@
 <script lang="ts">
-	import Rating from '$lib/svelte/widgets/input/Rating.svelte'
-	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
-	import { Step, Stepper } from '@skeletonlabs/skeleton'
+	import Rating from '$lib/svelte/components/Rating.svelte'
+	import TextArea from '$lib/svelte/components/TextArea.svelte'
 
 	let requirements = 4
 	let frustration = 4

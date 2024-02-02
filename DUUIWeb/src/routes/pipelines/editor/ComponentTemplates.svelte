@@ -1,11 +1,11 @@
 <script lang="ts">
-	import DriverIcon from '$lib/svelte/DriverIcon.svelte'
+	import DriverIcon from '$lib/svelte/components/DriverIcon.svelte'
 	import { DUUIDriverFilters, type DUUIComponent, type DUUIDriverFilter } from '$lib/duui/component'
 	import { faSearch } from '@fortawesome/free-solid-svg-icons'
 	import { createEventDispatcher } from 'svelte'
-	import Search from '$lib/svelte/widgets/input/Search.svelte'
+	import Search from '$lib/svelte/components/Search.svelte'
 	import { equals, includes } from '$lib/duui/utils/text'
-	import Dropdown from '$lib/svelte/widgets/input/Dropdown.svelte'
+	import Dropdown from '$lib/svelte/components/Dropdown.svelte'
 
 	const dispatcher = createEventDispatcher()
 	export let components: DUUIComponent[]

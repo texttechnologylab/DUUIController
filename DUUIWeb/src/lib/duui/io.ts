@@ -27,7 +27,7 @@ export type DUUIDocumentProvider = {
 	provider: IOProvider
 	path: string
 	content: string
-	fileExtension: FileExtension
+	file_extension: FileExtension
 }
 
 export type IOProvider = 'Dropbox' | 'Minio' | 'File' | 'Text' | 'None'

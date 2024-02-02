@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Feature from '$lib/svelte/Feature.svelte'
+	import Feature from '$lib/svelte/components/Feature.svelte'
 	import {
 		faArrowUpRightFromSquare,
 		faArrowsAlt,
@@ -14,13 +14,10 @@
 	import Logo from '$lib/assets/Logo.svg'
 	import { scrollIntoView } from '$lib/duui/utils/ui'
 	import { userSession } from '$lib/store'
-	import Link from '$lib/svelte/Link.svelte'
+	import Link from '$lib/svelte/components/Link.svelte'
 	import { faAmazon, faDropbox, faGithub, faXTwitter } from '@fortawesome/free-brands-svg-icons'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
-
-	import Pipeline from '$lib/assets/Screenshots/Pipeline.png'
-	import PipelineDark from '$lib/assets/Screenshots/Pipeline-Dark.png'
 
 	const logout = async () => {
 		const response = await fetch('/account/logout', { method: 'PUT' })
@@ -59,17 +56,17 @@
 
 				<div class="grid grid-cols-2 gap-4 md:text-lg">
 					{#if $userSession === undefined}
-						<a href="/account/register" class="px-6 md:px-12 py-3 md:py-4 grow-from-left">
+						<a href="/account/register" class="cta button-modal">
 							<span> Get Started </span>
 						</a>
 					{:else}
-						<a href="/pipelines" class="px-6 md:px-12 py-3 md:py-4 grow-from-left">
+						<a href="/pipelines" class="cta button-modal">
 							<span> Get back to it </span>
 						</a>
 					{/if}
 					<a
 						href="/documentation"
-						class="px-6 md:px-12 py-3 md:py-4 variant-ghost-primary rounded-full"
+						class="text-primary-700-200-token shadow-lg button-modal hover:variant-soft-primary transition-colors"
 					>
 						<span> Documentation </span>
 					</a>

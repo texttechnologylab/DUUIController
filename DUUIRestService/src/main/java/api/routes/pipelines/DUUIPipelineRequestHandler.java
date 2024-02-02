@@ -12,10 +12,12 @@ import spark.Request;
 import spark.Response;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import static api.routes.DUUIRequestHelper.*;
+import static api.routes.components.DUUIComponentController.mergeOptions;
 import static api.routes.pipelines.DUUIPipelineController.getPipelineById;
 
 public class DUUIPipelineRequestHandler {
@@ -41,9 +43,10 @@ public class DUUIPipelineRequestHandler {
             return DUUIRequestHelper.notFound(response);
         }
 
-        Document statistics = DUUIProcessController.getStatisticsForPipeline(pipelineID);
-
-        result.append("statistics", statistics);
+        if (request.queryParamOrDefault("statistics", "false").equals("true")) {
+            Document statistics = DUUIProcessController.getStatisticsForPipeline(pipelineID);
+            result.append("statistics", statistics);
+        }
         return result.toJson();
     }
 
@@ -91,6 +94,14 @@ public class DUUIPipelineRequestHandler {
             return DUUIRequestHelper.notFound(response);
         }
 
+        if (request.queryParamOrDefault("statistics", "false").equals("true")) {
+            result
+                .getList("pipelines", Document.class)
+                .forEach(pipeline -> pipeline.append(
+                    "statistics",
+                    DUUIProcessController.getStatisticsForPipeline(pipeline.getString("oid"))));
+        }
+
         response.status(200);
         return result.toJson();
     }
@@ -130,13 +141,33 @@ public class DUUIPipelineRequestHandler {
 
 
         String id = pipeline.getObjectId("_id").toString();
-        components.forEach(c -> {
-                c.put("pipeline_id", id);
-                c.remove("oid");
-                c.remove("id");
-                c.put("index", components.indexOf(c));
+
+        for (Document component : components) {
+            if (!component.containsKey("name")) {
+                return DUUIRequestHelper.badRequest(response, "Missing name for component.");
             }
-        );
+
+            if (!component.containsKey("driver")) {
+                return DUUIRequestHelper.badRequest(response, String.format("Missing driver in component %s", component.getString("name")));
+            }
+
+            if (!component.containsKey("target")) {
+                return DUUIRequestHelper.badRequest(response, String.format("Missing target in component %s", component.getString("name")));
+            }
+
+            component.put("pipeline_id", id);
+            component.remove("oid");
+            component.remove("id");
+            component.put("index", components.indexOf(component));
+
+            if (!component.containsKey("parameters")) {
+                component.append("parameters", new Document());
+            }
+
+            if (!component.containsKey("options")) {
+                component.append("options", mergeOptions(component.get("options", Document.class)));
+            }
+        }
 
         DUUIMongoDBStorage
             .Components()
@@ -203,7 +234,7 @@ public class DUUIPipelineRequestHandler {
         }
 
         if (!deleted) {
-            response.status(400);
+            response.status(500);
             return "Deletion failed";
         }
 

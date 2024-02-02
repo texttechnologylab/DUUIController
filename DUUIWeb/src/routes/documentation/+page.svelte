@@ -1,235 +1,291 @@
-<script>
-	import JavaClass from '$lib/svelte/widgets/duui/JavaClass.svelte'
-	import { faArrowUp } from '@fortawesome/free-solid-svg-icons'
-	import { CodeBlock } from '@skeletonlabs/skeleton'
+<script lang="ts">
+	import { blankComponent } from '$lib/duui/component'
+	import { currentPipelineStore, exampleComponent } from '$lib/store.js'
+	import Chips from '$lib/svelte/components/Chips.svelte'
+	import PipelineCard from '$lib/svelte/components/PipelineCard.svelte'
+	import PipelineComponent from '$lib/svelte/components/PipelineComponent.svelte'
+	import TextInput from '$lib/svelte/components/TextInput.svelte'
+	import { faArrowUp, faCheck, faClone, faEdit, faPlus } from '@fortawesome/free-solid-svg-icons'
+	import { clipboard } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
 
-	const code = `
-	int iWorkers = 2; // define the number of workers
+	export let data
+	$currentPipelineStore = data.examplePipeline
+	let exampleComponentAdded: boolean = false
 
-JCas jc = JCasFactory.createJCas(); // A empty CAS document is defined.
-
-// load content into jc ...
-
-// Defining LUA-Context for communication
-DUUILuaContext ctx = LuaConsts.getJSON();
-
-// Defining a storage backend based on SQlite.
-DUUISqliteStorageBackend sqlite = new DUUISqliteStorageBackend("loggingSQlite.db")
-            .withConnectionPoolSize(iWorkers);
-
-// The composer is defined and initialized with a standard Lua context as well with a storage backend.
-DUUIComposer composer = new DUUIComposer().withLuaContext(ctx)
-                        .withScale(iWorkers).withStorageBackend(sqlite);
-                
-// Instantiate drivers with options (example)
-DUUIDockerDriver docker_driver = new DUUIDockerDriver()
-        .withTimeout(10000);
-DUUIRemoteDriver remote_driver = new DUUIRemoteDriver(10000);
-DUUIUIMADriver uima_driver = new DUUIUIMADriver().withDebug(true);
-DUUISwarmDriver swarm_driver = new DUUISwarmDriver();
-
-// A driver must be added before components can be added for it in the composer. After that the composer is able to use the individual drivers.
-composer.addDriver(docker_driver, remote_driver, uima_driver, swarm_driver);
-
-// A new component for the composer is added
-composer.add(new DUUIDockerDriver.
-    Component("docker.texttechnologylab.org/gnfinder:latest")
-    .withScale(iWorkers)
-    // The image is reloaded and fetched, regardless of whether it already exists locally (optional)
-    .withImageFetching());
-    
-// Adding a UIMA annotator for writing the result of the pipeline as XMI files.
-composer.add(new DUUIUIMADriver.Component(
-                createEngineDescription(XmiWriter.class,
-                        XmiWriter.PARAM_TARGET_LOCATION, sOutputPath,
-                )).withScale(iWorkers));
-
-// The document is processed through the pipeline. In addition, files of entire repositories can be processed.
-composer.run(jc);
-	`
-
-	const jitpack = `<repositories>
-  <repository>
-      <id>jitpack.io</id>
-      <url>https://jitpack.io</url>
-  </repository>
-</repositories>`
-
-	const maven = `<dependency>
-  <groupId>com.github.texttechnologylab</groupId>
-  <artifactId>DockerUnifiedUIMAInterface</artifactId>
-  <version>1.0</version>
-</dependency>`
+	const addExampleComponent = () => {
+		exampleComponentAdded = true
+		$currentPipelineStore.components = [
+			...$currentPipelineStore.components,
+			blankComponent($currentPipelineStore.oid, $currentPipelineStore.components.length)
+		]
+	}
 </script>
 
 <svelte:head>
 	<title>Documentation</title>
 </svelte:head>
 
-<div class="bg-repeat [&_p]:max-w-[70ch] md:text-left py-8 gradient">
-	<div class=" max-w-7xl mx-auto space-y-8 p-4">
-		<h1 class="h1 font-bold scroll-mt-4 !mb-16" id="introduction">Documentation</h1>
-		<div class="grid md:grid-cols-2 gap-8">
-			<div class="space-y-4 text-justify">
-				<div class="space-y-4">
-					<h2 class="h2 font-bold pb-4">Introduction</h2>
-					<p>
-						Automatic analysis of large text corpora is a complex task. This complexity particularly
-						concerns the question of time efficiency. Furthermore, efficient, flexible, and
-						extensible textanalysis requires the continuous integration of every new text analysis
-						tools.
-					</p>
-					<p>
-						Since there are currently, in the area of NLP and especially in the application context
-						of UIMA, only very few to no adequate frameworks for these purposes, which are not
-						simultaneously outdated or can no longer be used for security reasons, this work will
-						present a new approach to fill this gap.
-					</p>
+<div class=" max-w-7xl mx-auto space-y-8">
+	<h1 class="h1 scroll-mt-8">Documentation</h1>
+	<hr class="hr !w-full" />
+
+	<div class="space-y-8 md:text-justify leading-normal">
+		<!-- Introduction -->
+		<div class="space-y-4">
+			<h2 class="h2" id="introduction">Introduction</h2>
+			<p>
+				Automatic analysis of large text corpora is a complex task. This complexity particularly
+				concerns the question of time efficiency. Furthermore, efficient, flexible, and extensible
+				textanalysis requires the continuous integration of every new text analysis tools. Since
+				there are currently, in the area of NLP and especially in the application context of UIMA,
+				only very few to no adequate frameworks for these purposes, which are not simultaneously
+				outdated or can no longer be used for security reasons, this work will present a new
+				approach to fill this gap.
+			</p>
+		</div>
+
+		<hr class="hr !w-full" />
+
+		<!-- Pipelines -->
+		<div class="space-y-4">
+			<h2 class="h2" id="pipeline">Pipeline</h2>
+			<div class="space-y-16">
+				<div class="grid xl:grid-cols-2 gap-4">
+					<div class="space-y-8">
+						<p>
+							A pipeline is a collection of components or Analysis Engines that can be executed.
+							During an analysis process, the components in the pipeline are executed one after
+							another annotating documents. Pipelines do not interact with the input data directly
+							but build the structure for an NLP workflow.
+						</p>
+						<p>
+							Creating a pipeline with this web-interface can be done in the <a
+								class="anchor"
+								href="/pipelines/editor">Editor</a
+							>. It is a three step form that guides you through building a pipeline either from
+							<a class="anchor" href="/pipelines/editor#top">scratch</a> or using a
+							<a class="anchor" href="/pipelines/editor#templates">template</a> as the starting point.
+						</p>
+						<hr class="hr" />
+						<p class="blockquote border-primary-500">
+							Choosing a template as a starting point copies all predefined settings into a fresh
+							pipeline.
+						</p>
+					</div>
 				</div>
+				<div class="grid xl:grid-cols-2 gap-4">
+					<div class="space-y-8">
+						<p>
+							In the second step pipeline specific properties like name, description, tags and
+							settings can be edited. Only a name is required to proceed but adding a short
+							description is recommend to serve as documentation and help others when sharing a
+							pipeline.
+						</p>
+						<p>
+							Try adding a tag to the pipeline
+							<span class="hidden lg:inline">on the right.</span>
+							<span class="lg:hidden inline">below.</span>
+						</p>
+						{#if $currentPipelineStore.tags.length === 0}
+							<p class="self-end">
+								No tags added yet. Enter a value in the text field that says Add a tag... and press
+								enter.
+							</p>
+						{:else}
+							<div class="flex gap-4 items-center">
+								<p>Tags are listed under the text field.</p>
+								<Fa icon={faCheck} size="2x" class="text-success-500" />
+							</div>
+						{/if}
+					</div>
+					<div>
+						<div class="section-wrapper flex flex-col gap-4 p-4">
+							<TextInput label="Name" bind:value={$currentPipelineStore.name} />
 
-				<div class="space-y-4">
-					<h2 class="h2 font-bold">Docker Unified UIMA Interface</h2>
-					<p>
-						To this end, we present Docker Unified UIMA Interface (DUUI), a scalable, flexible,
-						lightweight, and featurerich framework for automated and distributed analysis of text
-						corpora that leverages experience in Big Data analytics and virtualization with Docker.
-					</p>
-					<h3 class="h3 font-bold">Functionality</h3>
-					<p>
-						Lorem ipsum dolor sit amet consectetur adipisicing elit. Maxime dolorem culpa beatae in
-						quisquam exercitationem nemo possimus unde et nihil! Officiis alias numquam obcaecati
-						suscipit, tempora voluptas asperiores accusantium nisi!
-					</p>
+							<TextInput label="Description" bind:value={$currentPipelineStore.description} />
+							<Chips
+								label="Tags"
+								placeholder="Add a tag..."
+								bind:values={$currentPipelineStore.tags}
+							/>
+						</div>
+					</div>
+				</div>
+				<div class="grid xl:grid-cols-2 gap-4">
+					<div class="space-y-8">
+						<p>
+							This is the state of your pipeline so far. Since there no components yet, the pipeline
+							doesn't really do anything. Let's add some components to the pipeline.
+						</p>
+						<p class="blockquote border-primary-500">
+							A pipeline must have at least one component to be created.
+						</p>
+					</div>
+					<div class="card-fancy grid items-start min-h-[300px]">
+						<PipelineCard pipeline={$currentPipelineStore} />
+					</div>
 				</div>
 			</div>
 		</div>
 
-		<hr class="hr !h-[2px] !my-16" />
+		<hr class="hr !w-full" />
 
-		<div id="composer" class="scroll-mt-4 space-y-4">
-			<h2 class="h2 font-bold pb-4">Composer</h2>
-			<div class=" space-y-8">
+		<!-- Components -->
+		<div class="space-y-4">
+			<h2 class="h2" id="component">Component</h2>
+			<div class="space-y-16">
+				<div class="grid xl:grid-cols-2 gap-4">
+					<div class="space-y-8">
+						<p>
+							Components are the part of DUUI that actually do the processing and therefore offer
+							the most settings. When creating a pipeline you can choose from a set of predefined
+							components or create your own. Once added to the pipeline, a component can be edited
+							by clicking the <Fa icon={faEdit} class="inline" /> icon. This will open a drawer on the
+							right, that allows for modification of a component.
+						</p>
+						<div class="space-y-1">
+							<p>Settings include</p>
+							<p class="font-bold">Name</p>
+							<p>
+								<span class="font-bold">Driver</span> - The Driver is responsible for the instantiation
+								of a component during a process.
+							</p>
+							<p>
+								<span class="font-bold">Target</span> - The component's target depends on the selected
+								driver. For Docker, Kubernetes and Swarm Drivers, the target is the full image name.
+								For UIMA it is the class path to the Annotator represented by this component and for
+								a Remote Driver the URL has to specified.
+							</p>
+							<p class="font-bold">Tags</p>
+							<p class="font-bold">Description</p>
+							<p class="font-bold">Options</p>
+							<p class="font-bold">Parameters</p>
+						</div>
+						<p>
+							Options are specific to the selected driver. Most of the time the default options are
+							sufficient and modifications are only for special uses cases. Parameters are useful if
+							the component requires settings that are not controlled by DUUI.
+						</p>
+						<hr class="hr" />
+						<p class="blockquote border-primary-500">
+							When editing a specific pipeline, clicking the <Fa icon={faClone} class="inline" /> icon
+							clones the component's settings and prefills the creation form.
+						</p>
+					</div>
+					<div class="grid items-center">
+						{#if exampleComponentAdded}
+							<div class="space-y-4">
+								{#if $exampleComponent.target === ''}
+									<p>
+										Open the drawer by clicking on the <Fa icon={faEdit} class="inline" /> icon and add
+										a target. If you don't have a target at hand, you can choose the DUUIDockerDriver
+										and enter
+										<button
+											use:clipboard={'docker.texttechnologylab.org/textimager-duui-spacy-single-de_core_news_sm:latest'}
+											class="button-surface my-2"
+											>docker.texttechnologylab.org/textimager-duui-spacy-single-de_core_news_sm:latest</button
+										> as the target.
+									</p>
+								{/if}
+								{#each $currentPipelineStore.components as component}
+									<PipelineComponent example={true} {component} />
+								{/each}
+								<button class="button-primary" on:click={addExampleComponent}>
+									<Fa icon={faPlus} />
+									<span>Create component</span>
+								</button>
+							</div>
+						{:else}
+							<div class="mx-auto">
+								<button class="button-primary" on:click={addExampleComponent}>
+									<Fa icon={faPlus} />
+									<span>Create component</span>
+								</button>
+							</div>
+						{/if}
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<hr class="hr !w-full" />
+
+		<!-- Processes -->
+		<div class="space-y-4">
+			<h2 class="h2" id="process">Process</h2>
+			<div class="space-y-4">
 				<p>
-					The Composer controls the entire Workflow by managing <a
+					A process manages data and pipeline execution. Starting a process is possible on a
+					pipeline page from the top right.
+				</p>
+				<p>
+					On the process creation screen you are asked to select an input, output and optionally
+					settings the influence the process' behavior. There are currently for input options that
+					each have different settings.
+				</p>
+				<div class="space-y-2">
+					<div>
+						<h4 class="h4">Text</h4>
+						<p>No special settings are necessary here as the text is directly available to DUUI.</p>
+					</div>
+					<div>
+						<h4 class="h4">File</h4>
+						<p>
+							Asks you to upload one or more files to DUUI, that are then processed. A file
+							extension (.txt, .xmi or .gz) must be selected.
+						</p>
+					</div>
+					<div>
+						<h4 class="h4">Dropbox</h4>
+						<p>
+							Afterwards, loading files from Dropbox requires a file extension (.txt, .xmi or .gz)
+							and the path to a folder.
+						</p>
+					</div>
+					<div>
+						<h4 class="h4">Min.io</h4>
+						<p>
+							Loading files from Min.io is similar to Dropbox. Instead of a path to a folder, you
+							must specify the location to load from as 'bucket/path/to/folder'.
+						</p>
+					</div>
+				</div>
+				<p>
+					To use Dropbox and Min.io you first have to connect your Dropbox account with DUUI on your <a
 						class="anchor"
-						href="/documentation#driver">Drivers</a
-					> and the IO.
+						href="/account">Account</a
+					> page. Both Dropbox and Min.io allow for recursive search, a minimum file size and sorting
+					in ascending order.
 				</p>
 			</div>
 		</div>
 
-		<hr class="hr !h-[2px] !my-16" />
+		<hr class="hr !w-full" />
 
-		<div id="driver" class="scroll-mt-4 space-y-2 text-justify">
-			<h2 class="h2 font-bold pb-4">Driver</h2>
-			<h3 class="h3 font-bold">UIMADriver</h3>
-			<div class="grid md:grid-cols-2 py-2 items-start gap-8">
-				<p>
-					The UIMADriver runs a UIMA Analysis Engine (AE) on the local machine (using local memory
-					and processor) in the same process within the JRE and allows scaling on that machine by
-					replicating the underlying Analysis Engine. This enables the use of all previous analysis
-					methods based on UIMA AE without further adjustments.
-				</p>
-				<CodeBlock
-					code="DUUIUIMADriver uimaDriver = new DUUIUIMADriver().withDebug(true);"
-					language="java"
-				/>
-			</div>
-			<h3 class="h3 font-bold scroll-mt-4" id="dockerdriver">DockerDriver</h3>
-			<div class="grid md:grid-cols-2 py-2 items-start gap-8">
-				<p>
-					The DUUI core driver runs Components on the local Docker daemon and enables
-					machine-specific resource management. This requires that the AEs are available as Docker
-					images according to DUUI to run as Docker containers. It is not relevant whether the
-					Docker image is stored locally or in a remote registry, since the Docker container is
-					built on startup. This makes it very easy to test new AEs (as local containers) before
-					being released. The distinction between local and remote Docker images is achieved by the
-					URI of the Docker image used.
-				</p>
-				<CodeBlock
-					code="DUUIDockerDriver dockerDriver = new DUUIDockerDriver().withTimeout(10000);"
-					language="java"
-				/>
-			</div>
-			<h3 class="h3 font-bold">RemoteDriver</h3>
-			<div class="grid md:grid-cols-2 py-2 items-start gap-8">
-				<p>
-					AEs that are not available as containers and whose models can or should not be shared can
-					still be used if they are available via REST. Since DUUI communicates via RESTful, remote
-					endpoints can be used for pre-processing. In general, AEs implemented based on DUUI can be
-					accessed and used via REST, but the scaling is limited regarding request and processing
-					capabilities of the hosting system.<br /><br /> In addition, Components addressed via the RemoteDriver
-					can be used as services. This has advantages for AEs that need to hold large models in memory
-					and thus require a long startup time. To avoid continuous reloading, it may be necessary to
-					start a service once or twice in a dedicated mode and then use a RemoteDriver to access it.
-					To use services, their URL must be specified to enable horizontal scaling.
-				</p>
-				<CodeBlock code="DUUIRemote remoteDriver = new DUUIRemoteDriver(10000);" language="java" />
-			</div>
-			<h3 class="h3 font-bold scroll-mt-4" id="swarmdriver">SwarmDriver</h3>
-			<div class="grid md:grid-cols-2 py-2 items-start gap-8">
-				<p>
-					The SwarmDriver complements the <a class="anchor" href="/documentation#dockerdriver"
-						>DockerDriver</a
-					>; it uses the same functionalities, but its AEs are used as Docker images distributed
-					within the Docker Swarm network. A swarm consists of n nodes and is controlled by a leader
-					node within the Docker framework. However, if an application using DUUI is executed on a
-					Docker leader node, the individual AEs can be executed on multiple swarm nodes.
-				</p>
-				<CodeBlock code="DUUISwarmDriver swarmDriver = new DUUISwarmDriver();" language="java" />
-			</div>
-			<h3 class="h3 font-bold">KubernetesDriver</h3>
-			<div class="grid md:grid-cols-2 py-2 items-start gap-8">
-				<p>
-					The KubernetesDriver works similarly to the <a
-						class="anchor"
-						href="/documentation#swarmdriver">SwarmDriver</a
-					>, but Kubernetes is used as the runtime environment instead of Docker Swarm.
-				</p>
-				<CodeBlock
-					code="DUUIKubernetesDriver kubernetesDriver = new DUUIKubernetesDriver();"
-					language="java"
-				/>
-			</div>
-		</div>
-
-		<hr class="hr !h-[2px] !my-16" />
-
+		<!-- Documents -->
 		<div class="space-y-4 text-justify">
-			<h2 class="h2 font-bold pb-4 scroll-mt-4" id="component">Component</h2>
-			<p>
-				Lorem ipsum dolor sit amet consectetur adipisicing elit. Ducimus quidem perspiciatis
-				debitis, animi amet minima alias architecto molestiae saepe sit veritatis maiores dolorum?
-				Repudiandae, architecto ea! Fugit natus praesentium suscipit.
-			</p>
-		</div>
-		<hr class="hr !h-[2px] !my-16" />
-
-		<div class="space-y-4 text-justify">
-			<h2 class="h2 font-bold pb-4 scroll-mt-4" id="document">Document</h2>
-			<p>
-				Lorem ipsum dolor sit amet consectetur adipisicing elit. Ducimus quidem perspiciatis
-				debitis, animi amet minima alias architecto molestiae saepe sit veritatis maiores dolorum?
-				Repudiandae, architecto ea! Fugit natus praesentium suscipit.
-			</p>
-		</div>
-		<hr class="hr !h-[2px] !my-16" />
-
-		<div class="space-y-4 text-justify">
-			<h2 class="h2 font-bold pb-4 scroll-mt-4" id="process">Process</h2>
-			<p>
-				Lorem ipsum dolor sit amet consectetur adipisicing elit. Ducimus quidem perspiciatis
-				debitis, animi amet minima alias architecto molestiae saepe sit veritatis maiores dolorum?
-				Repudiandae, architecto ea! Fugit natus praesentium suscipit.
-			</p>
+			<h2 class="h2" id="document">Document</h2>
+			<div class="space-y-4">
+				<p>
+					Lorem ipsum dolor sit amet consectetur adipisicing elit. Ducimus quidem perspiciatis
+					debitis, animi amet minima alias architecto molestiae saepe sit veritatis maiores dolorum?
+					Repudiandae, architecto ea! Fugit natus praesentium suscipit.
+				</p>
+			</div>
 		</div>
 	</div>
 </div>
 
 <a
 	href="/documentation#introduction"
-	class="btn-icon variant-filled-primary dark:variant-soft-primary rounded-full fixed bottom-8 right-8 z-50"
+	class="button-neutral rounded-full fixed bottom-8 right-8 z-[20]"
 >
 	<Fa icon={faArrowUp} size="lg" />
 </a>
+
+<style>
+	h2 {
+		scroll-margin-top: 32px;
+	}
+</style>

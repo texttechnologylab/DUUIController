@@ -1,11 +1,10 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
-	import PipelineComponent from '$lib/svelte/widgets/duui/PipelineComponent.svelte'
+	import PipelineComponent from '$lib/svelte/components/PipelineComponent.svelte'
 	import {
 		faArrowDownWideShort,
 		faArrowLeft,
 		faArrowUpWideShort,
-		faEllipsisV,
 		faFileCircleCheck,
 		faFileClipboard,
 		faFileExport,
@@ -42,17 +41,17 @@
 		successToast
 	} from '$lib/duui/utils/ui'
 	import { currentPipelineStore } from '$lib/store'
-	import Chips from '$lib/svelte/widgets/input/Chips.svelte'
-	import JsonInput from '$lib/svelte/widgets/input/JsonInput.svelte'
-	import Select from '$lib/svelte/widgets/input/Select.svelte'
-	import TextArea from '$lib/svelte/widgets/input/TextArea.svelte'
-	import Text from '$lib/svelte/widgets/input/TextInput.svelte'
-	import Paginator from '$lib/svelte/widgets/navigation/Paginator.svelte'
+	import Chips from '$lib/svelte/components/Chips.svelte'
+	import JsonInput from '$lib/svelte/components/JsonInput.svelte'
+	import Paginator from '$lib/svelte/components/Paginator.svelte'
+	import Select from '$lib/svelte/components/Select.svelte'
+	import TextArea from '$lib/svelte/components/TextArea.svelte'
+	import Text from '$lib/svelte/components/TextInput.svelte'
 	import { getToastStore, Tab, TabGroup } from '@skeletonlabs/skeleton'
 	import type { PageServerData } from './$types'
 
-	import ButtonMenu from '$lib/svelte/widgets/navigation/ButtonMenu.svelte'
-	import { showModal } from '$lib/utils/modal'
+	import ButtonMenu from '$lib/svelte/components/ButtonMenu.svelte'
+	import { showConfirmationModal } from '$lib/svelte/utils/modal'
 	import { onMount } from 'svelte'
 	import {
 		getErrorsPlotOptions,
@@ -136,12 +135,12 @@
 	}
 
 	const deletePipeline = async () => {
-		const confirm = await showModal(
+		const confirm = await showConfirmationModal(
 			{
 				title: 'Delete Pipeline',
-				message: `Are you sure you want to delete ${$currentPipelineStore.name}?`
+				message: `Are you sure you want to delete ${$currentPipelineStore.name}?`,
+				textYes: 'Delete'
 			},
-			'deleteModal',
 			modalStore
 		)
 
@@ -503,30 +502,32 @@
 					<span> Statistics </span>
 				</Tab>
 			</TabGroup>
-			<div
-				class="hidden ml-auto sm:flex overflow-hidden justify-between section-wrapper !shadow-none !border-b-0 !rounded-b-none z-[5]"
-			>
-				{#if $currentPipelineStore.user_id !== null && tabSet !== 2}
-					<a
-						class="inline-flex gap-4 items-center px-4 bg-fancy"
-						href={`/processes?pipeline_id=${$currentPipelineStore.oid}`}
-					>
-						<Fa icon={faPlus} />
-						<span>New Process</span>
-					</a>
-				{/if}
-				{#if tabSet === 1}
-					<Select
-						on:change={updateTable}
-						style="z-50 !rounded-none hidden sm:flex"
-						border="border-l border-color"
-						label="Status"
-						name="Status"
-						bind:selected={filter}
-						options={statusNames}
-					/>
-				{/if}
-			</div>
+			{#if tabSet !== 2}
+				<div
+					class="hidden ml-auto sm:flex overflow-hidden justify-between section-wrapper !shadow-none !border-b-0 !rounded-b-none z-[5]"
+				>
+					{#if $currentPipelineStore.user_id !== null && tabSet !== 2}
+						<a
+							class="inline-flex gap-4 items-center px-4 bg-fancy"
+							href={`/processes?pipeline_id=${$currentPipelineStore.oid}`}
+						>
+							<Fa icon={faPlus} />
+							<span>New Process</span>
+						</a>
+					{/if}
+					{#if tabSet === 1}
+						<Select
+							on:change={updateTable}
+							style="z-50 !rounded-none hidden sm:flex"
+							border="border-l border-color"
+							label="Status"
+							name="Status"
+							bind:selected={filter}
+							options={statusNames}
+						/>
+					{/if}
+				</div>
+			{/if}
 		</div>
 
 		{#if tabSet === 0}
@@ -645,24 +646,15 @@
 			<Paginator bind:settings={paginationSettings} on:change={updateTable} />
 		{:else if tabSet === 2}
 			<div class="space-y-8">
-				{#if loaded}
-					<div class="grid md:grid-cols-2 gap-8">
-						<div class="section-wrapper p-4">
-							<div use:chart={statusPlotOptions} />
-						</div>
-
-						<div class="section-wrapper p-4">
-							<div use:chart={errorsPlotOptions} />
-						</div>
-
-						<div class="section-wrapper p-4">
-							<div use:chart={ioPlotOptions} />
-						</div>
-
-						<div class="section-wrapper p-4">
-							<div use:chart={usagePlotOptions} />
-						</div>
+				{#if loaded && pipeline.statistics}
+					<div class="grid md:grid-cols-2 gap-8 section-wrapper p-4">
+						<div use:chart={statusPlotOptions} />
+						<div use:chart={errorsPlotOptions} />
+						<div use:chart={ioPlotOptions} />
+						<div use:chart={usagePlotOptions} />
 					</div>
+				{:else}
+					<h3 class="section-wrapper h3 text-center py-8">Statistics are currently unavailable</h3>
 				{/if}
 			</div>
 		{/if}

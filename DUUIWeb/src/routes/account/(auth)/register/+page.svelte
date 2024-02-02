@@ -1,8 +1,8 @@
 <script lang="ts">
-	import Password from '$lib/svelte/widgets/input/Password.svelte'
+	import Password from '$lib/svelte/components/Password.svelte'
 	import { faGlobe } from '@fortawesome/free-solid-svg-icons'
 	import { fly } from 'svelte/transition'
-	import Text from '$lib/svelte/widgets/input/TextInput.svelte'
+	import Text from '$lib/svelte/components/TextInput.svelte'
 	import Fa from 'svelte-fa'
 	import { page } from '$app/stores'
 	import { userSession } from '$lib/store'

@@ -79,16 +79,10 @@ public class DUUIComponentController {
         if (isNullOrEmpty(String.valueOf(data.getInteger("index"))) && !isTemplate)
             return missingField(response, "index");
 
-        Document options = data.get("options", Document.class);
-        if (isNullOrEmpty(options)) {
-            options = DEFAULT_OPTIONS;
-        } else {
-            for (String key : DEFAULT_OPTIONS.keySet()) {
-                if (!options.containsKey(key)) {
-                    options.put(key, DEFAULT_OPTIONS.get(key));
-                }
-            }
-        }
+        Document options = mergeOptions(data.get("options", Document.class));
+        Document parameters = data.get("parameters", Document.class);
+        if (isNullOrEmpty(parameters)) parameters = new Document();
+
         Document component = new Document()
             .append("name", name)
             .append("tags", data.getList("tags", String.class))
@@ -97,7 +91,7 @@ public class DUUIComponentController {
             .append("driver", data.getString("driver"))
             .append("target", data.getString("target"))
             .append("options", options)
-            .append("parameters", data.get("parameters", Document.class))
+            .append("parameters", parameters)
             .append("created_at", Instant.now().toEpochMilli())
             .append("modified_at", Instant.now().toEpochMilli())
             .append("pipeline_id", isTemplate ? null : data.getString("pipeline_id"))
@@ -111,6 +105,19 @@ public class DUUIComponentController {
         convertObjectIdToString(component);
         response.status(200);
         return component.toJson();
+    }
+
+    public static Document mergeOptions(Document options) {
+        if (isNullOrEmpty(options)) {
+            return DEFAULT_OPTIONS;
+        } else {
+            for (String key : DEFAULT_OPTIONS.keySet()) {
+                if (!options.containsKey(key)) {
+                    options.put(key, DEFAULT_OPTIONS.get(key));
+                }
+            }
+        }
+        return options;
     }
 
     /**

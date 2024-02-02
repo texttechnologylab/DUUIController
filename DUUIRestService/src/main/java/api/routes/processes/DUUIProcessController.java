@@ -14,6 +14,7 @@ import duui.document.DUUIDocumentProvider;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.DUUIComposer;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.DUUIDocument;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIEvent;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
@@ -23,7 +24,6 @@ import spark.Response;
 import javax.servlet.MultipartConfigElement;
 import javax.servlet.ServletException;
 import javax.servlet.http.Part;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -174,9 +174,9 @@ public class DUUIProcessController {
 
     public static String startProcess(Request request, Response response) throws URISyntaxException, IOException {
         Document body = Document.parse(request.body());
-        String pipelineID = body.getString("pipeline_id");
+        String pipelineId = body.getString("pipeline_id");
 
-        if (isNullOrEmpty(pipelineID)) return missingField(response, "pipeline_id");
+        if (isNullOrEmpty(pipelineId)) return missingField(response, "pipeline_id");
 
         DUUIDocumentProvider input = new DUUIDocumentProvider(body.get("input", Document.class));
         DUUIDocumentProvider output = new DUUIDocumentProvider(body.get("output", Document.class));
@@ -185,7 +185,15 @@ public class DUUIProcessController {
         if (!error.isEmpty()) return missingField(response, error);
 
         Document settings = body.get("settings", Document.class);
-        Document pipeline = getPipelineById(pipelineID);
+
+        if (!settings.containsKey("worker_count")) {
+            settings.put("worker_count", 1);
+        }
+        if (!settings.containsKey("minimum_size")) {
+            settings.put("minimum_size", 0);
+        }
+
+        Document pipeline = getPipelineById(pipelineId);
 
         if (pipeline == null) return DUUIRequestHelper.notFound(response);
 
@@ -198,7 +206,7 @@ public class DUUIProcessController {
             return "This Account is out of workers for now. Wait until your other processes have finished.";
         }
 
-        Document process = new Document("pipeline_id", pipelineID)
+        Document process = new Document("pipeline_id", pipelineId)
             .append("status", DUUIStatus.SETUP)
             .append("error", null)
             .append("progress", 0)
@@ -218,18 +226,19 @@ public class DUUIProcessController {
         convertObjectIdToString(process);
         String id = process.getString("oid");
 
-        Map<String, DUUIReusableProcessHandler> reusableProcessHandlers = DUUIPipelineController
-            .getReusableProcesses();
+        Map<String, DUUIComposer> reusablePipelines = DUUIPipelineController
+            .getReusablePipelines();
 
         IDUUIProcessHandler handler;
 
-        if (reusableProcessHandlers.containsKey(pipelineID)) {
-            handler = reusableProcessHandlers.get(pipelineID);
-            if (handler.getStatus().equals(DUUIStatus.IDLE)) {
-                handler.setDetails(process, settings);
-            } else {
-                handler = new DUUISimpleProcessHandler(process, pipeline, settings);
-            }
+        if (reusablePipelines.containsKey(pipelineId)) {
+            handler = new DUUIReusableProcessHandler(
+                pipeline,
+                process,
+                settings,
+                reusablePipelines
+                    .get(pipelineId)
+                    .getInstantiatedPipeline());
         } else {
             try {
                 handler = new DUUISimpleProcessHandler(process, pipeline, settings);
@@ -240,7 +249,7 @@ public class DUUIProcessController {
         }
 
         processes.put(id, handler);
-        updateTimesUsed(pipelineID);
+        updateTimesUsed(pipelineId);
 
         response.status(200);
         return process.toJson();
@@ -678,5 +687,13 @@ public class DUUIProcessController {
                     Updates.set("annotations", new Document(document.getAnnotations()))
                 );
         }
+    }
+
+    public static List<IDUUIProcessHandler> getActiveProcesses(String pipelineId) {
+        return processes
+            .values()
+            .stream()
+            .filter(process -> process.getPipelineID().equals(pipelineId))
+            .collect(Collectors.toList());
     }
 }

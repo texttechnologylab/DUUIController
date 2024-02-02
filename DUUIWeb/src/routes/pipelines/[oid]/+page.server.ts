@@ -5,7 +5,7 @@ import type { PageServerLoad } from './$types'
 
 export const load: PageServerLoad = async ({ params, cookies, url }) => {
 	const loadPipeline = async (): Promise<DUUIPipeline> => {
-		const response = await fetch(`${API_URL}/pipelines/${params.oid}`, {
+		const response = await fetch(`${API_URL}/pipelines/${params.oid}?statistics=true`, {
 			method: 'GET',
 			mode: 'cors',
 			headers: {

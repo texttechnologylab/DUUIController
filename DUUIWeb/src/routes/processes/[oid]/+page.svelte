@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
-	import { IO, getTotalDuration, type DUUIDocument } from '$lib/duui/io.js'
+	import { getTotalDuration, type DUUIDocument } from '$lib/duui/io.js'
 	import { Status, isActive } from '$lib/duui/monitor.js'
 	import { processToSeachParams } from '$lib/duui/process.js'
 	import { equals, formatFileSize, progresAsPercent, snakeToTitleCase } from '$lib/duui/utils/text'
@@ -12,7 +12,7 @@
 		infoToast,
 		successToast
 	} from '$lib/duui/utils/ui'
-	import DocumentModal from '../../../lib/svelte/widgets/modal/DocumentModal.svelte'
+	import DocumentModal from '$lib/svelte/components/DocumentModal.svelte'
 
 	import {
 		faArrowDownWideShort,
@@ -36,14 +36,14 @@
 		type ModalSettings
 	} from '@skeletonlabs/skeleton'
 
-	import DriverIcon from '$lib/svelte/DriverIcon.svelte'
-	import Search from '$lib/svelte/widgets/input/Search.svelte'
-	import Select from '$lib/svelte/widgets/input/Select.svelte'
-	import Paginator from '$lib/svelte/widgets/navigation/Paginator.svelte'
-	import { showModal } from '$lib/utils/modal'
+	import DriverIcon from '$lib/svelte/components/DriverIcon.svelte'
+	import Paginator from '$lib/svelte/components/Paginator.svelte'
+	import Search from '$lib/svelte/components/Search.svelte'
+	import Select from '$lib/svelte/components/Select.svelte'
+	import { showConfirmationModal } from '$lib/svelte/utils/modal'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
-	import ButtonMenu from '$lib/svelte/widgets/navigation/ButtonMenu.svelte'
+	import KeyValue from '$lib/svelte/components/KeyValue.svelte'
 
 	export let data
 	const toastStore = getToastStore()
@@ -123,12 +123,12 @@
 	}
 
 	const deleteProcess = async () => {
-		const confirm = await showModal(
+		const confirm = await showConfirmationModal(
 			{
 				title: 'Delete process',
-				message: 'Are you you want to delete this process?'
+				message: 'Are you you want to delete this process?',
+				textYes: 'Delete'
 			},
-			'deleteModal',
 			modalStore
 		)
 
@@ -180,7 +180,6 @@
 			pipelineProgress: { [key: number]: number }
 			count: number
 		} = await response.json()
-
 		documents = json.documents
 		paginationSettings.total = json.count
 		pipelineProgress = json.pipelineProgress
@@ -196,7 +195,7 @@
 		const modal: ModalSettings = {
 			type: 'component',
 			component: modalComponent,
-			meta: { process: process, document: document }
+			meta: { process: process, document: document, pipeline: pipeline }
 		}
 		modalStore.trigger(modal)
 	}
@@ -394,69 +393,27 @@
 			</div>
 
 			<div class="section-wrapper space-y-8 p-4 !mb-32">
-				<div class="max-w-md gap-4">
-					{#if process.pipeline_status}
-						<div class="space-y-4">
-							<h2 class="h3 mb-8">Pipeline Status</h2>
-							{#each Object.entries(process.pipeline_status) as [key, status]}
-								{#if key.endsWith('Driver')}
-									<div class="input-wrapper p-4 grid grid-cols-[1fr_1fr] gap-2">
-										<p>{key}</p>
-										<p class="ml-auto badge variant-soft-primary">{status}</p>
-									</div>
-								{/if}
-							{/each}
-
-							{#each pipeline.components as component}
-								<div
-									class="input-wrapper p-4 flex justify-between gap-4 items-start text-sm md:text-base"
-								>
-									<div class="grid items-center gap-4 grow">
-										<div class="flex items-center gap-4">
-											<DriverIcon driver={component.driver} />
-											<p>{component.name}</p>
-										</div>
-									</div>
-									<p class="badge variant-soft-primary">
-										{pipelineStatus.get(component.name)}
-									</p>
-								</div>
-							{/each}
-						</div>
-					{/if}
-				</div>
-
-				<div class="space-y-2">
-					<div class="flex items-center justify-between gap-2">
-						<h2 class="h3">Settings</h2>
-						<button use:clipboard={JSON.stringify(process.settings, null, 2)}>
-							<Fa icon={faCopy} size="2x" />
-						</button>
-					</div>
-					<div class="grid grid-cols-4 md:grid-cols-6 gap-2">
+				<div class="space-y-8">
+					<h2 class="h3">Settings</h2>
+					<div class="grid md:grid-cols-4 gap-2">
 						{#each Object.entries(process.settings) as [key, value]}
-							<p>{snakeToTitleCase(key)}</p>
-							<p>
-								{key === 'minimum_size'
+							<KeyValue
+								key={snakeToTitleCase(key)}
+								value={key === 'minimum_size'
 									? formatFileSize(+value)
 									: value === true
 									? 'Yes'
 									: value === false
 									? 'No'
 									: value}
-							</p>
+							/>
 						{/each}
+						{#if process.initial}
+							<KeyValue key="Documents found" value={process.initial} />
+							<KeyValue key="Documents skipped" value={process.skipped} />
+							<KeyValue key="Documents kept" value={process.initial - process.skipped} />
+						{/if}
 					</div>
-					{#if process.initial}
-						<div class="hidden md:grid grid-cols-2 gap-2">
-							<p>Documents found</p>
-							<p>{process.initial}</p>
-							<p>Documents skipped</p>
-							<p>{process.skipped}</p>
-							<p>Documents kept</p>
-							<p>{process.initial - process.skipped}</p>
-						</div>
-					{/if}
 				</div>
 			</div>
 		</div>

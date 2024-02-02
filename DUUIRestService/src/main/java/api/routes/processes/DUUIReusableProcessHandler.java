@@ -30,12 +30,14 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
+import java.util.Vector;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 import static api.routes.processes.DUUIProcessService.*;
 
@@ -69,16 +71,30 @@ public class DUUIReusableProcessHandler extends Thread implements IDUUIProcessHa
      * @throws URISyntaxException Thrown when the minimal TypeSystem can not be loaded.
      * @throws IOException        Thrown when the Lua Json Library can not be loaded.
      */
-    public DUUIReusableProcessHandler(Document pipeline) throws URISyntaxException, IOException {
+    public DUUIReusableProcessHandler(
+        Document pipeline,
+        Document process,
+        Document settings,
+        Vector<DUUIComposer.PipelinePart> instantiatedPipeline) throws URISyntaxException, IOException {
         this.pipeline = pipeline;
 
         composer = new DUUIComposer()
+            .withInstantiatedPipeline(instantiatedPipeline)
             .withSkipVerification(true)
             .withDebugLevel(DUUIComposer.DebugLevel.DEBUG)
             .asService(true)
             .withLuaContext(new DUUILuaContext().withJsonLibrary());
 
-        instantiatePipeline();
+        this.process = process;
+        this.settings = settings;
+
+        input = new DUUIDocumentProvider(process.get("input", Document.class));
+        output = new DUUIDocumentProvider(process.get("output", Document.class));
+
+        updater = Executors
+            .newScheduledThreadPool(1)
+            .scheduleAtFixedRate(this::update, 0, 2, TimeUnit.SECONDS);
+
         start();
     }
 
@@ -107,13 +123,13 @@ public class DUUIReusableProcessHandler extends Thread implements IDUUIProcessHa
         updater = Executors
             .newScheduledThreadPool(1)
             .scheduleAtFixedRate(this::update, 0, 2, TimeUnit.SECONDS);
-
-        if (!isInstantiated) {
-            instantiatePipeline();
-            isInstantiated = true;
-        } else {
-            composer.resetService();
-        }
+//
+//        if (!isInstantiated) {
+//            instantiatePipeline();
+//            isInstantiated = true;
+//        } else {
+//            composer.resetService();
+//        }
 
         isIdle = false;
 
@@ -326,7 +342,6 @@ public class DUUIReusableProcessHandler extends Thread implements IDUUIProcessHa
     @Override
     public void shutdown() {
         keepAlive = false;
-        DUUIPipelineController.removeReusableProcess(getPipelineID());
 
         if (status.equals(DUUIStatus.ACTIVE)) cancel();
         else exit();
@@ -358,8 +373,8 @@ public class DUUIReusableProcessHandler extends Thread implements IDUUIProcessHa
         if (process != null) {
             Main.metrics.get("active_processes").decrementAndGet();
             DUUIProcessController.removeProcess(getProcessID());
-            DUUIProcessController.insertEvents(getProcessID(), composer.getEvents());
             DUUIProcessController.updatePipelineStatus(getProcessID(), composer.getPipelineStatus());
+            DUUIProcessController.insertEvents(getProcessID(), composer.getEvents());
             DUUIProcessController.insertAnnotations(getProcessID(), composer.getDocuments());
         }
 
@@ -468,21 +483,22 @@ public class DUUIReusableProcessHandler extends Thread implements IDUUIProcessHa
 
     @Override
     public void run() {
-        while (!interrupted()) {
-            try {
-                lock.lock();
-                if (isIdle || isRunning) {
-                    idleCondition.await();
-                } else {
-                    isRunning = true;
-                    execute();
-                }
-            } catch (InterruptedException ignored) {
-            } catch (Exception e) {
-                onException(e);
-            } finally {
-                lock.unlock();
-            }
-        }
+        execute();
+//        while (!interrupted()) {
+//            try {
+//                lock.lock();
+//                if (isIdle || isRunning) {
+//                    idleCondition.await();
+//                } else {
+//                    isRunning = true;
+//                    execute();
+//                }
+//            } catch (InterruptedException ignored) {
+//            } catch (Exception e) {
+//                onException(e);
+//            } finally {
+//                lock.unlock();
+//            }
+//        }
     }
 }

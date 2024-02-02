@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static api.routes.processes.DUUIProcessService.setupComponents;
 import static api.routes.processes.DUUIProcessService.setupDrivers;
@@ -372,7 +373,6 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
         try {
             setupDrivers(composer, pipeline);
             setupComponents(composer, pipeline);
-
         } catch (Exception exception) {
             onException(exception);
         }
