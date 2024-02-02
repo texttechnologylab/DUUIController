@@ -1,9 +1,7 @@
 package api.requests.validation;
 
-import org.bson.Document;
 import spark.Response;
 
-import java.util.List;
 
 public class Validator {
 

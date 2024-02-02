@@ -1,4 +1,4 @@
-package api.routes.users;
+package api.controllers.users;
 
 import api.routes.DUUIRequestHelper;
 import api.storage.DUUIMongoDBStorage;
@@ -154,7 +154,7 @@ public class DUUIUserController {
             .append("password_reset_token", null)
             .append("reset_token_expiration", null)
             .append("connections", new Document("key", null)
-                .append("worker_count", role.equalsIgnoreCase(Role.ADMIN) ? 20 : 10)
+                .append("worker_count", role.equalsIgnoreCase(Role.ADMIN) ? 10000 : 500)
                 .append("dropbox", new Document("access_token", null).append("refresh_token", null))
                 .append("minio", new Document("endpoint", null).append("access_key", null).append("secret_key", null))
             );

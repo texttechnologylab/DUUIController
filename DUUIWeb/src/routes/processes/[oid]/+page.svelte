@@ -337,7 +337,7 @@
 							{[4].includes(index)
 									? 'hidden md:inline-flex'
 									: [3].includes(index)
-									? 'hidden lg:inline-flex'
+									? '!hidden lg:inline-flex'
 									: ''}"
 								on:click={() => sortTable(index)}
 							>
@@ -366,7 +366,7 @@
 								on:click={() => showDocumentModal(document)}
 							>
 								<p>{document.name}</p>
-								<div class="md:flex items-center justify-start md:gap-4 text-center">
+								<div class="md:flex items-center justify-start md:gap-4 text-start">
 									<p>
 										{Math.round((Math.min(document.progress, maxProgress) / maxProgress) * 100)} %
 									</p>

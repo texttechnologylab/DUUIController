@@ -1,6 +1,6 @@
 package api.requests.validation;
 
-import api.routes.users.DUUIUserController;
+import api.controllers.users.DUUIUserController;
 import org.bson.Document;
 import spark.Response;
 

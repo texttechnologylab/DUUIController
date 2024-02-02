@@ -1,10 +1,7 @@
-package api.routes.processes;
+package duui.process;
 
-import org.bson.Document;
 
 public interface IDUUIProcessHandler extends Runnable {
-
-    void setDetails(Document process, Document settings);
 
     boolean startInput();
 

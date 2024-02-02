@@ -1,12 +1,13 @@
 package duui.document;
 
+import duui.process.IDUUIProcessHandler;
 import org.bson.Document;
 
 import java.util.Objects;
 
 /**
  * This class is a utility to have easier access to input and output settings of an
- * {@link api.routes.processes.IDUUIProcessHandler}. Providers include Dropbox, Minio and Text but is
+ * {@link IDUUIProcessHandler}. Providers include Dropbox, Minio and Text but is
  * designed to support any future cloud or database providers.
  * <p>
  */

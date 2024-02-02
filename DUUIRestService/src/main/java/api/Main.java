@@ -1,12 +1,11 @@
 package api;
 
-import api.routes.components.DUUIComponentController;
-import api.routes.pipelines.DUUIPipelineController;
+import api.routes.components.DUUIComponentRequestHandler;
+import api.controllers.pipelines.DUUIPipelineController;
 import api.routes.pipelines.DUUIPipelineRequestHandler;
 import api.routes.processes.DUUIProcessRequestHandler;
-import api.routes.processes.DUUIReusableProcessHandler;
-import api.routes.processes.DUUIProcessController;
-import api.routes.users.DUUIUserController;
+import api.controllers.processes.DUUIProcessController;
+import api.controllers.users.DUUIUserController;
 import api.routes.DUUIRequestHelper;
 import api.metrics.DUUIMetricsManager;
 import api.metrics.DUUIMetricsProvider;
@@ -166,11 +165,11 @@ public class Main {
                     halt(401, "Unauthorized");
                 }
             });
-            get("/:id", DUUIComponentController::findOne);
-            get("", DUUIComponentController::findMany);
-            post("", DUUIComponentController::insertOne);
-            put("/:id", DUUIComponentController::updateOne);
-            delete("/:id", DUUIComponentController::deleteOne);
+            get("/:id", DUUIComponentRequestHandler::findOne);
+            get("", DUUIComponentRequestHandler::findMany);
+            post("", DUUIComponentRequestHandler::insertOne);
+            put("/:id", DUUIComponentRequestHandler::updateOne);
+            delete("/:id", DUUIComponentRequestHandler::deleteOne);
         });
 
         /* Pipelines */
@@ -185,8 +184,8 @@ public class Main {
             get("", DUUIPipelineRequestHandler::findMany);
             post("", DUUIPipelineRequestHandler::insertOne);
             put("/:id", DUUIPipelineRequestHandler::updateOne);
-            post("/:id/start", DUUIPipelineController::startService);
-            put("/:id/stop", DUUIPipelineController::stopService);
+            post("/:id/start", DUUIPipelineRequestHandler::start);
+            put("/:id/stop", DUUIPipelineRequestHandler::stop);
             delete("/:id", DUUIPipelineRequestHandler::deleteOne);
         });
 

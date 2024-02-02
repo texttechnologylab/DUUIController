@@ -1,4 +1,4 @@
-package api.routes.users;
+package api.controllers.users;
 
 public class Role {
     public static final String NONE = "None";

@@ -1,24 +1,25 @@
 package api.routes.pipelines;
 
-import api.routes.components.DUUIComponentController;
-import api.routes.processes.DUUIProcessController;
-import api.routes.users.Role;
+import api.controllers.components.DUUIComponentController;
+import api.controllers.pipelines.DUUIPipelineController;
+import api.controllers.processes.DUUIProcessController;
+import api.controllers.users.Role;
 import api.routes.DUUIRequestHelper;
-import api.storage.AggregationProps;
 import api.storage.DUUIMongoDBStorage;
+import api.storage.MongoDBFilters;
+import com.mongodb.client.model.Filters;
 import org.bson.Document;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
 import spark.Request;
 import spark.Response;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import static api.controllers.components.DUUIComponentController.mergeOptions;
 import static api.routes.DUUIRequestHelper.*;
-import static api.routes.components.DUUIComponentController.mergeOptions;
-import static api.routes.pipelines.DUUIPipelineController.getPipelineById;
+import static api.controllers.pipelines.DUUIPipelineController.findOneById;
 
 public class DUUIPipelineRequestHandler {
 
@@ -29,22 +30,23 @@ public class DUUIPipelineRequestHandler {
      * @return A Json String containing the matched pipeline.
      */
     public static String findOne(Request request, Response response) {
-        String userID = DUUIRequestHelper.getUserId(request);
+        String userId = DUUIRequestHelper.getUserId(request);
         String userRole = DUUIRequestHelper.getUserProps(request, Set.of("role")).getString("role");
-        String pipelineID = request.params(":id");
+        String pipelineId = request.params(":id");
 
-        Document result = getPipelineById(pipelineID);
+        boolean getComponents = request.queryParamOrDefault("components", "true").equals("true");
+        Document result = findOneById(pipelineId, getComponents);
         if (result == null) return DUUIRequestHelper.notFound(response);
 
         String pipelineOwnerId = result.getString("user_id");
         if (
             (pipelineOwnerId == null && !userRole.equalsIgnoreCase(Role.ADMIN))
-                || (pipelineOwnerId != null && !userID.equals(pipelineOwnerId))) {
+                || (pipelineOwnerId != null && !userId.equals(pipelineOwnerId))) {
             return DUUIRequestHelper.notFound(response);
         }
 
         if (request.queryParamOrDefault("statistics", "false").equals("true")) {
-            Document statistics = DUUIProcessController.getStatisticsForPipeline(pipelineID);
+            Document statistics = DUUIPipelineController.getStatisticsForPipeline(pipelineId);
             result.append("statistics", statistics);
         }
         return result.toJson();
@@ -54,10 +56,9 @@ public class DUUIPipelineRequestHandler {
      * Retrieve one or more pipelines for a user. The results can be sorted and filtered.
      *
      * @return A Json String containing the matched pipelines.
-     * @apiNote Allowed parameters are components, limit, skip, sort and order
      */
     public static String findMany(Request request, Response response) {
-        String userID = DUUIRequestHelper.getUserId(request);
+        String userId = DUUIRequestHelper.getUserId(request);
         String userRole = DUUIRequestHelper.getUserProps(request, Set.of("role")).getString("role");
         if (userRole == null) return DUUIRequestHelper.unauthorized(response);
 
@@ -65,29 +66,32 @@ public class DUUIPipelineRequestHandler {
         int skip = getSkip(request);
         int order = getOrder(request, 1);
 
-        boolean templates = request.queryParamOrDefault(
-            "templates",
-            "false").equals("true");
+        boolean templates = request.queryParamOrDefault("templates", "false").equals("true");
 
         String sort = request.queryParamOrDefault("sort", "created_at");
+        String search = request.queryParamOrDefault("search", null);
 
         boolean getComponents = request
             .queryParamOrDefault("components", "true")
             .equalsIgnoreCase("true");
 
-        AggregationProps aggregationProps = AggregationProps
-            .builder()
-            .withLimit(limit)
-            .withSkip(skip)
-            .withOrder(order)
-            .withSort(sort)
-            .build();
+        MongoDBFilters filters = new MongoDBFilters();
+        filters
+            .limit(limit)
+            .skip(skip)
+            .search(search)
+            .sort(sort)
+            .order(order);
 
-        Document result = DUUIPipelineController.getPipelinesByUserID(
-            userID,
-            aggregationProps,
-            getComponents,
-            userRole.equalsIgnoreCase(Role.ADMIN) || templates
+        if (userRole.equalsIgnoreCase(Role.ADMIN) || templates) {
+            filters.addFilter(Filters.in("user_id", userId, null));
+        } else {
+            filters.addFilter(Filters.eq("user_id", userId));
+        }
+
+        Document result = DUUIPipelineController.findMany(
+            filters,
+            getComponents
         );
 
         if (result == null) {
@@ -99,7 +103,7 @@ public class DUUIPipelineRequestHandler {
                 .getList("pipelines", Document.class)
                 .forEach(pipeline -> pipeline.append(
                     "statistics",
-                    DUUIProcessController.getStatisticsForPipeline(pipeline.getString("oid"))));
+                    DUUIPipelineController.getStatisticsForPipeline(pipeline.getString("oid"))));
         }
 
         response.status(200);
@@ -174,7 +178,7 @@ public class DUUIPipelineRequestHandler {
             .insertMany(components);
 
 
-        Document insert = getPipelineById(id);
+        Document insert = DUUIPipelineController.findOneById(id);
         if (insert == null) return DUUIRequestHelper.badRequest(response, "Insertion failed.");
 
         response.status(201);
@@ -188,7 +192,7 @@ public class DUUIPipelineRequestHandler {
         String role = user.getString("role");
 
         String pipelineID = request.params(":id");
-        Document pipeline = getPipelineById(pipelineID);
+        Document pipeline = DUUIPipelineController.findOneById(pipelineID);
 
         // Nothing found
         if (pipeline == null
@@ -201,7 +205,7 @@ public class DUUIPipelineRequestHandler {
         Document update = Document.parse(request.body());
 
         DUUIPipelineController.updateOne(pipelineID, update);
-        Document insert = getPipelineById(pipelineID);
+        Document insert = DUUIPipelineController.findOneById(pipelineID);
         if (insert == null) return DUUIRequestHelper.badRequest(response, "Update failed.");
 
         response.status(201);
@@ -214,8 +218,8 @@ public class DUUIPipelineRequestHandler {
         Document user = DUUIRequestHelper.getUserProps(request, Set.of("role"));
         String role = user.getString("role");
 
-        String pipelineID = request.params(":id");
-        Document pipeline = getPipelineById(pipelineID);
+        String pipelineId = request.params(":id");
+        Document pipeline = DUUIPipelineController.findOneById(pipelineId);
 
         // Nothing found
         if (pipeline == null
@@ -225,12 +229,12 @@ public class DUUIPipelineRequestHandler {
             || (pipeline.getString("user_id") != null && !pipeline.getString("user_id").equals(userID))
         ) return DUUIRequestHelper.notFound(response);
 
-        DUUIPipelineController.interruptIfRunning(pipelineID);
+        DUUIPipelineController.interruptIfRunning(pipelineId);
 
         boolean deleted = false;
         if ((pipeline.getString("user_id") == null && role.equalsIgnoreCase(Role.ADMIN)) ||
             (pipeline.getString("user_id").equals(userID))) {
-            deleted = DUUIPipelineController.deletePipeline(pipelineID);
+            deleted = DUUIPipelineController.deleteOne(pipelineId);
         }
 
         if (!deleted) {
@@ -238,10 +242,36 @@ public class DUUIPipelineRequestHandler {
             return "Deletion failed";
         }
 
-        DUUIComponentController.cascade(pipelineID);
-        DUUIProcessController.cascade(pipelineID);
+        DUUIComponentController.deleteMany(Filters.eq("pipeline_id", pipelineId));
+        DUUIProcessController.deleteMany(Filters.eq("pipeline_id", pipelineId));
 
         response.status(200);
         return "Deleted";
+    }
+
+    public static String start(Request request, Response response) {
+        String pipeline_id = request.params(":id");
+
+        boolean success = DUUIPipelineController.instantiate(pipeline_id);
+        if (!success) {
+            response.status(500);
+            return new Document("status", DUUIStatus.INACTIVE).toJson();
+        }
+
+        response.status(200);
+        return new Document("status", DUUIStatus.IDLE).toJson();
+    }
+
+    public static String stop(Request request, Response response) {
+        String pipeline_id = request.params(":id");
+
+        boolean success = DUUIPipelineController.shutdown(pipeline_id);
+        if (!success) {
+            response.status(500);
+            return new Document("status", DUUIStatus.IDLE).toJson();
+        }
+
+        response.status(200);
+        return new Document("status", DUUIStatus.INACTIVE).toJson();
     }
 }

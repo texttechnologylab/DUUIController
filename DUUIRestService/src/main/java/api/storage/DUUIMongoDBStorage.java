@@ -20,7 +20,7 @@ public class DUUIMongoDBStorage {
      *
      * @param document The document to convert.
      */
-    public static void convertObjectIdToString(Document document) {
+    public static Document convertObjectIdToString(Document document) {
         try {
             String id = document.getObjectId("_id").toString();
             document.remove("_id");
@@ -28,7 +28,10 @@ public class DUUIMongoDBStorage {
         } catch (NullPointerException ignored) {
 
         }
+
+        return document;
     }
+
 
     /**
      * Replaces the ObjectID object by a plain text representation of the id.
@@ -37,14 +40,15 @@ public class DUUIMongoDBStorage {
      * @param field    The name of the ObjectId field. Usually _id.
      * @param newName  The new name of the field. Usually oid.
      */
-    public static void convertObjectIdToString(Document document, String field, String newName) {
+    public static Document convertObjectIdToString(Document document, String field, String newName) {
         String id = document.getObjectId(field).toString();
         document.remove(field);
         document.put(newName, id);
+        return document;
     }
 
 
-    public static void convertDateToTimestamp(Document document) {
+    public static Document convertDateToTimestamp(Document document) {
         try {
             Date timestamp = document.get("timestamp", Date.class);
             document.remove("timestamp");
@@ -52,6 +56,8 @@ public class DUUIMongoDBStorage {
         } catch (NullPointerException ignored) {
 
         }
+
+        return document;
     }
 
     public static String getConnectionURI() {

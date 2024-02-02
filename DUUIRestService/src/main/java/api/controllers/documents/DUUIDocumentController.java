@@ -1,9 +1,12 @@
-package api.routes.documents;
+package api.controllers.documents;
 
 import api.storage.DUUIMongoDBStorage;
 import com.mongodb.client.model.Filters;
 import duui.document.DUUIDocumentProvider;
 import duui.document.Provider;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.DUUIDocument;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
 
@@ -67,13 +70,20 @@ public class DUUIDocumentController {
     }
 
     /**
-     * When a process is deleted, also delete all associated documents.
+     * Delete all documents matching a given filter.
      *
-     * @param processID The ID of the process that has been deleted.
+     * @param filter A {@link Bson} filter to delete only selected documents.
      */
-    public static void cascade(String processID) {
+    public static void deleteMany(Bson filter) {
         DUUIMongoDBStorage
             .Documents()
-            .deleteMany(Filters.eq("process_id", processID));
+            .deleteMany(filter);
+    }
+
+    public static Document findOne(String id) {
+        return DUUIMongoDBStorage
+            .Documents()
+            .find(Filters.eq(new ObjectId(id)))
+            .first();
     }
 }

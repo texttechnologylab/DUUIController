@@ -1,79 +1,77 @@
 package api.storage;
 
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class MongoDBFilters {
 
-    private final Document filters;
+    private final Document aggregates;
 
     public MongoDBFilters() {
-        filters = new Document()
+        aggregates = new Document()
             .append("limit", 0)
             .append("skip", 0)
-            .append("sort", "created_at")
+            .append("sort", null)
             .append("order", 1)
-            .append("search", "");
+            .append("search", null)
+            .append("filters", new ArrayList<Bson>());
     }
 
     public MongoDBFilters limit(int limit) {
-        filters.put("limit", limit);
+        aggregates.put("limit", limit);
         return this;
     }
 
     public int getLimit() {
-        return filters.getInteger("limit");
+        return aggregates.getInteger("limit");
     }
 
     public MongoDBFilters skip(int skip) {
-        filters.put("skip", skip);
+        aggregates.put("skip", skip);
         return this;
     }
 
     public int getSkip() {
-        return filters.getInteger("skip");
+        return aggregates.getInteger("skip");
     }
 
     public MongoDBFilters sort(String sort) {
-        filters.put("sort", sort);
+        aggregates.put("sort", sort);
         return this;
     }
 
     public String getSort() {
-        return filters.getString("sort");
+        return aggregates.getString("sort");
     }
 
     public MongoDBFilters order(int order) {
         if (!List.of(-1, 1).contains(order)) throw new IllegalArgumentException("Order must be -1 or 1.");
-        filters.put("order", order);
+        aggregates.put("order", order);
         return this;
     }
 
     public int getOrder() {
-        return filters.getInteger("order");
+        return aggregates.getInteger("order");
     }
 
     public MongoDBFilters search(String search) {
-        filters.put("search", search);
+        aggregates.put("search", search);
         return this;
     }
 
     public String getSearch() {
-        return filters.getString("search");
+        return aggregates.getString("search");
     }
 
-    public MongoDBFilters filter(String name, Object value) {
-        filters.put(name, value);
+    public MongoDBFilters addFilter(Bson filter) {
+        aggregates.getList("filters", Bson.class).add(filter);
         return this;
     }
 
-    public <T> T getFilter(String name, Class<T> clazz) {
-        try {
-            return filters.get(name, clazz);
-        } catch (NullPointerException exception) {
-            return null;
-        }
+    public List<Bson> getFilters() {
+        return aggregates.getList("filters", Bson.class);
     }
 }

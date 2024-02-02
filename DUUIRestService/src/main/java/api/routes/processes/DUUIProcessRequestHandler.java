@@ -9,8 +9,8 @@ import spark.Response;
 import java.util.List;
 
 import static api.routes.DUUIRequestHelper.*;
-import static api.routes.processes.DUUIProcessController.getProcess;
-import static api.routes.processes.DUUIProcessController.getProcesses;
+import static api.controllers.processes.DUUIProcessController.getProcess;
+import static api.controllers.processes.DUUIProcessController.getProcesses;
 import static api.storage.DUUIMongoDBStorage.convertObjectIdToString;
 
 public class DUUIProcessRequestHandler {

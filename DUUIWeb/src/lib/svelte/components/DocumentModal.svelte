@@ -52,7 +52,7 @@
 				DropboxAppURL +
 				output.path +
 				'/' +
-				document.name.replace('.' + document.name.split('.').at(-1), output.fileExtension)
+				document.name.replace('.' + document.name.split('.').at(-1), output.file_extension)
 			break
 		case 'Minio':
 			URLOut = $userSession?.connections.minio.endpoint || ''

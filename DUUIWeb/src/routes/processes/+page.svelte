@@ -50,7 +50,7 @@
 	let recursive: boolean = $page.url.searchParams.get('recursive') === 'true' || false
 	let overwrite: boolean = $page.url.searchParams.get('overwrite') === 'true' || false
 	let sortBySize: boolean = $page.url.searchParams.get('sort_by_size') === 'true' || false
-	let ignoreErrors: boolean = $page.url.searchParams.get('ignore_errors') === 'true' || false
+	let ignoreErrors: boolean = $page.url.searchParams.get('ignore_errors') === 'true' || true
 	let skipFiles: number = +($page.url.searchParams.get('minimum_size') || '0')
 	let workerCount: number = +($page.url.searchParams.get('worker_count') || '1')
 
@@ -175,12 +175,12 @@
 		</div>
 	</div>
 	<div class="p-4 space-y-4 container mx-auto">
-		<h1 class="h1 mb-8">New Process</h1>
 		<div class="grid md:grid-cols-2 gap-4">
 			<div
-				class="section-wrapper p-4 space-y-8 !border-2
+				class="section-wrapper space-y-4 p-4
 				 {isValidInput(input, files) ? '!border-success-500 ' : '!border-error-500'}"
 			>
+				<!-- INPUT -->
 				<div class="flex items-center gap-4 justify-between">
 					<h2 class="h2">Input</h2>
 					{#if isValidInput(input, files)}
@@ -240,10 +240,56 @@
 						/>
 					{/if}
 				</div>
+
+				<hr class="hr !w-full" />
+				<div class="space-y-4">
+					<h3 class="h3">Settings</h3>
+					<div class="space-y-4">
+						{#if !equals(input.provider, IO.Text)}
+							<div class="grid grid-cols-2 gap-4">
+								<div>
+									<Number
+										label="Skip files smaller than"
+										max={2147483647}
+										name="skipFiles"
+										bind:value={skipFiles}
+									/>
+									<span class="text-xs pl-2">Bytes</span>
+								</div>
+								<Number
+									label="Worker count"
+									min={1}
+									max={100}
+									name="workerCount"
+									bind:value={workerCount}
+								/>
+							</div>
+						{/if}
+						{#if !equals(input.provider, IO.Text) && !equals(input.provider, IO.File)}
+							<Checkbox
+								bind:checked={recursive}
+								name="recursive"
+								label="Find files recursively starting in the path directory"
+							/>
+						{/if}
+						{#if !equals(input.provider, IO.Text)}
+							<Checkbox
+								bind:checked={sortBySize}
+								name="sortBySize"
+								label="Sort files by size in ascending order"
+							/>
+						{/if}
+						<Checkbox
+							bind:checked={ignoreErrors}
+							name="ignoreErrors"
+							label="Ignore errors encountered by documents and skip to the next available one."
+						/>
+					</div>
+				</div>
 			</div>
 
 			<div
-				class="section-wrapper p-4 space-y-8 !border-2
+				class="section-wrapper p-4 space-y-4 flex flex-col justify-start
 				 {isValidOutput(output) ? '!border-success-500 ' : '!border-error-500'}"
 			>
 				<div class="flex items-center gap-4 justify-between">
@@ -266,7 +312,6 @@
 							/>
 						{/if}
 					</div>
-
 					{#if equals(output.provider, IO.Minio)}
 						<TextInput
 							label="Path (bucket/path/to/file)"
@@ -282,81 +327,29 @@
 							bind:value={output.path}
 						/>
 					{/if}
-				</div>
-			</div>
+					{#if output.provider !== IO.None}
+						<hr class="hr !w-full" />
+						<div class="space-y-4">
+							<h3 class="h3">Settings</h3>
+							<div class="space-y-4">
+								{#if !equals(output.provider, IO.None)}
+									<Checkbox
+										bind:checked={checkTarget}
+										name="checkTarget"
+										label="Ignore files already present in the target location"
+									/>
+								{/if}
 
-			<div
-				class="section-wrapper p-4 space-y-8 md:col-span-2 !border-2
-				{settingsAreValid.length === 0 ? '!border-success-500 ' : '!border-error-500'}"
-			>
-				<div class="flex items-center gap-4 justify-between">
-					<h2 class="h2">Settings</h2>
-					{#if settingsAreValid.length === 0}
-						<Fa icon={faCheck} class="text-success-500" size="2x" />
-					{/if}
-				</div>
-				{#if settingsAreValid.length > 0}
-					<p class="text-error-500">{settingsAreValid}</p>
-				{/if}
-				<div class="grid space-y-4">
-					{#if !equals(input.provider, IO.Text)}
-						<div class="grid grid-cols-2 gap-4">
-							<div>
-								<Number
-									label="Skip files smaller than"
-									max={2147483647}
-									name="skipFiles"
-									bind:value={skipFiles}
-								/>
-								<span class="text-xs pl-2">Bytes</span>
+								{#if equals(output.provider, IO.Dropbox)}
+									<Checkbox
+										bind:checked={overwrite}
+										name="overwrite"
+										label="Overwrite existing files on conflict"
+									/>
+								{/if}
 							</div>
-							<Number
-								label="Worker count"
-								min={1}
-								max={100}
-								name="workerCount"
-								bind:value={workerCount}
-							/>
 						</div>
 					{/if}
-
-					<div class="grid md:grid-cols-2 gap-4">
-						{#if !equals(input.provider, IO.Text) && !equals(input.provider, IO.File)}
-							<Checkbox
-								bind:checked={recursive}
-								name="recursive"
-								label="Find files recursively starting in the path directory"
-							/>
-						{/if}
-
-						{#if !equals(output.provider, IO.None)}
-							<Checkbox
-								bind:checked={checkTarget}
-								name="checkTarget"
-								label="Ignore files already present in the target location"
-							/>
-						{/if}
-						{#if !equals(input.provider, IO.Text)}
-							<Checkbox
-								bind:checked={sortBySize}
-								name="sortBySize"
-								label="Sort files by size in ascending order"
-							/>
-						{/if}
-						{#if equals(output.provider, IO.Dropbox)}
-							<Checkbox
-								bind:checked={overwrite}
-								name="overwrite"
-								label="Overwrite existing files on conflict"
-							/>
-						{/if}
-
-						<Checkbox
-							bind:checked={ignoreErrors}
-							name="ignoreErrors"
-							label="Ignore errors encountered by documents and skip to the next available one."
-						/>
-					</div>
 				</div>
 			</div>
 		</div>
