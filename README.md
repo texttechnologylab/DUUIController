@@ -1,5 +1,15 @@
 # DUUIController
 
+For running, create a config.properties file in DUUIRestService/src/main/resources and provide values for the
+following four variables:
+
+```
+MONGO_DB_URL  =
+DBX_APP_KEY   =
+DBX_APP_SECRET=
+API_KEY       =
+```
+
 ### 1. Metrics
 
 DUUI collects metrics at document level and stores these in DUUIDocument objects for later storage in a
