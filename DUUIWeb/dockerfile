@@ -8,6 +8,7 @@ RUN cd /app && npm install && npm run build
 
 FROM node:18-alpine
 
+
 RUN mkdir /app
 COPY --from=builder /app/build /app/build
 COPY --from=builder /app/package.json /app/
@@ -17,5 +18,8 @@ RUN cd /app && \
 
 WORKDIR /app
 EXPOSE 3000
+
+ENV ORIGIN=http://localhost:8761
+
 
 CMD [ "node", "build/index.js" ]

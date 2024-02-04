@@ -1,4 +1,4 @@
-import { API_URL } from '$lib/config'
+import { API_URL } from '$env/static/private'
 import type { DUUIPipeline } from '$lib/duui/pipeline'
 import type { DUUIProcess } from '$lib/duui/process'
 import type { PageServerLoad } from './$types'
@@ -19,7 +19,7 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 	const loadProcesses = async (): Promise<{ processes: DUUIProcess[]; count: number }> => {
 		const result = await fetch(
 			`${API_URL}/processes?pipeline_id=${params.oid}
-				&limit=${url.searchParams.get('limit') || 20}
+				&limit=${url.searchParams.get('limit') || 10}
 				&offset=${url.searchParams.get('offset') || 0}
 				&sort=started_at
 				&order=-1`,

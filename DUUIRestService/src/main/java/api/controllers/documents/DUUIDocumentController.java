@@ -1,7 +1,10 @@
 package api.controllers.documents;
 
+import api.controllers.events.DUUIEventController;
 import api.storage.DUUIMongoDBStorage;
-import com.mongodb.client.model.Filters;
+import api.storage.MongoDBFilters;
+import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.model.*;
 import duui.document.DUUIDocumentProvider;
 import duui.document.Provider;
 import org.bson.Document;
@@ -10,7 +13,12 @@ import org.bson.types.ObjectId;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.DUUIDocument;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
 
-import static api.routes.DUUIRequestHelper.isNullOrEmpty;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import static api.routes.DUUIRequestHelper.*;
+import static api.storage.DUUIMongoDBStorage.convertObjectIdToString;
 
 public class DUUIDocumentController {
 
@@ -80,10 +88,115 @@ public class DUUIDocumentController {
             .deleteMany(filter);
     }
 
+    /**
+     * Retrieve a document by its id.
+     *
+     * @param id The id of the document.
+     * @return a document or null.
+     */
     public static Document findOne(String id) {
         return DUUIMongoDBStorage
             .Documents()
             .find(Filters.eq(new ObjectId(id)))
             .first();
+    }
+
+    /**
+     * Retrieve one or more documents from the database given a{@link MongoDBFilters} object.
+     *
+     * @param filters A {@link MongoDBFilters} object that contains filter options.
+     * @return A Document containing a list of matched documents.
+     */
+    public static Document findMany(MongoDBFilters filters) {
+        List<Bson> aggregationPipeline = new ArrayList<>();
+        List<Bson> documentFacet = new ArrayList<>();
+
+        if (!filters.getFilters().isEmpty()) {
+            aggregationPipeline.add(Aggregates.match(
+                Filters.and(filters.getFilters())
+            ));
+        }
+
+        aggregationPipeline.add(Aggregates.addFields(new Field<>(
+            "duration",
+            new Document(
+                "$sum",
+                List.of(
+                    "$duration_decode",
+                    "$duration_deserialize",
+                    "$duration_wait",
+                    "$duration_process")))));
+
+
+        if (filters.getSort() != null) {
+            documentFacet.add(Aggregates.sort(
+                filters.getOrder() == 1
+                    ? Sorts.ascending(filters.getSort())
+                    : Sorts.descending(filters.getSort())));
+        }
+
+        if (filters.getSkip() > 0) documentFacet.add(Aggregates.skip(filters.getSkip()));
+        if (filters.getLimit() > 0) documentFacet.add(Aggregates.limit(filters.getLimit()));
+
+        aggregationPipeline.add(Aggregates.facet(
+            new Facet("documents", documentFacet),
+            new Facet("count", Aggregates.count())
+        ));
+
+        AggregateIterable<Document> aggregated = DUUIMongoDBStorage
+            .Documents()
+            .aggregate(aggregationPipeline);
+
+
+        List<Document> result = aggregated.into(new ArrayList<>());
+        try {
+            List<Document> documents = result.get(0).getList("documents", Document.class);
+            int count = result.get(0).getList("count", Document.class).get(0).getInteger("count");
+
+            documents.forEach(document -> {
+                convertObjectIdToString(document);
+                List<Document> events = DUUIEventController.findManyByDocument(document.getString("oid"));
+                events.forEach(DUUIMongoDBStorage::convertObjectIdToString);
+                events.forEach(event -> DUUIMongoDBStorage.convertDateToTimestamp(event, "timestamp"));
+                document.append("events", events).toJson();
+            });
+
+            return new Document("documents", documents).append("count", count);
+        } catch (IndexOutOfBoundsException exception) {
+            return new Document("documents", new ArrayList<>()).append("count", 0);
+        }
+
+    }
+
+
+    public static void updateMany(String processId, Set<DUUIDocument> documents) {
+        for (DUUIDocument document : documents) {
+            DUUIMongoDBStorage
+                .Documents()
+                .updateOne(
+                    Filters.and(
+                        Filters.eq("process_id", processId),
+                        Filters.eq("path", document.getPath())
+                    ),
+                    Updates.combine(
+                        Updates.set("name", document.getName()),
+                        Updates.set("path", document.getPath()),
+                        Updates.set("size", document.getSize()),
+                        Updates.set("progress", document.getProgess().get()),
+                        Updates.set("status", document.getStatus()),
+                        Updates.set("error", document.getError()),
+                        Updates.set("is_finished", document.isFinished()),
+                        Updates.set("duration_decode", document.getDurationDecode()),
+                        Updates.set("duration_deserialize", document.getDurationDeserialize()),
+                        Updates.set("duration_wait", document.getDurationWait()),
+                        Updates.set("duration_process", document.getDurationProcess()),
+                        Updates.set("progress_upload", document.getUploadProgress()),
+                        Updates.set("progress_download", document.getDownloadProgress()),
+                        Updates.set("started_at", document.getStartedAt()),
+                        Updates.set("finished_at", document.getFinishedAt())
+                    ),
+                    new UpdateOptions().upsert(true)
+                );
+        }
     }
 }

@@ -32,6 +32,17 @@ export const statusNames: string[] = [
 	'Waiting'
 ]
 
+export const PROCESS_STATUS_NAMES: string[] = [
+	'Any',
+	'Setup',
+	'Input',
+	'Active',
+	'Output',
+	'Completed',
+	'Cancelled',
+	'Failed'
+]
+
 export enum Status {
 	Active = 'Active',
 	Any = 'Any',

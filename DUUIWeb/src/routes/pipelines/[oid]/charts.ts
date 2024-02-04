@@ -85,7 +85,9 @@ export const getStatusPlotOptions = (pipeline: DUUIPipeline) => {
 export const getErrorsPlotOptions = (pipeline: DUUIPipeline) => {
 	if (!pipeline.statistics) return {}
 
-	const x = pipeline.statistics ? pipeline.statistics.errors.map((s) => s._id) : []
+	const x = pipeline.statistics
+		? pipeline.statistics.errors.map((s) => s._id.split('.').at(-1))
+		: []
 	const y = pipeline.statistics ? pipeline.statistics.errors.map((s) => s.count) : []
 
 	return {

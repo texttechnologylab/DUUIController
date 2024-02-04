@@ -105,6 +105,12 @@ public class DUUIComponentController {
         }
     }
 
+    /**
+     * Retrieve one or more components from the database given a{@link MongoDBFilters} object.
+     *
+     * @param filters A {@link MongoDBFilters} object that contains filter options.
+     * @return A Document containing a list of matched components.
+     */
     public static List<Document> findMany(MongoDBFilters filters) {
         List<Bson> aggregationPipeline = new ArrayList<>();
 

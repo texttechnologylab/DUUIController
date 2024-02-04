@@ -1,15 +1,20 @@
 package api.storage;
 
+import api.Main;
+import api.metrics.providers.DUUIStorageMetrics;
+import api.routes.DUUIRequestHelper;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Updates;
-import io.github.cdimascio.dotenv.Dotenv;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import spark.Request;
 
 import java.util.*;
+import java.util.stream.Stream;
+
+import static api.routes.DUUIRequestHelper.isNullOrEmpty;
 
 public class DUUIMongoDBStorage {
 
@@ -28,10 +33,8 @@ public class DUUIMongoDBStorage {
         } catch (NullPointerException ignored) {
 
         }
-
         return document;
     }
-
 
     /**
      * Replaces the ObjectID object by a plain text representation of the id.
@@ -47,40 +50,28 @@ public class DUUIMongoDBStorage {
         return document;
     }
 
-
-    public static Document convertDateToTimestamp(Document document) {
+    /**
+     * Convert a MongoDB date object to a timestamp.
+     *
+     * @param document The document containing the date.
+     */
+    public static void convertDateToTimestamp(Document document, String fieldName) {
         try {
-            Date timestamp = document.get("timestamp", Date.class);
-            document.remove("timestamp");
-            document.put("timestamp", timestamp.toInstant().toEpochMilli());
+            Date timestamp = document.get(fieldName, Date.class);
+            document.remove(fieldName);
+            document.put(fieldName, timestamp.toInstant().toEpochMilli());
         } catch (NullPointerException ignored) {
 
         }
-
-        return document;
-    }
-
-    public static String getConnectionURI() {
-        return getConnectionURI("MONGO_DB_USERNAME", "MONGO_DB_PASSWORD");
     }
 
     /**
      * Retrieve the connection URI to connect to a {@link MongoClient}.
      *
-     * @param envUsername The key of the username variable in a .env file.
-     * @param envPassword The key of the password variable in a .env file.
      * @return The connection URI.
      */
-    public static String getConnectionURI(String envUsername, String envPassword) {
-        Dotenv dotenv = Dotenv.load();
-
-        String username = dotenv.get(envUsername);
-        String password = dotenv.get(envPassword);
-
-        if (username == null) throw new IllegalArgumentException("Username cannot be null.");
-        if (password == null) throw new IllegalArgumentException("Password cannot be null.");
-
-        return String.format("mongodb+srv://%s:%s@testcluster.727ylpr.mongodb.net/", username, password);
+    public static String getConnectionURI() {
+        return Main.config.getProperty("MONGO_DB_URL");
     }
 
     private DUUIMongoDBStorage() {
@@ -93,23 +84,8 @@ public class DUUIMongoDBStorage {
      */
     public static MongoClient getClient() {
         if (mongoClient == null) {
-            mongoClient = MongoClients.create(
-                getConnectionURI(
-                    "MONGO_DB_USERNAME",
-                    "MONGO_DB_PASSWORD"));
+            mongoClient = MongoClients.create(getConnectionURI());
         }
-        return mongoClient;
-    }
-
-    /**
-     * Creates a new {@link MongoClient}.
-     *
-     * @param envUsername The key of the username variable in a .env file.
-     * @param envPassword The key of the password variable in a .env file.
-     * @return A {@link MongoClient} instance.
-     */
-    public static MongoClient getClient(String envUsername, String envPassword) {
-        mongoClient = MongoClients.create(getConnectionURI(envUsername, envPassword));
         return mongoClient;
     }
 
@@ -119,33 +95,32 @@ public class DUUIMongoDBStorage {
      * @return One of the 6 collections used in the database.
      */
     public static MongoCollection<Document> Pipelines() {
+        DUUIStorageMetrics.incrementPipelinesCounter();
         return getClient().getDatabase("duui").getCollection("pipelines");
     }
 
     public static MongoCollection<Document> Components() {
+        DUUIStorageMetrics.incrementComponentsCounter();
         return getClient().getDatabase("duui").getCollection("components");
     }
 
     public static MongoCollection<Document> Users() {
+        DUUIStorageMetrics.incrementUsersCounter();
         return getClient().getDatabase("duui").getCollection("users");
     }
 
     public static MongoCollection<Document> Documents() {
+        DUUIStorageMetrics.incrementDocumentsCounter();
         return getClient().getDatabase("duui").getCollection("documents");
     }
 
     public static MongoCollection<Document> Processses() {
+        DUUIStorageMetrics.incrementProcesssesCounter();
         return getClient().getDatabase("duui").getCollection("processes");
     }
 
-    public static Bson projectObjectID() {
-        return Projections.fields(
-            Projections.computed("oid", new Document("$toString", "$_id")),
-            Projections.excludeId()
-        );
-    }
-
     public static MongoCollection<Document> Events() {
+        DUUIStorageMetrics.incrementEventsCounter();
         return getClient().getDatabase("duui").getCollection("events");
     }
 
@@ -183,6 +158,9 @@ public class DUUIMongoDBStorage {
 
     }
 
+    /**
+     * See {@link #updateDocument(MongoCollection, Bson, Document, Set, boolean)}
+     */
     public static void updateDocument(MongoCollection<Document> collection,
                                       Bson filter,
                                       Document updates,
@@ -190,5 +168,20 @@ public class DUUIMongoDBStorage {
         updateDocument(collection, filter, updates, allowedUpdates, true);
     }
 
+    /**
+     * For a given filter name extract the string from the request query parameters (name=A;B;C;D...) and
+     * return a {@link List} of filter names
+     *
+     * @param request the request object.
+     * @param name    the name of the query parameter
+     * @return a list of Strings to filter by.
+     */
+    public static List<String> getFilterOrAny(Request request, String name) {
+        String filter = request.queryParamOrDefault(name, "Any");
+        if (isNullOrEmpty(filter)) return List.of("Any");
 
+        return Stream.of(filter.split(";"))
+            .map(DUUIRequestHelper::toTitleCase)
+            .toList();
+    }
 }

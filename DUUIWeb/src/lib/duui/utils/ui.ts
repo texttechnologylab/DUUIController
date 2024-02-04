@@ -84,8 +84,8 @@ export const successToast = (message: string, duration: number = 4000): ToastSet
 	return {
 		message: message,
 		timeout: duration,
-		classes:
-			'border-2 bg-white dark:bg-surface-600 dark:text-surface-200 shadow-lg !rounded-none border-success-500'
+		classes: 'toast-success',
+		hideDismiss: true
 	}
 }
 
@@ -93,8 +93,8 @@ export const infoToast = (message: string, duration: number = 4000): ToastSettin
 	return {
 		message: message,
 		timeout: duration,
-		classes:
-			'border-2 bg-white dark:bg-surface-600 dark:text-surface-200 shadow-lg !rounded-none border-primary-500'
+		classes: 'toast-info',
+		hideDismiss: true
 	}
 }
 
@@ -102,8 +102,8 @@ export const errorToast = (message: string, duration: number = 4000): ToastSetti
 	return {
 		message: message,
 		timeout: duration,
-		classes:
-			'border-2 bg-white dark:bg-surface-600 dark:text-surface-200 shadow-lg !rounded-none border-error-500'
+		classes: 'toast-error',
+		hideDismiss: true
 	}
 }
 
@@ -115,8 +115,3 @@ export const scrollIntoView = (id: string) => {
 		behavior: 'smooth'
 	})
 }
-
-export const variantPrimary: string = 'variant-filled-primary dark:variant-soft-primary'
-export const variantGlassPrimary: string = 'variant-glass-primary'
-export const variantError: string = 'variant-filled-error dark:variant-soft-error'
-export const variantSuccess: string = 'variant-filled-success dark:variant-soft-success'

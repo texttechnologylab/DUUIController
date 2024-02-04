@@ -1,5 +1,4 @@
-import { SERVER_API_KEY } from '$env/static/private'
-import { API_URL } from '$lib/config'
+import { API_URL, API_KEY } from '$env/static/private'
 import { error, fail, json, type RequestEvent } from '@sveltejs/kit'
 import bcrypt from 'bcrypt'
 import type { RequestHandler, RouteParams } from './$types'
@@ -20,7 +19,7 @@ const login = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 		method: 'GET',
 		mode: 'cors',
 		headers: {
-			Authorization: SERVER_API_KEY
+			Authorization: API_KEY
 		}
 	})
 
@@ -51,7 +50,7 @@ const login = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 			session: crypto.randomUUID()
 		}),
 		headers: {
-			Authorization: SERVER_API_KEY
+			Authorization: API_KEY
 		}
 	})
 
@@ -76,7 +75,7 @@ const register = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 		method: 'GET',
 		mode: 'cors',
 		headers: {
-			Authorization: SERVER_API_KEY
+			Authorization: API_KEY
 		}
 	})
 
@@ -100,7 +99,7 @@ const register = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 		method: 'POST',
 		mode: 'cors',
 		headers: {
-			Authorization: SERVER_API_KEY
+			Authorization: API_KEY
 		},
 		body: JSON.stringify({
 			email: email,
@@ -138,6 +137,7 @@ export const POST: RequestHandler = async (event) => {
 				break
 		}
 	} catch (exception) {
+		console.log(exception)
 		error(503, 'Could not communicate with database.')
 	}
 

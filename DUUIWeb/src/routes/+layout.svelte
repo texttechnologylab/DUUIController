@@ -20,7 +20,7 @@
 
 	import { userSession } from '$lib/store'
 	import ConfirmModal from '$lib/svelte/components/ConfirmModal.svelte'
-	import DocumentModal from '$lib/svelte/components/DocumentModal.svelte'
+	import DocumentModal from '$lib/svelte/components/DocumentDrawer.svelte'
 	import Documentation from '$lib/svelte/components/Documentation.svelte'
 	import Link from '$lib/svelte/components/Link.svelte'
 	import Sidebar from '$lib/svelte/components/Sidebar.svelte'
@@ -37,6 +37,7 @@
 
 	import ComponentDrawer from '$lib/svelte/components/ComponentDrawer.svelte'
 	import 'highlight.js/styles/github-dark.css'
+	import DocumentDrawer from '$lib/svelte/components/DocumentDrawer.svelte'
 
 	export let data
 	let { user } = data
@@ -90,12 +91,13 @@
 </script>
 
 <Modal components={modalRegistry} />
-<Toast position="b" />
+<Toast position="br" />
 <Drawer rounded="rounded-md">
 	{#if $drawerStore.id === 'sidebar'}
 		<Sidebar />
-	{/if}
-	{#if $drawerStore.id === 'component'}
+	{:else if $drawerStore.id === 'document'}
+		<DocumentDrawer />
+	{:else if $drawerStore.id === 'component'}
 		<ComponentDrawer />
 	{/if}
 </Drawer>
@@ -153,7 +155,7 @@
 					<img src={Logo} alt="The letters DUUI" class="md:hidden block max-h-8 pr-4" />
 				</a>
 
-				<LightSwitch class="md:block hidden" rounded="rounded-full" />
+				<LightSwitch class="md:block hidden" rounded="rounded-sm" />
 			</svelte:fragment>
 		</AppBar>
 	</svelte:fragment>

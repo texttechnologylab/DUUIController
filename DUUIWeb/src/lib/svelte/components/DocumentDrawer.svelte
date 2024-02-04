@@ -1,13 +1,15 @@
 <script lang="ts">
-	import { DropboxAppURL } from '$lib/config'
+	import { PUBLIC_DROPBOX_URL } from '$env/static/public'
 	import { IO, type DUUIDocument, type DUUIDocumentProvider } from '$lib/duui/io'
+	import { Status } from '$lib/duui/monitor'
+	import type { DUUIPipeline } from '$lib/duui/pipeline'
 	import type { DUUIProcess } from '$lib/duui/process'
 	import { formatFileSize, includes } from '$lib/duui/utils/text'
 	import { formatMilliseconds } from '$lib/duui/utils/time'
-	import { getStatusIcon, scrollIntoView } from '$lib/duui/utils/ui'
+	import { errorToast, getStatusIcon, scrollIntoView } from '$lib/duui/utils/ui'
 	import { userSession } from '$lib/store'
-	import { faChevronUp, faClose } from '@fortawesome/free-solid-svg-icons'
-	import { getModalStore } from '@skeletonlabs/skeleton'
+	import { faChevronDown, faClose, faDownload, faRefresh } from '@fortawesome/free-solid-svg-icons'
+	import { getDrawerStore, getToastStore } from '@skeletonlabs/skeleton'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
 	import {
@@ -16,28 +18,59 @@
 	} from '../../../routes/processes/[oid]/chart'
 	import Number from './Number.svelte'
 	import Search from './Search.svelte'
-	import type { DUUIPipeline } from '$lib/duui/pipeline'
 
-	export let input: DUUIDocumentProvider
-	export let output: DUUIDocumentProvider
+	const drawerStore = getDrawerStore()
 
-	const modalStore = getModalStore()
+	let _document: DUUIDocument = $drawerStore.meta.document
+	let process: DUUIProcess = $drawerStore.meta.process
+	let pipeline: DUUIPipeline = $drawerStore.meta.pipeline
 
-	let document: DUUIDocument = $modalStore[0].meta.document
-	let process: DUUIProcess = $modalStore[0].meta.process
-	let pipeline: DUUIPipeline = $modalStore[0].meta.pipeline
+	const input: DUUIDocumentProvider = process.input
+	const output: DUUIDocumentProvider = process.output
 
 	let URLIn: string = ''
 	let URLOut: string = ''
 
+	const toastStore = getToastStore()
+
 	let annotationsExpanded: boolean = true
 	let searchText: string = ''
 	let minimumCount: number = 1
-	let annotationFilter: Map<string, number> = new Map(Object.entries(document.annotations || {}))
+	let annotationFilter: Map<string, number> = new Map(Object.entries(_document.annotations || {}))
+	let downloading: boolean = false
+
+	const download = async () => {
+		downloading = true
+		const response = await fetch(
+			`/api/files/download?provider=${output.provider}&path=${URLOut.replace(
+				PUBLIC_DROPBOX_URL,
+				''
+			)}`,
+			{
+				method: 'GET'
+			}
+		)
+
+		if (response.ok) {
+			const blob = await response.blob()
+			const url = URL.createObjectURL(blob)
+			const anchor = document.createElement('a')
+			anchor.href = url
+			anchor.download = _document.name.replace(input.file_extension, output.file_extension)
+			document.body.appendChild(anchor)
+			anchor.click()
+			document.body.removeChild(anchor)
+			URL.revokeObjectURL(url)
+		} else {
+			toastStore.trigger(errorToast(await response.text()))
+		}
+
+		downloading = false
+	}
 
 	switch (input.provider) {
 		case 'Dropbox':
-			URLIn = DropboxAppURL + '/' + document.name
+			URLIn = PUBLIC_DROPBOX_URL + '/' + _document.name
 			break
 		case 'Minio':
 			URLIn = $userSession?.connections.minio.endpoint || ''
@@ -49,10 +82,10 @@
 	switch (output.provider) {
 		case 'Dropbox':
 			URLOut =
-				DropboxAppURL +
+				PUBLIC_DROPBOX_URL +
 				output.path +
 				'/' +
-				document.name.replace('.' + document.name.split('.').at(-1), output.file_extension)
+				_document.name.replace('.' + _document.name.split('.').at(-1), output.file_extension)
 			break
 		case 'Minio':
 			URLOut = $userSession?.connections.minio.endpoint || ''
@@ -60,6 +93,7 @@
 		default:
 			URLOut = ''
 	}
+
 	let ApexCharts
 	let loaded: boolean = false
 
@@ -80,7 +114,7 @@
 	}
 
 	$: options = getAnnotationsPlotOptions(annotationFilter)
-	$: eventOptions = getTimelinePlotOptions(process, pipeline, document)
+	$: eventOptions = getTimelinePlotOptions(process, pipeline, _document)
 
 	onMount(() => {
 		scrollIntoView('scroll-top')
@@ -95,9 +129,9 @@
 	})
 
 	$: {
-		if (document.annotations) {
+		if (_document.annotations) {
 			annotationFilter = new Map(
-				Object.entries(document.annotations).filter(
+				Object.entries(_document.annotations).filter(
 					(entry) =>
 						(includes(entry[0], searchText) || searchText === '') && entry[1] >= minimumCount
 				)
@@ -106,43 +140,62 @@
 	}
 </script>
 
-<div
-	class="section-wrapper bg-surface-50-900-token w-full md:max-w-[80%] sticky top-0 h-[90vh] !overflow-y-auto"
->
+<div class="bg-surface-50-900-token">
 	<div id="scroll-top" />
 	<div
-		class="font-bold text-2xl p-4 border-surface-200 dark:border-surface-500 flex items-center justify-start gap-4 sticky top-0 z-10 bg-surface-100-800-token border-b border-color"
+		class="w-full z-50 grid
+		font-bold text-2xl p-4 border-surface-200 dark:border-surface-500 sm:flex items-center justify-start gap-4 sticky top-0 bg-surface-100-800-token border-b border-color"
 	>
-		<Fa icon={getStatusIcon(document.status)} size="lg" class="dimmed" />
-		{#if input.provider === IO.File}
-			<p>{document.path.split(input.path.replace('\\', '/') + '/').at(-1)}</p>
-		{:else}
-			<p>{document.path}</p>
-		{/if}
-		<button class="ml-auto" on:click={modalStore.close}>
-			<Fa icon={faClose} />
-		</button>
+		<div class="flex items-center gap-4">
+			<Fa icon={getStatusIcon(_document.status)} size="lg" class="dimmed" />
+			{#if input.provider === IO.File}
+				<p class="text-sm md:text-base">
+					{_document.path.split(input.path.replace('\\', '/') + '/').at(-1)}
+				</p>
+			{:else}
+				<p class="text-sm md:text-base">{_document.path}</p>
+			{/if}
+		</div>
+		<div class="ml-auto justify-start items-center gap-4 flex">
+			{#if output.provider !== IO.None && _document.status === Status.Completed}
+				{#if downloading}
+					<button class="button-neutral opacity-50">
+						<Fa icon={faRefresh} spin />
+						<span>Loading</span>
+					</button>
+				{:else}
+					<button class="button-neutral" on:click={download}>
+						<Fa icon={faDownload} />
+						<span>Download</span>
+					</button>
+				{/if}
+			{/if}
+			<button class="button-neutral" on:click={drawerStore.close}>
+				<Fa icon={faClose} />
+				<span>Close</span>
+			</button>
+		</div>
 	</div>
 
-	<div class="bg-surface-50-900-token opacity-75">
-		{#if document.error}
+	<div class="bg-surface-50-900-token">
+		{#if _document.error}
 			<div class="p-4 grid justify-center text-center text-lg variant-soft-error font-bold gap-8">
 				<h3 class="h3">The document has encountered an error</h3>
-				<p>
-					{document.error}
+				<p class="mx-auto">
+					{_document.error}
 				</p>
 			</div>
 		{/if}
 		<div
-			class="p-4 grid grid-cols-2 md:grid-cols-4 gap-4 justify-center items-center border-b border-color text-sm"
+			class="p-4 grid grid-cols-2 md:grid-cols-4 gap-4 justify-center items-center border-b border-color text-sm md:text-base"
 		>
 			<div class="flex flex-col items-start justify-center gap-2">
 				<p class="font-bold">Status</p>
-				<p>{document.status}</p>
+				<p>{_document.status}</p>
 			</div>
 			<div class="flex flex-col items-start justify-center gap-2">
 				<p class="font-bold">Size</p>
-				<p>{document.size ? formatFileSize(document.size) : 'Unknown'}</p>
+				<p>{_document.size ? formatFileSize(_document.size) : 'Unknown'}</p>
 			</div>
 			{#if URLIn}
 				<a href={URLIn} target="_blank" class="flex flex-col items-start justify-center gap-2">
@@ -155,7 +208,7 @@
 					<p>{input.provider}</p>
 				</div>
 			{/if}
-			{#if URLOut}
+			{#if output.provider !== IO.None && _document.status === Status.Completed}
 				<a href={URLOut} target="_blank" class="flex flex-col items-start justify-center gap-2">
 					<p class="anchor font-bold">Target</p>
 					<p>{output.provider}</p>
@@ -168,24 +221,24 @@
 			{/if}
 		</div>
 		<div
-			class="p-4 grid-cols-2 grid md:grid-cols-4 gap-4 justify-center items-center border-b border-color text-sm"
+			class="p-4 grid-cols-2 grid md:grid-cols-4 gap-4 justify-center items-center border-b border-color text-sm md:text-base"
 		>
 			<div class="flex flex-col items-start justify-center gap-2">
 				<p class="font-bold">Wait</p>
-				<p>{formatMilliseconds(document.duration_wait)}</p>
+				<p>{formatMilliseconds(_document.duration_wait)}</p>
 			</div>
 			<div class="flex flex-col items-start justify-center gap-2">
 				<p class="font-bold">Setup</p>
-				<p>{formatMilliseconds(document.duration_decode + document.duration_deserialize)}</p>
+				<p>{formatMilliseconds(_document.duration_decode + _document.duration_deserialize)}</p>
 			</div>
 
 			<div class="flex flex-col items-start justify-center gap-2">
 				<p class="font-bold">Process</p>
-				<p>{formatMilliseconds(document.duration_process)}</p>
+				<p>{formatMilliseconds(_document.duration_process)}</p>
 			</div>
 			<div class="flex flex-col items-start justify-center gap-2">
 				<p class="font-bold">Total</p>
-				<p>{formatMilliseconds(document.duration || 0)}</p>
+				<p>{formatMilliseconds(_document.duration || 0)}</p>
 			</div>
 		</div>
 		<div class="p-4 flex flex-col gap-4 border-b border-color">
@@ -195,17 +248,19 @@
 					on:click={() => (annotationsExpanded = !annotationsExpanded)}
 				>
 					<div class:turn={annotationsExpanded} class="transition-transform duration-300">
-						<Fa icon={faChevronUp} size="lg" />
+						<Fa icon={faChevronDown} size="lg" />
 					</div>
 					<span>{annotationsExpanded ? 'Collapse' : 'Expand'}</span>
 				</button>
-				<Number label="Minimum count" name="minimumCount" bind:value={minimumCount} />
-				<Search placeholder="Search" bind:query={searchText} />
+				<div class="grid md:grid-cols-2 items-end gap-4">
+					<Number label="Minimum count" name="minimumCount" bind:value={minimumCount} />
+					<Search placeholder="Search" bind:query={searchText} />
+				</div>
 			</div>
 
 			<div class:open={annotationsExpanded} class="content dimmed">
 				<div class="content-wrapper space-y-4">
-					{#if document.annotations && Object.entries(document.annotations).length > 0}
+					{#if _document.annotations && Object.entries(_document.annotations).length > 0}
 						<div
 							class="self-stretch text-sm overflow-hidden grid sm:grid-cols-2 xl:grid-cols-3 gap-4"
 						>
@@ -227,7 +282,7 @@
 			</div>
 			{#if loaded}
 				<div use:chart={options} />
-				{#if document.events}
+				{#if _document.events}
 					<div use:chart={eventOptions} />
 				{/if}
 			{/if}

@@ -1,5 +1,4 @@
-import { SERVER_API_KEY } from '$env/static/private'
-import { API_URL } from '$lib/config'
+import { API_URL, API_KEY } from '$env/static/private'
 import { randomBytes } from 'crypto'
 
 const generatKey = (length: number = 64, format: BufferEncoding | undefined = 'base64') => {
@@ -26,7 +25,7 @@ export async function PUT({ locals }) {
 			key: key
 		}),
 		headers: {
-			Authorization: SERVER_API_KEY
+			Authorization: API_KEY
 		}
 	})
 

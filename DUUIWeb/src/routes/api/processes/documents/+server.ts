@@ -1,4 +1,4 @@
-import { API_URL } from '$lib/config'
+import { API_URL } from '$env/static/private'
 import type { DUUIDocument } from '$lib/duui/io'
 import { error, json, type RequestHandler } from '@sveltejs/kit'
 
@@ -21,8 +21,8 @@ export const GET: RequestHandler = async (event) => {
 
 	let order: number = searchParams.get('order') === '1' ? 1 : -1
 
-	let text: string = searchParams.get('text') || ''
-	let statusFilters: string = searchParams.get('filter') || 'Any'
+	let text: string = searchParams.get('search') || ''
+	let statusFilters: string = searchParams.get('status') || 'Any'
 
 	const fetchDocuments = async (): Promise<{
 		documents: DUUIDocument[]
@@ -35,8 +35,8 @@ export const GET: RequestHandler = async (event) => {
 			&skip=${skip}
 			&sort=${sort}
 			&order=${order}
-			&text=${text}
-			&filter=${statusFilters}`,
+			&search=${text}
+			&status=${statusFilters}`,
 			{
 				method: 'GET',
 				mode: 'cors',

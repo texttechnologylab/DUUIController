@@ -3,16 +3,25 @@ package api.controllers.pipelines;
 import api.controllers.components.DUUIComponentController;
 import api.controllers.processes.DUUIProcessController;
 import duui.process.IDUUIProcessHandler;
-import api.storage.AggregationProps;
 import api.storage.DUUIMongoDBStorage;
 import api.storage.MongoDBFilters;
 import com.mongodb.client.model.*;
+import org.apache.commons.compress.compressors.CompressorException;
+import org.apache.uima.UIMAException;
+import org.apache.uima.fit.factory.AnalysisEngineFactory;
+import org.apache.uima.util.InvalidXMLException;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.DUUIComposer;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.driver.*;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.lua.DUUILuaContext;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIEvent;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
+import org.xml.sax.SAXException;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.security.InvalidParameterException;
 import java.time.Instant;
@@ -75,15 +84,13 @@ public class DUUIPipelineController {
             componentFilters.addFilter(Filters.eq("pipeline_id", id));
             componentFilters.sort("index");
             List<Document> components = DUUIComponentController.findMany(componentFilters);
-            convertObjectIdToString(result);
             result.append("components", components);
         }
-        return result;
+        return convertObjectIdToString(result);
     }
 
     /**
-     * Retrieve one or more pipelines from the database given a userId and {@link AggregationProps} to sort
-     * and filter the results.
+     * Retrieve one or more pipelines from the database given a {@link MongoDBFilters} object.
      *
      * @param filters       A {@link MongoDBFilters} object that contains filter options.
      * @param getComponents Wether to include components in the pipeline data.
@@ -138,7 +145,7 @@ public class DUUIPipelineController {
         }
 
 
-        if (!filters.getSort().isEmpty()) {
+        if (filters.getSort() != null) {
             facet.add(Aggregates.sort(
                 filters.getOrder() == 1
                     ? Sorts.ascending(filters.getSort())
@@ -187,7 +194,12 @@ public class DUUIPipelineController {
         return new Document("pipelines", findings).append("count", count);
     }
 
-
+    /**
+     * Update a pipeline given its id and a Document of updates.
+     *
+     * @param id      The id of the pipeline to update.
+     * @param updates A {@link Document} of key value pairs that define updates.
+     */
     public static void updateOne(String id, Document updates) {
         updates.append("modified_at", Instant.now().toEpochMilli());
 
@@ -210,7 +222,13 @@ public class DUUIPipelineController {
         }
     }
 
-
+    /**
+     * Instantiate a pipeline and store it as a reusable one. This pipeline can be passed
+     * to a composer to skip the instantiation for every process.
+     *
+     * @param id The id of the pipeline to instantiate.
+     * @return if the instantiation was successfull.
+     */
     public static boolean instantiate(String id) {
         setStatus(id, DUUIStatus.SETUP);
         Document pipeline = findOneById(id);
@@ -218,7 +236,7 @@ public class DUUIPipelineController {
         if (pipeline == null) return false;
 
         try {
-            DUUIComposer composer = DUUIProcessController.instantiatePipeline(pipeline);
+            DUUIComposer composer = instantiatePipeline(pipeline);
             reusablePipelines.put(id, composer);
             setStatus(id, DUUIStatus.IDLE);
             return true;
@@ -228,9 +246,15 @@ public class DUUIPipelineController {
         }
     }
 
+    /**
+     * Shut down a pipeline and remove it from the map of reusable pipelines.
+     *
+     * @param id The id of the pipeline to shut down.
+     * @return if the shut-down was successfull
+     */
     public static boolean shutdown(String id) {
         DUUIComposer composer = reusablePipelines.get(id);
-        if (composer == null) return false;
+        if (composer == null) return true;
 
         setStatus(id, DUUIStatus.SHUTDOWN);
 
@@ -245,26 +269,62 @@ public class DUUIPipelineController {
         }
     }
 
+    /**
+     * Increment the times_used property of a pipeline and update the last_used time.
+     *
+     * @param id The pipeline id.
+     */
+    public static void updateTimesUsed(String id) {
+        DUUIMongoDBStorage
+            .Pipelines()
+            .updateOne(
+                Filters.eq(new ObjectId(id)),
+                Updates.combine(
+                    Updates.set("last_used", Instant.now().toEpochMilli()),
+                    Updates.inc("times_used", 1))
+            );
+    }
 
+    /**
+     * Get the map of reusable/instantiated pipelines.
+     *
+     * @return the map of pipelines that are reusable.
+     */
     public static Map<String, DUUIComposer> getReusablePipelines() {
         return reusablePipelines;
     }
 
+    /**
+     * Delete one pipeline and return if the deletion succeeded.
+     *
+     * @param id The id of the pipeline to delete
+     * @return if the number of deleted pipelines is greater than 0.
+     */
     public static boolean deleteOne(String id) {
         return Pipelines()
             .deleteOne(Filters.eq(new ObjectId(id)))
             .getDeletedCount() > 0;
     }
 
-    public static void interruptIfRunning(String pipelineId) {
-        if (reusablePipelines.containsKey(pipelineId)) {
-            for (IDUUIProcessHandler handler : DUUIProcessController.getActiveProcesses(pipelineId)) {
+    /**
+     * Cancel all active processes using the pipeline with the given id.
+     *
+     * @param id The id of the pipeline.
+     */
+    public static void interruptIfRunning(String id) {
+        if (reusablePipelines.containsKey(id)) {
+            for (IDUUIProcessHandler handler : DUUIProcessController.getActiveProcesses(id)) {
                 handler.cancel();
             }
-            reusablePipelines.remove(pipelineId);
+            reusablePipelines.remove(id);
         }
     }
 
+    /**
+     * Shutdown a reusable pipeline and cancel all active processes using the pipeline.
+     *
+     * @param pipelineId The id of the pipeline to shut down.
+     */
     public static void shutdownPipeline(String pipelineId) {
         if (reusablePipelines.containsKey(pipelineId)) {
             for (IDUUIProcessHandler handler : DUUIProcessController.getActiveProcesses(pipelineId)) {
@@ -277,6 +337,12 @@ public class DUUIPipelineController {
         }
     }
 
+    /**
+     * Set the status of a pipeline given an id and the status name.
+     *
+     * @param id     The pipeline's id.
+     * @param status The status to set. See {@link DUUIStatus}
+     */
     public static void setStatus(String id, String status) {
         DUUIPipelineController.updateOne(id, new Document("status", status));
     }
@@ -326,5 +392,140 @@ public class DUUIPipelineController {
         result = facets.get(0);
 
         return result;
+    }
+
+    /**
+     * Instantiate a pipeline from a {@link Document}. This function is used to instantiate a pipeline and
+     * return its composer for future use.
+     *
+     * @param pipeline The pipeline to instantiate (MongoDB {@link Document}).
+     * @return the composer containing the instantiated pipeline.
+     */
+    public static DUUIComposer instantiatePipeline(Document pipeline) throws Exception {
+        DUUIComposer composer = new DUUIComposer()
+            .withSkipVerification(true)
+            .withDebugLevel(DUUIComposer.DebugLevel.DEBUG)
+            .withLuaContext(new DUUILuaContext().withJsonLibrary());
+
+        setupDrivers(composer, pipeline);
+        setupComponents(composer, pipeline);
+        composer.instantiate_pipeline();
+        return composer;
+    }
+
+    /**
+     * Set up the components for a pipeline in a composer.
+     *
+     * @param composer The composer to add components to.
+     * @param pipeline A {@link Document} containing all component settings.
+     */
+    public static void setupComponents(DUUIComposer composer, Document pipeline)
+        throws IOException, UIMAException, SAXException, URISyntaxException, CompressorException {
+        for (Document component : pipeline.getList("components", Document.class)) {
+            composer.add(getComponent(component));
+        }
+    }
+
+    /**
+     * Loops over all components in the pipeline and add their respective driver to the composer.
+     *
+     * @param composer The composer that is being setup.
+     * @param pipeline The pipeline (MongoDB {@link Document}) containing all relevant components.
+     */
+    public static void setupDrivers(DUUIComposer composer, Document pipeline) {
+        List<String> addedDrivers = new ArrayList<>();
+        for (Document component : pipeline.getList("components", Document.class)) {
+            try {
+                IDUUIDriverInterface driver = getDriverFromString(component.getString("driver"));
+
+                if (driver == null) {
+                    throw new IllegalStateException("Driver cannot be empty.");
+                }
+
+                String name = driver.getClass().getSimpleName();
+                if (addedDrivers.contains(name)) {
+                    continue;
+                }
+                composer.addDriver(driver);
+                addedDrivers.add(name);
+            } catch (Exception e) {
+                composer.addEvent(DUUIEvent.Sender.COMPOSER, e.getMessage(), DUUIComposer.DebugLevel.ERROR);
+            }
+        }
+    }
+
+    /**
+     * Construct a {@link IDUUIDriverInterface} from a string holding its name.
+     *
+     * @param driver The name of the driver to construct.
+     * @return A driver object or null if no driver matched the name.
+     */
+    public static IDUUIDriverInterface getDriverFromString(String driver)
+        throws IOException, UIMAException, SAXException {
+        return switch (driver) {
+            case "DUUIDockerDriver" -> new DUUIDockerDriver();
+            case "DUUISwarmDriver" -> new DUUISwarmDriver();
+            case "DUUIRemoteDriver" -> new DUUIRemoteDriver();
+            case "DUUIUIMADriver" -> new DUUIUIMADriver();
+            case "DUUIKubernetesDriver" -> new DUUIKubernetesDriver();
+            default -> null;
+        };
+    }
+
+    /**
+     * Creates a {@link DUUIPipelineComponent} from a settings {@link Document}
+     *
+     * @param component the settings for the component.
+     * @return the new pipeline component.
+     */
+    public static DUUIPipelineComponent getComponent(Document component) throws URISyntaxException, IOException, InvalidXMLException, SAXException {
+        Document options = component.get("options", Document.class);
+        Document parameters = component.get("parameters", Document.class);
+
+        String target = component.getString("target");
+        String driver = component.getString("driver");
+
+        options = DUUIComponentController.mergeOptions(options);
+
+        boolean useGPU = options.getBoolean("use_GPU", true);
+        boolean dockerImageFetching = options.getBoolean("docker_image_fetching", true);
+        int scale = Math.max(1, Integer.parseInt(options.getOrDefault("scale", "1").toString()));
+        boolean ignore200Error = options.getBoolean("ignore_200_error", true);
+
+        String name = component.getString("name");
+
+        DUUIPipelineComponent pipelineComponent = switch (driver) {
+            case "DUUIDockerDriver" -> new DUUIDockerDriver
+                .Component(target)
+                .withImageFetching(dockerImageFetching)
+                .withGPU(useGPU)
+                .withScale(scale)
+                .build();
+            case "DUUISwarmDriver" -> new DUUISwarmDriver
+                .Component(target)
+                .withScale(scale)
+                .build();
+            case "DUUIRemoteDriver" -> new DUUIRemoteDriver
+                .Component(target)
+                .withIgnoring200Error(ignore200Error)
+                .withScale(scale)
+                .build();
+            case "DUUIUIMADriver" -> new DUUIUIMADriver
+                .Component(AnalysisEngineFactory
+                .createEngineDescription(target))
+                .withScale(scale)
+                .build();
+            case "DUUIKubernetesDriver" -> new DUUIKubernetesDriver
+                .Component(target)
+                .withScale(scale)
+                .build();
+            default -> throw new IllegalStateException("Unexpected value: " + driver);
+        };
+
+        if (parameters != null) {
+            parameters.forEach((key, value) -> pipelineComponent.withParameter(key, "" + value));
+        }
+
+        return pipelineComponent.withName(name);
     }
 }

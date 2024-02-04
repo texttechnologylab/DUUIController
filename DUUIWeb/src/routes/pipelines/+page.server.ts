@@ -1,7 +1,7 @@
+import { API_URL } from '$env/static/private'
+import type { DUUIPipeline } from '$lib/duui/pipeline'
 import { redirect } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
-import { API_URL } from '$lib/config'
-import type { DUUIPipeline } from '$lib/duui/pipeline'
 
 export const load: PageServerLoad = async ({
 	fetch,

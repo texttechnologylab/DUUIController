@@ -41,10 +41,10 @@ export enum IO {
 	None = 'None'
 }
 
-export const InputSources: string[] = ['Dropbox', 'File', 'Minio', 'Text']
+export const IO_INPUT: string[] = ['Dropbox', 'File', 'Minio', 'Text']
 export const InputFileExtensions: string[] = ['.txt', '.xmi', '.gz']
 
-export const OutputTargets: string[] = ['Dropbox', 'Minio', 'None']
+export const IO_OUTPUT: string[] = ['Dropbox', 'Minio', 'None']
 export const OutputFileExtensions: string[] = ['.txt', '.xmi']
 
 export const isCloudProvider = (provider: string) => {

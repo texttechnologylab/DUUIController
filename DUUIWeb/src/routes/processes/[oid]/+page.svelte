@@ -12,7 +12,7 @@
 		infoToast,
 		successToast
 	} from '$lib/duui/utils/ui'
-	import DocumentModal from '$lib/svelte/components/DocumentModal.svelte'
+	import DocumentModal from '$lib/svelte/components/DocumentDrawer.svelte'
 
 	import {
 		faArrowDownWideShort,
@@ -31,7 +31,9 @@
 		getModalStore,
 		getToastStore,
 		type ModalComponent,
-		type ModalSettings
+		type ModalSettings,
+		getDrawerStore,
+		type DrawerSettings
 	} from '@skeletonlabs/skeleton'
 
 	import KeyValue from '$lib/svelte/components/KeyValue.svelte'
@@ -41,11 +43,12 @@
 	import { showConfirmationModal } from '$lib/svelte/utils/modal'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
+	import { draw } from 'svelte/transition'
 
 	export let data
 	const toastStore = getToastStore()
 
-	let { pipeline, process, documents, pipelineProgress, count } = data
+	let { pipeline, process, documents, count } = data
 
 	let progressPercent: number = 0
 
@@ -165,8 +168,8 @@
 				&skip=${paginationSettings.limit * paginationSettings.page}
 				&sort=${sortMap.get(sort.by)}
 				&order=${sort.order}
-				&text=${searchText}
-				&filter=${filter.join(';')}`,
+				&search=${searchText}
+				&status=${filter.join(';')}`,
 			{
 				method: 'GET'
 			}
@@ -174,27 +177,26 @@
 
 		const json: {
 			documents: DUUIDocument[]
-			pipelineProgress: { [key: number]: number }
 			count: number
 		} = await response.json()
+
 		documents = json.documents
 		paginationSettings.total = json.count
-		pipelineProgress = json.pipelineProgress
 	}
 
 	const modalStore = getModalStore()
-	const modalComponent: ModalComponent = {
-		ref: DocumentModal,
-		props: { input: process.input, output: process.output }
-	}
+	const drawerStore = getDrawerStore()
 
 	const showDocumentModal = (document: DUUIDocument) => {
-		const modal: ModalSettings = {
-			type: 'component',
-			component: modalComponent,
+		const drawer: DrawerSettings = {
+			id: 'document',
+			width: 'w-full h-full',
+			position: 'bottom',
+			rounded: 'rounded-none',
 			meta: { process: process, document: document, pipeline: pipeline }
 		}
-		modalStore.trigger(modal)
+
+		drawerStore.open(drawer)
 	}
 
 	const sortTable = (index: number) => {
@@ -330,7 +332,7 @@
 							{[4].includes(index)
 									? 'hidden md:inline-flex'
 									: [3].includes(index)
-									? '!hidden lg:inline-flex'
+									? 'hidden lg:inline-flex'
 									: ''}"
 								on:click={() => sortTable(index)}
 							>

@@ -1,4 +1,4 @@
-import { API_URL } from '$lib/config'
+import { API_URL } from '$env/static/private'
 
 /**
  * Attempts to insert a component.

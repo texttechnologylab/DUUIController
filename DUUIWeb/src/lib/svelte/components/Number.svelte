@@ -20,6 +20,7 @@
 		class="input-wrapper 
         [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
 		type="number"
+		inputmode="numeric"
 		{min}
 		
 		{max}

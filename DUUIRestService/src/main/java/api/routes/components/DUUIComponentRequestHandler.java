@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Set;
 
 
-import static api.requests.validation.Validator.missingField;
 import static api.routes.DUUIRequestHelper.*;
 import static api.storage.DUUIMongoDBStorage.convertObjectIdToString;
 

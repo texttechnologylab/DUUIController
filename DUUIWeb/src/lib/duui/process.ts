@@ -43,11 +43,11 @@ export const processToSeachParams = (process: DUUIProcess) => {
 		&output-file-extension=${process.output.file_extension}
 		&notify=${process.settings.notify || 'false'}
 		&check_target=${process.settings.check_target || 'false'}
-		&recursive=${process.settings.recursive || 'false'}
+		&recursive=${process.settings.recursive || 'true'}
 		&overwrite=${process.settings.overwrite || 'false'}
 		&sort_by_size=${process.settings.sort_by_size || 'false'}
 		&minimum_size=${process.settings.minimum_size || '0'}
-		&worker_count=${process.settings.worker_count || '5'}
+		&worker_count=${process.settings.worker_count || '1'}
 		&ignore_errors=${process.settings.ignore_errors || 'false'}
 		`
 }

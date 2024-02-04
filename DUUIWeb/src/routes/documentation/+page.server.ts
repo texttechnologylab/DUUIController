@@ -1,4 +1,3 @@
-import { blankComponent } from '$lib/duui/component'
 import { blankPipeline, type DUUIPipeline } from '$lib/duui/pipeline'
 import type { PageServerLoad } from './$types'
 

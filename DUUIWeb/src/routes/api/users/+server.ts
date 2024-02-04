@@ -1,8 +1,5 @@
-import { SERVER_API_KEY } from '$env/static/private'
-import { API_URL } from '$lib/config'
+import { API_URL, API_KEY } from '$env/static/private'
 import { fail } from '@sveltejs/kit'
-
-
 
 export const PUT = async ({ request, locals }) => {
 	const user = locals.user
@@ -16,7 +13,7 @@ export const PUT = async ({ request, locals }) => {
 		mode: 'cors',
 		body: JSON.stringify(await request.json()),
 		headers: {
-			Authorization: SERVER_API_KEY
+			Authorization: API_KEY
 		}
 	})
 

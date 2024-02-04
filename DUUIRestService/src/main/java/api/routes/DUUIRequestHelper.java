@@ -1,5 +1,6 @@
 package api.routes;
 
+import api.controllers.users.DUUIUserController;
 import api.storage.DUUIMongoDBStorage;
 import org.bson.Document;
 import spark.Request;
@@ -9,7 +10,6 @@ import spark.Response;
 import java.util.List;
 import java.util.Set;
 
-import static api.requests.validation.UserValidator.authenticate;
 import static com.mongodb.client.model.Filters.eq;
 
 public class DUUIRequestHelper {
@@ -209,5 +209,28 @@ public class DUUIRequestHelper {
         return list == null || list.isEmpty();
     }
 
+    /**
+     * Return a bad request response (400) to indicate a missing field.
+     *
+     * @param response The response object.
+     * @param field    The missing field.
+     * @return a standard 400 bad request response.
+     */
+    public static String missingField(Response response, String field) {
+        response.status(400);
+        return String.format("Missing field %s", field);
+    }
+
+
+    public static Document authenticate(String authorization) {
+        if (isNullOrEmpty(authorization)) return null;
+
+        Document user = DUUIUserController.matchApiKey(authorization);
+        if (isNullOrEmpty(user)) {
+            user = DUUIUserController.matchSession(authorization);
+        }
+
+        return user;
+    }
 
 }

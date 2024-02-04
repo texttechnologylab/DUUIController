@@ -1,4 +1,4 @@
-import { API_URL } from '$lib/config'
+import { API_URL } from '$env/static/private'
 import { json, type RequestHandler } from '@sveltejs/kit'
 
 export const GET: RequestHandler = async (event) => {
@@ -8,15 +8,11 @@ export const GET: RequestHandler = async (event) => {
 	const id = searchParams.get('pipeline_id') || ''
 	let limit: number = Math.min(+(searchParams.get('limit') || '10'), 50)
 	let skip: number = Math.max(+(searchParams.get('skip') || '0'), 0)
-	let sort: string = searchParams.get('sort') || 'startTime'
+	let sort: string = searchParams.get('sort') || 'started_at'
 	let order: string = searchParams.get('order') || 'ascending'
-	let filter: string = searchParams.get('filter') || 'Any'
-
-	const keys: string[] = ['started_at', 'input', 'count', 'progress', 'status', 'duration']
-
-	if (!keys.includes(sort)) {
-		sort = 'started_at'
-	}
+	let status: string = searchParams.get('status') || 'Any'
+	let input: string = searchParams.get('input') || 'Any'
+	let output: string = searchParams.get('output') || 'Any'
 
 	const fetchProcesses = async () => {
 		const response = await fetch(
@@ -26,7 +22,9 @@ export const GET: RequestHandler = async (event) => {
 			&skip=${skip}
 			&sort=${sort}
 			&order=${order}
-			&filter=${filter}`,
+			&status=${status}
+			&input=${input}
+			&output=${output}`,
 			{
 				method: 'GET',
 				mode: 'cors',

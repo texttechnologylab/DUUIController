@@ -47,7 +47,7 @@
 
 	let notify: boolean = $page.url.searchParams.get('notify') === 'true' || false
 	let checkTarget: boolean = $page.url.searchParams.get('check_target') === 'true' || false
-	let recursive: boolean = $page.url.searchParams.get('recursive') === 'true' || false
+	let recursive: boolean = $page.url.searchParams.get('recursive') === 'true' || true
 	let overwrite: boolean = $page.url.searchParams.get('overwrite') === 'true' || false
 	let sortBySize: boolean = $page.url.searchParams.get('sort_by_size') === 'true' || false
 	let ignoreErrors: boolean = $page.url.searchParams.get('ignore_errors') === 'true' || true
@@ -236,7 +236,7 @@
 							label="Path"
 							name="inputPath"
 							bind:value={input.path}
-							error={input.path === '/' ? 'Leave the folder empty to select the root folder.' : ''}
+							error={input.path === '/' ? 'Provide an empty path to select the root folder.' : ''}
 						/>
 					{/if}
 				</div>
@@ -246,10 +246,10 @@
 					<h3 class="h3">Settings</h3>
 					<div class="space-y-4">
 						{#if !equals(input.provider, IO.Text)}
-							<div class="grid grid-cols-2 gap-4">
+							<div class="grid grid-cols-2 gap-4 items-start md:items-center">
 								<div>
 									<Number
-										label="Skip files smaller than"
+										label="Minimum size"
 										max={2147483647}
 										name="skipFiles"
 										bind:value={skipFiles}
@@ -323,7 +323,7 @@
 						<TextInput
 							label="Path"
 							name="output-folder"
-							error={output.path === '/' ? 'Leave the folder empty to select the root folder.' : ''}
+							error={output.path === '/' ? 'Provide an empty path to select the root folder.' : ''}
 							bind:value={output.path}
 						/>
 					{/if}

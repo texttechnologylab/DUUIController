@@ -1,5 +1,4 @@
-import { SERVER_API_KEY } from '$env/static/private'
-import { API_URL } from '$lib/config'
+import { API_URL, API_KEY } from '$env/static/private'
 import { fail } from '@sveltejs/kit'
 import { randomBytes } from 'crypto'
 
@@ -18,9 +17,9 @@ export const PUT = async ({ locals }) => {
 	const response = await fetch(`${API_URL}/users/${user.oid}`, {
 		method: 'PUT',
 		mode: 'cors',
-		body: JSON.stringify({ "connections.key": generatKey() }),
+		body: JSON.stringify({ 'connections.key': generatKey() }),
 		headers: {
-			Authorization: SERVER_API_KEY
+			Authorization: API_KEY
 		}
 	})
 
@@ -37,9 +36,9 @@ export const DELETE = async ({ locals }) => {
 	const response = await fetch(`${API_URL}/users/${user.oid}`, {
 		method: 'PUT',
 		mode: 'cors',
-		body: JSON.stringify({ "connections.key": null }),
+		body: JSON.stringify({ 'connections.key': null }),
 		headers: {
-			Authorization: SERVER_API_KEY
+			Authorization: API_KEY
 		}
 	})
 

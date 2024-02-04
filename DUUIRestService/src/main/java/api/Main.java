@@ -1,100 +1,40 @@
 package api;
 
-import api.routes.components.DUUIComponentRequestHandler;
 import api.controllers.pipelines.DUUIPipelineController;
-import api.routes.pipelines.DUUIPipelineRequestHandler;
-import api.routes.processes.DUUIProcessRequestHandler;
 import api.controllers.processes.DUUIProcessController;
 import api.controllers.users.DUUIUserController;
-import api.routes.DUUIRequestHelper;
 import api.metrics.DUUIMetricsManager;
-import api.metrics.DUUIMetricsProvider;
-import api.metrics.DUUIMongoMetricsProvider;
-import api.metrics.DUUISystemMetricsProvider;
+import api.metrics.providers.DUUIHTTPMetrics;
+import api.routes.DUUIRequestHelper;
+import api.routes.components.DUUIComponentRequestHandler;
+import api.routes.pipelines.DUUIPipelineRequestHandler;
+import api.routes.processes.DUUIProcessRequestHandler;
 import api.storage.DUUIMongoDBStorage;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
-import com.sun.management.OperatingSystemMXBean;
+import duui.process.IDUUIProcessHandler;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
 
 import java.io.File;
-import java.lang.management.ManagementFactory;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
+import java.util.Properties;
 
 import static spark.Spark.*;
 
 public class Main {
 
-    private static final DUUIMetricsManager metricsManager = new DUUIMetricsManager();
-    private static OperatingSystemMXBean monitor;
-    public static Map<String, AtomicLong> metrics = new HashMap<>();
-    private static DUUIMetricsProvider _metricsProvider;
-
-    private static void setupMetrics() {
-        metricsManager.registerMetricsProvider(new DUUISystemMetricsProvider());
-        metricsManager.registerMetricsProvider(
-            new DUUIMongoMetricsProvider(
-                "duui_metrics",
-                "pipeline_document_perf"));
-
-    }
-
-    private static void updateSystemMetrics() {
-        long cpuLoad = (long) (monitor.getCpuLoad() * 100);
-        long freeMemorySize = monitor.getFreeMemorySize();
-        long totalMemorySize = monitor.getTotalMemorySize();
-        long usedMemorySize = monitor.getCommittedVirtualMemorySize();
-
-        metrics.get("current_cpu_load").set(cpuLoad);
-        metrics.get("total_virtual_memory").set(totalMemorySize);
-        metrics.get("free_virtual_memory").set(freeMemorySize);
-        metrics.get("used_virtual_memory").set(usedMemorySize);
-
-        for (Map.Entry<String, Long> entry : _metricsProvider.getMetrics().entrySet()) {
-            metrics.get(entry.getKey()).set(entry.getValue());
-        }
-    }
+    public static Properties config = new Properties();
 
     public static void main(String[] args) {
-        monitor =
-            ManagementFactory.getPlatformMXBean(
-                com.sun.management.OperatingSystemMXBean.class
-            );
+        DUUIMetricsManager.init();
+        loadConfig();
 
         File fileUploadDirectory = Paths.get("fileUploads").toFile();
 
         if (!fileUploadDirectory.exists()) {
             boolean ignored = fileUploadDirectory.mkdirs();
-        }
-
-
-        _metricsProvider = new DUUIMetricsProvider.Builder()
-            .withMetricsProvider(
-                new DUUIMongoMetricsProvider("duui_metrics", "pipeline_document_perf"))
-            .build();
-
-        metrics.put("http_requests_in_progress", new AtomicLong(0));
-
-        metrics.put("active_processes", new AtomicLong(0));
-        metrics.put("cancelled_processes", new AtomicLong(0));
-        metrics.put("failed_processes", new AtomicLong(0));
-        metrics.put("completed_processes", new AtomicLong(0));
-
-        metrics.put("current_cpu_load", new AtomicLong(0));
-        metrics.put("total_virtual_memory", new AtomicLong(0));
-        metrics.put("free_virtual_memory", new AtomicLong(0));
-        metrics.put("used_virtual_memory", new AtomicLong(0));
-        metrics.put("active_threads", new AtomicLong(0));
-
-        for (Map.Entry<String, Long> entry : _metricsProvider.getMetrics().entrySet()) {
-            metrics.put(entry.getKey(), new AtomicLong(entry.getValue()));
         }
 
         port(2605);
@@ -127,22 +67,24 @@ public class Main {
 
         before((request, response) -> {
             if (!request.url().endsWith("metrics")) {
-                metrics.get("http_requests_in_progress").incrementAndGet();
+                DUUIHTTPMetrics.incrementTotalRequests();
+                DUUIHTTPMetrics.incrementActiveRequests();
             }
             response.header("Access-Control-Allow-Origin", "*");
         });
 
         after((request, response) -> {
             if (!request.url().endsWith("metrics")) {
-                metrics.get("http_requests_in_progress").decrementAndGet();
+                DUUIHTTPMetrics.decrementActiveRequests();
             }
         });
 
-        setupMetrics();
 
         /* Users */
-
         path("/users", () -> {
+            before("/*", (request, response) -> {
+                DUUIHTTPMetrics.incrementUsersRequests();
+            });
             get("/:id", DUUIUserController::fetchUser);
             post("", DUUIUserController::insertOne);
             put("/:id", DUUIUserController::updateOne);
@@ -156,10 +98,10 @@ public class Main {
             });
         });
 
-
         /* Components */
         path("/components", () -> {
             before("/*", (request, response) -> {
+                DUUIHTTPMetrics.incrementComponentsRequests();
                 boolean isAuthorized = DUUIRequestHelper.isAuthorized(request);
                 if (!isAuthorized) {
                     halt(401, "Unauthorized");
@@ -175,6 +117,7 @@ public class Main {
         /* Pipelines */
         path("/pipelines", () -> {
             before("/*", (request, response) -> {
+                DUUIHTTPMetrics.incrementPipelinesRequests();
                 boolean isAuthorized = DUUIRequestHelper.isAuthorized(request);
                 if (!isAuthorized) {
                     halt(401, "Unauthorized");
@@ -189,10 +132,10 @@ public class Main {
             delete("/:id", DUUIPipelineRequestHandler::deleteOne);
         });
 
-
         /* Processes */
         path("/processes", () -> {
             before("/*", (request, response) -> {
+                DUUIHTTPMetrics.incrementProcessesRequests();
                 boolean isAuthorized = DUUIRequestHelper.isAuthorized(request);
                 if (!isAuthorized) {
                     halt(401, "Unauthorized");
@@ -200,37 +143,24 @@ public class Main {
             });
             get("/:id", DUUIProcessRequestHandler::findOne);
             get("", DUUIProcessRequestHandler::findMany);
-            post("", DUUIProcessController::start);
-            put("/:id", DUUIProcessController::stop);
-            post("/file", DUUIProcessController::uploadFile);
-            delete("/:id", DUUIProcessController::deleteOne);
-            get("/:id/events", DUUIProcessController::findEvents);
-            get("/:id/documents", DUUIProcessController::findDocuments);
+            post("", DUUIProcessRequestHandler::start);
+            put("/:id", DUUIProcessRequestHandler::stop);
+
+            post("/files", DUUIProcessRequestHandler::uploadFile);
+            delete("/:id", DUUIProcessRequestHandler::deleteOne);
+            get("/:id/events", DUUIProcessRequestHandler::findEvents);
+            get("/:id/documents", DUUIProcessRequestHandler::findDocuments);
         });
 
-        get(
-            "/metrics",
-            (request, response) -> {
+        /* Metrics */
+        get("/metrics", (request, response) -> {
                 response.type("text/plain");
-
-                return metrics
-                    .entrySet()
-                    .stream()
-                    .map(entry -> entry.getKey() + " " + entry.getValue())
-                    .collect(Collectors.joining("\n"));
+                return DUUIMetricsManager.export();
             }
         );
 
-        ScheduledFuture<?> service = Executors
-            .newScheduledThreadPool(1)
-            .scheduleAtFixedRate(
-                Main::updateSystemMetrics,
-                0,
-                5,
-                TimeUnit.SECONDS
-            );
+        get("/files", DUUIProcessRequestHandler::downloadFile);
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> service.cancel(true)));
         Runtime.getRuntime().addShutdownHook(
             new Thread(
                 () -> {
@@ -239,11 +169,23 @@ public class Main {
                         .keySet()
                         .forEach(DUUIPipelineController::shutdownPipeline);
 
+                    DUUIProcessController
+                        .getActiveProcesses()
+                        .forEach(IDUUIProcessHandler::cancel);
+
                     DUUIMongoDBStorage.Pipelines().updateMany(
                         Filters.exists("status", true),
                         Updates.set("status", DUUIStatus.INACTIVE)
                     );
                 }
             ));
+    }
+
+    private static void loadConfig() {
+        try (InputStream input = Main.class.getClassLoader().getResourceAsStream("config.properties")) {
+            config.load(input);
+        } catch (IOException exception) {
+            System.out.println(exception.getMessage());
+        }
     }
 }

@@ -1,11 +1,10 @@
 package api.controllers.users;
 
-import api.routes.DUUIRequestHelper;
+import api.Main;
 import api.storage.DUUIMongoDBStorage;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Updates;
-import io.github.cdimascio.dotenv.Dotenv;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
@@ -14,9 +13,7 @@ import spark.Response;
 
 import java.util.*;
 
-import static api.requests.validation.UserValidator.*;
-import static api.requests.validation.Validator.missingField;
-import static api.routes.DUUIRequestHelper.isNullOrEmpty;
+import static api.routes.DUUIRequestHelper.*;
 import static api.storage.DUUIMongoDBStorage.convertObjectIdToString;
 
 
@@ -227,11 +224,12 @@ public class DUUIUserController {
 
         Document user = getUserByResetToken(token);
         if (user.isEmpty())
-            return userNotFound(response);
+            return notFound(response);
 
         long expiresAt = user.getLong("reset_token_expiration");
         if (expiresAt > System.currentTimeMillis())
-            return expired(response);
+            return badRequest(response,
+                "You password reset duration has expired. Please request another reset.");
 
         DUUIMongoDBStorage
             .getClient()
@@ -265,7 +263,7 @@ public class DUUIUserController {
             .first();
 
         if (isNullOrEmpty(credentials)) {
-            return userNotFound(response);
+            return notFound(response);
         }
 
         convertObjectIdToString(credentials);
@@ -275,8 +273,7 @@ public class DUUIUserController {
     }
 
     private static boolean invalidRequestOrigin(String key) {
-        Dotenv dotenv = Dotenv.load();
-        String SERVER_API_KEY = dotenv.get("SERVER_API_KEY");
+        String SERVER_API_KEY = Main.config.getProperty("API_KEY");
         return SERVER_API_KEY == null || !SERVER_API_KEY.equals(key);
     }
 
@@ -333,7 +330,7 @@ public class DUUIUserController {
         Document user = authenticate(authorization);
 
         if (isNullOrEmpty(user))
-            return userNotFound(response);
+            return notFound(response);
 
         convertObjectIdToString(user);
 
@@ -352,7 +349,7 @@ public class DUUIUserController {
         String id = request.params(":id");
         Document user = getUserProperties(id);
         if (isNullOrEmpty(user))
-            return DUUIRequestHelper.badRequest(
+            return badRequest(
                 response,
                 "User not fetchable. Are you logged in or have you provided an API key?");
 

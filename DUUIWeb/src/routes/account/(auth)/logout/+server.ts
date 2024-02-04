@@ -1,4 +1,4 @@
-export async function PUT({ request, cookies, locals }) {
+export async function PUT({ cookies }) {
 	cookies.set('session', '', {
 		path: '/',
 		httpOnly: true,

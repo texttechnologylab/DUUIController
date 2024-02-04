@@ -1,5 +1,4 @@
-import { SERVER_API_KEY } from '$env/static/private'
-import { API_URL } from '$lib/config'
+import { API_URL, API_KEY } from '$env/static/private'
 import type { Handle, RequestEvent } from '@sveltejs/kit'
 
 const fetchUser = async (
@@ -11,7 +10,7 @@ const fetchUser = async (
 		mode: 'cors',
 		headers: {
 			Authorization: session,
-			key: SERVER_API_KEY
+			key: API_KEY
 		}
 	})
 

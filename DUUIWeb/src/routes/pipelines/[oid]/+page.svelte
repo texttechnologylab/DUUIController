@@ -11,6 +11,7 @@
 		faPause,
 		faPlay,
 		faPlus,
+		faRocket,
 		faRotate,
 		faTrash
 	} from '@fortawesome/free-solid-svg-icons'
@@ -28,7 +29,7 @@
 
 	import { page } from '$app/stores'
 	import { blankComponent, type DUUIComponent } from '$lib/duui/component'
-	import { Status, statusNames } from '$lib/duui/monitor'
+	import { PROCESS_STATUS_NAMES, Status } from '$lib/duui/monitor'
 	import { pipelineToExportableJson } from '$lib/duui/pipeline'
 	import type { DUUIProcess } from '$lib/duui/process'
 	import { datetimeToString, equals } from '$lib/duui/utils/text'
@@ -50,6 +51,7 @@
 	import { getToastStore, Tab, TabGroup } from '@skeletonlabs/skeleton'
 	import type { PageServerData } from './$types'
 
+	import { IO_INPUT, IO_OUTPUT } from '$lib/duui/io'
 	import ButtonMenu from '$lib/svelte/components/ButtonMenu.svelte'
 	import { showConfirmationModal } from '$lib/svelte/utils/modal'
 	import { onMount } from 'svelte'
@@ -74,7 +76,8 @@
 
 	const tableHeader: string[] = [
 		'Started At',
-		'IO',
+		'Input',
+		'Output',
 		'# Documents',
 		'Progress',
 		'Status',
@@ -88,21 +91,25 @@
 
 	const sortMap: Map<number, string> = new Map([
 		[0, 'startTime'],
-		[1, 'input'],
-		[2, 'count'],
-		[3, 'progress'],
-		[4, 'status'],
-		[5, 'duration']
+		[1, 'input.provider'],
+		[2, 'output.provider'],
+		[3, 'count'],
+		[4, 'progress'],
+		[5, 'status'],
+		[6, 'duration']
 	])
 
 	let paginationSettings: PaginationSettings = {
 		page: 0,
-		limit: 20,
+		limit: 10,
 		total: count,
 		sizes: [5, 10, 20, 50]
 	}
 
-	let filter: string[] = [Status.Any]
+	let statusFilter: string[] = [Status.Any]
+	let inputFilter: string[] = ['Any']
+	let outputFilter: string[] = ['Any']
+
 	let sortedProcessses: DUUIProcess[] = processes
 	let tabSet: number = +($page.url.searchParams.get('tab') || 0)
 
@@ -253,15 +260,20 @@
 		URL.revokeObjectURL(url)
 	}
 
-	const updateTable = async () => {
-		const lastFilter: string | undefined = filter.at(-1)
+	const getFilterOrAny = (filters: string[]) => {
+		const last: string | undefined = filters.at(-1)
 
-		if (equals(lastFilter || '', Status.Any) || filter.length === 0) {
-			filter = [Status.Any]
+		if (equals(last || '', 'Any') || filters.length === 0) {
+			return ['Any']
 		} else {
-			filter = filter.filter((status) => !equals(status, Status.Any))
+			return filters.filter((item) => !equals(item, 'Any'))
 		}
-		console.log(filter)
+	}
+
+	const updateTable = async () => {
+		statusFilter = getFilterOrAny(statusFilter)
+		inputFilter = getFilterOrAny(inputFilter)
+		outputFilter = getFilterOrAny(outputFilter)
 
 		const response = await fetch(
 			`/api/processes/batch
@@ -270,7 +282,9 @@
 			&skip=${paginationSettings.page * paginationSettings.limit}
 			&sort=${sortMap.get(sort.by)}
 			&order=${sort.order}
-			&filter=${filter.join(';')}`,
+			&status=${statusFilter.join(';')}
+			&input=${inputFilter.join(';')}
+			&output=${outputFilter.join(';')}`,
 			{
 				method: 'GET'
 			}
@@ -395,11 +409,8 @@
 	</a>
 
 	{#if $currentPipelineStore.user_id !== null}
-		<a
-			class="button-mobile sm:!hidden"
-			href={`/processes?pipeline_id=${$currentPipelineStore.oid}`}
-		>
-			<Fa icon={faPlus} />
+		<a class="button-mobile" href={`/processes?pipeline_id=${$currentPipelineStore.oid}`}>
+			<Fa icon={faRocket} />
 			<span>Process</span>
 		</a>
 	{/if}
@@ -452,6 +463,12 @@
 				<Fa icon={faFileClipboard} />
 				<span class="text-xs md:text-base">Copy</span>
 			</button>
+			{#if $currentPipelineStore.user_id !== null && tabSet !== 2}
+				<a class="button-primary" href={`/processes?pipeline_id=${$currentPipelineStore.oid}`}>
+					<Fa icon={faRocket} />
+					<span>Process</span>
+				</a>
+			{/if}
 
 			<button
 				class="button-primary {$currentPipelineStore.status === Status.Setup ||
@@ -502,30 +519,39 @@
 					<span> Statistics </span>
 				</Tab>
 			</TabGroup>
-			{#if tabSet !== 2}
+			{#if tabSet === 1}
 				<div
 					class="hidden ml-auto sm:flex overflow-hidden justify-between section-wrapper !shadow-none !border-b-0 !rounded-b-none z-[5]"
 				>
-					{#if $currentPipelineStore.user_id !== null && tabSet !== 2}
-						<a
-							class="inline-flex gap-4 items-center px-4 bg-fancy"
-							href={`/processes?pipeline_id=${$currentPipelineStore.oid}`}
-						>
-							<Fa icon={faPlus} />
-							<span>New Process</span>
-						</a>
-					{/if}
-					{#if tabSet === 1}
-						<Select
-							on:change={updateTable}
-							style="z-50 !rounded-none hidden sm:flex"
-							border="border-l border-color"
-							label="Status"
-							name="Status"
-							bind:selected={filter}
-							options={statusNames}
-						/>
-					{/if}
+					<Select
+						on:change={updateTable}
+						style="z-50 !rounded-none hidden sm:flex px-8"
+						border="border-none"
+						label="Status"
+						name="Status"
+						bind:selected={statusFilter}
+						options={PROCESS_STATUS_NAMES}
+					/>
+
+					<Select
+						on:change={updateTable}
+						style="z-50 !rounded-none hidden sm:flex px-8"
+						border="border-none"
+						label="Input"
+						name="input"
+						bind:selected={inputFilter}
+						options={['Any'].concat(IO_INPUT)}
+					/>
+
+					<Select
+						on:change={updateTable}
+						style="z-50 !rounded-none hidden sm:flex px-8"
+						border="border-none"
+						label="Output"
+						name="output"
+						bind:selected={outputFilter}
+						options={['Any'].concat(IO_OUTPUT)}
+					/>
 				</div>
 			{/if}
 		</div>
@@ -585,17 +611,12 @@
 			<div class="section-wrapper !border-t-none gap-4 md:gap-y-8 !rounded-tr-none">
 				<div class="text-xs">
 					<div
-						class="header grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 bg-surface-100 dark:variant-soft-surface border-b-4 border-primary-500"
+						class="header grid grid-cols-3 lg:grid-cols-7 bg-surface-100 dark:variant-soft-surface border-b-4 border-primary-500"
 					>
 						{#each tableHeader as column, index}
 							<button
 								class="btn-sm md:text-base md:inline-flex px-4 bg-fancy
-						 	   dark:variant-soft-surface gap-4 justify-start items-center rounded-none p-3 text-left
-						 {[2].includes(index)
-									? 'hidden md:inline-flex'
-									: [1, 5].includes(index)
-									? 'hidden lg:inline-flex'
-									: ''}"
+						 	   dark:variant-soft-surface gap-4 justify-start items-center rounded-none p-3 text-left"
 								on:click={() => sortTable(index)}
 							>
 								<span>{column}</span>
@@ -612,20 +633,20 @@
 									href={`/processes/${process.oid}?limit=20&skip=0`}
 									class="rounded-none first:border-t-0 border-t-[1px]
 						 dark:border-t-surface-500 dark:hover:variant-soft-primary hover:variant-filled-primary
-						 grid-cols-3 grid md:grid-cols-4 lg:grid-cols-6 gap-8 p-3 px-4 text-left text-xs md:text-sm"
+						 grid-cols-3 grid md:grid-cols-4 lg:grid-cols-7 gap-8 p-3 px-4 text-left text-xs md:text-sm"
 								>
 									<p>{datetimeToString(new Date(process.started_at))}</p>
-									<p class="hidden lg:block">
-										{process.input.provider} / {process.output.provider}
+									<p>
+										{process.input.provider}
 									</p>
-									<p class="hidden md:block">{process.document_names.length}</p>
-									<div class="md:grid md:grid-cols-2 items-center justify-start md:gap-4">
-										<p>
-											{((process.progress / process.document_names.length) * 100 || 0).toFixed(2)}
-											%
-										</p>
-										<p>{process.progress} / {process.document_names.length}</p>
-									</div>
+									<p>
+										{process.output.provider}
+									</p>
+									<p>{process.document_names.length}</p>
+									<p>
+										{((process.progress / process.document_names.length) * 100 || 0).toFixed(2)}
+										%
+									</p>
 									<p class="flex justify-start items-center gap-2 md:gap-4">
 										<Fa
 											icon={getStatusIcon(process.status)}
@@ -634,7 +655,7 @@
 										/>
 										<span>{process.status}</span>
 									</p>
-									<p class="hidden lg:block">
+									<p>
 										{getDuration(process.started_at, process.finished_at)}
 									</p>
 								</a>

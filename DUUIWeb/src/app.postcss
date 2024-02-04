@@ -66,7 +66,7 @@ p {
 }
 
 .section-wrapper {
-	@apply rounded-md border-2 border-surface-200 dark:border-surface-500 shadow-lg overflow-hidden bg-surface-50-900-token;
+	@apply rounded-md border border-color shadow-lg overflow-hidden bg-surface-50-900-token;
 }
 
 .section-inner {
@@ -135,12 +135,12 @@ p {
 	@apply hover:text-primary-500 transition-colors duration-300;
 }
 
-.button {
-	@apply btn max-h-[64px] md:max-h-none rounded-md py-3 gap-2 justify-start items-center;
+.animate-text-error {
+	@apply hover:text-error-500 transition-colors duration-300;
 }
 
-.cta {
-	@apply button variant-filled-primary;
+.button {
+	@apply btn max-h-[64px] md:max-h-none rounded-md py-3 gap-2 justify-start items-center text-sm md:text-base;
 }
 
 .button-primary {
@@ -235,4 +235,20 @@ p {
 
 .apexcharts-title-text.apexcharts-theme-dark {
 	text: black;
+}
+
+.toast {
+	@apply border-2 border-l-8 border-color rounded-md shadow-lg bg-surface-100-800-token shadow-lg text-xl p-4;
+}
+
+.toast-error {
+	@apply toast !border-l-error-500;
+}
+
+.toast-success {
+	@apply toast !border-l-success-500;
+}
+
+.toast-info {
+	@apply toast !border-l-primary-500;
 }

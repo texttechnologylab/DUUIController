@@ -29,7 +29,7 @@
 <div class="self-end space-y-8">
 	<div class="pt-4 flex items-center justify-between self-end">
 		<!-- # of components -->
-		<p>{pipeline.components.length} Component{pipeline.components.length > 1 ? 's' : ''}</p>
+		<p>{pipeline.components.length} Component{pipeline.components.length !== 1 ? 's' : ''}</p>
 
 		<!-- Times used -->
 		<p class="hidden md:block">{pipeline.times_used}</p>
@@ -41,7 +41,7 @@
 			{/each}
 		</div>
 	</div>
-
+	
 	<!-- Tags -->
 	<div class="flex flex-wrap gap-2 self-end">
 		{#each pipeline.tags.sort((a, b) => (a < b ? -1 : 1)) as tag}

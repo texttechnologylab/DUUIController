@@ -1,44 +1,28 @@
 package api.metrics;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import api.metrics.providers.DUUIHTTPMetrics;
+import api.metrics.providers.DUUIProcessMetrics;
+import api.metrics.providers.DUUISystemMetrics;
+import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.exporter.common.TextFormat;
+
+import java.io.IOException;
+import java.io.StringWriter;
+
 
 public class DUUIMetricsManager {
 
-    private final List<IDUUIMetricsProvider> providers = new ArrayList<>();
-    private final Map<String, DUUIMetric> metrics = new HashMap<>();
-
-    // Prometheus Types:
-    // Counter -> Increasing Values
-    // Gauge   -> Values that change in both directions
-    // Summary -> Values that hold Duration or Size
-
-
-    public void registerMetricsProvider(IDUUIMetricsProvider provider) {
-        providers.add(provider);
+    public static void init() {
+        DUUIHTTPMetrics.register();
+        DUUIProcessMetrics.register();
+        DUUISystemMetrics.register();
     }
 
-    public void updateMetrics() {
-        metrics.clear();
-//        for (IDUUIMetricsProvider provider : providers) {
-//            metrics = Stream.concat(metrics.entrySet(), provider.getMetrics().entrySet()).collect(
-//                Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)
-//            ));
-//        }
-    }
+    public static String export() throws IOException {
+        StringWriter writer = new StringWriter();
+        CollectorRegistry registry = CollectorRegistry.defaultRegistry;
 
-    public String getMetrics() {
-        updateMetrics();
-
-//            .entrySet()
-//            .stream()
-//            .map(entry -> entry.getKey() + " " + entry.getValue())
-//            .collect(Collectors.joining("\n"));
-
-        return "";
+        TextFormat.write004(writer, registry.metricFamilySamples());
+        return writer.toString();
     }
 }

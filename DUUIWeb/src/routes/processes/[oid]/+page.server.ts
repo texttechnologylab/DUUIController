@@ -1,4 +1,4 @@
-import { API_URL } from '$lib/config'
+import { API_URL } from '$env/static/private'
 import type { DUUIDocument } from '$lib/duui/io'
 import type { DUUIPipeline } from '$lib/duui/pipeline'
 import type { DUUIProcess } from '$lib/duui/process'
@@ -28,7 +28,6 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 
 	const loadDocuments = async (): Promise<{
 		documents: DUUIDocument[]
-		pipelineProgress: { [key: number]: number }
 		count: number
 	}> => {
 		const keys: string[] = ['name', 'progress', 'status', 'size', 'duration']
@@ -41,16 +40,16 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 		}
 
 		let order: number = url.searchParams.get('order') === '1' ? 1 : -1
-		let text: string = url.searchParams.get('text') || ''
-		let filter: string = url.searchParams.get('filter') || 'Any'
+		let text: string = url.searchParams.get('search') || ''
+		let filter: string = url.searchParams.get('status') || 'Any'
 		const response = await fetch(
 			`${API_URL}/processes/${params.oid}/documents
 			?limit=${limit}
 			&skip=${skip}
 			&sort=${by}
 			&order=${order}
-			&text=${text}
-			&filter=${filter}`,
+			&search=${text}
+			&status=${filter}`,
 			{
 				method: 'GET',
 				mode: 'cors',
@@ -61,7 +60,6 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 		)
 
 		const documentQuery = await response.json()
-
 		return documentQuery
 	}
 

@@ -30,9 +30,9 @@
 		}
 	}
 
-	onMount(() => {
-		scrollIntoView('top')
-	})
+	// onMount(() => {
+	// 	scrollIntoView('top')
+	// })
 </script>
 
 <svelte:head>
@@ -54,13 +54,13 @@
 					</p>
 				</div>
 
-				<div class="grid grid-cols-2 gap-4 md:text-lg">
+				<div class="grid md:grid-cols-2 gap-4">
 					{#if $userSession === undefined}
-						<a href="/account/register" class="cta button-modal">
+						<a href="/account/register" class="button-modal button-primary">
 							<span> Get Started </span>
 						</a>
 					{:else}
-						<a href="/pipelines" class="cta button-modal">
+						<a href="/pipelines" class="button-modal button-primary">
 							<span> Get back to it </span>
 						</a>
 					{/if}
@@ -186,6 +186,7 @@
 				</section>
 			</div>
 		</div>
+
 	</div>
 </main>
 

@@ -1,5 +1,10 @@
-import { DROPBOX_CLIENT_ID, DROPBOX_CLIENT_SECRET, SERVER_API_KEY } from '$env/static/private'
-import { API_URL } from '$lib/config'
+import {
+	API_URL,
+	API_KEY,
+	DROPBOX_CLIENT_ID,
+	DROPBOX_CLIENT_SECRET,
+	DROPBOX_REDIRECT
+} from '$env/static/private'
 import { redirect } from '@sveltejs/kit'
 import { DropboxAuth, type DropboxResponse } from 'dropbox'
 import type { PageServerLoad } from './$types'
@@ -9,7 +14,7 @@ const dbxAuth = new DropboxAuth({
 	clientSecret: DROPBOX_CLIENT_SECRET
 })
 
-const redirectURI = `http://localhost:5173/account/dropbox`
+const redirectURI = DROPBOX_REDIRECT
 
 type OAuthResult = {
 	access_token: string
@@ -31,7 +36,7 @@ const connect = async (code: string, user: User) => {
 			'connections.dropbox.refresh_token': refresh_token
 		}),
 		headers: {
-			Authorization: SERVER_API_KEY
+			Authorization: API_KEY
 		}
 	})
 
