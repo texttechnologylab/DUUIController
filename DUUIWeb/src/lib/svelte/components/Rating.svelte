@@ -1,6 +1,7 @@
 <script lang="ts">
 	import TextInput from './TextInput.svelte'
 
+	export let index: number
 	export let value: number = 1
 	export let max: number = 7
 	export let labelLeft: string = 'Strongly Disagree'
@@ -35,7 +36,7 @@
 			<p>{labelRight}</p>
 		{/if}
 	</div>
-	{#if value === 1}
+	{#if value === 1 && index % 2 === 0 || value === 7 && index % 2 === 1}
 		<TextInput placeholder="Why did you chose this rating?" name={name + '-why'} />
 	{/if}
 </div>

@@ -44,6 +44,6 @@
 			{/if}
 		</div>
 	</button>
-	<input type="checkbox" {name} bind:checked class="sr-only" />
+	<input tabindex="-1" type="checkbox" {name} bind:checked class="sr-only" />
 	<span class="{column ? 'form-label' : ''} cursor-pointer">{label}</span>
 </label>

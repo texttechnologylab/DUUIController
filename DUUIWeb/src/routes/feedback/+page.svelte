@@ -43,17 +43,20 @@
 		class="grid md: grid-cols-2 gap-8 items-center justify-center mx-auto"
 	>
 		<Rating
+			index={0}
 			bind:value={requirements}
 			name="requirements"
 			question="The website's capabilities met my requirements."
 		/>
 		<Rating
+			index={1}
 			bind:value={frustration}
 			name="frustrating"
 			question="Using the website is a frustrating experience."
 		/>
-		<Rating bind:value={ease} name="ease" question="The website is easy to use." />
+		<Rating index={2} bind:value={ease} name="ease" question="The website is easy to use." />
 		<Rating
+			index={3}
 			bind:value={correction}
 			name="correction"
 			question="I have to spend too much time correcting things when using the website."

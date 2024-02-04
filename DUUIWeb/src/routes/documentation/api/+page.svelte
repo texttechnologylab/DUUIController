@@ -51,6 +51,7 @@
 			<div class="space-y-4">
 				<p>
 					Documentation for DUUI using Java can be found on <a
+						class="anchor"
 						href="https://github.com/texttechnologylab/DockerUnifiedUIMAInterface">GitHub</a
 					>.
 				</p>

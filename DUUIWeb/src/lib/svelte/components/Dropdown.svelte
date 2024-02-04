@@ -12,7 +12,7 @@
 	export let value: string | number
 
 	export let icon: IconDefinition = faChevronDown
-	export let placement: Placement = 'bottom-start'
+	export let placement: Placement = 'bottom-end'
 
 	export let offset: number = 8 
 

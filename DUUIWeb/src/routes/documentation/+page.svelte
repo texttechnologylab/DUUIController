@@ -34,15 +34,21 @@
 		<!-- Introduction -->
 		<div class="space-y-4">
 			<h2 class="h2" id="introduction">Introduction</h2>
-			<p>
-				Automatic analysis of large text corpora is a complex task. This complexity particularly
-				concerns the question of time efficiency. Furthermore, efficient, flexible, and extensible
-				textanalysis requires the continuous integration of every new text analysis tools. Since
-				there are currently, in the area of NLP and especially in the application context of UIMA,
-				only very few to no adequate frameworks for these purposes, which are not simultaneously
-				outdated or can no longer be used for security reasons, this work will present a new
-				approach to fill this gap.
-			</p>
+			<div class="space-y-8">
+				<div class="grid xl:grid-cols-2 gap-4">
+					<div class="space-y-8">
+						<p>
+							Automatic analysis of large text corpora is a complex task. This complexity
+							particularly concerns the question of time efficiency. Furthermore, efficient,
+							flexible, and extensible textanalysis requires the continuous integration of every new
+							text analysis tools. Since there are currently, in the area of NLP and especially in
+							the application context of UIMA, only very few to no adequate frameworks for these
+							purposes, which are not simultaneously outdated or can no longer be used for security
+							reasons, this work will present a new approach to fill this gap.
+						</p>
+					</div>
+				</div>
+			</div>
 		</div>
 
 		<hr class="hr !w-full" />
@@ -214,64 +220,95 @@
 		<!-- Processes -->
 		<div class="space-y-4">
 			<h2 class="h2" id="process">Process</h2>
-			<div class="space-y-4">
-				<p>
-					A process manages data and pipeline execution. Starting a process is possible on a
-					pipeline page from the top right.
-				</p>
-				<p>
-					On the process creation screen you are asked to select an input, output and optionally
-					settings the influence the process' behavior. There are currently for input options that
-					each have different settings.
-				</p>
-				<div class="space-y-2">
-					<div>
-						<h4 class="h4">Text</h4>
-						<p>No special settings are necessary here as the text is directly available to DUUI.</p>
-					</div>
-					<div>
-						<h4 class="h4">File</h4>
+			<div class="space-y-16">
+				<div class="grid xl:grid-cols-2 gap-4">
+					<div class="space-y-4">
 						<p>
-							Asks you to upload one or more files to DUUI, that are then processed. A file
-							extension (.txt, .xmi or .gz) must be selected.
+							A process manages the flow of data and pipeline execution. Starting a process is
+							possible on a pipeline page. On the process creation screen you are asked to select an
+							input, output and optionally settings that influence the process behavior.
 						</p>
-					</div>
-					<div>
-						<h4 class="h4">Dropbox</h4>
-						<p>
-							Afterwards, loading files from Dropbox requires a file extension (.txt, .xmi or .gz)
-							and the path to a folder.
-						</p>
-					</div>
-					<div>
-						<h4 class="h4">Min.io</h4>
-						<p>
-							Loading files from Min.io is similar to Dropbox. Instead of a path to a folder, you
-							must specify the location to load from as 'bucket/path/to/folder'.
-						</p>
+						<div class="space-y-4">
+							<h3 class="h3">Input and Output</h3>
+							<p>
+								Any process must be provided with an input source to be started. Each requires
+								different properties to be set. The available input sources are:
+							</p>
+							<ul class="pl-8 space-y-4">
+								<li>
+									<h4 class="h4">Text</h4>
+									<p>
+										For simple and quick analysis you can choose to process plain text. The text to
+										be analyzed can be entered in a text area.
+									</p>
+								</li>
+								<li>
+									<h4 class="h4">File</h4>
+									<p>
+										Selecting file as the input source allows for the upload of one or multiple
+										files.
+									</p>
+								</li>
+								<li>
+									<h4 class="h4">Cloud</h4>
+									<p>
+										There are currently two cloud storage providers available to use: Dropbox and
+										Min.io (s3). More will be added in the future. To use your cloud storage
+										provider of choice, a connection must be established on your <a
+											class="anchor"
+											href="/account">Account</a
+										> page.
+									</p>
+								</li>
+							</ul>
+
+							<hr class="hr" />
+
+							<p class="blockquote border-primary-500">
+								With the exception of text, all input sources require a file extension to be
+								selected.
+							</p>
+						</div>
+						<div class="space-y-4">
+							<h3 class="h3">Settings</h3>
+							<p>
+								Settings can be changed for both the input and output. Their main purpose is to
+								filter the files that are processed. This can be done by setting a minimum file size
+								or ignoring files that may be at the output location.
+							</p>
+							<p>
+								Process related settings include the option to use multiple workers for parallel
+								processing or ignoring errors that occur by skipping to next docment instead of
+								failing the entire pipeline.
+							</p>
+							<p class="blockquote border-primary-500">
+								Note that the amount of workers or threads that can be used is limited by the
+								system!
+							</p>
+						</div>
 					</div>
 				</div>
-				<p>
-					To use Dropbox and Min.io you first have to connect your Dropbox account with DUUI on your <a
-						class="anchor"
-						href="/account">Account</a
-					> page. Both Dropbox and Min.io allow for recursive search, a minimum file size and sorting
-					in ascending order.
-				</p>
 			</div>
 		</div>
 
 		<hr class="hr !w-full" />
 
 		<!-- Documents -->
-		<div class="space-y-4 text-justify">
+		<div class="space-y-4">
 			<h2 class="h2" id="document">Document</h2>
-			<div class="space-y-4">
-				<p>
-					Lorem ipsum dolor sit amet consectetur adipisicing elit. Ducimus quidem perspiciatis
-					debitis, animi amet minima alias architecto molestiae saepe sit veritatis maiores dolorum?
-					Repudiandae, architecto ea! Fugit natus praesentium suscipit.
-				</p>
+			<div class="space-y-16">
+				<div class="grid xl:grid-cols-2 gap-4">
+					<div class="space-y-4">
+						<p>
+							The document is the smallest unit in DUUI and holds the data to be processed.
+							Additionally documents track metrics about performance, integrity and performed
+							annotations. Documents are presented in a table that shows basic information about
+							their current state. Clicking on a row opens a more detailed view that includes the
+							duration of different stages in the process, annotations that have been made and a
+							treemap of said annotations.
+						</p>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>

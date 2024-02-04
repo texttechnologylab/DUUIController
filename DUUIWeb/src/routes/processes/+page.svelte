@@ -4,9 +4,9 @@
 	import {
 		IO,
 		InputFileExtensions,
-		InputSources,
+		IO_INPUT,
 		OutputFileExtensions,
-		OutputTargets,
+		IO_OUTPUT,
 		areSettingsValid,
 		isValidIO,
 		isValidInput,
@@ -191,7 +191,7 @@
 				<div class="grid gap-4">
 					<div class="flex items-center gap-4">
 						<div class="flex-1">
-							<Dropdown label="Source" options={InputSources} bind:value={input.provider} />
+							<Dropdown label="Source" options={IO_INPUT} bind:value={input.provider} />
 						</div>
 						{#if !equals(input.provider, IO.Text)}
 							<Dropdown
@@ -246,7 +246,7 @@
 					<h3 class="h3">Settings</h3>
 					<div class="space-y-4">
 						{#if !equals(input.provider, IO.Text)}
-							<div class="grid grid-cols-2 gap-4 items-start md:items-center">
+							<div class="grid grid-cols-2 gap-4 items-start">
 								<div>
 									<Number
 										label="Minimum size"
@@ -301,7 +301,7 @@
 				<div class="space-y-4">
 					<div class="flex items-center gap-4">
 						<div class="flex-1">
-							<Dropdown label="Target" options={OutputTargets} bind:value={output.provider} />
+							<Dropdown label="Target" options={IO_OUTPUT} bind:value={output.provider} />
 						</div>
 						{#if equals(output.provider, IO.Dropbox) || equals(output.provider, IO.Minio)}
 							<Dropdown
