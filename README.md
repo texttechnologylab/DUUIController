@@ -1,14 +1,18 @@
 # DUUIController
 
-For running, create a config.properties file in DUUIRestService/src/main/resources and provide values for the
-following four variables:
+For running, create a config.properties file that contains values for the following variables:
 
 ```
-MONGO_DB_URL  =
-DBX_APP_KEY   =
-DBX_APP_SECRET=
-API_KEY       =
+MONGO_DB_CONNECTION_STRING=
+DBX_APP_KEY               =
+DBX_APP_SECRET            =
+DBX_REDIRECT_URL          =
+PORT                      =
+HOST                      =
+FILE_UPLOAD_DIRECTORY     =
 ```
+
+The path to the config file should be passed as a command line argument.
 
 ### 1. Metrics
 

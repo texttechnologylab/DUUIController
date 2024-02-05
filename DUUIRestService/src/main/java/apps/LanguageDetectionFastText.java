@@ -51,9 +51,10 @@ public class LanguageDetectionFastText {
         }
     }
 
-    private static final String modelPath = "D:\\Uni Informatik B.sc\\Bachelor\\DUUIController\\DUUIRestService\\src\\main\\resources\\lid.176.ftz";
+    private static String modelPath;
 
     public static void main(String[] args) throws Exception {
+        modelPath = args[0];
         int PORT = 8000;
         HttpServer server = HttpServer.create(
             new InetSocketAddress("192.168.2.122", PORT),

@@ -48,14 +48,13 @@ public class Main {
         } catch (ArrayIndexOutOfBoundsException | IOException exception) {
             System.err.println("Create a config.properties file and pass the path to this file as the first application argument.");
             System.err.println("The config file should contain: ");
-            System.err.println("\t> DBX_APP_KEY");
-            System.err.println("\t> DBX_APP_SECRET");
-            System.err.println("\t> DBX_REDIRECT_URL");
-            System.err.println("\t> MONGO_DB_CONNECTION_STRING");
-            System.err.println("\t> ALLOWED_ORIGINS (separated by semicolons)");
-            System.err.println("\t> PORT");
-            System.err.println("\t> HOST");
-            System.err.println("\t> FILE_UPLOAD_DIRECTORY");
+            System.err.println("\t> DBX_APP_KEY - Found in the App Console at https://www.dropbox.com/developers/apps");
+            System.err.println("\t> DBX_APP_SECRET - Also found in the App Console at https://www.dropbox.com/developers/apps");
+            System.err.println("\t> DBX_REDIRECT_URL - This url has to be configured in the App Console.");
+            System.err.println("\t> MONGO_DB_CONNECTION_STRING - The connection string for the MongoDB deployment.");
+            System.err.println("\t> PORT - API Port, default is 2605.");
+            System.err.println("\t> HOST - API Host, default is localhost.");
+            System.err.println("\t> FILE_UPLOAD_DIRECTORY - The directory that is used as the temporary upload destination.");
             System.exit(0);
         }
 
@@ -68,7 +67,7 @@ public class Main {
             port(2605);
         }
 
-        ipAddress(config.getProperty("HOST", "0.0.0.0"));
+        ipAddress(config.getProperty("HOST", "localhost"));
 
         File fileUploadDirectory = Paths.get(config.getProperty(
             "FILE_UPLOAD_DIRECTORY",

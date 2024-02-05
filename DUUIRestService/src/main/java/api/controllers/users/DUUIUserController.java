@@ -272,12 +272,13 @@ public class DUUIUserController {
     }
 
     private static boolean invalidRequestOrigin(String origin) {
-        Set<String> ALLOWED_ORIGINS = Arrays
-            .stream(Main.config.getProperty("ALLOWED_ORIGINS").split(";"))
-            .collect(Collectors.toSet());
-
-        if (ALLOWED_ORIGINS.isEmpty()) return false;
-        return !ALLOWED_ORIGINS.contains(origin);
+        return false;
+//        Set<String> ALLOWED_ORIGINS = Arrays
+//            .stream(Main.config.getProperty("ALLOWED_ORIGINS").split(";"))
+//            .collect(Collectors.toSet());
+//
+//        if (ALLOWED_ORIGINS.isEmpty()) return false;
+//        return !ALLOWED_ORIGINS.contains(origin);
     }
 
     public static String updateOne(Request request, Response response) {
