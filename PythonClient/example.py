@@ -1,17 +1,17 @@
 import json
-
 from dotenv import dotenv_values
-from duui.client import DUUIClient
+
+from client import DUUIClient
 
 
 def main() -> None:
     config = dotenv_values(".env")
     API_KEY = config["API_KEY"]
-
     client = DUUIClient(API_KEY)
-    pipeline = client.fetch_pipeline("653f8f749f717510ec2e9767")
-
-    print(pipeline)
+    response = client.pipelines().many(
+        3, sort="name", order=-1, templates=False, components=False
+    )
+    print(json.dumps(response.json(), indent=2, ensure_ascii=False))
 
 
 if __name__ == "__main__":
