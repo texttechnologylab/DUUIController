@@ -16,6 +16,7 @@
 	} from '@fortawesome/free-solid-svg-icons'
 	import { clipboard, getModalStore, getToastStore } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
+	import Password from '$lib/svelte/components/Password.svelte'
 
 	export let data
 	const { user, dropbBoxURL } = data
@@ -309,8 +310,8 @@
 					<p>Enter your AWS credentials below to establish a connection.</p>
 				{/if}
 				<Text label="Endpoint" style="grow" name="endpoint" bind:value={minioEndpoint} />
-				<Text label="Username (Access Key)" name="accessKey" bind:value={minioAccessKey} />
-				<Text label="Password (Secret Key)" name="secretKey" bind:value={minioSecretKey} />
+				<Password label="Username (Access Key)" name="accessKey" bind:value={minioAccessKey} />
+				<Password label="Password (Secret Key)" name="secretKey" bind:value={minioSecretKey} />
 			</div>
 			<div class="grid md:flex justify-between gap-4">
 				<button
