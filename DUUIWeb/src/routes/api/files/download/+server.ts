@@ -1,4 +1,4 @@
-import { API_URL } from '$env/static/private'
+import { API_URL } from '$lib/config'
 
 export async function GET({ url, cookies }) {
 	const provider = url.searchParams.get('provider')

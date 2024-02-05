@@ -101,7 +101,7 @@
 		}
 		let interval: NodeJS.Timeout
 		if (!process.is_finished) {
-			interval = setInterval(updateProcess, 1000)
+			interval = setInterval(updateProcess, 5000)
 		}
 		updateProcess()
 		return () => clearInterval(interval)

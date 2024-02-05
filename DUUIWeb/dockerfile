@@ -17,9 +17,8 @@ RUN cd /app && \
     npm install --omit=dev
 
 WORKDIR /app
-EXPOSE 3000
 
-ENV ORIGIN=http://localhost:8761
-
+EXPOSE 5173
+ENV ORIGIN=http://localhost:5173
 
 CMD [ "node", "build/index.js" ]

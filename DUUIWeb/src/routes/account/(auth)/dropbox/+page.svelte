@@ -1,5 +1,13 @@
 <script lang="ts">
+	import { goto } from '$app/navigation'
 	import { ProgressBar } from '@skeletonlabs/skeleton'
+	import { onMount } from 'svelte'
+	export let data
+	const { success } = data
+
+	onMount(() => {
+		goto('/account?success=' + success)
+	})
 </script>
 
 <div class="space-y-8 text-center">

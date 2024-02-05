@@ -1,4 +1,4 @@
-import { API_URL } from '$env/static/private'
+import { API_URL } from '$lib/config'
 import { json, type RequestHandler } from '@sveltejs/kit'
 
 export const GET: RequestHandler = async (event) => {

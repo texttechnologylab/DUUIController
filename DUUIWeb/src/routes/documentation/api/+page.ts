@@ -11,7 +11,7 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 				{ code: 404, message: 'Not found' }
 			],
 			parameters: [
-				{ name: 'id', description: "The pipeline's id.", type: 'Query' },
+				{ name: 'id', description: 'The pipeline\'s id.', type: 'Query' },
 				{
 					name: 'statistics',
 					description: 'Wether to include statistic for the pipeline. Default is false.',
@@ -92,7 +92,7 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 				{
 					name: 'components',
 					description:
-						"An array of components that must follow the structure as described in the section 'components'",
+						'An array of components that must follow the structure as described in the section \'components\'',
 					type: 'Body'
 				}
 			],
@@ -123,7 +123,7 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 				{ code: 200, message: 'Instantiated' },
 				{ code: 500, message: 'Not instantiated' }
 			],
-			parameters: [{ name: 'id', description: "The pipeline's id.", type: 'Query' }],
+			parameters: [{ name: 'id', description: 'The pipeline\'s id.', type: 'Query' }],
 			exampleRequest: `const response = await fetch('/pipelines/65b3db5c8c997c4ce3c4efb3/start', {
 	method: 'POST',
 	headers: {
@@ -140,7 +140,7 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 				{ code: 404, message: 'Not found' },
 				{ code: 500, message: 'Not shut down' }
 			],
-			parameters: [{ name: 'id', description: "The pipeline's id.", type: 'Query' }],
+			parameters: [{ name: 'id', description: 'The pipeline\'s id.', type: 'Query' }],
 			exampleRequest: `const response = await fetch('/pipelines/65b3db5c8c997c4ce3c4efb3/stop', {
 	method: 'PUT',
 	headers: {
@@ -158,7 +158,7 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 				{ code: 400, message: 'Invalid field' },
 				{ code: 404, message: 'Not found' }
 			],
-			parameters: [{ name: 'id', description: "The pipeline's id.", type: 'Query' }],
+			parameters: [{ name: 'id', description: 'The pipeline\'s id.', type: 'Query' }],
 			exampleRequest: `const response = await fetch('/pipelines/65b3db5c8c997c4ce3c4efb3', {
 	method: 'PUT',
 	body: JSON.strinfigy({
@@ -178,7 +178,7 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 				{ code: 404, message: 'Not found' },
 				{ code: 500, message: 'Not deleted' }
 			],
-			parameters: [{ name: 'id', description: "The pipeline's id.", type: 'Query' }],
+			parameters: [{ name: 'id', description: 'The pipeline\'s id.', type: 'Query' }],
 			exampleRequest: `const response = await fetch('/pipelines/65b3db5c8c997c4ce3c4efb3', {
 	method: 'DELETE',
 	headers: {
@@ -196,7 +196,7 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 				{ code: 200, message: 'Component' },
 				{ code: 404, message: 'Not found' }
 			],
-			parameters: [{ name: 'id', description: "The pipeline's id.", type: 'Query' }],
+			parameters: [{ name: 'id', description: 'The pipeline\'s id.', type: 'Query' }],
 			exampleRequest: `const response = await fetch('/components/65b3db5c8c997c4ce3c4efb3', {
 	method: 'GET',
 	headers: {
@@ -282,8 +282,7 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 				},
 				{
 					name: 'parameters',
-					description:
-						'An object containing extra parameters for the component.',
+					description: 'An object containing extra parameters for the component.',
 					type: 'Body'
 				}
 			],
@@ -325,7 +324,7 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 				{ code: 400, message: 'Invalid field' },
 				{ code: 404, message: 'Not found' }
 			],
-			parameters: [{ name: 'id', description: "The component's id.", type: 'Query' }],
+			parameters: [{ name: 'id', description: 'The component\'s id.', type: 'Query' }],
 			exampleRequest: `const response = await fetch('/components/65b3db5c8c997c4ce3c4efb3', {
 	method: 'PUT',
 	body: JSON.strinfigy({
@@ -345,7 +344,7 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 				{ code: 404, message: 'Not found' },
 				{ code: 500, message: 'Not deleted' }
 			],
-			parameters: [{ name: 'id', description: "The component's id.", type: 'Query' }],
+			parameters: [{ name: 'id', description: 'The component\'s id.', type: 'Query' }],
 			exampleRequest: `const response = await fetch('/components/65b3db5c8c997c4ce3c4efb3', {
 	method: 'DELETE',
 	headers: {
@@ -354,7 +353,235 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 })`
 		}
 	],
-	processes: []
+	processes: [
+		{
+			method: 'GET' as APIMethod,
+			route: '/processes/id',
+			description: 'Retrieve a process by its id.',
+			returns: [
+				{ code: 200, message: 'Process' },
+				{ code: 404, message: 'Not found' }
+			],
+			parameters: [{ name: 'id', description: 'The process\' id.', type: 'Query' }],
+			exampleRequest: `const response = await fetch('/processes/65b3dba48c997c4ce3c4f09e', {
+	method: 'GET',
+	headers: {
+		Authorization: API KEY HERE
+	}
+})`
+		},
+		{
+			method: 'GET' as APIMethod,
+			route: '/processes',
+			description:
+				'Retrieve multiple processes. Requires pipeline_id as a query parameters. Accepts limit, skip, sort, order, status, input and output query parameters.',
+			returns: [
+				{ code: 200, message: 'Processes' },
+				{ code: 400, message: 'Missing parameter pipeline_id' }
+			],
+			parameters: [
+				{ name: 'limit', description: 'The maximum number of processes to return.', type: 'Query' },
+				{
+					name: 'skip',
+					description: 'The processes to skip before a limit is applied.',
+					type: 'Query'
+				},
+				{
+					name: 'sort',
+					description:
+						'The field to sort by. Can be input.provider, output.provider, started_at, duration, count, progress and status.',
+					type: 'Query'
+				},
+				{
+					name: 'order',
+					description: 'The order to sort by. 1 is ascending and -1 is descending.',
+					type: 'Query'
+				},
+				{
+					name: 'status',
+					description: 'A set of status names separated by \';\' to filter by.',
+					type: 'Query'
+				},
+				{
+					name: 'input',
+					description:
+						'A set of input providers separated by \';\' to filter by. Accepts (Dropbox, Minio, Text, File, None).',
+					type: 'Query'
+				},
+				{
+					name: 'output',
+					description:
+						'A set of output providers separated by \';\' to filter by. Accepts (Dropbox, Minio, None).',
+					type: 'Query'
+				}
+			],
+			exampleRequest: `const response = await fetch('/processes?pipeline_id=65b3db5c8c997c4ce3c4efb3&limit=10&sort=input.provider&order=-1status=Completed;Failed', {
+	method: 'GET',
+	headers: {
+		Authorization: API KEY HERE
+	}
+})`
+		},
+		{
+			method: 'GET' as APIMethod,
+			route: '/processes/id/documents',
+			description:
+				'Retrieve one or multiple documents belonging to a process. Accepts limit, skip, sort, order, status, and search parameters.',
+			returns: [
+				{ code: 200, message: 'Documents' },
+				{ code: 404, message: 'Not found' }
+			],
+			parameters: [
+				{ name: 'limit', description: 'The maximum number of documents to return.', type: 'Query' },
+				{
+					name: 'skip',
+					description: 'The documents to skip before a limit is applied.',
+					type: 'Query'
+				},
+				{
+					name: 'sort',
+					description: 'The field to sort by. Can be name, progress, status, size and duration.',
+					type: 'Query'
+				},
+				{
+					name: 'order',
+					description: 'The order to sort by. 1 is ascending and -1 is descending.',
+					type: 'Query'
+				},
+				{
+					name: 'status',
+					description: 'A set of status names separated by \';\' to filter by.',
+					type: 'Query'
+				},
+				{
+					name: 'search',
+					description:
+						'A string of text to filter by. The text is compared to the path of the document.',
+					type: 'Query'
+				}
+			],
+			exampleRequest: `const response = await fetch('/processes?status=Completed;Failed&search=example.txt&sort=size&limit=3', {
+	method: 'GET',
+	headers: {
+		Authorization: API KEY HERE
+	}
+})`
+		},
+		{
+			method: 'GET' as APIMethod,
+			route: '/processes/id/events',
+			description: 'Retrieve events for a processes given its id.',
+			returns: [
+				{ code: 200, message: 'Events' },
+				{ code: 404, message: 'Not found' }
+			],
+			parameters: [{ name: 'id', description: 'The processes\' id.', type: 'Query' }],
+			exampleRequest: `const response = await fetch('/pipelines/65b3dba48c997c4ce3c4f09e', {
+	method: 'GET',
+	headers: {
+		Authorization: API KEY HERE
+	}
+})`
+		},
+		{
+			method: 'POST' as APIMethod,
+			route: '/processes',
+			description: 'Create a new process with the settings provided in the body.',
+			returns: [
+				{ code: 200, message: 'Started' },
+				{ code: 400, message: 'IOException' },
+				{ code: 404, message: 'Pipeline not found' },
+				{ code: 429, message: 'Not enough resources' },
+				{ code: 500, message: 'Failed' }
+			],
+			parameters: [
+				{
+					name: 'pipeline_id',
+					description: 'The id of the pipeline to execute with this process. This is required.',
+					type: 'Body'
+				},
+				{
+					name: 'input',
+					description:
+						'Sets the source location of documents to process. Dropbox and Minio require a path and file_extension to be specified.',
+					type: 'Body'
+				},
+				{
+					name: 'output',
+					description:
+						'Sets the output location of documents. Dropbox and Minio require a path and file_extension to be specified.',
+					type: 'Body'
+				},
+				{
+					name: 'settings',
+					description: 'Process specific settings that influence its behavior.',
+					type: 'Body'
+				}
+			],
+			exampleRequest: `const response = await fetch('/processes', {
+	method: 'POST',
+	body: JSON.stringify({
+		pipeline_id: '65b3db5c8c997c4ce3c4efb3',
+		input: {
+			provider: 'Minio',
+			path: '/input-bucket',
+			file_extension: '.txt'
+		}, 
+		output: {
+			provider: 'Dropbox',
+			path: '/output-bucket/path/to/folder',
+			file_extension: '.xmi'
+		},
+		settings: {
+			minimum_size: 5000, // Bytes
+			recursive: true, // Find files recursively in the input bucket.
+			check_target: true, // Check the output location for existing files hat won't be processed. 
+			sort_by_size: false, // Sort files in ascending order.
+			overwrite: false, // Overwrite existing files on conflict.
+			ignore_errors: true, // Skips to the next document instead of failing the entire pipeline in case of error.
+			worker_count: 4 // The number of threads to use for processing. Limited by the server.
+		}
+	})
+	headers: {
+		Authorization: API KEY HERE
+	}
+})`
+		},
+		{
+			method: 'PUT' as APIMethod,
+			route: '/processes/id',
+			description: 'Stop a process and request a cancellation of an active pipeline.',
+			returns: [
+				{ code: 200, message: 'Shut down' },
+				{ code: 404, message: 'Not found' },
+				{ code: 500, message: 'Not shut down' }
+			],
+			parameters: [{ name: 'id', description: 'The process\' id.', type: 'Query' }],
+			exampleRequest: `const response = await fetch('/processes/65b3dba48c997c4ce3c4f09e', {
+	method: 'PUT',
+	headers: {
+		Authorization: API KEY HERE
+	}
+})`
+		},
+		{
+			method: 'DELETE' as APIMethod,
+			route: '/processes/id',
+			description: 'Delete a processes given its id.',
+			returns: [
+				{ code: 200, message: 'Deleted' },
+				{ code: 404, message: 'Not found' },
+				{ code: 500, message: 'Not deleted' }
+			],
+			parameters: [{ name: 'id', description: 'The processes\' id.', type: 'Query' }],
+			exampleRequest: `const response = await fetch('/pipelines/65b3dba48c997c4ce3c4f09e', {
+	method: 'DELETE',
+	headers: {
+		Authorization: API KEY HERE
+	}
+})`
+		}
+	]
 }
 
 export const load: PageLoad = async () => {

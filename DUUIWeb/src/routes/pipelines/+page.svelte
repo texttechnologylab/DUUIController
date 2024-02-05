@@ -18,8 +18,8 @@
 	import PipelineCard from '$lib/svelte/components/PipelineCard.svelte'
 	import Search from '$lib/svelte/components/Search.svelte'
 	import { popup, type PopupSettings } from '@skeletonlabs/skeleton'
-	import Fa from 'svelte-fa'
 	import { onMount } from 'svelte'
+	import Fa from 'svelte-fa'
 
 	export let data
 
@@ -69,11 +69,6 @@
 			pipelines = result.pipelines
 			count = result.count
 		}
-	}
-
-	const updateUser = async (data: object) => {
-		const response = await fetch('/api/users', { method: 'PUT', body: JSON.stringify(data) })
-		return response
 	}
 
 	const mobileFilter: PopupSettings = {
@@ -130,15 +125,15 @@
 		<div class="h-full flex items-center justify-center">
 			<div class="flex flex-col justify-center items-center">
 				<div class="section-wrapper p-8 space-y-8">
-					<h1 class="h2 font-bold">Your personal Pipeline collection</h1>
+					<h1 class="h2 font-bold">Create your first pipeline in the editor</h1>
 
 					<div>
 						<p>After you create a Pipeline, you will find it here.</p>
 					</div>
-					<div class="flex justify-end">
+					<div class="flex justify-center">
 						<a class="button-primary" href="/pipelines/editor">
-							New
-							<Fa icon={faArrowRight} />
+							<Fa icon={faPlus} />
+							<span>Create</span>
 						</a>
 					</div>
 

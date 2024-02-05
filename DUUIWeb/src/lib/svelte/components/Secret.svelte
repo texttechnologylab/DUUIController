@@ -35,8 +35,7 @@
 				class="pl-12 bg-transparent border-0 grow text-xs p-3 !py-4 input-wrapper"
 				type="text"
 				{name}
-				value={cipher}
-				readonly
+				bind:value
 			/>
 		{:else}
 			<input

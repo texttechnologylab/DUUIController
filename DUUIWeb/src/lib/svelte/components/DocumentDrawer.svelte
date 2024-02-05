@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { PUBLIC_DROPBOX_URL } from '$env/static/public'
+	import { DROPBOX_URL } from '$lib/config'
 	import { IO, type DUUIDocument, type DUUIDocumentProvider } from '$lib/duui/io'
 	import { Status } from '$lib/duui/monitor'
 	import type { DUUIPipeline } from '$lib/duui/pipeline'
@@ -43,7 +43,7 @@
 		downloading = true
 		const response = await fetch(
 			`/api/files/download?provider=${output.provider}&path=${URLOut.replace(
-				PUBLIC_DROPBOX_URL,
+				DROPBOX_URL,
 				''
 			)}`,
 			{
@@ -70,7 +70,7 @@
 
 	switch (input.provider) {
 		case 'Dropbox':
-			URLIn = PUBLIC_DROPBOX_URL + '/' + _document.name
+			URLIn = DROPBOX_URL + '/' + _document.name
 			break
 		case 'Minio':
 			URLIn = $userSession?.connections.minio.endpoint || ''
@@ -82,7 +82,7 @@
 	switch (output.provider) {
 		case 'Dropbox':
 			URLOut =
-				PUBLIC_DROPBOX_URL +
+				DROPBOX_URL +
 				output.path +
 				'/' +
 				_document.name.replace('.' + _document.name.split('.').at(-1), output.file_extension)
@@ -150,7 +150,7 @@
 			<Fa icon={getStatusIcon(_document.status)} size="lg" class="dimmed" />
 			{#if input.provider === IO.File}
 				<p class="text-sm md:text-base">
-					{_document.path.split(input.path.replace('\\', '/') + '/').at(-1)}
+					{_document.name}
 				</p>
 			{:else}
 				<p class="text-sm md:text-base">{_document.path}</p>

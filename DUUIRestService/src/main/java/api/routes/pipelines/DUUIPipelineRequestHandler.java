@@ -13,6 +13,7 @@ import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
 import spark.Request;
 import spark.Response;
 
+import java.net.UnknownHostException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
@@ -212,7 +213,7 @@ public class DUUIPipelineRequestHandler {
         return insert.toJson();
     }
 
-    public static String deleteOne(Request request, Response response) {
+    public static String deleteOne(Request request, Response response) throws UnknownHostException {
         String userID = DUUIRequestHelper.getUserId(request);
 
         Document user = DUUIRequestHelper.getUserProps(request, Set.of("role"));
@@ -244,6 +245,9 @@ public class DUUIPipelineRequestHandler {
 
         DUUIComponentController.deleteMany(Filters.eq("pipeline_id", pipelineId));
         DUUIProcessController.deleteMany(Filters.eq("pipeline_id", pipelineId));
+
+
+        DUUIPipelineController.getReusablePipelines().get(pipelineId).asService(false).shutdown();
 
         response.status(200);
         return "Deleted";

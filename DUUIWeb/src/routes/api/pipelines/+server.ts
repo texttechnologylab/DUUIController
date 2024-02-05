@@ -1,4 +1,4 @@
-import { API_URL } from '$env/static/private'
+import { API_URL } from '$lib/config'
 import { type RequestHandler } from '@sveltejs/kit'
 
 export const GET: RequestHandler = async ({ url, cookies }) => {
@@ -47,7 +47,6 @@ export async function PUT({ request, cookies }) {
 export async function POST({ request, cookies, url }) {
 	const pipeline = await request.json()
 	const isTemplate: boolean = (url.searchParams.get('template') || 'false') === 'true'
-	console.log(isTemplate)
 
 	const response = await fetch(`${API_URL}/pipelines?template=${isTemplate}`, {
 		method: 'POST',

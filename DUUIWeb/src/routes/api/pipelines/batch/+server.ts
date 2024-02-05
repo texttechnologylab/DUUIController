@@ -1,4 +1,4 @@
-import { API_URL } from '$env/static/private'
+import { API_URL } from '$lib/config'
 import type { DUUIPipeline } from '$lib/duui/pipeline'
 import { type RequestHandler, redirect, json } from '@sveltejs/kit'
 

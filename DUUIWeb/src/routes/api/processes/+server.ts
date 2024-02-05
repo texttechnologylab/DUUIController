@@ -1,4 +1,4 @@
-import { API_URL } from '$env/static/private'
+import { API_URL } from '$lib/config'
 
 export async function GET({ cookies, url }) {
 	const processId = url.searchParams.get('process_id') || ''

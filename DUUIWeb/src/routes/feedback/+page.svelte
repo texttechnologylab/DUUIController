@@ -6,38 +6,13 @@
 	let frustration = 4
 	let ease = 4
 	let correction = 4
-
-	let form: HTMLFormElement
+	
 	let message: string = ''
 </script>
-
-<!-- <div class="p-4 section-wrapper grid grid-cols-2 gap-8">
-		<div class="space-y-2">
-			<p class="h2">Future Work</p>
-			<ul class="space-y-4 list-decimal px-8">
-				<li>Kubernetes Driver</li>
-				<li>Ausweitung des Event / Status-Systems</li>
-				<li>OneDrive DataReader</li>
-				<li>E-Mail Benachrichtigungen</li>
-				<li>API Limitierung der Anfragen pro Zeitintervall</li>
-				<li>Vervollständigen der Dokumentation</li>
-				<li>Python Bindings für die API</li>
-			</ul>
-		</div>
-		<div class="space-y-2">
-			<p class="h2">TODO</p>
-			<ul class="space-y-4 list-decimal px-8">
-				<li>Evaluation</li>
-				<li>Dokumentation</li>
-				<li>Bachelor Arbeit schreiben</li>
-			</ul>
-		</div>
-	</div> -->
 
 <div class="p-8 space-y-8">
 	<h1 class="h1 text-center font-bold">Feedback</h1>
 	<form
-		bind:this={form}
 		action="?/send"
 		method="POST"
 		class="grid md: grid-cols-2 gap-8 items-center justify-center mx-auto"

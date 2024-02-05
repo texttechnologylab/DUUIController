@@ -1,4 +1,4 @@
-import { API_URL, API_KEY } from '$env/static/private'
+import { API_URL } from '$lib/config'
 import { error } from '@sveltejs/kit'
 
 export async function PUT({ request, locals }) {
@@ -10,10 +10,7 @@ export async function PUT({ request, locals }) {
 	const response = await fetch(`${API_URL}/users/${user.oid}`, {
 		method: 'PUT',
 		mode: 'cors',
-		body: JSON.stringify(await request.json()),
-		headers: {
-			Authorization: API_KEY
-		}
+		body: JSON.stringify(await request.json())
 	})
 
 	return response

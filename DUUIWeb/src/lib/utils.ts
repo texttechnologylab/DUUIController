@@ -1,3 +1,5 @@
+import { equals } from './duui/utils/text'
+
 /**
  * Displays a notification
  *
@@ -10,4 +12,22 @@ export const handleLoginRedirect = (
 	message: string = 'You must be logged in to access this ressource.'
 ) => {
 	return `/account/login?redirectTo=${url.pathname + url.search}&message=${message}`
+}
+
+/**
+ * A utility function that checks if a given generic like the word 'Any' is present in an array
+ * of filters. If the generic is present, returns an array that only contains the generic.
+ *
+ * @param filters An array of strings that represent valid filters (return true when applied).
+ * @param generic The string that represents always returns true when filtered.
+ * @returns the array if the generic value is not present or an array containing only the generic.
+ */
+export const getFilterOrGeneric = (filters: string[], generic: string = 'Any') => {
+	const last: string | undefined = filters.at(-1)
+
+	if (equals(last || '', generic) || filters.length === 0) {
+		return [generic]
+	} else {
+		return filters.filter((item) => !equals(item, generic))
+	}
 }

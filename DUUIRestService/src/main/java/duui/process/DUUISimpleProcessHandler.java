@@ -369,6 +369,8 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
             DUUIProcessController.updatePipelineStatus(getProcessID(), composer.getPipelineStatus());
             DUUIEventController.insertMany(getProcessID(), composer.getEvents());
             DUUIProcessController.insertAnnotations(getProcessID(), composer.getDocuments());
+
+            // TODO: Add a method to the DUUIComposer to remove the installed shutdown hook...
         }
 
         if (updater != null) {

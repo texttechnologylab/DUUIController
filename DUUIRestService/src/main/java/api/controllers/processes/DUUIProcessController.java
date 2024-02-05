@@ -223,6 +223,7 @@ public class DUUIProcessController {
         }
 
         String pipelineId = pipeline.getString("oid");
+        settings = mergeSettings(settings);
 
         Document process = new Document("pipeline_id", pipelineId)
             .append("status", DUUIStatus.SETUP)
@@ -233,7 +234,7 @@ public class DUUIProcessController {
             .append("finished_at", null)
             .append("input", input.toDocument())
             .append("output", output.toDocument())
-            .append("settings", mergeSettings(settings))
+            .append("settings", settings)
             .append("document_names", new HashSet<String>())
             .append("pipeline_status", null)
             .append("is_finished", false);
@@ -288,7 +289,6 @@ public class DUUIProcessController {
         if (processHandler == null) {
             DUUIProcessController.setStatus(id, DUUIStatus.CANCELLED);
             DUUIProcessController.setFinished(id, true);
-
             return null;
         }
 

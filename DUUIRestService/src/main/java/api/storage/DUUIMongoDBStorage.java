@@ -71,7 +71,7 @@ public class DUUIMongoDBStorage {
      * @return The connection URI.
      */
     public static String getConnectionURI() {
-        return Main.config.getProperty("MONGO_DB_URL");
+        return Main.config.getProperty("MONGO_DB_CONNECTION_STRING");
     }
 
     private DUUIMongoDBStorage() {
@@ -87,6 +87,10 @@ public class DUUIMongoDBStorage {
             mongoClient = MongoClients.create(getConnectionURI());
         }
         return mongoClient;
+    }
+
+    public static void init() {
+        getClient();
     }
 
     /**
@@ -184,4 +188,6 @@ public class DUUIMongoDBStorage {
             .map(DUUIRequestHelper::toTitleCase)
             .toList();
     }
+
+
 }

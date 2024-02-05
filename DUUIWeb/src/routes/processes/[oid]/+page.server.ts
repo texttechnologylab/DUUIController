@@ -1,4 +1,4 @@
-import { API_URL } from '$env/static/private'
+import { API_URL } from '$lib/config'
 import type { DUUIDocument } from '$lib/duui/io'
 import type { DUUIPipeline } from '$lib/duui/pipeline'
 import type { DUUIProcess } from '$lib/duui/process'

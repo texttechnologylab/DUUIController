@@ -40,4 +40,4 @@ Monitoring/*
 .env
 
 temp/*
-DUUIRestService/src/main/resources/config.properties
+DUUIRestService/config.properties

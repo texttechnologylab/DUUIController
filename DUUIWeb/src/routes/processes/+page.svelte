@@ -323,7 +323,9 @@
 						<TextInput
 							label="Path"
 							name="output-folder"
-							error={output.path === '/' ? 'Provide an empty path to select the root folder.' : ''}
+							error={['/', ''].includes(output.path)
+								? 'Writing to the root folder is not possible.'
+								: ''}
 							bind:value={output.path}
 						/>
 					{/if}

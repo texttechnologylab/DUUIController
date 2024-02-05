@@ -61,6 +61,7 @@
 		getStatusPlotOptions,
 		getUsagePlotOptions
 	} from './charts'
+	import { getFilterOrGeneric } from '$lib/utils'
 
 	const modalStore = getModalStore()
 	const toastStore = getToastStore()
@@ -90,7 +91,7 @@
 	}
 
 	const sortMap: Map<number, string> = new Map([
-		[0, 'startTime'],
+		[0, 'started_at'],
 		[1, 'input.provider'],
 		[2, 'output.provider'],
 		[3, 'count'],
@@ -183,7 +184,6 @@
 			modalStore.trigger(modal)
 		}).then(async (newName: string) => {
 			if (!newName) return
-			console.log($currentPipelineStore)
 
 			const response = await fetch('/api/pipelines', {
 				method: 'POST',
@@ -260,20 +260,10 @@
 		URL.revokeObjectURL(url)
 	}
 
-	const getFilterOrAny = (filters: string[]) => {
-		const last: string | undefined = filters.at(-1)
-
-		if (equals(last || '', 'Any') || filters.length === 0) {
-			return ['Any']
-		} else {
-			return filters.filter((item) => !equals(item, 'Any'))
-		}
-	}
-
 	const updateTable = async () => {
-		statusFilter = getFilterOrAny(statusFilter)
-		inputFilter = getFilterOrAny(inputFilter)
-		outputFilter = getFilterOrAny(outputFilter)
+		statusFilter = getFilterOrGeneric(statusFilter)
+		inputFilter = getFilterOrGeneric(inputFilter)
+		outputFilter = getFilterOrGeneric(outputFilter)
 
 		const response = await fetch(
 			`/api/processes/batch

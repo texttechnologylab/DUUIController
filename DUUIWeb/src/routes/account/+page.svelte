@@ -11,13 +11,10 @@
 		faFileText,
 		faLink,
 		faRefresh,
+		faSave,
 		faXmarkCircle
 	} from '@fortawesome/free-solid-svg-icons'
-	import {
-		clipboard,
-		getModalStore,
-		getToastStore
-	} from '@skeletonlabs/skeleton'
+	import { clipboard, getModalStore, getToastStore } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
 
 	export let data
@@ -170,7 +167,7 @@
 			}
 		}
 	}
-	let name: string = 'Name'
+	let name: string = $userSession?.name || ''
 </script>
 
 <svelte:head>
@@ -181,6 +178,17 @@
 	<div class="section-wrapper p-8 space-y-4">
 		<h2 class="h3 font-bold">Profile</h2>
 		<Text label="Name" name="name" bind:value={name} />
+		<button
+			class="button-neutral"
+			disabled={!name}
+			on:click={() =>
+				updateUser({
+					name: name
+				})}
+		>
+			<Fa icon={faCheck} />
+			<span>Save</span>
+		</button>
 	</div>
 
 	<div class="space-y-4">
@@ -301,8 +309,8 @@
 					<p>Enter your AWS credentials below to establish a connection.</p>
 				{/if}
 				<Text label="Endpoint" style="grow" name="endpoint" bind:value={minioEndpoint} />
-				<Secret label="Username (Access Key)" name="accessKey" bind:value={minioAccessKey} />
-				<Secret label="Password (Secret Key)" name="secretKey" bind:value={minioSecretKey} />
+				<Text label="Username (Access Key)" name="accessKey" bind:value={minioAccessKey} />
+				<Text label="Password (Secret Key)" name="secretKey" bind:value={minioSecretKey} />
 			</div>
 			<div class="grid md:flex justify-between gap-4">
 				<button

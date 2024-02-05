@@ -1,5 +1,6 @@
 package api.routes.processes;
 
+import api.Main;
 import api.controllers.documents.DUUIDocumentController;
 import api.controllers.events.DUUIEventController;
 import api.controllers.pipelines.DUUIPipelineController;
@@ -66,7 +67,7 @@ public class DUUIProcessRequestHandler {
         String sort = request.queryParamOrDefault("sort", "started_at");
 
         List<String> statusFilter = getFilterOrAny(request, "status");
-        List<String> inputFilter  = getFilterOrAny(request, "input");
+        List<String> inputFilter = getFilterOrAny(request, "input");
         List<String> outputFilter = getFilterOrAny(request, "output");
 
         MongoDBFilters filters = new MongoDBFilters();
@@ -94,7 +95,6 @@ public class DUUIProcessRequestHandler {
         if (result == null) return notFound(response);
         return result.toJson();
     }
-
 
     public static String deleteOne(Request request, Response response) {
         String id = request.params(":id");
@@ -153,39 +153,6 @@ public class DUUIProcessRequestHandler {
         return result;
     }
 
-    public static String uploadFile(Request request, Response response) throws ServletException, IOException {
-        String authorization = request.headers("Authorization");
-        authenticate(authorization);
-
-        Document user = authenticate(authorization);
-        if (isNullOrEmpty(user)) return unauthorized(response);
-
-        request.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement("/temp"));
-        Collection<Part> parts = request.raw().getParts();
-        if (parts.isEmpty()) return notFound(response);
-        String uuid = UUID.randomUUID().toString();
-        Path root = Paths.get("fileUploads", uuid);
-        boolean ignored = root.toFile().mkdirs();
-
-        for (Part part : parts) {
-            if (!part.getName().equals("file")) continue;
-
-            DUUIHTTPMetrics.incrementFilesUploaded(1);
-            Path path = Paths.get(root.toString(), part.getSubmittedFileName());
-
-            try (InputStream is = part.getInputStream()) {
-                Files.copy(is, path, StandardCopyOption.REPLACE_EXISTING);
-
-                DUUIHTTPMetrics.incrementBytesUploaded((double) path.toFile().length());
-            } catch (IOException exception) {
-                response.status(500);
-                return "Failed to upload file " + exception;
-            }
-        }
-
-        response.status(200);
-        return new Document("path", root.toString()).toJson();
-    }
 
     public static String findDocuments(Request request, Response response) {
         String processId = request.params(":id");
@@ -235,26 +202,5 @@ public class DUUIProcessRequestHandler {
         return new Document("timeline", DUUIEventController.findManyByProcess(id)).toJson();
     }
 
-    public static String downloadFile(Request request, Response response) {
-        String userId = getUserId(request);
-        String provider = request.queryParamOrDefault("provider", null);
-        String path = request.queryParamOrDefault("path", null);
 
-        if (isNullOrEmpty(provider)) return badRequest(response, "Missing provider in query params.");
-        if (isNullOrEmpty(path)) return badRequest(response, "Missing path in query params.");
-
-        try {
-            IDUUIDocumentHandler handler = getHandler(provider, userId);
-            if (handler == null) return notFound(response);
-
-            InputStream file = DUUIProcessController.downloadFile(handler, path);
-            response.type("application/octet-stream");
-            response.raw().getOutputStream().write(file.readAllBytes());
-            response.raw().getOutputStream().close();
-            return "Download.";
-        } catch (DbxException | IOException e) {
-            response.status(500);
-            return "The file could not be downloaded.";
-        }
-    }
 }

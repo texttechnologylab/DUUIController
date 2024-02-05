@@ -1,4 +1,4 @@
-import { API_URL, API_KEY } from '$env/static/private'
+import { API_URL } from '$lib/config'
 import { error, fail, json, type RequestEvent } from '@sveltejs/kit'
 import bcrypt from 'bcrypt'
 import type { RequestHandler, RouteParams } from './$types'
@@ -17,10 +17,7 @@ const login = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 
 	const response = await fetch(`${API_URL}/users/auth/login/${email}`, {
 		method: 'GET',
-		mode: 'cors',
-		headers: {
-			Authorization: API_KEY
-		}
+		mode: 'cors'
 	})
 
 	if (!response.ok) {
@@ -48,10 +45,7 @@ const login = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 		mode: 'cors',
 		body: JSON.stringify({
 			session: crypto.randomUUID()
-		}),
-		headers: {
-			Authorization: API_KEY
-		}
+		})
 	})
 
 	const { user } = await update.json()
@@ -73,10 +67,7 @@ const register = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 
 	const response = await fetch(`${API_URL}/users/auth/login/${email}`, {
 		method: 'GET',
-		mode: 'cors',
-		headers: {
-			Authorization: API_KEY
-		}
+		mode: 'cors'
 	})
 
 	if (response.status !== 404) {
@@ -98,9 +89,6 @@ const register = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 	const postResponse = await fetch(`${API_URL}/users`, {
 		method: 'POST',
 		mode: 'cors',
-		headers: {
-			Authorization: API_KEY
-		},
 		body: JSON.stringify({
 			email: email,
 			password: encryptedPassword,
@@ -137,7 +125,6 @@ export const POST: RequestHandler = async (event) => {
 				break
 		}
 	} catch (exception) {
-		console.log(exception)
 		error(503, 'Could not communicate with database.')
 	}
 

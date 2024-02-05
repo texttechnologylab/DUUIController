@@ -1,4 +1,4 @@
-import { API_URL } from '$env/static/private'
+import { API_URL } from '$lib/config'
 import type { DUUIComponent } from '$lib/duui/component'
 import type { PageServerLoad } from './$types'
 

@@ -2,16 +2,20 @@ package api.controllers.users;
 
 import api.Main;
 import api.storage.DUUIMongoDBStorage;
+import com.dropbox.core.*;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Updates;
+import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import spark.Request;
 import spark.Response;
 
+import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static api.routes.DUUIRequestHelper.*;
 import static api.storage.DUUIMongoDBStorage.convertObjectIdToString;
@@ -22,6 +26,7 @@ public class DUUIUserController {
     private static final Set<String> ALLOWED_UPDATES = Set.of(
         "role",
         "session",
+        "name",
         "preferences.tutorial",
         "preferences.step",
         "preferences.language",
@@ -119,9 +124,7 @@ public class DUUIUserController {
     }
 
     public static String insertOne(Request request, Response response) {
-        String key = request.headers("Authorization");
-
-        if (invalidRequestOrigin(key)) {
+        if (invalidRequestOrigin(request.ip())) {
             response.status(401);
             return "Unauthorized";
         }
@@ -166,9 +169,7 @@ public class DUUIUserController {
     }
 
     public static String deleteOne(Request request, Response response) {
-        String key = request.headers("Authorization");
-
-        if (invalidRequestOrigin(key)) {
+        if (invalidRequestOrigin(request.ip())) {
             response.status(401);
             return "Unauthorized";
         }
@@ -247,9 +248,7 @@ public class DUUIUserController {
     }
 
     public static String fetchLoginCredentials(Request request, Response response) {
-        String key = request.headers("Authorization");
-
-        if (invalidRequestOrigin(key)) {
+        if (invalidRequestOrigin(request.ip())) {
             response.status(401);
             return "Unauthorized";
         }
@@ -272,15 +271,17 @@ public class DUUIUserController {
         return new Document("credentials", credentials).toJson();
     }
 
-    private static boolean invalidRequestOrigin(String key) {
-        String SERVER_API_KEY = Main.config.getProperty("API_KEY");
-        return SERVER_API_KEY == null || !SERVER_API_KEY.equals(key);
+    private static boolean invalidRequestOrigin(String origin) {
+        Set<String> ALLOWED_ORIGINS = Arrays
+            .stream(Main.config.getProperty("ALLOWED_ORIGINS").split(";"))
+            .collect(Collectors.toSet());
+
+        if (ALLOWED_ORIGINS.isEmpty()) return false;
+        return !ALLOWED_ORIGINS.contains(origin);
     }
 
     public static String updateOne(Request request, Response response) {
-        String key = request.headers("Authorization");
-
-        if (invalidRequestOrigin(key)) {
+        if (invalidRequestOrigin(request.ip())) {
             response.status(401);
             return "Unauthorized";
         }
@@ -319,9 +320,7 @@ public class DUUIUserController {
     }
 
     public static String authorizeUser(Request request, Response response) {
-        String key = request.headers("key");
-
-        if (invalidRequestOrigin(key)) {
+        if (invalidRequestOrigin(request.ip())) {
             response.status(401);
             return "Unauthorized";
         }
@@ -339,9 +338,7 @@ public class DUUIUserController {
     }
 
     public static String fetchUser(Request request, Response response) {
-        String key = request.headers("Authorization");
-
-        if (invalidRequestOrigin(key)) {
+        if (invalidRequestOrigin(request.ip())) {
             response.status(401);
             return "Unauthorized";
         }
@@ -376,5 +373,63 @@ public class DUUIUserController {
                 Filters.eq(new ObjectId(id)),
                 Updates.inc("worker_count", count)
             );
+    }
+
+    public static String finishDropboxOAuthFromCode(Request request, Response response) {
+        String code = request.queryParamOrDefault("code", null);
+        if (isNullOrEmpty(code)) return badRequest(response, "Missing code query parameter");
+
+        DbxRequestConfig config = new DbxRequestConfig("Docker Unified UIMA interface");
+        DbxAppInfo info = new DbxAppInfo(Main.config.getProperty("DBX_APP_KEY"), Main.config.getProperty("DBX_APP_SECRET"));
+        DbxWebAuth webAuth = new DbxWebAuth(config, info);
+
+        try {
+            DbxAuthFinish finish = webAuth.finishFromCode(code, Main.config.getProperty("DBX_REDIRECT_URL"));
+            String accessToken = finish.getAccessToken();
+            String refreshToken = finish.getRefreshToken();
+            UpdateResult result = DUUIMongoDBStorage
+                .Users()
+                .updateOne(
+                    Filters.eq(new ObjectId(getUserId(request))),
+                    Updates.combine(
+                        Updates.set("connections.dropbox.access_token", accessToken),
+                        Updates.set("connections.dropbox.refresh_token", refreshToken)
+                    )
+                );
+
+            if (result.getModifiedCount() == 1) {
+                return getUserById(getUserId(request)).toJson();
+            }
+
+            return notFound(response);
+        } catch (DbxException e) {
+            response.status(500);
+            return "Failed";
+        }
+    }
+
+    public static String getDropboxAppSettings(Request request, Response response) {
+        return new Document()
+            .append("key", Main.config.getProperty("DBX_APP_KEY"))
+            .append("secret", Main.config.getProperty("DBX_APP_SECRET"))
+            .append("url", Main.config.getProperty("DBX_REDIRECT_URL"))
+            .toJson();
+    }
+
+    public static String insertFeedback(Request request, Response response) {
+        String userId = getUserId(request);
+        long timestamp = Instant.now().toEpochMilli();
+
+        DUUIMongoDBStorage
+            .getClient()
+            .getDatabase("duui")
+            .getCollection("feedback")
+            .insertOne(
+                Document.parse(request.body())
+                    .append("user_id", userId)
+                    .append("timestamp", timestamp));
+
+        response.status(200);
+        return "Thank you for your feedback!";
     }
 }

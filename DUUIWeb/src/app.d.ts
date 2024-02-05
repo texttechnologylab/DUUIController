@@ -11,6 +11,7 @@ type User = UserProperties | null | undefined
 
 interface UserProperties {
 	oid: string
+	name?: string
 	email?: string
 	password?: string
 	role: 'None' | 'User' | 'Admin' | 'Trial' | 'System'
