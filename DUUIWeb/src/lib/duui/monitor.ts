@@ -1,5 +1,3 @@
-import { includes } from '$lib/duui/utils/text'
-import type { DUUIPipeline } from './pipeline'
 
 export interface DUUIEvent {
 	timestamp: number
@@ -65,28 +63,8 @@ export enum Status {
 	Waiting = 'Waiting'
 }
 
-export const activeStatusList: string[] = ['Setup', 'Input', 'Active', 'Shutdown', 'Output']
+export const ACTIVE_STATUS_LIST: string[] = ['Setup', 'Input', 'Active', 'Shutdown', 'Output']
 
 export const isActive = (status: string) => {
-	return activeStatusList.includes(status)
-}
-
-export const documentIsProcessed = (events: DUUIEvent[], document: string) => {
-	const name = document.split('/').at(-1) || ''
-
-	for (let item of events) {
-		if (includes(item.event.message, name + ' has been processed')) {
-			return true
-		}
-	}
-	return false
-}
-
-export const getDocumentProgress = (
-	documentProgress: Map<string, number>,
-	pipeline: DUUIPipeline,
-	document: string
-) => {
-	let progress = Math.max(0, documentProgress.get(document.split('/').at(-1) || '') || 0)
-	return `${Math.min(progress, pipeline.components.length)} / ${pipeline.components.length}`
+	return ACTIVE_STATUS_LIST.includes(status)
 }

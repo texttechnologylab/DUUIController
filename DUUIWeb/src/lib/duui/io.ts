@@ -42,15 +42,24 @@ export enum IO {
 }
 
 export const IO_INPUT: string[] = ['Dropbox', 'File', 'Minio', 'Text']
-export const InputFileExtensions: string[] = ['.txt', '.xmi', '.gz']
+export const INPUT_EXTENSIONS: string[] = ['.txt', '.xmi', '.gz']
 
 export const IO_OUTPUT: string[] = ['Dropbox', 'Minio', 'None']
-export const OutputFileExtensions: string[] = ['.txt', '.xmi']
+export const OUTPUT_EXTENSIONS: string[] = ['.txt', '.xmi']
 
 export const isCloudProvider = (provider: string) => {
-	return equals(provider, 'dropbox') || equals(provider, 'minio')
+	return [equals(provider, IO.Dropbox) || equals(provider, IO.Minio)]
 }
 
+/**
+ * Check if the input and output for the process are valid. This also includes checking
+ * if the list of selected files is empty in case the input source is File.
+ *
+ * @param input The input settings
+ * @param output The output settings
+ * @param files The list of files that have been selected for processing.
+ * @returns
+ */
 export const isValidIO = (
 	input: DUUIDocumentProvider,
 	output: DUUIDocumentProvider,
@@ -94,7 +103,7 @@ export const isValidOutput = (output: DUUIDocumentProvider): boolean => {
 	if (equals(output.provider, IO.Minio)) {
 		return isValidS3BucketName(output.path || '').length === 0
 	}
-	if (equals(output.provider, IO.Dropbox) && output.path === '/') return false
+	if (equals(output.provider, IO.Dropbox) && ['/', ''].includes(output.path)) return false
 
 	return true
 }

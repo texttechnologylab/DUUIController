@@ -3,9 +3,9 @@
 	import { page } from '$app/stores'
 	import {
 		IO,
-		InputFileExtensions,
+		INPUT_EXTENSIONS,
 		IO_INPUT,
-		OutputFileExtensions,
+		OUTPUT_EXTENSIONS,
 		IO_OUTPUT,
 		areSettingsValid,
 		isValidIO,
@@ -30,17 +30,17 @@
 	const toastStore = getToastStore()
 
 	let input: DUUIDocumentProvider = {
-		provider: ($page.url.searchParams.get('input-provider') as IOProvider) || 'Text',
-		path: $page.url.searchParams.get('input-path') || '',
-		content: $page.url.searchParams.get('input-content') || 'Sample Text.',
-		file_extension: ($page.url.searchParams.get('input-file-extension') as FileExtension) || '.txt'
+		provider: ($page.url.searchParams.get('input_provider') as IOProvider) || 'Text',
+		path: $page.url.searchParams.get('input_path') || '',
+		content: $page.url.searchParams.get('input_content') || 'Sample Text.',
+		file_extension: ($page.url.searchParams.get('input_file_extension') as FileExtension) || '.txt'
 	}
 
 	let output: DUUIDocumentProvider = {
-		provider: ($page.url.searchParams.get('output-provider') as IOProvider) || 'None',
-		path: $page.url.searchParams.get('output-path') || '',
-		content: $page.url.searchParams.get('output-content') || '',
-		file_extension: ($page.url.searchParams.get('output-file-extension') as FileExtension) || '.txt'
+		provider: ($page.url.searchParams.get('output_provider') as IOProvider) || 'None',
+		path: $page.url.searchParams.get('output_path') || '',
+		content: $page.url.searchParams.get('output_content') || '',
+		file_extension: ($page.url.searchParams.get('output_file_extension') as FileExtension) || '.txt'
 	}
 
 	let files: FileList
@@ -197,7 +197,7 @@
 							<Dropdown
 								label="File extension"
 								name="input-extension"
-								options={InputFileExtensions}
+								options={INPUT_EXTENSIONS}
 								bind:value={input.file_extension}
 							/>
 						{/if}
@@ -307,7 +307,7 @@
 							<Dropdown
 								label="File extension"
 								name="output-extension"
-								options={OutputFileExtensions}
+								options={OUTPUT_EXTENSIONS}
 								bind:value={output.file_extension}
 							/>
 						{/if}

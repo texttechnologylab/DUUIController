@@ -30,7 +30,7 @@
 	import { page } from '$app/stores'
 	import { blankComponent, type DUUIComponent } from '$lib/duui/component'
 	import { PROCESS_STATUS_NAMES, Status } from '$lib/duui/monitor'
-	import { pipelineToExportableJson } from '$lib/duui/pipeline'
+	import { pipelineToJson } from '$lib/duui/pipeline'
 	import type { DUUIProcess } from '$lib/duui/process'
 	import { datetimeToString, equals } from '$lib/duui/utils/text'
 	import { getDuration } from '$lib/duui/utils/time'
@@ -41,7 +41,7 @@
 		scrollIntoView,
 		successToast
 	} from '$lib/duui/utils/ui'
-	import { currentPipelineStore } from '$lib/store'
+	import { currentPipelineStore, isDarkModeStore } from '$lib/store'
 	import Chips from '$lib/svelte/components/Chips.svelte'
 	import JsonInput from '$lib/svelte/components/JsonInput.svelte'
 	import Paginator from '$lib/svelte/components/Paginator.svelte'
@@ -247,7 +247,7 @@
 	}
 
 	const exportPipeline = () => {
-		const blob = new Blob([JSON.stringify(pipelineToExportableJson($currentPipelineStore))], {
+		const blob = new Blob([JSON.stringify(pipelineToJson($currentPipelineStore))], {
 			type: 'application/json'
 		})
 		const url = URL.createObjectURL(blob)
@@ -348,10 +348,17 @@
 		}
 	}
 
-	let statusPlotOptions = getStatusPlotOptions(pipeline)
-	let errorsPlotOptions = getErrorsPlotOptions(pipeline)
-	let ioPlotOptions = getIOPlotOptions(pipeline)
-	let usagePlotOptions = getUsagePlotOptions(pipeline)
+	let statusPlotOptions
+	let errorsPlotOptions
+	let ioPlotOptions
+	let usagePlotOptions
+
+	$: {
+		statusPlotOptions = getStatusPlotOptions(pipeline, $isDarkModeStore)
+		errorsPlotOptions = getErrorsPlotOptions(pipeline, $isDarkModeStore)
+		ioPlotOptions = getIOPlotOptions(pipeline, $isDarkModeStore)
+		usagePlotOptions = getUsagePlotOptions(pipeline, $isDarkModeStore)
+	}
 
 	onMount(() => {
 		scrollIntoView('scroll-top')
@@ -601,12 +608,11 @@
 			<div class="section-wrapper !border-t-none gap-4 md:gap-y-8 !rounded-tr-none">
 				<div class="text-xs">
 					<div
-						class="header grid grid-cols-3 lg:grid-cols-7 bg-surface-100 dark:variant-soft-surface border-b-4 border-primary-500"
+						class="grid grid-cols-3 lg:grid-cols-7 bg-surface-100-800-token border-b border-color"
 					>
 						{#each tableHeader as column, index}
 							<button
-								class="btn-sm md:text-base md:inline-flex px-4 bg-fancy
-						 	   dark:variant-soft-surface gap-4 justify-start items-center rounded-none p-3 text-left"
+								class="button-neutral border-none !rounded-none"
 								on:click={() => sortTable(index)}
 							>
 								<span>{column}</span>
@@ -621,9 +627,12 @@
 							{#each sortedProcessses as process}
 								<a
 									href={`/processes/${process.oid}?limit=20&skip=0`}
-									class="rounded-none first:border-t-0 border-t-[1px]
-						 dark:border-t-surface-500 dark:hover:variant-soft-primary hover:variant-filled-primary
-						 grid-cols-3 grid md:grid-cols-4 lg:grid-cols-7 gap-8 p-3 px-4 text-left text-xs md:text-sm"
+									class="rounded-none
+											first:border-t-0 border-t border-color
+										    grid grid-cols-3 lg:grid-cols-7 gap-8 items-center
+											px-4 py-3
+											hover:variant-filled-primary
+											text-xs lg:text-sm"
 								>
 									<p>{datetimeToString(new Date(process.started_at))}</p>
 									<p>
@@ -658,11 +667,23 @@
 		{:else if tabSet === 2}
 			<div class="space-y-8">
 				{#if loaded && pipeline.statistics}
-					<div class="grid md:grid-cols-2 gap-8 section-wrapper p-4">
-						<div use:chart={statusPlotOptions} />
-						<div use:chart={errorsPlotOptions} />
-						<div use:chart={ioPlotOptions} />
-						<div use:chart={usagePlotOptions} />
+					<div class="grid gap-8 section-wrapper p-4 text-center">
+						<div class="p-4 space-y-4 bordered-soft">
+							<h3 class="h3">Status</h3>
+							<div class="max-w-full" use:chart={statusPlotOptions} />
+						</div>
+						<div class="p-4 space-y-4 bordered-soft">
+							<h3 class="h3">Errors</h3>
+							<div class="max-w-full" use:chart={errorsPlotOptions} />
+						</div>
+						<div class="p-4 space-y-4 bordered-soft">
+							<h3 class="h3">IO</h3>
+							<div class="max-w-full" use:chart={ioPlotOptions} />
+						</div>
+						<div class="p-4 space-y-4 bordered-soft">
+							<h3 class="h3">Usage per Month</h3>
+							<div class="max-w-full" use:chart={usagePlotOptions} />
+						</div>
 					</div>
 				{:else}
 					<h3 class="section-wrapper h3 text-center py-8">Statistics are currently unavailable</h3>

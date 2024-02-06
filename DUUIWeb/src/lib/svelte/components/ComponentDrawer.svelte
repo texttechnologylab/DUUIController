@@ -278,6 +278,7 @@
 				style="md:col-span-2"
 				label="Target"
 				name="target"
+				help="The target can be a Docker image name (Docker, Swarm and Kubernetes Driver), a URL (Remote Driver) or a Java class path (UIMADriver)."
 				bind:value={component.target}
 				error={component.target === '' ? "Target can't be empty" : ''}
 			/>

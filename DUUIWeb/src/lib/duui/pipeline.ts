@@ -48,7 +48,8 @@ export const blankPipeline = () =>
 		}
 	}
 
-export const pipelineToExportableJson = (pipeline: DUUIPipeline) => {
+	
+export const pipelineToJson = (pipeline: DUUIPipeline) => {
 	return {
 		name: pipeline.name,
 		description: pipeline.description,

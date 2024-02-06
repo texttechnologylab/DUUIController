@@ -1,7 +1,7 @@
 import type { DUUIPipeline } from '$lib/duui/pipeline'
 import { equals } from '$lib/duui/utils/text'
 
-const gridSettings = {
+let gridSettings = {
 	borderColor: '#e7e7e7',
 	row: {
 		colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
@@ -9,15 +9,23 @@ const gridSettings = {
 	}
 }
 
-const theme = {
+let theme = {
 	palette: 'palette2', // upto palette10
 	monochrome: {
 		enabled: false
 	}
 }
 
-export const getStatusPlotOptions = (pipeline: DUUIPipeline) => {
+export const getStatusPlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) => {
 	if (!pipeline.statistics) return {}
+
+	gridSettings = {
+		borderColor: darkmode ? '#e7e7e720' : '#29292920',
+		row: {
+			colors: [darkmode ? '#292929' : '#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+			opacity: 0.5
+		}
+	}
 
 	return {
 		series: [
@@ -35,10 +43,14 @@ export const getStatusPlotOptions = (pipeline: DUUIPipeline) => {
 				borderRadius: 8
 			}
 		},
-
 		xaxis: {
 			categories: pipeline.statistics.status.map((s) => s._id),
 			position: 'top',
+			labels: {
+				style: {
+					colors: darkmode ? 'white' : 'black'
+				}
+			},
 			axisBorder: {
 				show: false
 			},
@@ -67,28 +79,31 @@ export const getStatusPlotOptions = (pipeline: DUUIPipeline) => {
 				show: false
 			},
 			labels: {
-				show: true
-			}
-		},
-		title: {
-			text: 'Status of executed processes',
-			align: 'center',
-			style: {
-				color: 'black',
-				fontSize: '20px'
+				show: true,
+				style: {
+					colors: darkmode ? 'white' : 'black'
+				}
 			}
 		},
 		theme: theme
 	}
 }
 
-export const getErrorsPlotOptions = (pipeline: DUUIPipeline) => {
+export const getErrorsPlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) => {
 	if (!pipeline.statistics) return {}
 
 	const x = pipeline.statistics
 		? pipeline.statistics.errors.map((s) => s._id.split('.').at(-1))
 		: []
 	const y = pipeline.statistics ? pipeline.statistics.errors.map((s) => s.count) : []
+
+	gridSettings = {
+		borderColor: darkmode ? '#e7e7e720' : '#29292920',
+		row: {
+			colors: [darkmode ? '#292929' : '#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+			opacity: 0.5
+		}
+	}
 
 	return {
 		series: [
@@ -128,6 +143,12 @@ export const getErrorsPlotOptions = (pipeline: DUUIPipeline) => {
 						opacityTo: 0.5
 					}
 				}
+			},
+			labels: {
+				show: true,
+				style: {
+					colors: darkmode ? 'white' : 'black'
+				}
 			}
 		},
 		yaxis: {
@@ -138,22 +159,17 @@ export const getErrorsPlotOptions = (pipeline: DUUIPipeline) => {
 				show: false
 			},
 			labels: {
-				show: true
-			}
-		},
-		title: {
-			text: 'Errors of executed processes',
-			align: 'center',
-			style: {
-				color: 'black',
-				fontSize: '20px'
+				show: true,
+				style: {
+					colors: darkmode ? 'white' : 'black'
+				}
 			}
 		},
 		theme: theme
 	}
 }
 
-export const getIOPlotOptions = (pipeline: DUUIPipeline) => {
+export const getIOPlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) => {
 	if (!pipeline.statistics) return {}
 
 	const labels: string[] = ['File', 'Minio', 'None', 'Text', 'Dropbox']
@@ -172,6 +188,14 @@ export const getIOPlotOptions = (pipeline: DUUIPipeline) => {
 			if (equals(item._id, label)) {
 				output[index] = item.count
 			}
+		}
+	}
+
+	gridSettings = {
+		borderColor: darkmode ? '#e7e7e720' : '#29292920',
+		row: {
+			colors: [darkmode ? '#292929' : '#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+			opacity: 0.5
 		}
 	}
 
@@ -216,32 +240,30 @@ export const getIOPlotOptions = (pipeline: DUUIPipeline) => {
 						opacityTo: 0.5
 					}
 				}
+			},
+			labels: {
+				show: true,
+				style: {
+					colors: darkmode ? 'white' : 'black'
+				}
 			}
 		},
 		yaxis: {
 			axisBorder: {
 				show: false
 			},
-			axisTicks: {
-				show: false
-			},
 			labels: {
-				show: true
-			}
-		},
-		title: {
-			text: 'Input and Output',
-			align: 'center',
-			style: {
-				color: 'black',
-				fontSize: '20px'
+				show: true,
+				style: {
+					colors: darkmode ? 'white' : 'black'
+				}
 			}
 		},
 		theme: theme
 	}
 }
 
-export const getUsagePlotOptions = (pipeline: DUUIPipeline) => {
+export const getUsagePlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) => {
 	if (!pipeline.statistics) return {}
 	const year = new Date().getFullYear()
 
@@ -259,6 +281,14 @@ export const getUsagePlotOptions = (pipeline: DUUIPipeline) => {
 		`Nov ${year}`,
 		`Dec ${year}`
 	]
+
+	gridSettings = {
+		borderColor: darkmode ? '#e7e7e720' : '#29292920',
+		row: {
+			colors: [darkmode ? '#292929' : '#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+			opacity: 0.5
+		}
+	}
 
 	let yValues = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 	for (let index = 0; index < xLabels.length; index++) {
@@ -308,26 +338,33 @@ export const getUsagePlotOptions = (pipeline: DUUIPipeline) => {
 		dataLabels: {
 			enabled: true
 		},
-		title: {
-			text: 'Usage per month',
-			align: 'center',
-			style: {
-				color: 'black',
-				fontSize: '20px'
-			}
-		},
 		theme: theme,
 		grid: gridSettings,
 		xaxis: {
-			categories: xLabels
-		},
-		yaxis: {
-			title: {
-				text: '# Processes'
+			categories: xLabels,
+			axisTicks: {
+				show: false
+			},
+			axisBorder: {
+				show: false
+			},
+			labels: {
+				show: true,
+				style: {
+					colors: darkmode ? 'white' : 'black'
+				}
 			}
 		},
 		tooltip: {
 			show: false
+		},
+		yaxis: {
+			labels: {
+				show: true,
+				style: {
+					colors: darkmode ? 'white' : 'black'
+				}
+			}
 		}
 	}
 }

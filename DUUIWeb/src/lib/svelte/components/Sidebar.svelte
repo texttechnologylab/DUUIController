@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto, onNavigate } from '$app/navigation'
-	import { userSession } from '$lib/store'
+	import { isDarkModeStore, userSession } from '$lib/store'
 	import { faReadme } from '@fortawesome/free-brands-svg-icons'
 	import {
 		faBars,
@@ -40,7 +40,7 @@
 		{#if $userSession?.role === 'Admin'}
 			<span class="badge variant-soft-tertiary font-bold">ADMIN</span>
 		{/if}
-		<LightSwitch rounded="rounded-full" />
+		<LightSwitch rounded="rounded-full" on:click={() => ($isDarkModeStore = !$isDarkModeStore)} />
 	</div>
 	<div class="p-8 space-y-8 text-xl">
 		<a href="/" class="flex items-center gap-4 animate-text">

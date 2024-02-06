@@ -18,7 +18,7 @@
 	import { beforeNavigate, goto, onNavigate } from '$app/navigation'
 	import { initializeStores, storePopup } from '@skeletonlabs/skeleton'
 
-	import { userSession } from '$lib/store'
+	import { isDarkModeStore, userSession } from '$lib/store'
 	import ConfirmModal from '$lib/svelte/components/ConfirmModal.svelte'
 	import DocumentModal from '$lib/svelte/components/DocumentDrawer.svelte'
 	import Documentation from '$lib/svelte/components/Documentation.svelte'
@@ -38,6 +38,7 @@
 	import ComponentDrawer from '$lib/svelte/components/ComponentDrawer.svelte'
 	import 'highlight.js/styles/github-dark.css'
 	import DocumentDrawer from '$lib/svelte/components/DocumentDrawer.svelte'
+	import { onMount } from 'svelte'
 
 	export let data
 	let { user } = data
@@ -82,6 +83,13 @@
 			console.error(response.status, response.statusText)
 		}
 	}
+
+	onMount(() => {
+		const html = document.getElementsByTagName('html').item(0)
+		if (html) {
+			$isDarkModeStore = html.classList.contains('dark')
+		}
+	})
 
 	const modalRegistry: Record<string, ModalComponent> = {
 		documentModal: { ref: DocumentModal },
@@ -155,7 +163,11 @@
 					<img src={Logo} alt="The letters DUUI" class="md:hidden block max-h-8 pr-4" />
 				</a>
 
-				<LightSwitch class="md:block hidden" rounded="rounded-sm" />
+				<LightSwitch
+					class="md:block hidden"
+					rounded="rounded-full"
+					on:click={() => ($isDarkModeStore = !$isDarkModeStore)}
+				/>
 			</svelte:fragment>
 		</AppBar>
 	</svelte:fragment>

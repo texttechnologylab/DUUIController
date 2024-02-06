@@ -1,9 +1,5 @@
 <script lang="ts">
-	import {
-		DUUIDockerDriver,
-		DUUIRemoteDriver,
-		type DUUIComponent
-	} from '$lib/duui/component'
+	import { DUUIDockerDriver, DUUIRemoteDriver, type DUUIComponent } from '$lib/duui/component'
 	import { equals } from '$lib/duui/utils/text'
 	import { SlideToggle } from '@skeletonlabs/skeleton'
 	import Number from './Number.svelte'

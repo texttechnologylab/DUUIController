@@ -1,8 +1,5 @@
 import { type ModalStore, type ModalSettings, getModalStore } from '@skeletonlabs/skeleton'
 
-// See +layout.svelte file for modalRegistry
-export type ModalComponent = 'deleteModal' | 'documentModal' | 'promptModal' | 'confirmModal'
-
 /**
  *
  * @param title The modal title

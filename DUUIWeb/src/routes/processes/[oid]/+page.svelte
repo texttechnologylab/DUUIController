@@ -12,7 +12,6 @@
 		infoToast,
 		successToast
 	} from '$lib/duui/utils/ui'
-	import DocumentModal from '$lib/svelte/components/DocumentDrawer.svelte'
 
 	import {
 		faArrowDownWideShort,
@@ -28,11 +27,9 @@
 	} from '@fortawesome/free-solid-svg-icons'
 	import {
 		ProgressBar,
+		getDrawerStore,
 		getModalStore,
 		getToastStore,
-		type ModalComponent,
-		type ModalSettings,
-		getDrawerStore,
 		type DrawerSettings
 	} from '@skeletonlabs/skeleton'
 
@@ -43,7 +40,6 @@
 	import { showConfirmationModal } from '$lib/svelte/utils/modal'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
-	import { draw } from 'svelte/transition'
 
 	export let data
 	const toastStore = getToastStore()
@@ -56,7 +52,7 @@
 
 	let paginationSettings: PaginationSettings = {
 		page: 0,
-		limit: 20,
+		limit: 10,
 		total: count,
 		sizes: [5, 10, 20, 50]
 	}
@@ -78,6 +74,8 @@
 
 	let filter: string[] = [Status.Any]
 	let maxProgress = process.size || pipeline.components.length
+
+	const UPDATE_INTERVAL = 1_000
 
 	onMount(() => {
 		async function updateProcess() {
@@ -101,7 +99,7 @@
 		}
 		let interval: NodeJS.Timeout
 		if (!process.is_finished) {
-			interval = setInterval(updateProcess, 5000)
+			interval = setInterval(updateProcess, UPDATE_INTERVAL)
 		}
 		updateProcess()
 		return () => clearInterval(interval)
@@ -138,6 +136,7 @@
 			method: 'DELETE',
 			body: JSON.stringify({ oid: process.oid })
 		})
+
 		if (response.ok) {
 			toastStore.trigger(infoToast('Process has been deleted'))
 			goto(`/pipelines/${pipeline.oid}?tab=1`)
@@ -240,7 +239,7 @@
 <div>
 	<div class="grid">
 		<div
-			class="sticky top-0 bg-surface-50-900-token border-y p-4 border-color hidden md:block z-10"
+			class="sticky top-0 bg-surface-50-900-token border-y p-4 border-color hidden md:block z-[20]"
 		>
 			<div class="grid grid-cols-3 md:flex items-center md:justify-start gap-4 relative">
 				<a class="button-primary" href={`/pipelines/${pipeline.oid}?tab=1`}>
@@ -264,6 +263,13 @@
 				{/if}
 			</div>
 		</div>
+		<ProgressBar
+			value={process.progress}
+			max={process.document_names.length}
+			height="h-4"
+			rounded="rounded-none"
+			meter="variant-filled-primary"
+		/>
 		<div class="p-4 py-8 space-y-4">
 			<div class="mx-auto grid md:flex items-center gap-8 justify-center h3">
 				<div class="flex items-center gap-4">
@@ -296,7 +302,7 @@
 				</p>
 			{/if}
 			<div>
-				<div class="md:text-base flex items-end">
+				<div class="md:text-base flex items-center">
 					<div
 						class="hidden ml-auto md:flex overflow-hidden justify-between section-wrapper !shadow-none !border-b-0 !rounded-b-none z-10"
 					>
@@ -325,15 +331,12 @@
 				</div>
 
 				<div class="section-wrapper !rounded-tr-none">
-					<div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+					<div
+						class="grid grid-cols-3 lg:grid-cols-5 bg-surface-100-800-token border-b border-color"
+					>
 						{#each tableHeader as column, index}
 							<button
-								class="btn-sm md:text-base md:inline-flex px-4 bg-fancy gap-4 justify-start items-center rounded-none p-3 text-left
-							{[4].includes(index)
-									? 'hidden md:inline-flex'
-									: [3].includes(index)
-									? 'hidden lg:inline-flex'
-									: ''}"
+								class="button-neutral border-none !rounded-none"
 								on:click={() => sortTable(index)}
 							>
 								<span>{column}</span>
@@ -343,21 +346,16 @@
 							</button>
 						{/each}
 					</div>
-					<ProgressBar
-						value={process.progress}
-						max={process.document_names.length}
-						height="h-1"
-						rounded="rounded-none"
-						meter="variant-filled-primary"
-					/>
+
 					<div class="overflow-hidden flex flex-col">
 						{#each documents as document}
 							<button
-								class="btn-sm text-xs md:text-sm rounded-none
-							first:border-t-0 border-t-[1px]
-							dark:border-t-surface-500 dark:hover:variant-soft-primary
-							hover:variant-filled-primary
-							grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 p-3 px-4 text-left items-center"
+								class="rounded-none
+										first:border-t-0 border-t border-color
+										grid grid-cols-3 lg:grid-cols-5 gap-8 items-center
+										px-4 py-3
+										hover:variant-filled-primary
+										text-xs lg:text-sm text-start"
 								on:click={() => showDocumentModal(document)}
 							>
 								<p>{document.name}</p>
@@ -378,8 +376,8 @@
 									/>
 									<span>{document.status}</span>
 								</p>
-								<p class="hidden lg:block">{formatFileSize(document.size)}</p>
-								<p class="hidden md:block">{formatMilliseconds(getTotalDuration(document))}</p>
+								<p>{formatFileSize(document.size)}</p>
+								<p>{formatMilliseconds(getTotalDuration(document))}</p>
 							</button>
 						{/each}
 					</div>

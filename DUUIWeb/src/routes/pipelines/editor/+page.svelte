@@ -24,7 +24,7 @@
 	import PipelineComponent from '$lib/svelte/components/PipelineComponent.svelte'
 	import Search from '$lib/svelte/components/Search.svelte'
 	import TextArea from '$lib/svelte/components/TextArea.svelte'
-	import Text from '$lib/svelte/components/TextInput.svelte'
+	import TextInput from '$lib/svelte/components/TextInput.svelte'
 	import {
 		faArrowDown,
 		faArrowLeft,
@@ -349,7 +349,12 @@
 							? ''
 							: 'border-error-400'}"
 					>
-						<Text label="Name" name="pipeline-name" bind:value={$currentPipelineStore.name} />
+						<TextInput
+							label="Name"
+							error={$currentPipelineStore.name === '' ? 'The name can not be empty' : ''}
+							name="pipeline-name"
+							bind:value={$currentPipelineStore.name}
+						/>
 
 						<TextArea
 							bind:value={$currentPipelineStore.description}

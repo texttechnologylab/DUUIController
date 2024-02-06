@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { faLightbulb } from '@fortawesome/free-solid-svg-icons'
 	import { popup, type PopupSettings } from '@skeletonlabs/skeleton'
+	import Fa from 'svelte-fa'
 
 	export let label: string = ''
 	export let name: string = ''
@@ -19,18 +21,19 @@
 		target: 'helpPopup',
 		placement: 'bottom-start',
 		middleware: {
-			offset: 8
+			offset: 0
 		}
 	}
 </script>
 
 {#if help}
-	<div
-		class="text-sm z-50 break-words max-w-[50ch] variant-filled-primary rounded-md p-4 shadow-lg
-		space-y-4"
-		data-popup="helpPopup"
-	>
-		<p>{help}</p>
+	<div data-popup="helpPopup">
+		<div class="text-sm z-50 max-w-[50ch] variant-filled-primary rounded-sm p-4 shadow-lg">
+			<div class="grid grid-cols-[auto_1fr] items-center gap-4">
+				<Fa icon={faLightbulb} size="2x" />
+				<p class="border-l pl-4">{help}</p>
+			</div>
+		</div>
 	</div>
 {/if}
 

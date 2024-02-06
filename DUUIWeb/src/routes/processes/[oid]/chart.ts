@@ -11,7 +11,7 @@ const theme = {
 	}
 }
 
-export const getAnnotationsPlotOptions = (annotations: Map<string, number>) => {
+export const getAnnotationsPlotOptions = (annotations: Map<string, number>, darkmode: boolean) => {
 	if (!annotations) return {}
 
 	return {
@@ -32,11 +32,9 @@ export const getAnnotationsPlotOptions = (annotations: Map<string, number>) => {
 			height: 350,
 			type: 'treemap'
 		},
-		title: {
-			text: 'Annotations',
-			style: {
-				fontSize: '20px',
-				color: 'black'
+		plotOptions: {
+			treemap: {
+				useFillColorAsStroke: true
 			}
 		},
 		theme: theme
@@ -46,7 +44,8 @@ export const getAnnotationsPlotOptions = (annotations: Map<string, number>) => {
 export const getTimelinePlotOptions = (
 	process: DUUIProcess,
 	pipeline: DUUIPipeline,
-	document: DUUIDocument
+	document: DUUIDocument,
+	darkmode: boolean
 ) => {
 	let steps: { x: string; y: number[] }[] = [
 		{
@@ -66,7 +65,16 @@ export const getTimelinePlotOptions = (
 		})
 	}
 
+	const gridSettings = {
+		borderColor: darkmode ? '#e7e7e720' : '#29292920',
+		row: {
+			colors: [darkmode ? '#292929' : '#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+			opacity: 0.5
+		}
+	}
+
 	const components = pipeline.components.map((c) => c.name)
+	let index: number = 0
 	for (let component of components) {
 		let start: DUUIEvent | undefined = document.events.find((event) =>
 			event.event.message.includes(`is being processed by component ${component}`)
@@ -77,11 +85,12 @@ export const getTimelinePlotOptions = (
 		)
 
 		if (start) {
+			index += 1
 			if (end) {
-				steps.push({ x: component, y: [start.timestamp, end.timestamp] })
+				steps.push({ x: component + ' (' + index + ')', y: [start.timestamp, end.timestamp] })
 			} else {
 				steps.push({
-					x: component,
+					x: component + ' (' + index + ')',
 					y: [start.timestamp, process.finished_at || new Date().getTime()]
 				})
 			}
@@ -95,7 +104,7 @@ export const getTimelinePlotOptions = (
 			}
 		],
 		chart: {
-			height: 350,
+			height: 300 + pipeline.components.length * 50,
 			type: 'rangeBar',
 			toolbar: {
 				show: true,
@@ -115,16 +124,28 @@ export const getTimelinePlotOptions = (
 				horizontal: true
 			}
 		},
-		title: {
-			text: 'Timeline',
-			style: {
-				fontSize: '20px',
-				color: 'black dark:white'
-			}
-		},
+		grid: gridSettings,
 		xaxis: {
 			labels: {
-				formatter: (timestamp) => '+' + getDuration(process.started_at, timestamp)
+				formatter: (timestamp) => '+' + getDuration(process.started_at, timestamp),
+				show: true,
+				style: {
+					colors: darkmode ? 'white' : 'black'
+				}
+			},
+			axisBorder: {
+				color: darkmode ? '#e7e7e720' : '#29292920'
+			},
+			axisTicks: {
+				show: false
+			}
+		},
+		yaxis: {
+			labels: {
+				show: true,
+				style: {
+					colors: darkmode ? 'white' : 'black',
+				},
 			}
 		},
 		tooltip: {
@@ -132,11 +153,11 @@ export const getTimelinePlotOptions = (
 				var data = w.globals.initialSeries[seriesIndex].data[dataPointIndex]
 				// You can customize the tooltip content here
 				return (
-					'<div class="p-2 bg-white bordered-soft dimmed flex flex-col gap-1">' +
-					'<p class="font-bold">' +
+					'<div class="p-2 bg-surface-50 bordered-soft dimmed flex flex-col gap-1">' +
+					'<p class="font-bold text-surface-900">' +
 					data.x +
 					' </p>' +
-					'<p>' +
+					'<p class="text-surface-600">' +
 					getDuration(data.y[0], data.y[1]) +
 					' </p>' +
 					'</div>'

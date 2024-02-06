@@ -32,15 +32,20 @@ export interface DUUIProcess {
 	skipped: number
 }
 
+/**
+ * 
+ * @param process The process to convert to a string of search params.
+ * @returns a string with settings for the process as serach parameters.
+ */
 export const processToSeachParams = (process: DUUIProcess) => {
 	return `
-		&input-provider=${process.input.provider}
-		&input-path=${process.input.path}
-		&input-content=${equals(process.input.provider, IO.Text) ? process.input.content : ''}
-		&input-file-extension=${process.input.file_extension}
-		&output-provider=${process.output.provider}
-		&output-path=${process.output.path}
-		&output-file-extension=${process.output.file_extension}
+		&input_provider=${process.input.provider}
+		&input_path=${process.input.path}
+		&input_content=${equals(process.input.provider, IO.Text) ? process.input.content : ''}
+		&input_file_extension=${process.input.file_extension}
+		&output_provider=${process.output.provider}
+		&output_path=${process.output.path}
+		&output_file_extension=${process.output.file_extension}
 		&notify=${process.settings.notify || 'false'}
 		&check_target=${process.settings.check_target || 'false'}
 		&recursive=${process.settings.recursive || 'true'}

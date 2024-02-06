@@ -22,6 +22,7 @@
 	const increment = () => {
 		if (settings.total <= (settings.page + 1) * settings.limit) return
 		settings.page += 1
+		
 		dispatcher('change')
 	}
 
@@ -31,6 +32,9 @@
 	}
 	const toLast = () => {
 		settings.page = Math.ceil(settings.total / settings.limit)
+		if (1 + settings.page * settings.limit > settings.total) {
+			settings.page -= 1
+		}
 		dispatcher('change')
 	}
 </script>
@@ -48,7 +52,7 @@
 		{#if showJumpButtons}
 			<IconButton
 				disabled={settings.page === 0}
-				_class="bg-transparent text-primary-500 border-r border-surface-200 dark:border-surface-500 hover:variant-filled-primary"
+				_class="!bg-transparent text-primary-500 border-r border-surface-200 dark:border-surface-500 hover:variant-filled-primary"
 				rounded="rounded-none"
 				icon={faAnglesLeft}
 				on:click={toFirst}
@@ -56,7 +60,7 @@
 		{/if}
 		<IconButton
 			disabled={settings.page === 0}
-			_class="bg-transparent text-primary-500 border-r border-surface-200 dark:border-surface-500 hover:variant-filled-primary"
+			_class="!bg-transparent text-primary-500 border-r border-surface-200 dark:border-surface-500 hover:variant-filled-primary"
 			rounded="rounded-none"
 			icon={faChevronLeft}
 			on:click={decrement}
@@ -73,7 +77,7 @@
 		{/if}
 		<IconButton
 			disabled={settings.page === Math.floor(settings.total / settings.limit)}
-			_class="bg-transparent text-primary-500 border-l border-surface-200 dark:border-surface-500 hover:variant-filled-primary"
+			_class="!bg-transparent text-primary-500 border-l border-surface-200 dark:border-surface-500 hover:variant-filled-primary"
 			rounded="rounded-none"
 			icon={faChevronRight}
 			on:click={increment}
@@ -81,7 +85,7 @@
 		{#if showJumpButtons}
 			<IconButton
 				disabled={settings.page === Math.floor(settings.total / settings.limit)}
-				_class="bg-transparent text-primary-500 border-l border-surface-200 dark:border-surface-500 hover:variant-filled-primary"
+				_class="!bg-transparent text-primary-500 border-l border-surface-200 dark:border-surface-500 hover:variant-filled-primary"
 				rounded="rounded-none"
 				icon={faAnglesRight}
 				on:click={toLast}

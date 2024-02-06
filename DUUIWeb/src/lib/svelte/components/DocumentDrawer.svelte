@@ -7,7 +7,7 @@
 	import { formatFileSize, includes } from '$lib/duui/utils/text'
 	import { formatMilliseconds } from '$lib/duui/utils/time'
 	import { errorToast, getStatusIcon, scrollIntoView } from '$lib/duui/utils/ui'
-	import { userSession } from '$lib/store'
+	import { isDarkModeStore, userSession } from '$lib/store'
 	import { faChevronDown, faClose, faDownload, faRefresh } from '@fortawesome/free-solid-svg-icons'
 	import { getDrawerStore, getToastStore } from '@skeletonlabs/skeleton'
 	import { onMount } from 'svelte'
@@ -42,10 +42,7 @@
 	const download = async () => {
 		downloading = true
 		const response = await fetch(
-			`/api/files/download?provider=${output.provider}&path=${URLOut.replace(
-				DROPBOX_URL,
-				''
-			)}`,
+			`/api/files/download?provider=${output.provider}&path=${URLOut.replace(DROPBOX_URL, '')}`,
 			{
 				method: 'GET'
 			}
@@ -113,8 +110,16 @@
 		}
 	}
 
-	$: options = getAnnotationsPlotOptions(annotationFilter)
-	$: eventOptions = getTimelinePlotOptions(process, pipeline, _document)
+	let options
+	let eventOptions
+
+	$: {
+		options = getAnnotationsPlotOptions(annotationFilter, $isDarkModeStore)
+		eventOptions = getTimelinePlotOptions(process, pipeline, _document, $isDarkModeStore)
+	
+	}
+
+
 
 	onMount(() => {
 		scrollIntoView('scroll-top')
@@ -220,16 +225,16 @@
 				</div>
 			{/if}
 		</div>
-		<div
+		<!-- <div
 			class="p-4 grid-cols-2 grid md:grid-cols-4 gap-4 justify-center items-center border-b border-color text-sm md:text-base"
 		>
 			<div class="flex flex-col items-start justify-center gap-2">
-				<p class="font-bold">Wait</p>
+				<p class="font-bold">Setup</p>
 				<p>{formatMilliseconds(_document.duration_wait)}</p>
 			</div>
 			<div class="flex flex-col items-start justify-center gap-2">
-				<p class="font-bold">Setup</p>
-				<p>{formatMilliseconds(_document.duration_decode + _document.duration_deserialize)}</p>
+				<p class="font-bold">Wait</p>
+				<p>{formatMilliseconds(_document.duration_wait)}</p>
 			</div>
 
 			<div class="flex flex-col items-start justify-center gap-2">
@@ -240,8 +245,9 @@
 				<p class="font-bold">Total</p>
 				<p>{formatMilliseconds(_document.duration || 0)}</p>
 			</div>
-		</div>
+		</div> -->
 		<div class="p-4 flex flex-col gap-4 border-b border-color">
+			<h2 class="h2">Annotations</h2>
 			<div class="flex items-end gap-4 justify-end">
 				<button
 					class="button-neutral mr-auto"
@@ -283,7 +289,8 @@
 			{#if loaded}
 				<div use:chart={options} />
 				{#if _document.events}
-					<div use:chart={eventOptions} />
+					<h2 class="h2">Timeline</h2>
+					<div class="pr-4" use:chart={eventOptions} />
 				{/if}
 			{/if}
 		</div>
