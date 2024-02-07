@@ -115,7 +115,7 @@ if __name__ == "__main__":
 					<CodeBlock
 						language="py"
 						code={`response = requests.post(
-	"api.duui.texttechnologylab.org/pipelines",
+	"api.duui.texttechnologylab.org/processes",
 	headers={"Authorization": API_KEY},
 	json={
 		"pipeline_id": "65bbb2ab10629974b51d19ca",

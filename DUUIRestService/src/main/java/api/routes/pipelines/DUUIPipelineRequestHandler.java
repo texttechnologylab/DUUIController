@@ -230,7 +230,7 @@ public class DUUIPipelineRequestHandler {
             || (pipeline.getString("user_id") != null && !pipeline.getString("user_id").equals(userID))
         ) return DUUIRequestHelper.notFound(response);
 
-        DUUIPipelineController.interruptIfRunning(pipelineId);
+        DUUIPipelineController.shutdownPipeline(pipelineId);
 
         boolean deleted = false;
         if ((pipeline.getString("user_id") == null && role.equalsIgnoreCase(Role.ADMIN)) ||
@@ -245,9 +245,6 @@ public class DUUIPipelineRequestHandler {
 
         DUUIComponentController.deleteMany(Filters.eq("pipeline_id", pipelineId));
         DUUIProcessController.deleteMany(Filters.eq("pipeline_id", pipelineId));
-
-
-        DUUIPipelineController.getReusablePipelines().get(pipelineId).asService(false).shutdown();
 
         response.status(200);
         return "Deleted";

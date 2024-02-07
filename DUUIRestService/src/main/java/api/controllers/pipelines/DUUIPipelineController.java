@@ -332,6 +332,7 @@ public class DUUIPipelineController {
             }
             try {
                 reusablePipelines.get(pipelineId).asService(false).shutdown();
+                reusablePipelines.remove(pipelineId);
             } catch (UnknownHostException | InvalidParameterException ignored) {
             }
         }
