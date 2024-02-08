@@ -20,7 +20,13 @@ WORKDIR /app
 
 EXPOSE 5173
 
-# Origin of requests sent from the browser to the API
+# URL auf der das Frontend läuft
 ENV ORIGIN=http://localhost:5173 
+
+# URL auf der das Backend läuft
+ENV API_URL=http://192.168.2.122:2605
+
+# URL der Dropbox App
+ENV DBX_URL='https://www.dropbox.com/home/Apps/Docker Unified UIMA Interface'
 
 CMD [ "node", "build/index.js" ]
