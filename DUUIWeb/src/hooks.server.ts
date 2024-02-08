@@ -1,4 +1,4 @@
-import { API_URL } from '$lib/config'
+import { API_URL } from '$env/static/private'
 import type { Handle, RequestEvent } from '@sveltejs/kit'
 
 const fetchUser = async (

@@ -1,4 +1,4 @@
-import { API_URL } from '$lib/config'
+import { API_URL } from '$env/static/private'
 import { randomBytes } from 'crypto'
 
 const generatKey = (length: number = 64, format: BufferEncoding | undefined = 'base64') => {

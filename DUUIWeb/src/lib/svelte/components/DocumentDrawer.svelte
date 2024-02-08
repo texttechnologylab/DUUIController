@@ -1,11 +1,9 @@
 <script lang="ts">
-	import { DROPBOX_URL } from '$lib/config'
 	import { IO, type DUUIDocument, type DUUIDocumentProvider } from '$lib/duui/io'
 	import { Status } from '$lib/duui/monitor'
 	import type { DUUIPipeline } from '$lib/duui/pipeline'
 	import type { DUUIProcess } from '$lib/duui/process'
 	import { formatFileSize, includes } from '$lib/duui/utils/text'
-	import { formatMilliseconds } from '$lib/duui/utils/time'
 	import { errorToast, getStatusIcon, scrollIntoView } from '$lib/duui/utils/ui'
 	import { isDarkModeStore, userSession } from '$lib/store'
 	import { faChevronDown, faClose, faDownload, faRefresh } from '@fortawesome/free-solid-svg-icons'
@@ -42,7 +40,7 @@
 	const download = async () => {
 		downloading = true
 		const response = await fetch(
-			`/api/files/download?provider=${output.provider}&path=${URLOut.replace(DROPBOX_URL, '')}`,
+			`/api/files/download?provider=${output.provider}&path=${URLOut}`,
 			{
 				method: 'GET'
 			}
@@ -67,7 +65,7 @@
 
 	switch (input.provider) {
 		case 'Dropbox':
-			URLIn = DROPBOX_URL + '/' + _document.name
+			URLIn = 'https://www.dropbox.com/home/Apps'
 			break
 		case 'Minio':
 			URLIn = $userSession?.connections.minio.endpoint || ''
@@ -78,11 +76,7 @@
 
 	switch (output.provider) {
 		case 'Dropbox':
-			URLOut =
-				DROPBOX_URL +
-				output.path +
-				'/' +
-				_document.name.replace('.' + _document.name.split('.').at(-1), output.file_extension)
+			URLOut = 'https://www.dropbox.com/home/Apps'
 			break
 		case 'Minio':
 			URLOut = $userSession?.connections.minio.endpoint || ''
@@ -116,10 +110,7 @@
 	$: {
 		options = getAnnotationsPlotOptions(annotationFilter, $isDarkModeStore)
 		eventOptions = getTimelinePlotOptions(process, pipeline, _document, $isDarkModeStore)
-	
 	}
-
-
 
 	onMount(() => {
 		scrollIntoView('scroll-top')

@@ -1,4 +1,4 @@
-import { API_URL } from '$lib/config'
+import { API_URL } from '$env/static/private'
 
 export async function POST({ request, cookies }) {
 	const formData = await request.formData()

@@ -1,8 +1,0 @@
-version: '3'
-
-services:
-  my_service:
-    image: my_image
-    environment:
-      - VARIABLE_NAME=value
-      - ANOTHER_VARIABLE=another_value

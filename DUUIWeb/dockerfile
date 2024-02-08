@@ -19,6 +19,8 @@ RUN cd /app && \
 WORKDIR /app
 
 EXPOSE 5173
-ENV ORIGIN=http://localhost:5173
+
+# Origin of requests sent from the browser to the API
+ENV ORIGIN=http://localhost:5173 
 
 CMD [ "node", "build/index.js" ]

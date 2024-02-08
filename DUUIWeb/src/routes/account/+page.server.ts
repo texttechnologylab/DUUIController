@@ -1,4 +1,4 @@
-import { API_URL } from '$lib/config'
+import { API_URL } from '$env/static/private'
 import { handleLoginRedirect } from '$lib/utils'
 import { error, fail, redirect } from '@sveltejs/kit'
 import { DropboxAuth } from 'dropbox'

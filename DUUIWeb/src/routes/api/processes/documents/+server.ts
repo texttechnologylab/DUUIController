@@ -1,4 +1,4 @@
-import { API_URL } from '$lib/config'
+import { API_URL } from '$env/static/private'
 import type { DUUIDocument } from '$lib/duui/io'
 import { error, json, type RequestHandler } from '@sveltejs/kit'
 
