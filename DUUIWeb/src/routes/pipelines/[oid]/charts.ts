@@ -10,7 +10,7 @@ let gridSettings = {
 }
 
 let theme = {
-	palette: 'palette2', // upto palette10
+	palette: 'palette1', // upto palette10
 	monochrome: {
 		enabled: false
 	}
@@ -294,7 +294,7 @@ export const getUsagePlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) =
 	for (let index = 0; index < xLabels.length; index++) {
 		for (let item of pipeline.statistics.usage) {
 			if (item._id.year === year && item._id.month === index) {
-				yValues[index] = item.count
+				yValues[index - 1] = item.count
 			}
 		}
 	}
