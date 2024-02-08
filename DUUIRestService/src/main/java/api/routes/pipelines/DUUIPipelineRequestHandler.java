@@ -169,9 +169,7 @@ public class DUUIPipelineRequestHandler {
                 component.append("parameters", new Document());
             }
 
-            if (!component.containsKey("options")) {
-                component.append("options", mergeOptions(component.get("options", Document.class)));
-            }
+            component.append("options", mergeOptions(component.get("options", Document.class)));
         }
 
         DUUIMongoDBStorage
@@ -206,14 +204,22 @@ public class DUUIPipelineRequestHandler {
         Document update = Document.parse(request.body());
 
         DUUIPipelineController.updateOne(pipelineID, update);
-        Document insert = DUUIPipelineController.findOneById(pipelineID);
-        if (insert == null) return DUUIRequestHelper.badRequest(response, "Update failed.");
+        Document updated = DUUIPipelineController.findOneById(pipelineID);
+        if (updated == null) return DUUIRequestHelper.badRequest(response, "Update failed.");
+
+        Document responseObject = new Document();
+        responseObject.put("oid", updated.getString("oid"));
+        for (String key : updated.keySet()) {
+            if (update.containsKey(key)) {
+                responseObject.put(key, updated.get(key));
+            }
+        }
 
         response.status(201);
-        return insert.toJson();
+        return responseObject.toJson();
     }
 
-    public static String deleteOne(Request request, Response response) throws UnknownHostException {
+    public static String deleteOne(Request request, Response response) {
         String userID = DUUIRequestHelper.getUserId(request);
 
         Document user = DUUIRequestHelper.getUserProps(request, Set.of("role"));

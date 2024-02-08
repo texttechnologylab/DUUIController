@@ -46,11 +46,10 @@ public class DUUIDocumentController {
             && isNullOrEmpty(input.getPath()))
             return "input.path";
 
-        if (input.getProvider().equals(Provider.TEXT) && isNullOrEmpty(input.getFileExtension()))
+        if (!input.getProvider().equals(Provider.TEXT) && isNullOrEmpty(input.getFileExtension()))
             return "input.file_extension";
 
-        if (!(output.getProvider().equals(Provider.NONE) || output.getProvider().equals(Provider.DROPBOX))
-            && isNullOrEmpty(output.getPath()))
+        if (!output.getProvider().equals(Provider.NONE) && isNullOrEmpty(output.getPath()))
             return "output.path";
 
         if (!output.getProvider().equals(Provider.NONE) && isNullOrEmpty(output.getFileExtension()))

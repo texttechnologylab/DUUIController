@@ -260,7 +260,7 @@ public class Main {
         }
 
         response.status(200);
-        return new Document("path", root.toString()).toJson();
+        return new Document("path", uuid).toJson();
     }
 
     public static String downloadFile(Request request, Response response) {

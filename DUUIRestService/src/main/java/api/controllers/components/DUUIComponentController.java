@@ -194,6 +194,10 @@ public class DUUIComponentController {
     public static Document updateOne(String id, Document updates) {
         ObjectId oid = new ObjectId(id);
 
+        if (updates.containsKey("options")) {
+            updates.put("options", mergeOptions(updates.get("options", Document.class)));
+        }
+
         DUUIMongoDBStorage
             .updateDocument(
                 DUUIMongoDBStorage.Components(),

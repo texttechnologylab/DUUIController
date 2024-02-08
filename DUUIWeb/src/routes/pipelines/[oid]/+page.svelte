@@ -72,6 +72,7 @@
 
 	$currentPipelineStore = pipeline
 	$currentPipelineStore.components.forEach((c) => (c.id = uuidv4()))
+	const UPDATE_INTERVAL = 5000
 
 	let settings: Map<string, string> = new Map(Object.entries($currentPipelineStore.settings || {}))
 
@@ -370,6 +371,27 @@
 		}
 
 		loadApexCharts()
+
+		async function update() {
+			const loadPipeline = async () => {
+				const response = await fetch(`/api/pipelines?id=${pipeline.oid}`, {
+					method: 'GET'
+				})
+
+				if (response.ok) {
+					pipeline = await response.json()
+					$currentPipelineStore = pipeline
+					$currentPipelineStore.components.forEach((c) => (c.id = uuidv4()))
+					settings = new Map(Object.entries($currentPipelineStore.settings || {}))
+				}
+			}
+
+			loadPipeline()
+			updateTable()
+		}
+		let interval: NodeJS.Timeout = setInterval(update, UPDATE_INTERVAL)
+		update()
+		return () => clearInterval(interval)
 	})
 
 	let isInstantiating: boolean = false
@@ -468,16 +490,14 @@
 			{/if}
 
 			<button
-				class="button-primary {$currentPipelineStore.status === Status.Setup ||
-				$currentPipelineStore.status === Status.Shutdown
-					? 'aspect-square !px-4'
-					: ''}"
+				class="button-primary"
 				on:click={manageService}
 				disabled={$currentPipelineStore.status === Status.Setup ||
 					$currentPipelineStore.status === Status.Shutdown}
 			>
 				{#if $currentPipelineStore.status === Status.Setup || $currentPipelineStore.status === Status.Shutdown}
 					<Fa icon={faRotate} spin />
+					<span>Waiting</span>
 				{:else}
 					<Fa icon={$currentPipelineStore.status === Status.Idle ? faPause : faPlay} />
 					<span class="text-xs md:text-base"
@@ -626,7 +646,7 @@
 						<div class=" overflow-hidden flex flex-col border-b border-color">
 							{#each sortedProcessses as process}
 								<a
-									href={`/processes/${process.oid}?limit=20&skip=0`}
+									href={`/processes/${process.oid}?limit=10&skip=0`}
 									class="rounded-none
 											first:border-t-0 border-t border-color
 										    grid grid-cols-3 lg:grid-cols-7 gap-8 items-center

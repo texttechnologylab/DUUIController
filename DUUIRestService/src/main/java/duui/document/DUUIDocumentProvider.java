@@ -1,5 +1,6 @@
 package duui.document;
 
+import api.Main;
 import duui.process.IDUUIProcessHandler;
 import org.bson.Document;
 
@@ -34,8 +35,16 @@ public class DUUIDocumentProvider {
     private final String fileExtension;
 
     public DUUIDocumentProvider(Document document) {
+
         provider = document.getString("provider");
-        path = document.getString("path");
+        String temp = document.getString("path");
+
+        if (provider.equals(Provider.FILE)
+            && !temp.startsWith(Main.config.getProperty("FILE_UPLOAD_DIRECTORY"))) {
+            temp = Main.config.getProperty("FILE_UPLOAD_DIRECTORY") + "/" + temp;
+        }
+
+        path = temp;
         content = document.getString("content");
         fileExtension = document.getString("file_extension");
     }

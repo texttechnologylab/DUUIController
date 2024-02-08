@@ -90,7 +90,7 @@
 			process = await response.json()
 
 			progressPercent = progresAsPercent(process.progress, process.document_names.length)
-			updateTable()
+			
 
 			if (progressPercent > 100) progressPercent = 100
 			if (process.is_finished) {
@@ -102,6 +102,8 @@
 			interval = setInterval(updateProcess, UPDATE_INTERVAL)
 		}
 		updateProcess()
+		updateTable()
+		
 		return () => clearInterval(interval)
 	})
 

@@ -39,7 +39,7 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 			by = 'name'
 		}
 
-		let order: number = url.searchParams.get('order') === '1' ? 1 : -1
+		let order: number = (url.searchParams.get('order') || '1') === '1' ? 1 : -1
 		let text: string = url.searchParams.get('search') || ''
 		let filter: string = url.searchParams.get('status') || 'Any'
 		const response = await fetch(

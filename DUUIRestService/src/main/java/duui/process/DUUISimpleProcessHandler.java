@@ -108,11 +108,14 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
         Vector<DUUIComposer.PipelinePart> instantiatedPipeline) throws URISyntaxException, IOException {
         this.pipeline = pipeline;
 
+        boolean ignoreErrors = settings.getBoolean("ignore_errors", true);
+
         composer = new DUUIComposer()
             .withInstantiatedPipeline(instantiatedPipeline)
             .withSkipVerification(true)
             .withDebugLevel(DUUIComposer.DebugLevel.DEBUG)
             .asService(true)
+            .withIgnoreErrors(ignoreErrors)
             .withLuaContext(new DUUILuaContext().withJsonLibrary());
 
         this.process = process;

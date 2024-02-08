@@ -230,6 +230,10 @@ public class DUUIPipelineController {
      * @return if the instantiation was successfull.
      */
     public static boolean instantiate(String id) {
+        if (reusablePipelines.containsKey(id)) {
+            return true;
+        }
+
         setStatus(id, DUUIStatus.SETUP);
         Document pipeline = findOneById(id);
 
