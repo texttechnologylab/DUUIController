@@ -117,11 +117,23 @@ public class DUUIProcessController {
         List<Bson> aggregationPipeline = new ArrayList<>();
         List<Bson> processFacet = new ArrayList<>();
 
+
+        /*
+          Add a count and duration field to the matching entries.
+          The dollar sign prefix indicates a aggregation method (size, subtract)
+          or an existing field (document_names, started_at, finished_at)
+         */
+
         aggregationPipeline.add(Aggregates.addFields(
-            new Field<>("count", new Document("$size", "$document_names")),
-            new Field<>("duration", new Document("$subtract", List.of("$finished_at", "$started_at")))
+            new Field<>("count",
+                new Document("$size", "$document_names")),
+
+            new Field<>("duration",
+                new Document("$subtract", List.of("$finished_at", "$started_at")))
         ));
 
+
+        // Apply filters to the collection, reducing the number of returned entries.
         if (!filters.getFilters().isEmpty()) {
             aggregationPipeline.add(Aggregates.match(Filters.and(filters.getFilters())));
         }

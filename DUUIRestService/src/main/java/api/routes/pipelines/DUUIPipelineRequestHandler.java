@@ -115,8 +115,10 @@ public class DUUIPipelineRequestHandler {
         String userID = DUUIRequestHelper.getUserId(request);
 
         Document body = Document.parse(request.body());
+
         String name = body.getString("name");
-        if (isNullOrEmpty(name)) return DUUIRequestHelper.badRequest(response, "Missing field name");
+        if (isNullOrEmpty(name))
+            return DUUIRequestHelper.badRequest(response, "Missing field name");
 
         List<Document> components = body.getList("components", Document.class);
         if (isNullOrEmpty(components))
