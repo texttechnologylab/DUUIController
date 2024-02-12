@@ -47,7 +47,7 @@
 
 	export let data
 
-	let { templateComponents, templatePipelines, user } = data
+	let { templateComponents, templatePipelines, user, tour } = data
 
 	const isImport: boolean = ($page.url.searchParams.get('import') || '') === 'true'
 
@@ -85,11 +85,6 @@
 					searchText
 				) || !searchText
 		)
-	}
-
-	const updateUser = async (data: object) => {
-		const response = await fetch('/api/users', { method: 'PUT', body: JSON.stringify(data) })
-		return response
 	}
 
 	const toastStore = getToastStore()
@@ -194,7 +189,9 @@
 		}
 	}
 
-	onMount(() => (loaded = true))
+	onMount(() => {
+		loaded = true
+	})
 	let loaded: boolean = false
 	$: {
 		if (loaded) {
@@ -242,7 +239,7 @@
 	</button>
 </div>
 
-<div class="h-full">
+<div class="h-full gradient bg-repeat">
 	<div class="sticky top-0 bg-surface-50-900-token border-y p-4 border-color hidden md:block z-10">
 		<div class="grid grid-cols-2 md:flex items-center md:justify-between gap-4 relative">
 			<button
@@ -285,11 +282,8 @@
 	</div>
 
 	<div class="p-4 space-y-8 pb-20">
-		<h1 class="h2 font-bold">
-			{step === 0 ? 'Start from scratch' : $currentPipelineStore.name || 'New Pipeline'}
-		</h1>
-
 		{#if step === 0}
+			<h1 class="h2">Start from scratch</h1>
 			<div class="space-y-8">
 				<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-8">
 					<button
@@ -342,6 +336,9 @@
 				</div>
 			</div>
 		{:else if step === 1}
+			<h1 class="h1 text-center my-4">
+				{$currentPipelineStore.name || 'New Pipeline'}
+			</h1>
 			<div class="space-y-8">
 				<div class="grid md:grid-cols-2 gap-4">
 					<div
@@ -386,10 +383,10 @@
 						use:dndzone={{ items: $currentPipelineStore.components, dropTargetStyle: {} }}
 						on:consider={(event) => handleDndConsider(event)}
 						on:finalize={(event) => handleDndFinalize(event)}
-						class="grid gap-8 max-w-5xl mx-auto"
+						class="grid gap-8 max-w-5xl mx-auto !cursor-move"
 					>
 						{#each $currentPipelineStore.components as component (component.id)}
-							<div animate:flip={{ duration: flipDurationMs }} class="relative">
+							<div animate:flip={{ duration: flipDurationMs }} class="relative !cursor-move">
 								<PipelineComponent
 									{component}
 									inEditor={true}

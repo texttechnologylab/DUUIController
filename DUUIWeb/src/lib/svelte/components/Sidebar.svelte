@@ -7,11 +7,12 @@
 		faBook,
 		faHome,
 		faLayerGroup,
+		faMapSigns,
 		faQuestion,
 		faTools,
 		faUser
 	} from '@fortawesome/free-solid-svg-icons'
-	import { LightSwitch, getDrawerStore } from '@skeletonlabs/skeleton'
+	import { LightSwitch, getDrawerStore, getModalStore } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
 
 	const drawerStore = getDrawerStore()
@@ -30,6 +31,8 @@
 	onNavigate(() => {
 		drawerStore.close()
 	})
+
+	const modalStore = getModalStore()
 </script>
 
 <aside class="space-y-4 z-50 bg-surface-50-900-token h-full">
@@ -67,5 +70,17 @@
 			<Fa icon={faUser} />
 			Account
 		</a>
+		<button
+			class="flex items-center gap-4 animate-text"
+			on:click={() => {
+				modalStore.trigger({
+					type: 'component',
+					component: 'helpModal'
+				})
+			}}
+		>
+			<Fa icon={faMapSigns} />
+			<span>Help</span>
+		</button>
 	</div>
 </aside>

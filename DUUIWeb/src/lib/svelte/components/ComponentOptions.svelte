@@ -20,7 +20,7 @@
 					<span class="form-label">Use GPU</span>
 				</SlideToggle>
 			</label>
-			<p>When checked, allows Docker to utilize the GPU</p>
+			<p>When checked, allows Docker to utilize the GPU.</p>
 		</div>
 
 		<div class="space-y-1">
@@ -35,7 +35,7 @@
 					<span class="form-label">Docker Image Fetching</span>
 				</SlideToggle>
 			</label>
-			<p>When checked, attempts to download the image if it is doesn't exist locally</p>
+			<p>When checked, attempts to download the image if it is doesn't exist locally.</p>
 		</div>
 	{/if}
 
@@ -52,12 +52,13 @@
 					<span class="form-label">Ignore 200 errors</span>
 				</SlideToggle>
 			</label>
-			<p>When checked, ignores all errors as long as a status code of 200 is returned</p>
+			<p>When checked, ignores all errors as long as a status code of 200 is returned.</p>
 		</div>
 	{/if}
-
-	<Number min={1} max={20} name="scale" label="Scale" bind:value={component.options.scale} />
-	<p>Components can create multiple replicas of themselves for distributed processing</p>
+	<div class="space-y-2">
+		<Number min={1} max={20} name="scale" label="Scale" bind:value={component.options.scale} />
+		<p>Components can create multiple replicas of themselves for distributed processing.</p>
+	</div>
 	<!-- <TextInput name="host" label="Host" bind:value={component.options.host} /> -->
 	<!-- <div class="space-y-4">
 		<TextInput name="host" label="Username" bind:value={component.options.registry_auth.username} />

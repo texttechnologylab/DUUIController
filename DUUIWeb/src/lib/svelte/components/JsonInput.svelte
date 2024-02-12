@@ -48,7 +48,7 @@
 			{
 				title: 'Clear all Parameters',
 				message: 'Please confirm the deletion of ALL Parameters.',
-				textYes: 'Yes, clear',
+				textYes: 'Yes, clear'
 			},
 			modalStore
 		)

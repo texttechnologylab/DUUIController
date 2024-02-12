@@ -2,7 +2,7 @@
 	import Logo from '$lib/assets/Logo.svg'
 	import '../app.postcss'
 
-	import { faArrowRightFromBracket, faBars } from '@fortawesome/free-solid-svg-icons'
+	import { faArrowRightFromBracket, faBars, faMapSigns } from '@fortawesome/free-solid-svg-icons'
 	import {
 		AppBar,
 		AppShell,
@@ -11,7 +11,10 @@
 		Toast,
 		getDrawerStore,
 		type DrawerSettings,
-		type ModalComponent
+		type ModalComponent,
+
+		getModalStore
+
 	} from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
 
@@ -26,8 +29,10 @@
 	import Sidebar from '$lib/svelte/components/Sidebar.svelte'
 	import { arrow, autoUpdate, computePosition, flip, offset, shift } from '@floating-ui/dom'
 	import { Modal } from '@skeletonlabs/skeleton'
-
+	import HelpModal from '$lib/svelte/components/modals/HelpModal.svelte'
 	import PromptModal from '$lib/svelte/components/PromptModal.svelte'
+	import WelcomeModal from '$lib/svelte/components/modals/WelcomeModal.svelte'
+
 	import { storeHighlightJs } from '@skeletonlabs/skeleton'
 	import hljs from 'highlight.js/lib/core'
 	import java from 'highlight.js/lib/languages/java'
@@ -94,8 +99,12 @@
 	const modalRegistry: Record<string, ModalComponent> = {
 		documentModal: { ref: DocumentModal },
 		promptModal: { ref: PromptModal },
-		confirmModal: { ref: ConfirmModal }
+		confirmModal: { ref: ConfirmModal },
+		welcomeModal: { ref: WelcomeModal },
+		helpModal: { ref: HelpModal }
 	}
+
+	const modalStore = getModalStore()
 </script>
 
 <Modal components={modalRegistry} />
@@ -157,6 +166,17 @@
 						<Link href="/account/login">Login</Link>
 						<Link href="/account/register">Register</Link>
 					{/if}
+					<button
+						class="animate-underline animate-text"
+						on:click={() => {
+							modalStore.trigger({
+								type: 'component',
+								component: 'helpModal'
+							})
+						}}
+					>
+						<span>Help</span>
+					</button>
 				</div>
 
 				<a href="/">

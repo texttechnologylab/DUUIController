@@ -2,6 +2,7 @@
 	import { faLightbulb } from '@fortawesome/free-solid-svg-icons'
 	import { popup, type PopupSettings } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
+	import { v4 as uuidv4 } from 'uuid'
 
 	export let label: string = ''
 	export let name: string = ''
@@ -16,9 +17,11 @@
 	export let placeholder: string = ''
 	export let help: string = ''
 
+	const id = uuidv4()
+
 	const helpPopup: PopupSettings = {
 		event: 'hover',
-		target: 'helpPopup',
+		target: id,
 		placement: 'bottom-start',
 		middleware: {
 			offset: 0
@@ -27,7 +30,7 @@
 </script>
 
 {#if help}
-	<div data-popup="helpPopup">
+	<div data-popup={id}>
 		<div class="text-sm z-50 max-w-[50ch] variant-filled-primary rounded-sm p-4 shadow-lg">
 			<div class="grid grid-cols-[auto_1fr] items-center gap-4">
 				<Fa icon={faLightbulb} size="2x" />

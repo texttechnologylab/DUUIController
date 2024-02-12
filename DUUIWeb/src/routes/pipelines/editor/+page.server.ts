@@ -40,6 +40,9 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 	return {
 		templateComponents: (await fetchComponentTemplates()).components,
 		templatePipelines: (await fetchPipelineTemplates()).pipelines,
-		user: locals.user
+		tour: {
+			show: cookies.get('do_tour') || false,
+			step: cookies.get('tour_step')
+		}
 	}
 }

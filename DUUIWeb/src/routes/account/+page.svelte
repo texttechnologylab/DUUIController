@@ -1,25 +1,27 @@
 <script lang="ts">
 	import { successToast } from '$lib/duui/utils/ui.js'
 	import { userSession } from '$lib/store.js'
-	import { showConfirmationModal } from '$lib/svelte/utils/modal.js'
+	import Password from '$lib/svelte/components/Password.svelte'
 	import Secret from '$lib/svelte/components/Secret.svelte'
 	import Text from '$lib/svelte/components/TextInput.svelte'
+	import { showConfirmationModal } from '$lib/svelte/utils/modal.js'
 	import {
 		faAdd,
 		faCheck,
 		faFilePen,
 		faFileText,
 		faLink,
+		faMapSigns,
 		faRefresh,
-		faSave,
+		faTrash,
 		faXmarkCircle
 	} from '@fortawesome/free-solid-svg-icons'
 	import { clipboard, getModalStore, getToastStore } from '@skeletonlabs/skeleton'
+	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
-	import Password from '$lib/svelte/components/Password.svelte'
 
 	export let data
-	const { user, dropbBoxURL } = data
+	const { user, registered, dropbBoxURL } = data
 	const toastStore = getToastStore()
 
 	if (user && $userSession) {
@@ -49,6 +51,24 @@
 			toastStore.trigger(successToast('Update successful'))
 		}
 		return response
+	}
+
+	const deleteAccount = async () => {
+		const confirm = await showConfirmationModal(
+			{
+				title: 'Regenerate API Key',
+				message:
+					'If you regenarate your API key, the current one will not work anymore. Make sure to update your API key in all applications its used in.',
+				textYes: 'Regenerate'
+			},
+			modalStore
+		)
+
+		if (!confirm) return
+
+		await fetch('/api/users', {
+			method: 'DELETE'
+		})
 	}
 
 	const generateApiKey = async () => {
@@ -151,6 +171,15 @@
 		}
 	}
 
+	onMount(() => {
+		if (registered) {
+			modalStore.trigger({
+				type: 'component',
+				component: 'welcomeModal'
+			})
+		}
+	})
+
 	$: {
 		if (!$userSession) {
 			connections = { dropbox: false, minio: false, key: false }
@@ -190,6 +219,22 @@
 			<Fa icon={faCheck} />
 			<span>Save</span>
 		</button>
+		<hr class="hr" />
+		<div class="space-y-4">
+			<p>Need help? Start a quick tour that explains basic concepts.</p>
+			<button
+				class="button-primary button-modal"
+				on:click={() => {
+					modalStore.trigger({
+						type: 'component',
+						component: 'helpModal'
+					})
+				}}
+			>
+				<Fa icon={faMapSigns} />
+				<span>Help</span>
+			</button>
+		</div>
 	</div>
 
 	<div class="space-y-4">
@@ -340,5 +385,13 @@
 				for further reading.
 			</p>
 		</div>
+	</div>
+	<div
+		class="section-wrapper p-8 space-y-8 scroll-mt-4 flex justify-center items-center md:col-span-2"
+	>
+		<button class="button-error" on:click={deleteAccount}>
+			<Fa icon={faTrash} />
+			<span>Delete Account</span>
+		</button>
 	</div>
 </div>

@@ -578,10 +578,10 @@
 							use:dndzone={{ items: $currentPipelineStore.components, dropTargetStyle: {} }}
 							on:consider={(event) => handleDndConsider(event)}
 							on:finalize={(event) => handleDndFinalize(event)}
-							class="grid gap-8 md:max-w-5xl mx-auto"
+							class="grid gap-8 md:max-w-5xl mx-auto !cursor-move"
 						>
 							{#each $currentPipelineStore.components as component (component.id)}
-								<div animate:flip={{ duration: 300 }} class="relative">
+								<div animate:flip={{ duration: 300 }} class="relative !cursor-move">
 									<PipelineComponent
 										{component}
 										cloneable={true}

@@ -47,7 +47,7 @@
 
 		if (response.ok) {
 			userSession.set(result.user)
-			goto('/pipelines')
+			goto('/account')
 		} else {
 			message = result
 		}
