@@ -80,17 +80,18 @@
 </script>
 
 <div
-	class="z-50 bg-surface-50-900-token w-modal max-w-screen-lg rounded-md overflow-hidden border-2 border-color"
+	class="z-50 bg-surface-50-900-token w-full max-w-screen-md rounded-md overflow-hidden border-2 border-color"
 >
 	<div class="modal-header bg-surface-100-800-token">
-		<h3 class="h3">Creating a pipeline</h3>
+		<h3 class="h3">Getting Started</h3>
 		<button on:click={modalStore.close}>
 			<Fa icon={faClose} size="lg" />
 		</button>
 	</div>
 	<div class="modal-body">
-		<div class="p-8 space-y-12 text-lg grid justify-center text-center">
-			<p class="max-w-none">
+		<div class="p-8 space-y-12 text-lg grid justify-center">
+			<p>
+				DUUI automates big data analysis using
 				<a class="anchor" href="/documentation#pipeline">Pipelines</a> are containers for
 				<a href="/documentation#component" class="anchor">Components</a> that make up an executable
 				workflow. Each Component must follow the implementation as defined by DUUI and is therefore
@@ -100,13 +101,13 @@
 
 			<hr class="hr" />
 			<div class="grid gap-4">
-				<p class="font-bold h2 mx-auto">Component</p>
-				<p class="mx-auto">
+				<p class="font-bold h2">Component</p>
+				<p>
 					A Component is instantiated and controlled by a Driver indicated by an icon. The Driver
 					also defines settings that influence a Component's behavior. These settings can be changed
 					by clicking the <Fa class="inline" icon={faEdit} /> icon.
 				</p>
-				<div class="flex flex-wrap justify-center gap-4">
+				<div class="flex flex-wrap justify-start gap-4">
 					{#each DUUIDrivers as driver}
 						<div class="grid grid-cols-[40px_1fr] items-center gap-4">
 							<DriverIcon {driver} />
@@ -117,8 +118,8 @@
 			</div>
 			<hr class="hr" />
 			<div class="grid gap-4">
-				<p class="font-bold h2 mx-auto">Pipeline</p>
-				<p class="mx-auto">The order of execution can be changed via Drag & Drop.</p>
+				<p class="font-bold h2">Pipeline</p>
+				<p>The order of execution can be changed via Drag & Drop.</p>
 				<ul
 					use:dndzone={{ items: exampleComponents, dropTargetStyle: {} }}
 					on:consider={(event) => handleDndConsider(event)}
@@ -149,21 +150,21 @@
 					{/each}
 				</ul>
 			</div>
-			<p class="mx-auto">
+			<p>
 				Pipelines can be created from scratch or using a Template in the <a
 					href="/pipelines/editor"
 					class="anchor">Editor</a
 				>.
 			</p>
 			<hr class="hr" />
-			<div class="grid gap-4 mx-auto">
+			<div class="grid gap-4">
 				<p class="font-bold h2">Process</p>
-				<p class="mx-auto">
+				<p>
 					Once you have a created a Pipeline, you can start using it to analyze files or plain text.
-					Using external a cloud storage as the input or output source requires you to connect your
+					Using an external cloud storage as the input or output requires you to connect your
 					provider of choice with DUUI on the <a href="/account" class="anchor">Account</a> page.
 				</p>
-				<p class="mx-auto">
+				<p>
 					Processes can be created by clicking the
 					<span class="badge variant-soft-primary">
 						<Fa icon={faRocket} />

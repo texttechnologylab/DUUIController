@@ -89,9 +89,8 @@
 <!-- Mobile Menu -->
 
 <div data-popup="mobile-filter" class="z-50">
-	<div class="flex flex-col bg-surface-50-900-token shadow-lg border border-color">
+	<div class="popup-solid p-2 space-y-2">
 		<Dropdown
-			rounded="!rounded-none"
 			name="driverMobile"
 			icon={faChevronUp}
 			placement="top-start"
@@ -103,7 +102,7 @@
 			bind:query={searchText}
 			icon={faSearch}
 			placeholder="Search..."
-			style="input-wrapper !rounded-none md:!rounded-sm p-4 md:p-3"
+			style="input-wrapper p-4 md:p-3"
 		/>
 	</div>
 </div>

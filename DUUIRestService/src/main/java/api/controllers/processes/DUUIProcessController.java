@@ -53,7 +53,17 @@ public class DUUIProcessController {
             .append("sort_by_size", false)
             .append("minimum_size", 0)
             .append("worker_count", 1)
-            .append("ignore_errors", true);
+            .append("ignore_errors", true)
+            .append("language", "");
+    }
+
+    public static String getLanguageCode(String language) {
+        return switch (language.toLowerCase()) {
+            case "german" -> "de";
+            case "english" -> "en";
+            case "french" -> "fr";
+            default -> "";
+        };
     }
 
     /**

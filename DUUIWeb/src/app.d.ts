@@ -54,9 +54,14 @@ type PaginationSettings = {
 	sizes: number[] = [5, 10, 20, 50]
 }
 
+enum Order {
+	Ascending = 1,
+	Descending = -1
+}
+
 type Sort = {
-	by: number
-	order: 1 | -1
+	index: number
+	order: Order
 }
 
 type ServiceStatus = 'starting' | 'active' | 'stopping' | 'inactive'

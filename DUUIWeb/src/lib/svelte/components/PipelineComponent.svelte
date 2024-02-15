@@ -42,7 +42,7 @@
 		<div class="scroll-mt-4 md:scroll-mt-16 flex-col-reverse gap-4 md:flex-row flex">
 			{#if cloneable}
 				<button
-					class="pointer-events-auto animate-text flex flex-col justify-center gap-2"
+					class="pointer-events-auto button-neutral !border-none"
 					on:click={() => {
 						dispatcher('clone', { component: cloneDeep(component) })
 					}}
@@ -52,7 +52,7 @@
 				</button>
 			{/if}
 			<button
-				class="pointer-events-auto animate-text flex flex-col justify-center gap-2"
+				class="pointer-events-auto button-neutral !border-none"
 				on:click={() => {
 					drawerStore.open(drawer)
 				}}

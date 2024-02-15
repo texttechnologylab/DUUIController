@@ -40,7 +40,10 @@
 	const download = async () => {
 		downloading = true
 		const response = await fetch(
-			`/api/files/download?provider=${output.provider}&path=${URLOut}`,
+			`/api/files/download?provider=${output.provider}&path=${output.path}/${_document.name.replace(
+				input.file_extension,
+				output.file_extension
+			)}`,
 			{
 				method: 'GET'
 			}
@@ -64,10 +67,10 @@
 	}
 
 	switch (input.provider) {
-		case 'Dropbox':
-			URLIn = 'https://www.dropbox.com/home/Apps'
+		case IO.Dropbox:
+			URLIn = 'https://www.dropbox.com/home/Apps/Docker Unified UIMA Interface'
 			break
-		case 'Minio':
+		case IO.Minio:
 			URLIn = $userSession?.connections.minio.endpoint || ''
 			break
 		default:
@@ -75,10 +78,10 @@
 	}
 
 	switch (output.provider) {
-		case 'Dropbox':
-			URLOut = 'https://www.dropbox.com/home/Apps'
+		case IO.Dropbox:
+			URLOut = 'https://www.dropbox.com/home/Apps/Docker Unified UIMA Interface'
 			break
-		case 'Minio':
+		case IO.Minio:
 			URLOut = $userSession?.connections.minio.endpoint || ''
 			break
 		default:

@@ -36,13 +36,13 @@
 	} from '@fortawesome/free-solid-svg-icons'
 	import type { DrawerSettings } from '@skeletonlabs/skeleton'
 	import { getDrawerStore, getModalStore, getToastStore } from '@skeletonlabs/skeleton'
-	import pkg from 'lodash'
 	import { onMount } from 'svelte'
 	import { dndzone, type DndEvent } from 'svelte-dnd-action'
 	import Fa from 'svelte-fa'
 	import { flip } from 'svelte/animate'
-	import { v4 as uuidv4 } from 'uuid'
 	import ComponentTemplates from './ComponentTemplates.svelte'
+	import { v4 as uuidv4 } from 'uuid'
+	import pkg from 'lodash'
 	const { cloneDeep } = pkg
 
 	export let data
@@ -372,10 +372,7 @@
 			</div>
 		{:else if step === 2}
 			<div class="space-y-8">
-				<div
-					class="min-h-[400px] rounded-md border border-surface-200 space-y-8
-								dark:border-surface-500 isolate bg-surface-100 dark:variant-soft-surface shadow-lg p-4 md:p-16"
-				>
+				<div class="min-h-[400px] space-y-8 isolate md:p-16">
 					{#if $currentPipelineStore.components.length === 0}
 						<p class="mx-auto text-center h2 font-bold">Add a Component to get Started</p>
 					{/if}

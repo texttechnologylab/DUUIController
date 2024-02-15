@@ -14,7 +14,7 @@
 	export let icon: IconDefinition = faChevronDown
 	export let placement: Placement = 'bottom-end'
 
-	export let offset: number = 8 
+	export let offset: number = 8
 
 	export let style: string = 'input-wrapper'
 	export let rounded: string = 'rounded-md'
@@ -36,7 +36,7 @@
 		<span class="form-label">{label} </span>
 	{/if}
 	<button
-		class="flex items-center justify-between gap-2 px-3 py-2 leading-6 {border} {rounded} {style}"
+		class="flex items-center !justify-between gap-2 px-3 py-2 leading-6 {border} {rounded} {style}"
 		use:popup={dropdown}
 	>
 		<span>{toTitleCase('' + value)}</span>
@@ -44,23 +44,24 @@
 	</button>
 </div>
 
-<div class="popup-solid !m-0" data-popup={name}>
-	<ListBox rounded="rounded-none" spacing="space-y-0">
-		{#each options as option}
-			<ListBoxItem
-				on:change
-				bind:group={value}
-				{name}
-				value={option}
-				rounded="rounded-none"
-				spacing="space-y-0"
-				active="variant-filled-primary dark:variant-soft-primary"
-			>
-				<svelte:fragment slot="lead">
-					<Fa class={equals('' + value, '' + option) ? '' : 'invisible'} icon={faCheck} />
-				</svelte:fragment>
-				{option}
-			</ListBoxItem>
-		{/each}
-	</ListBox>
+<div data-popup={name}>
+	<div class="popup-solid p-2">
+		<ListBox class="overflow-hidden" rounded="rounded-md" spacing="space-y-2">
+			{#each options as option}
+				<ListBoxItem
+					on:change
+					bind:group={value}
+					{name}
+					value={option}
+					rounded="rounded-md"
+					active="variant-filled-primary dark:variant-soft-primary"
+				>
+					<svelte:fragment slot="lead">
+						<Fa class={equals('' + value, '' + option) ? '' : 'invisible'} icon={faCheck} />
+					</svelte:fragment>
+					{option}
+				</ListBoxItem>
+			{/each}
+		</ListBox>
+	</div>
 </div>

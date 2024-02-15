@@ -5,7 +5,7 @@ export async function GET({ url, cookies }) {
 	const path = url.searchParams.get('path')
 
 	const response = await fetch(
-		`${API_URL}/files?provider=${provider}&path=${path.replace(DBX_URL, '')}`,
+		`${API_URL}/files?provider=${provider}&path=${path}`,
 		{
 			method: 'GET',
 			mode: 'cors',

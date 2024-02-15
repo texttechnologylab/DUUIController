@@ -3,7 +3,10 @@
 	import {
 		faArrowUpRightFromSquare,
 		faArrowsAlt,
+		faBook,
+		faChartSimple,
 		faCheck,
+		faChevronRight,
 		faCloud,
 		faGlobe,
 		faRecycle,
@@ -12,12 +15,12 @@
 
 	import { goto } from '$app/navigation'
 	import Logo from '$lib/assets/Logo.svg'
-	import { scrollIntoView } from '$lib/duui/utils/ui'
 	import { userSession } from '$lib/store'
 	import Link from '$lib/svelte/components/Link.svelte'
 	import { faAmazon, faDropbox, faGithub, faXTwitter } from '@fortawesome/free-brands-svg-icons'
-	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
+	import Document from '$lib/assets/Screenshots/Document_with_Download.png'
+	import Pipeline from '$lib/assets/Screenshots/Pipeline_Processes.png'
 
 	const logout = async () => {
 		const response = await fetch('/account/logout', { method: 'PUT' })
@@ -56,31 +59,30 @@
 
 				<div class="grid md:grid-cols-2 gap-4">
 					{#if $userSession === undefined}
-						<a href="/account/register" class="button-modal button-primary">
+						<a href="/account/register" class="button-modal button-primary shadow-md">
 							<span> Get Started </span>
+							<Fa icon={faChevronRight} />
 						</a>
 					{:else}
 						<a href="/pipelines" class="button-modal button-primary">
 							<span> Get back to it </span>
+							<Fa icon={faChevronRight} />
 						</a>
 					{/if}
 					<a
 						href="/documentation"
-						class="text-primary-700-200-token shadow-lg button-modal hover:variant-soft-primary transition-colors"
+						class="text-primary-700-200-token shadow-md button-modal hover:variant-soft-primary transition-colors button bordered-soft"
 					>
 						<span> Documentation </span>
+						<Fa icon={faBook} />
 					</a>
 				</div>
 			</div>
 		</div>
-		<!-- <div class="max-w-[50%] pb-16 hidden lg:block">
-			<img src={Pipeline} alt="" class="dark:hidden block"/>
-			<img src={PipelineDark} alt="" class="hidden dark:block"/>
-		</div> -->
 
-		<section class="bg-surface-50-900-token w-screen py-4 lg:py-16 border-y-2 border-color">
+		<section class="bg-surface-50-900-token w-screen p-4 border-y border-color">
 			<div
-				class="container mx-auto p-4 py-16 gap-12 md:gap-4 grid md:grid-cols-3 items-start isolate"
+				class="container mx-auto py-16 gap-4 grid md:grid-cols-2 xl:grid-cols-3 items-start isolate"
 			>
 				<Feature
 					icon={faUserGroup}
@@ -97,10 +99,33 @@
 					title="Scalable"
 					content="DUUI guarantees horizontal and vertical via a native Docker Swarm implementation. Docker enables machine-specific resource management."
 				/>
+				<!-- <div class="col-start-2">
+					<Feature icon={faChartSimple} title="Monitor" content="" />
+				</div> -->
 			</div>
-			<p class="mx-auto md:text-lg max-w-[75ch]">
-				Docker Unified UIMA Interface is designed in a modular way...
-			</p>
+			<div class="container mx-auto text-start p-4 py-8 space-y-8">
+				<div class=" grid md:grid-cols-2 items-center justify-center md:gap-16 gap-4">
+					<div class="space-y-2">
+						<h3 class="h3">Monitoring</h3>
+						<p>
+							Pipelines are monitored in detail on a Document level including metrics for performed
+							annotations and durations for each step in a process.
+						</p>
+					</div>
+					<img src={Document} alt="" />
+				</div>
+				
+				<div class=" grid md:grid-cols-2 items-center justify-center md:gap-16 gap-4">
+					<img src={Pipeline} alt="" />
+					<div class="space-y-2">
+						<h3 class="h3">Monitoring</h3>
+						<p>
+							Pipelines are monitored in detail on a Document level including metrics for performed
+							annotations and durations for each step in a process.
+						</p>
+					</div>
+				</div>
+			</div>
 		</section>
 		<div class="w-screen relative overflow-hidden">
 			<div class="container max-w-7xl mx-auto space-y-8 my-8">
@@ -186,7 +211,21 @@
 				</section>
 			</div>
 		</div>
-
+		<div class="w-screen variant-filled-primary min-h-[200px]">
+			<div class="flex flex-col justify-center items-center py-16 gap-8">
+				<h2 class="h2">Automate big data analysis with DUUI</h2>
+				<section class="md:p-8 grid md:grid-cols-2 gap-4">
+					<button class="button bg-surface-50-900-token text-surface-900-50-token">
+						<span>Create Account</span>
+						<Fa icon={faChevronRight} />
+					</button>
+					<button class="button bg-surface-50-900-token text-surface-900-50-token">
+						<span>GitHub</span>
+						<Fa icon={faGithub} />
+					</button>
+				</section>
+			</div>
+		</div>
 	</div>
 </main>
 

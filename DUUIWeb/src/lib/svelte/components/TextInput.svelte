@@ -31,7 +31,7 @@
 
 {#if help}
 	<div data-popup={id}>
-		<div class="text-sm z-50 max-w-[50ch] variant-filled-primary rounded-sm p-4 shadow-lg">
+		<div class="text-sm z-50 max-w-[50ch] variant-filled-primary rounded-sm p-4 shadow-md">
 			<div class="grid grid-cols-[auto_1fr] items-center gap-4">
 				<Fa icon={faLightbulb} size="2x" />
 				<p class="border-l pl-4">{help}</p>
@@ -57,5 +57,6 @@
 		{required}
 		{readonly}
 		on:keydown
+		on:change
 	/>
 </label>

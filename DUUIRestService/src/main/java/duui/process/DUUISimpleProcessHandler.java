@@ -186,6 +186,7 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
                 .withOutputFileExtension(output.getFileExtension())
                 .withOutputHandler(outputHandler)
                 .withAddMetadata(true)
+                .withLanguage(DUUIProcessController.getLanguageCode(settings.getString("language")))
                 .withMinimumDocumentSize(Math.max(0, Math.min(Integer.MAX_VALUE, settings.getInteger("minimum_size"))))
                 .withSortBySize(settings.getBoolean("sort_by_size", false))
                 .withCheckTarget(settings.getBoolean("check_target", false))
@@ -229,6 +230,8 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
                 dmd.addToIndexes();
             }
 
+            cas.setDocumentLanguage(DUUIProcessController.getLanguageCode(settings.getString("language")));
+
             composer.addEvent(DUUIEvent.Sender.READER, "Starting Pipeline");
             DUUIProcessController.setStatus(getProcessID(), DUUIStatus.ACTIVE);
             status = DUUIStatus.ACTIVE;
@@ -266,6 +269,8 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
         DUUIProcessController.updatePipelineStatus(getProcessID(), composer.getPipelineStatus());
         DUUIProcessController.setProgress(getProcessID(), composer.getProgress());
         DUUIDocumentController.updateMany(getProcessID(), composer.getDocuments());
+        DUUIEventController.insertMany(getProcessID(), composer.getEvents());
+        DUUIProcessController.insertAnnotations(getProcessID(), composer.getDocuments());
     }
 
     @Override

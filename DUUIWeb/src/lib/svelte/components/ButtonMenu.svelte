@@ -14,7 +14,7 @@
 </script>
 
 <div data-popup="popup">
-	<div class="flex flex-col bg-surface-50-900-token shadow-lg border border-color">
+	<div class="popup-solid p-2 flex flex-col space-y-2">
 		<slot />
 	</div>
 </div>

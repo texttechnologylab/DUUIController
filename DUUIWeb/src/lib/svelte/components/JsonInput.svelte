@@ -122,9 +122,7 @@
 			{/if}
 		</div>
 		{#if data.size === 0}
-			<div class="text-sm max-w-[60ch] space-y-4">
-				<p>Click new, then enter both a key and value then press enter or click confirm.</p>
-			</div>
+			<p>Click new, enter both a key and value then press enter or click confirm.</p>
 		{/if}
 
 		<div class="flex flex-wrap justify-start items-start gap-2">

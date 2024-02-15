@@ -13,13 +13,16 @@
 		faPlus,
 		faRocket,
 		faRotate,
+		faToolbox,
 		faTrash
 	} from '@fortawesome/free-solid-svg-icons'
 	import {
 		getDrawerStore,
 		getModalStore,
 		type DrawerSettings,
-		type ModalSettings
+		type ModalSettings,
+		type PopupSettings,
+		popup
 	} from '@skeletonlabs/skeleton'
 
 	import { dndzone, type DndEvent } from 'svelte-dnd-action'
@@ -62,12 +65,13 @@
 		getUsagePlotOptions
 	} from './charts'
 	import { getFilterOrGeneric } from '$lib/utils'
+	import ComponentTemplates from '../editor/ComponentTemplates.svelte'
 
 	const modalStore = getModalStore()
 	const toastStore = getToastStore()
 
 	export let data: PageServerData
-	let { pipeline, processInfo } = data
+	let { pipeline, processInfo, templateComponents } = data
 	let { processes, count } = processInfo
 
 	$currentPipelineStore = pipeline
@@ -86,8 +90,8 @@
 	]
 
 	const sort: Sort = {
-		by: 0,
-		order: -1
+		index: +($page.url.searchParams.get('sort') || '0'),
+		order: +($page.url.searchParams.get('order') || '1')
 	}
 
 	const sortMap: Map<number, string> = new Map([
@@ -100,9 +104,10 @@
 		[6, 'duration']
 	])
 
+	let limit = +($page.url.searchParams.get('limit') || '10')
 	let paginationSettings: PaginationSettings = {
-		page: 0,
-		limit: 10,
+		page: Math.floor(+($page.url.searchParams.get('skip') || '0'), limit),
+		limit: limit,
 		total: count,
 		sizes: [5, 10, 20, 50]
 	}
@@ -270,7 +275,7 @@
 			?pipeline_id=${$currentPipelineStore.oid}
 			&limit=${paginationSettings.limit}
 			&skip=${paginationSettings.page * paginationSettings.limit}
-			&sort=${sortMap.get(sort.by)}
+			&sort=${sortMap.get(sort.index)}
 			&order=${sort.order}
 			&status=${statusFilter.join(';')}
 			&input=${inputFilter.join(';')}
@@ -278,6 +283,15 @@
 			{
 				method: 'GET'
 			}
+		)
+
+		goto(
+			`/pipelines/${pipeline.oid}
+			?limit=${paginationSettings.limit}
+			&skip=${paginationSettings.page * paginationSettings.limit}
+			&sort=${sort.index}
+			&order=${sort.order}
+			&tab=1`
 		)
 
 		const json = await response.json()
@@ -324,8 +338,8 @@
 	}
 
 	const sortTable = (index: number) => {
-		sort.order = sort.by !== index ? 1 : sort.order === 1 ? -1 : 1
-		sort.by = index
+		sort.order = sort.index !== index ? 1 : sort.order === 1 ? -1 : 1
+		sort.index = index
 		updateTable()
 	}
 
@@ -393,11 +407,45 @@
 				break
 		}
 	}
+
+	const addComponentPopup: PopupSettings = {
+		event: 'click',
+		target: 'add-component',
+		placement: 'top',
+		closeQuery: 'button',
+		middleware: {
+			offset: 4
+		}
+	}
 </script>
 
 <svelte:head>
 	<title>{$currentPipelineStore.name}</title>
 </svelte:head>
+
+<div data-popup="add-component" class="z-50">
+	<div class="popup-solid">
+		<div class="flex flex-col p-2 gap-2">
+			<button class="button-neutral !border-none" on:click={addComponent}>
+				<Fa icon={faPlus} />
+				<span>New</span>
+			</button>
+			<button
+				class="button-neutral !border-none"
+				on:click={() => {
+					modalStore.trigger({
+						type: 'component',
+						component: 'templateModal',
+						meta: { templates: templateComponents }
+					})
+				}}
+			>
+				<Fa icon={faToolbox} />
+				<span>Template</span>
+			</button>
+		</div>
+	</div>
+</div>
 
 <div class="menu-mobile-lg">
 	<a href="/pipelines" class="button-mobile">
@@ -423,15 +471,15 @@
 	</button>
 
 	<ButtonMenu>
-		<button class="button" on:click={copyPipeline}>
+		<button class="button !justify-start" on:click={copyPipeline}>
 			<Fa icon={faFileClipboard} />
 			<span>Copy</span>
 		</button>
-		<button class="button" on:click={exportPipeline}>
+		<button class="button !justify-start" on:click={exportPipeline}>
 			<Fa icon={faFileExport} />
 			<span>Export</span>
 		</button>
-		<button class="button" on:click={manageService} disabled={isInstantiating}>
+		<button class="button !justify-start" on:click={manageService} disabled={isInstantiating}>
 			{#if isInstantiating}
 				<Fa icon={faRotate} spin />
 				<span>Waiting</span>
@@ -446,29 +494,22 @@
 <div class="h-full">
 	<div class="sticky top-0 bg-surface-50-900-token border-y p-4 border-color hidden lg:block z-10">
 		<div class=" flex items-center justify-start relative md:gap-4">
-			<a href="/pipelines" class="button-primary">
+			<a href="/pipelines" class="anchor-neutral">
 				<Fa icon={faArrowLeft} />
 				<span class="text-xs md:text-base">Pipelines</span>
 			</a>
 
-			<button class="button-primary" on:click={exportPipeline}>
+			<button class="button-neutral" on:click={exportPipeline}>
 				<Fa icon={faFileExport} />
 				<span class="text-xs md:text-base">Export</span>
 			</button>
 
-			<button class="button-primary" on:click={copyPipeline}>
+			<button class="button-neutral" on:click={copyPipeline}>
 				<Fa icon={faFileClipboard} />
 				<span class="text-xs md:text-base">Copy</span>
 			</button>
-			{#if $currentPipelineStore.user_id !== null && tabSet !== 2}
-				<a class="button-primary" href={`/processes?pipeline_id=${$currentPipelineStore.oid}`}>
-					<Fa icon={faRocket} />
-					<span>Process</span>
-				</a>
-			{/if}
-
 			<button
-				class="button-primary {$currentPipelineStore.status === Status.Setup ||
+				class="button-neutral {$currentPipelineStore.status === Status.Setup ||
 				$currentPipelineStore.status === Status.Shutdown
 					? 'aspect-square !px-4'
 					: ''}"
@@ -485,6 +526,12 @@
 					>
 				{/if}
 			</button>
+			{#if $currentPipelineStore.user_id !== null && tabSet !== 2}
+				<a class="button-primary" href={`/processes?pipeline_id=${$currentPipelineStore.oid}`}>
+					<Fa icon={faRocket} />
+					<span>Process</span>
+				</a>
+			{/if}
 
 			<button class="button-success md:ml-auto" on:click={updatePipeline}>
 				<Fa icon={faFileCircleCheck} />
@@ -554,31 +601,33 @@
 		</div>
 
 		{#if tabSet === 0}
-			<div
-				class="section-wrapper !rounded-tr-none !rounded-tl-none !border-t-none grid lg:grid-cols-2 gap-8 p-4"
-			>
-				<div class="space-y-4">
-					<Text label="Name" name="pipeline-name" bind:value={$currentPipelineStore.name} />
-					<TextArea
-						label="Description"
-						name="pipeline-description"
-						bind:value={$currentPipelineStore.description}
-					/>
+			<div class="section-wrapper !rounded-tr-none !rounded-tl-none !border-t-none space-y-16">
+				<div class="grid lg:grid-cols-2 gap-8 p-4">
+					<div class="space-y-4">
+						<Text label="Name" name="pipeline-name" bind:value={$currentPipelineStore.name} />
+						<TextArea
+							label="Description"
+							name="pipeline-description"
+							bind:value={$currentPipelineStore.description}
+						/>
 
-					<Chips label="Tags" placeholder="Add a tag..." bind:values={$currentPipelineStore.tags} />
+						<Chips
+							label="Tags"
+							placeholder="Add a tag..."
+							bind:values={$currentPipelineStore.tags}
+						/>
+					</div>
+					<JsonInput bind:data={settings} label="Settings" />
 				</div>
-				<JsonInput bind:data={settings} label="Settings" />
-				<div class="lg:col-span-2 space-y-4">
-					<h2 class="h2">Components</h2>
-					<div
-						class="min-h-[400px] rounded-md md:border border-surface-200 space-y-8
-								dark:border-surface-500 isolate md:bg-surface-100 dark:md:variant-soft-surface md:shadow-lg md:p-16"
-					>
+				<hr class="hr !w-full">
+				<div class="space-y-4 p-4">
+					<h2 class="h2 text-center">Components</h2>
+					<div class="min-h-[400px] space-y-8 isolate md:p-16">
 						<ul
 							use:dndzone={{ items: $currentPipelineStore.components, dropTargetStyle: {} }}
 							on:consider={(event) => handleDndConsider(event)}
 							on:finalize={(event) => handleDndFinalize(event)}
-							class="grid gap-8 md:max-w-5xl mx-auto !cursor-move"
+							class="grid md:max-w-5xl mx-auto !cursor-move group"
 						>
 							{#each $currentPipelineStore.components as component (component.id)}
 								<div animate:flip={{ duration: 300 }} class="relative !cursor-move">
@@ -592,96 +641,120 @@
 											)
 										}}
 									/>
+									{#if component.index < $currentPipelineStore.components.length - 1}
+										<div
+											class="my-4 mx-auto flex items-center justify-center
+											relative
+											before:absolute before:h-full before:w-1 before:-translate-x-1/2 before:left-1/2
+											before:bg-surface-100-800-token before:-z-50 before:scale-y-[200%]
+											"
+										>
+											<button
+												class="button-neutral bg-surface-100-800-token !aspect-square !rounded-full !p-3"
+												use:popup={addComponentPopup}
+											>
+												<Fa icon={faPlus} />
+											</button>
+										</div>
+									{/if}
 								</div>
 							{/each}
 						</ul>
-						<div class="mx-auto flex items-center justify-center">
-							<button class="button-primary" on:click={addComponent}>
+						<div class="mx-auto flex items-center justify-center group">
+							<button
+								class="button-neutral !aspect-square !rounded-full !p-3 bg-surface-100-800-token"
+								use:popup={addComponentPopup}
+							>
 								<Fa icon={faPlus} />
-								<span>Add</span>
 							</button>
 						</div>
 					</div>
 				</div>
 			</div>
 		{:else if tabSet === 1}
-			<div class="section-wrapper !border-t-none gap-4 md:gap-y-8 !rounded-tr-none">
-				<div class="text-xs">
-					<div
-						class="grid grid-cols-3 lg:grid-cols-7 bg-surface-100-800-token border-b border-color"
-					>
-						{#each tableHeader as column, index}
-							<button
-								class="button-neutral border-none !rounded-none"
-								on:click={() => sortTable(index)}
-							>
-								<span>{column}</span>
-								{#if sort.by === index}
-									<Fa icon={sort.order === -1 ? faArrowDownWideShort : faArrowUpWideShort} />
-								{/if}
-							</button>
-						{/each}
-					</div>
-					<div>
-						<div class=" overflow-hidden flex flex-col border-b border-color">
-							{#each sortedProcessses as process}
-								<a
-									href={`/processes/${process.oid}?limit=20&skip=0`}
-									class="rounded-none
-											first:border-t-0 border-t border-color
-										    grid grid-cols-3 lg:grid-cols-7 gap-8 items-center
-											px-4 py-3
-											hover:variant-filled-primary
-											text-xs lg:text-sm"
+			<div class="space-y-4">
+				<div class="section-wrapper !border-t-none gap-4 md:gap-y-8 !rounded-tr-none">
+					<div class="text-xs">
+						<div
+							class="grid grid-cols-3 lg:grid-cols-7 bg-surface-100-800-token border-b border-color"
+						>
+							{#each tableHeader as column, index}
+								<button
+									class="button-neutral border-none !rounded-none !justify-start {index ===
+									sort.index
+										? 'bg-surface-50-900-token'
+										: ''}"
+									on:click={() => sortTable(index)}
 								>
-									<p>{datetimeToString(new Date(process.started_at))}</p>
-									<p>
-										{process.input.provider}
-									</p>
-									<p>
-										{process.output.provider}
-									</p>
-									<p>{process.document_names.length}</p>
-									<p>
-										{((process.progress / process.document_names.length) * 100 || 0).toFixed(2)}
-										%
-									</p>
-									<p class="flex justify-start items-center gap-2 md:gap-4">
-										<Fa
-											icon={getStatusIcon(process.status)}
-											size="lg"
-											class={equals(process.status, Status.Active) ? 'animate-spin-slow' : ''}
-										/>
-										<span>{process.status}</span>
-									</p>
-									<p>
-										{getDuration(process.started_at, process.finished_at)}
-									</p>
-								</a>
+									<span>{column}</span>
+									{#if sort.index === index}
+										<Fa icon={sort.order === -1 ? faArrowDownWideShort : faArrowUpWideShort} />
+									{/if}
+								</button>
 							{/each}
+						</div>
+						<div>
+							<div class="overflow-hidden flex flex-col border-b border-color">
+								{#each sortedProcessses as process}
+									<a
+										href={`/processes/${process.oid}?limit=20&skip=0`}
+										class="rounded-none
+										    grid grid-cols-3 lg:grid-cols-7 gap-8 items-center
+											p-4 hover:variant-filled-primary
+											text-xs lg:text-sm"
+									>
+										<p>{datetimeToString(new Date(process.started_at))}</p>
+										<p>
+											{process.input.provider}
+										</p>
+										<p>
+											{process.output.provider}
+										</p>
+										<p>{process.document_names.length}</p>
+										<p>
+											{((process.progress / process.document_names.length) * 100 || 0).toFixed(2)}
+											%
+										</p>
+										<p class="flex justify-start items-center gap-2 md:gap-4">
+											<Fa
+												icon={getStatusIcon(process.status)}
+												size="lg"
+												class={equals(process.status, Status.Active) ? 'animate-spin-slow' : ''}
+											/>
+											<span>{process.status}</span>
+										</p>
+										<p>
+											{getDuration(process.started_at, process.finished_at)}
+										</p>
+									</a>
+								{/each}
+							</div>
 						</div>
 					</div>
 				</div>
+				<Paginator bind:settings={paginationSettings} on:change={updateTable} />
 			</div>
-			<Paginator bind:settings={paginationSettings} on:change={updateTable} />
 		{:else if tabSet === 2}
 			<div class="space-y-8">
 				{#if loaded && pipeline.statistics}
-					<div class="grid gap-8 section-wrapper p-4 text-center">
-						<div class="p-4 space-y-4 bordered-soft">
-							<h3 class="h3">Status</h3>
+					<div class="grid gap-16 section-wrapper p-4 text-center">
+						<div class="p-4 space-y-4">
+							<h3 class="h2">Status</h3>
 							<div class="max-w-full" use:chart={statusPlotOptions} />
 						</div>
-						<div class="p-4 space-y-4 bordered-soft">
-							<h3 class="h3">Errors</h3>
+						<hr class="hr">
+						<div class="p-4 space-y-4">
+							<h3 class="h2">Errors</h3>
 							<div class="max-w-full" use:chart={errorsPlotOptions} />
 						</div>
-						<div class="p-4 space-y-4 bordered-soft">
-							<h3 class="h3">IO</h3>
+						<hr class="hr">
+						<div class="p-4 space-y-4">
+							<h3 class="h2">IO</h3>
 							<div class="max-w-full" use:chart={ioPlotOptions} />
 						</div>
-						<div class="p-4 space-y-4 bordered-soft">
-							<h3 class="h3">Usage per Month</h3>
+						<hr class="hr">
+						<div class="p-4 space-y-4">
+							<h3 class="h2">Usage per Month</h3>
 							<div class="max-w-full" use:chart={usagePlotOptions} />
 						</div>
 					</div>

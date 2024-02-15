@@ -12,7 +12,7 @@
 	} from '@fortawesome/free-solid-svg-icons'
 	import { getDrawerStore, getModalStore, getToastStore } from '@skeletonlabs/skeleton'
 	import pkg from 'lodash'
-	import { createEventDispatcher } from 'svelte'
+	import { createEventDispatcher, onMount } from 'svelte'
 	import Fa from 'svelte-fa'
 	import { v4 as uuidv4 } from 'uuid'
 	import Chips from './Chips.svelte'
@@ -22,6 +22,7 @@
 	import JsonInput from './JsonInput.svelte'
 	import TextArea from './TextArea.svelte'
 	import TextInput from './TextInput.svelte'
+	import ComponentTemplates from '../../../routes/pipelines/editor/ComponentTemplates.svelte'
 	const { cloneDeep } = pkg
 
 	const drawerStore = getDrawerStore()
@@ -35,6 +36,8 @@
 
 	let parameters: Map<string, string> = new Map(Object.entries(component.parameters))
 	const dispatcher = createEventDispatcher()
+
+	
 
 	const onUpdate = async () => {
 		if (!inEditor) {
@@ -50,6 +53,8 @@
 			}
 
 			dispatcher('updated', { ...component })
+			$currentPipelineStore.components.forEach((c, index) => (c.index = index))
+			component.id = uuidv4()
 			$currentPipelineStore.components[component.index] = component
 		}
 

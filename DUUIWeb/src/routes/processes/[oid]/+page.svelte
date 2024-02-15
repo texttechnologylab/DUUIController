@@ -44,7 +44,9 @@
 	export let data
 	const toastStore = getToastStore()
 
-	let { pipeline, process, documents, count } = data
+	let { pipeline, process } = data
+	let documents: DUUIDocument[] = []
+	let count: number = 0
 
 	let progressPercent: number = 0
 
@@ -58,7 +60,7 @@
 	}
 
 	let sort: Sort = {
-		by: 0,
+		index: 0,
 		order: 1
 	}
 
@@ -165,7 +167,7 @@
 				?process_id=${process.oid}
 				&limit=${paginationSettings.limit}
 				&skip=${paginationSettings.limit * paginationSettings.page}
-				&sort=${sortMap.get(sort.by)}
+				&sort=${sortMap.get(sort.index)}
 				&order=${sort.order}
 				&search=${searchText}
 				&status=${filter.join(';')}`,
@@ -199,8 +201,8 @@
 	}
 
 	const sortTable = (index: number) => {
-		sort.order = sort.by !== index ? 1 : sort.order === 1 ? -1 : 1
-		sort.by = index
+		sort.order = sort.index !== index ? 1 : sort.order === 1 ? -1 : 1
+		sort.index = index
 		updateTable()
 	}
 </script>
@@ -242,9 +244,9 @@
 			class="sticky top-0 bg-surface-50-900-token border-y p-4 border-color hidden md:block z-[20]"
 		>
 			<div class="grid grid-cols-3 md:flex items-center md:justify-start gap-4 relative">
-				<a class="button-primary" href={`/pipelines/${pipeline.oid}?tab=1`}>
+				<a class="anchor-neutral" href={`/pipelines/${pipeline.oid}?tab=1`}>
 					<Fa icon={faArrowLeft} />
-					<span>Back</span>
+					<span>{pipeline.name}</span>
 				</a>
 				{#if process.is_finished}
 					<button class="button-primary" on:click={restart}>
@@ -263,13 +265,13 @@
 				{/if}
 			</div>
 		</div>
-		<ProgressBar
+		<!-- <ProgressBar
 			value={process.progress}
 			max={process.document_names.length}
 			height="h-4"
 			rounded="rounded-none"
 			meter="variant-filled-primary"
-		/>
+		/> -->
 		<div class="p-4 py-8 space-y-4">
 			<div class="mx-auto grid md:flex items-center gap-8 justify-center h3">
 				<div class="flex items-center gap-4">
@@ -330,59 +332,60 @@
 					</div>
 				</div>
 
-				<div class="section-wrapper !rounded-tr-none">
-					<div
-						class="grid grid-cols-3 lg:grid-cols-5 bg-surface-100-800-token border-b border-color"
-					>
-						{#each tableHeader as column, index}
-							<button
-								class="button-neutral border-none !rounded-none"
-								on:click={() => sortTable(index)}
-							>
-								<span>{column}</span>
-								{#if sort.by === index}
-									<Fa icon={sort.order === -1 ? faArrowDownWideShort : faArrowUpWideShort} />
-								{/if}
-							</button>
-						{/each}
-					</div>
+				<div class="space-y-4">
+					<div class="section-wrapper !rounded-tr-none">
+						<div
+							class="grid grid-cols-3 lg:grid-cols-5 bg-surface-100-800-token border-b border-color"
+						>
+							{#each tableHeader as column, index}
+								<button
+									class="button-neutral border-none !rounded-none !justify-start"
+									on:click={() => sortTable(index)}
+								>
+									<span>{column}</span>
+									{#if sort.index === index}
+										<Fa icon={sort.order === -1 ? faArrowDownWideShort : faArrowUpWideShort} />
+									{/if}
+								</button>
+							{/each}
+						</div>
 
-					<div class="overflow-hidden flex flex-col">
-						{#each documents as document}
-							<button
-								class="rounded-none
-										first:border-t-0 border-t border-color
+						<div class="overflow-hidden flex flex-col">
+							{#each documents as document}
+								<button
+									class="rounded-none
 										grid grid-cols-3 lg:grid-cols-5 gap-8 items-center
-										px-4 py-3
+										p-4
 										hover:variant-filled-primary
 										text-xs lg:text-sm text-start"
-								on:click={() => showDocumentModal(document)}
-							>
-								<p>{document.name}</p>
-								<div class="md:flex items-center justify-start md:gap-4 text-start">
-									<p>
-										{Math.round((Math.min(document.progress, maxProgress) / maxProgress) * 100)} %
+									on:click={() => showDocumentModal(document)}
+								>
+									<p>{document.name}</p>
+									<div class="md:flex items-center justify-start md:gap-4 text-start">
+										<p>
+											{Math.round((Math.min(document.progress, maxProgress) / maxProgress) * 100)} %
+										</p>
+									</div>
+									<p class="flex justify-start items-center gap-2 md:gap-4">
+										<Fa
+											icon={getDocumentStatusIcon(document)}
+											size="lg"
+											class="{equals(document.status, Status.Active)
+												? 'animate-spin-slow'
+												: equals(document.status, Status.Waiting)
+												? 'animate-hourglass'
+												: ''} w-6"
+										/>
+										<span>{document.status}</span>
 									</p>
-								</div>
-								<p class="flex justify-start items-center gap-2 md:gap-4">
-									<Fa
-										icon={getDocumentStatusIcon(document)}
-										size="lg"
-										class="{equals(document.status, Status.Active)
-											? 'animate-spin-slow'
-											: equals(document.status, Status.Waiting)
-											? 'animate-hourglass'
-											: ''} w-6"
-									/>
-									<span>{document.status}</span>
-								</p>
-								<p>{formatFileSize(document.size)}</p>
-								<p>{formatMilliseconds(getTotalDuration(document))}</p>
-							</button>
-						{/each}
+									<p>{formatFileSize(document.size)}</p>
+									<p>{formatMilliseconds(getTotalDuration(document))}</p>
+								</button>
+							{/each}
+						</div>
 					</div>
+					<Paginator bind:settings={paginationSettings} on:change={updateTable} />
 				</div>
-				<Paginator bind:settings={paginationSettings} on:change={updateTable} />
 			</div>
 
 			<div class="section-wrapper space-y-8 p-4 !mb-32">

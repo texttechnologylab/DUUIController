@@ -16,6 +16,7 @@
 		type FileExtension,
 		type IOProvider
 	} from '$lib/duui/io.js'
+	import { Languages } from '$lib/duui/process'
 	import { equals } from '$lib/duui/utils/text'
 	import { errorToast } from '$lib/duui/utils/ui'
 	import Checkbox from '$lib/svelte/components/Checkbox.svelte'
@@ -26,6 +27,7 @@
 	import { faArrowLeft, faCheck } from '@fortawesome/free-solid-svg-icons'
 	import { FileDropzone, getToastStore } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
+	import ProcessInput from './ProcessInput.svelte'
 
 	const toastStore = getToastStore()
 
@@ -45,6 +47,7 @@
 
 	let files: FileList
 
+	let language: string = $page.url.searchParams.get('language') || 'Unspecified'
 	let notify: boolean = $page.url.searchParams.get('notify') === 'true' || false
 	let checkTarget: boolean = $page.url.searchParams.get('check_target') === 'true' || false
 	let recursive: boolean = $page.url.searchParams.get('recursive') === 'true' || true
@@ -117,7 +120,8 @@
 					sort_by_size: sortBySize,
 					minimum_size: skipFiles || 0,
 					worker_count: workerCount,
-					ignore_errors: ignoreErrors
+					ignore_errors: ignoreErrors,
+					language: language
 				}
 			})
 		})
@@ -140,6 +144,7 @@
 		outputBucketIsValid = isValidS3BucketName(output.path)
 		settingsAreValid = areSettingsValid(workerCount, skipFiles)
 	}
+
 </script>
 
 <div class="menu-mobile">
@@ -202,6 +207,8 @@
 							/>
 						{/if}
 					</div>
+
+					<Dropdown label="Language" options={Languages} bind:value={language} />
 
 					{#if equals(input.provider, IO.Text)}
 						<TextArea

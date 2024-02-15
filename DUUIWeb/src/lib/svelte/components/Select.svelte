@@ -39,8 +39,8 @@
 	<Fa {icon} />
 </button>
 
-<div class="popup-solid  z-50" data-popup={name}>
-	<ListBox {name} multiple={true} class="grid grid-cols-{columns}" spacing="space-y-0">
+<div class="popup-solid z-50" data-popup={name}>
+	<ListBox {name} multiple={true} class="grid grid-cols-{columns} overflow-hidden" spacing="space-y-0">
 		{#each options as option}
 			<ListBoxItem
 				on:change
@@ -49,8 +49,7 @@
 				value={option}
 				rounded="rounded-none"
 				spacing="space-y-0"
-				hover="bg-primary-hover-token"
-				active="bg-primary-hover-token"
+				active="variant-filled-primary dark:variant-soft-primary"
 			>
 				<svelte:fragment slot="lead">
 					<Fa class={selected.includes(option) ? '' : 'text-transparent'} icon={faCheck} />

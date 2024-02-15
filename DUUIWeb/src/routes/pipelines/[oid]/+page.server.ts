@@ -1,4 +1,5 @@
 import { API_URL } from '$env/static/private'
+import type { DUUIComponent } from '$lib/duui/component'
 import type { DUUIPipeline } from '$lib/duui/pipeline'
 import type { DUUIProcess } from '$lib/duui/process'
 import type { PageServerLoad } from './$types'
@@ -14,6 +15,22 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 		})
 
 		return await response.json()
+	}
+
+	const fetchComponentTemplates = async (): Promise<{ components: DUUIComponent[] }> => {
+		const response = await fetch(`${API_URL}/components`, {
+			method: 'GET',
+			mode: 'cors',
+			headers: {
+				Authorization: cookies.get('session') || ''
+			}
+		})
+
+		if (response.ok) {
+			return await response.json()
+		}
+
+		return { components: [] }
 	}
 
 	const loadProcesses = async (): Promise<{ processes: DUUIProcess[]; count: number }> => {
@@ -41,6 +58,7 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 
 	return {
 		pipeline: await loadPipeline(),
-		processInfo: await loadProcesses()
+		processInfo: await loadProcesses(),
+		templateComponents: (await fetchComponentTemplates()).components,
 	}
 }

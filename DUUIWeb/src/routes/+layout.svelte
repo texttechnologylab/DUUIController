@@ -44,6 +44,7 @@
 	import 'highlight.js/styles/github-dark.css'
 	import DocumentDrawer from '$lib/svelte/components/DocumentDrawer.svelte'
 	import { onMount } from 'svelte'
+	import TemplateModal from '$lib/svelte/components/modals/TemplateModal.svelte'
 
 	export let data
 	let { user } = data
@@ -101,7 +102,8 @@
 		promptModal: { ref: PromptModal },
 		confirmModal: { ref: ConfirmModal },
 		welcomeModal: { ref: WelcomeModal },
-		helpModal: { ref: HelpModal }
+		helpModal: { ref: HelpModal },
+		templateModal: { ref: TemplateModal },
 	}
 
 	const modalStore = getModalStore()
@@ -123,7 +125,7 @@
 <AppShell class="dark:bg-surface-700 ">
 	<svelte:fragment slot="header">
 		<!-- App Bar -->
-		<AppBar shadow="shadow-lg" background="bg-surface-50-900-token z-[100]">
+		<AppBar shadow="shadow-md" background="bg-surface-50-900-token z-[100]">
 			<svelte:fragment slot="lead">
 				<div class="flex items-center gap-4">
 					<button class="btn-icon lg:hidden" on:click={() => drawerStore.open(sidebarDrawer)}>

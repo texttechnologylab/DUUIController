@@ -53,7 +53,7 @@
 			<Search bind:query={searchText} icon={faSearch} placeholder="Search..." />
 		</div>
 	</div>
-	<div class="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
+	<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
 		{#each filteredComponents as component (component.oid)}
 			<button
 				class="card-fancy text-left grid min-h-[300px] items-start col-span-1"
