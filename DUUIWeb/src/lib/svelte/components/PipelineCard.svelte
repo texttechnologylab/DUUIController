@@ -1,5 +1,5 @@
 <!-- This is a wrapper for the display of pipeline's in a compact format.render
-	Outside of the editor page a badge is displayed in the top right corner to indicate
+	Outside of the Builder page a badge is displayed in the top right corner to indicate
 	whether the pipeline is a template or user owned.
  -->
 
@@ -9,7 +9,7 @@
 	import DriverIcon from '$lib/svelte/components/DriverIcon.svelte'
 
 	export let pipeline: DUUIPipeline
-	const editor: boolean = $page.url.pathname === '/pipelines'
+	const builder: boolean = $page.url.pathname === '/pipelines'
 </script>
 
 <div class="flex items-center gap-4 justify-between">
@@ -19,7 +19,7 @@
 	{#if pipeline.user_id === null || pipeline.user_id === undefined}
 		<p class="badge variant-soft-tertiary">Template</p>
 	{:else}
-		<p class="badge variant-soft-primary {editor ? 'hidden' : ''}">User</p>
+		<p class="badge variant-soft-primary {builder ? 'hidden' : ''}">User</p>
 	{/if}
 </div>
 

@@ -47,9 +47,7 @@
 
 	export let data
 
-	let { templateComponents, templatePipelines, user, tour } = data
-
-	const isImport: boolean = ($page.url.searchParams.get('import') || '') === 'true'
+	let { templateComponents, templatePipelines, user } = data
 
 	templateComponents = templateComponents.map((c) => {
 		return { ...c, id: uuidv4() }
@@ -57,11 +55,12 @@
 
 	let step: number = +($page.url.searchParams.get('step') || '0')
 
-	if (!isImport) {
+	let settings: Map<string, string>
+
+	if (step === 0) {
 		$currentPipelineStore = blankPipeline()
 	} else {
-		step = 1
-
+		settings = new Map(Object.entries($currentPipelineStore.settings))
 		$currentPipelineStore.components.forEach((component) => {
 			component.oid = uuidv4()
 			component.id = uuidv4()
@@ -69,11 +68,14 @@
 		})
 	}
 
-	let settings: Map<string, string>
-	let driverFilter: DUUIDriverFilter = 'Any'
-
 	let searchText: string = ''
 	let filteredTemplatePipelines: DUUIPipeline[] = templatePipelines
+	let loaded: boolean = false
+
+	onMount(() => {
+		loaded = true
+	})
+
 
 	$: {
 		filteredTemplatePipelines = templatePipelines.filter(
@@ -85,6 +87,14 @@
 					searchText
 				) || !searchText
 		)
+
+		if (settings) {
+			$currentPipelineStore.settings = settings
+		}
+
+		if (loaded) {
+			step, scrollIntoView('top')
+		}
 	}
 
 	const toastStore = getToastStore()
@@ -129,8 +139,6 @@
 	let flipDurationMs = 300
 	let selectedTemplate: DUUIPipeline | null
 
-	const modalStore = getModalStore()
-
 	const addTemplate = (template: DUUIComponent) => {
 		const copyTemplate = cloneDeep(template)
 		copyTemplate.id = uuidv4()
@@ -154,14 +162,14 @@
 			return { ...c, id: uuidv4(), index: $currentPipelineStore.components.indexOf(c) }
 		})
 
-		goto('/pipelines/editor')
 		step = 1
+		goto(`/pipelines/build?step=${step}`)
 	}
 
 	const drawerStore = getDrawerStore()
 	const drawer: DrawerSettings = {
 		id: 'component',
-		width: 'w-[80%] sm:w-[max(900px,40%)]',
+		width: 'w-full 2xl:w-1/2',
 		position: 'right',
 		rounded: 'rounded-none',
 		meta: {
@@ -183,21 +191,6 @@
 			goto(`/pipelines`)
 		}
 	}
-	$: {
-		if (settings) {
-			$currentPipelineStore.settings = settings
-		}
-	}
-
-	onMount(() => {
-		loaded = true
-	})
-	let loaded: boolean = false
-	$: {
-		if (loaded) {
-			step, scrollIntoView('top')
-		}
-	}
 </script>
 
 <div class="menu-mobile">
@@ -208,6 +201,8 @@
 				goto('/pipelines')
 			} else {
 				step -= 1
+				goto(`/pipelines/build?step=${step}`)
+
 				scrollIntoView('top')
 			}
 		}}
@@ -228,6 +223,7 @@
 				createPipeline()
 			} else {
 				step += 1
+				goto(`/pipelines/build?step=${step}`)
 				scrollIntoView('top')
 			}
 		}}
@@ -243,12 +239,14 @@
 	<div class="sticky top-0 bg-surface-50-900-token border-y p-4 border-color hidden md:block z-10">
 		<div class="grid grid-cols-2 md:flex items-center md:justify-between gap-4 relative">
 			<button
-				class="button-primary"
+				class="button-neutral"
 				on:click={() => {
 					if (step == 0) {
 						goto('/pipelines')
 					} else {
 						step -= 1
+						goto(`/pipelines/build?step=${step}`)
+
 						scrollIntoView('top')
 					}
 				}}
@@ -269,6 +267,8 @@
 						createPipeline()
 					} else {
 						step += 1
+						goto(`/pipelines/build?step=${step}`)
+
 						scrollIntoView('top')
 					}
 				}}
@@ -380,7 +380,7 @@
 						use:dndzone={{ items: $currentPipelineStore.components, dropTargetStyle: {} }}
 						on:consider={(event) => handleDndConsider(event)}
 						on:finalize={(event) => handleDndFinalize(event)}
-						class="grid gap-8 max-w-5xl mx-auto !cursor-move"
+						class="grid max-w-5xl mx-auto !cursor-move"
 					>
 						{#each $currentPipelineStore.components as component (component.id)}
 							<div animate:flip={{ duration: flipDurationMs }} class="relative !cursor-move">
@@ -393,21 +393,39 @@
 										)
 									}}
 								/>
+								{#if component.index < $currentPipelineStore.components.length - 1}
+									<div
+										class="my-4 mx-auto flex items-center justify-center
+											relative
+											before:absolute before:h-full before:w-1 before:-translate-x-1/2 before:left-1/2
+											before:bg-surface-100-800-token before:-z-50 before:scale-y-[200%]
+											"
+									>
+										<button
+											class="button-neutral bg-surface-100-800-token !aspect-square !rounded-full"
+											on:click={() => drawerStore.open(drawer)}
+										>
+											<Fa icon={faPlus} />
+										</button>
+									</div>
+								{/if}
 							</div>
 						{/each}
 					</ul>
 					<div class="mx-auto flex items-center justify-center">
-						<button class="button-primary" on:click={() => drawerStore.open(drawer)}>
+						<button
+							class="button-neutral !aspect-square !rounded-full bg-surface-100-800-token"
+							on:click={() => drawerStore.open(drawer)}
+						>
 							<Fa icon={faPlus} />
-							<span>Add</span>
 						</button>
 					</div>
 
 					<div class="flex flex-col items-center gap-8">
 						<p class="text-center">Or choose a template</p>
 						<a
-							href="/pipelines/editor#component-templates"
-							class="flex justify-center text-center transition-colors duration-300 text-surface-400 hover:text-primary-500"
+							href="/pipelines/build#component-templates"
+							class="flex justify-center text-center transition-colors duration-300 dimmed hover:text-primary-500"
 						>
 							<Fa icon={faArrowDown} size="3x" />
 						</a>

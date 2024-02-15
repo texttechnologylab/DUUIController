@@ -68,10 +68,10 @@
 						<p>
 							Creating a pipeline with this web-interface can be done in the <a
 								class="anchor"
-								href="/pipelines/editor">Editor</a
+								href="/pipelines/build">Builder</a
 							>. It is a three step form that guides you through building a pipeline either from
-							<a class="anchor" href="/pipelines/editor#top">scratch</a> or using a
-							<a class="anchor" href="/pipelines/editor#templates">template</a> as the starting point.
+							<a class="anchor" href="/pipelines/build#top">scratch</a> or using a
+							<a class="anchor" href="/pipelines/build#templates">template</a> as the starting point.
 						</p>
 						<hr class="hr" />
 						<p class="blockquote border-primary-500">

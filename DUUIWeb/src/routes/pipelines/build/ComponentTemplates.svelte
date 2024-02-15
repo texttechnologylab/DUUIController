@@ -59,9 +59,9 @@
 				class="card-fancy text-left grid min-h-[300px] items-start col-span-1"
 				on:click={() => onSelect(component)}
 			>
-				<div class="flex items-start justify-between gap-4">
-					<p class="text-lg font-bold break-words">{component.name}</p>
+				<div class="flex flex-col md:flex-row items-start justify-between gap-4">
 					<DriverIcon driver={component.driver} />
+					<p class="text-lg font-bold break-words">{component.name}</p>
 				</div>
 				<p>{component.description}</p>
 				<div class="flex flex-wrap gap-2 self-end">

@@ -54,9 +54,9 @@
 			<Fa icon={faLayerGroup} />
 			Pipelines
 		</a>
-		<a href="/pipelines/editor" class="flex items-center gap-4 animate-text">
+		<a href="/pipelines/build" class="flex items-center gap-4 animate-text">
 			<Fa icon={faTools} />
-			Editor
+			Builder
 		</a>
 		<a href="/documentation" class="flex items-center gap-4 animate-text">
 			<Fa icon={faBook} />

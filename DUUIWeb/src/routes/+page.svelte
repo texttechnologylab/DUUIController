@@ -277,7 +277,7 @@
 				<div class="flex flex-col gap-2 justify-center items-center">
 					<p class="text-surface-700-200-token font-bold md:mb-4">Pipelines</p>
 					<Link href="/pipelines" dimmed={true}>Dashboard</Link>
-					<Link href="/pipelines/editor" dimmed={true}>Editor</Link>
+					<Link href="/pipelines/build" dimmed={true}>Builder</Link>
 				</div>
 				<div class="flex flex-col gap-2 justify-center items-center">
 					<p class="text-surface-700-200-token font-bold md:mb-4">Documentation</p>

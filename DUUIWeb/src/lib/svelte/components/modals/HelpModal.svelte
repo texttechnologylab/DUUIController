@@ -152,8 +152,8 @@
 			</div>
 			<p>
 				Pipelines can be created from scratch or using a Template in the <a
-					href="/pipelines/editor"
-					class="anchor">Editor</a
+					href="/pipelines/build"
+					class="anchor">Builder</a
 				>.
 			</p>
 			<hr class="hr" />

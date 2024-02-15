@@ -49,7 +49,7 @@
 				value={option}
 				rounded="rounded-none"
 				spacing="space-y-0"
-				active="variant-filled-primary dark:variant-soft-primary"
+				active="variant-filled-primary"
 			>
 				<svelte:fragment slot="lead">
 					<Fa class={selected.includes(option) ? '' : 'text-transparent'} icon={faCheck} />

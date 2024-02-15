@@ -22,7 +22,7 @@
 	import JsonInput from './JsonInput.svelte'
 	import TextArea from './TextArea.svelte'
 	import TextInput from './TextInput.svelte'
-	import ComponentTemplates from '../../../routes/pipelines/editor/ComponentTemplates.svelte'
+	import ComponentTemplates from '../../../routes/pipelines/build/ComponentTemplates.svelte'
 	const { cloneDeep } = pkg
 
 	const drawerStore = getDrawerStore()

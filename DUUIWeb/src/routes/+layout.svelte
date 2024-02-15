@@ -12,9 +12,7 @@
 		getDrawerStore,
 		type DrawerSettings,
 		type ModalComponent,
-
 		getModalStore
-
 	} from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
 
@@ -45,6 +43,7 @@
 	import DocumentDrawer from '$lib/svelte/components/DocumentDrawer.svelte'
 	import { onMount } from 'svelte'
 	import TemplateModal from '$lib/svelte/components/modals/TemplateModal.svelte'
+	import ProcessDrawer from './processes/[oid]/ProcessDrawer.svelte'
 
 	export let data
 	let { user } = data
@@ -103,9 +102,8 @@
 		confirmModal: { ref: ConfirmModal },
 		welcomeModal: { ref: WelcomeModal },
 		helpModal: { ref: HelpModal },
-		templateModal: { ref: TemplateModal },
+		templateModal: { ref: TemplateModal }
 	}
-
 	const modalStore = getModalStore()
 </script>
 
@@ -118,6 +116,8 @@
 		<DocumentDrawer />
 	{:else if $drawerStore.id === 'component'}
 		<ComponentDrawer />
+	{:else if $drawerStore.id === 'process'}
+		<ProcessDrawer />
 	{/if}
 </Drawer>
 
@@ -149,7 +149,7 @@
 					{/if}
 					{#if $userSession}
 						<Link href="/pipelines">Pipelines</Link>
-						<Link href="/pipelines/editor">Editor</Link>
+						<Link href="/pipelines/build">Builder</Link>
 					{/if}
 					<Link href="/documentation">Documentation</Link>
 					<Link href="/documentation/api">API Reference</Link>

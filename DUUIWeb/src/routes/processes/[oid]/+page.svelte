@@ -18,6 +18,7 @@
 		faArrowLeft,
 		faArrowUpWideShort,
 		faCancel,
+		faChevronLeft,
 		faClockRotateLeft,
 		faFilter,
 		faListCheck,
@@ -40,6 +41,7 @@
 	import { showConfirmationModal } from '$lib/svelte/utils/modal'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
+	import { faJs } from '@fortawesome/free-brands-svg-icons'
 
 	export let data
 	const toastStore = getToastStore()
@@ -339,7 +341,10 @@
 						>
 							{#each tableHeader as column, index}
 								<button
-									class="button-neutral border-none !rounded-none !justify-start"
+									class="button-neutral border-none !rounded-none !justify-start {index ===
+									sort.index
+										? 'bg-surface-50-900-token'
+										: ''}"
 									on:click={() => sortTable(index)}
 								>
 									<span>{column}</span>
@@ -390,7 +395,22 @@
 
 			<div class="section-wrapper space-y-8 p-4 !mb-32">
 				<div class="space-y-8">
-					<h2 class="h3">Settings</h2>
+					<div class="flex justify-between items-center gap-4">
+						<h2 class="h3">Settings</h2>
+						<button
+							class="button-neutral"
+							on:click={() =>
+								drawerStore.open({
+									id: 'process',
+									position: 'right',
+									width: 'w-full sm:w-1/4',
+									meta: { process: process }
+								})}
+						>
+							<Fa icon={faChevronLeft} />
+							<span>Json</span>
+						</button>
+					</div>
 					<div class="grid md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-2">
 						<KeyValue key="Input" value={process.input.provider} />
 						<KeyValue key="Output" value={process.output.provider} />

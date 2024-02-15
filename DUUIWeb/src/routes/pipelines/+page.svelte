@@ -108,7 +108,7 @@
 </div>
 
 <div class="menu-mobile">
-	<a class="button-mobile" href="/pipelines/editor">
+	<a class="button-mobile" href="/pipelines/build">
 		<Fa icon={faPlus} />
 		<span>New</span>
 	</a>
@@ -124,13 +124,13 @@
 		<div class="h-full flex items-center justify-center">
 			<div class="flex flex-col justify-center items-center">
 				<div class="section-wrapper p-8 space-y-8">
-					<h1 class="h2 font-bold">Create your first pipeline in the editor</h1>
+					<h1 class="h2 font-bold">Create your first pipeline in the Builder</h1>
 
 					<div>
 						<p>After you create a Pipeline, you will find it here.</p>
 					</div>
 					<div class="flex justify-center">
-						<a class="button-primary" href="/pipelines/editor">
+						<a class="button-primary" href="/pipelines/build">
 							<Fa icon={faPlus} />
 							<span>Create</span>
 						</a>
@@ -158,7 +158,7 @@
 				class="sticky top-0 bg-surface-50-900-token border-y p-4 border-color hidden md:block z-10"
 			>
 				<div class="grid md:flex items-center md:justify-between relative gap-4">
-					<a class="button button-primary mr-auto" href="/pipelines/editor">
+					<a class="button button-primary mr-auto" href="/pipelines/build">
 						<Fa icon={faPlus} />
 						<span class="text-xs md:text-base">New</span>
 					</a>

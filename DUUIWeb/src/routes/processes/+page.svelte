@@ -2,11 +2,11 @@
 	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
 	import {
-		IO,
 		INPUT_EXTENSIONS,
+		IO,
 		IO_INPUT,
-		OUTPUT_EXTENSIONS,
 		IO_OUTPUT,
+		OUTPUT_EXTENSIONS,
 		areSettingsValid,
 		isValidIO,
 		isValidInput,
@@ -24,10 +24,9 @@
 	import Number from '$lib/svelte/components/Number.svelte'
 	import TextArea from '$lib/svelte/components/TextArea.svelte'
 	import TextInput from '$lib/svelte/components/TextInput.svelte'
-	import { faArrowLeft, faCheck } from '@fortawesome/free-solid-svg-icons'
+	import { faArrowLeft, faCheck, faCloud, faCloudUpload, faFolder } from '@fortawesome/free-solid-svg-icons'
 	import { FileDropzone, getToastStore } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
-	import ProcessInput from './ProcessInput.svelte'
 
 	const toastStore = getToastStore()
 
@@ -144,7 +143,6 @@
 		outputBucketIsValid = isValidS3BucketName(output.path)
 		settingsAreValid = areSettingsValid(workerCount, skipFiles)
 	}
-
 </script>
 
 <div class="menu-mobile">
@@ -229,7 +227,9 @@
 								rounded="rounded-md"
 								class="input-wrapper"
 							/>
-							<p class="form-label">{files?.length || 0} files selected</p>
+							<p class="form-label {(files?.length || 0) === 0 ? 'text-error-500' : ''}">
+								{files?.length || 0} files selected
+							</p>
 						</div>
 					{:else if equals(input.provider, IO.Minio)}
 						<TextInput
@@ -296,7 +296,7 @@
 			</div>
 
 			<div
-				class="section-wrapper p-4 space-y-4 flex flex-col justify-start
+				class="section-wrapper p-4 space-y-4 flex flex-col justify-start relative
 				 {isValidOutput(output) ? '!border-success-500 ' : '!border-error-500'}"
 			>
 				<div class="flex items-center gap-4 justify-between">
@@ -360,6 +360,19 @@
 						</div>
 					{/if}
 				</div>
+				{#if output.provider === IO.None}
+					<div class="grow flex items-center justify-center flex-col gap-4 p-4">
+						<div class="relative opacity-50">
+							<Fa icon={faCloudUpload} size="8x" class="text-primary-500" />
+							<Fa
+								icon={faCloud}
+								size="8x"
+								class="top-1/2 left-1/2 -translate-x-[60%] -translate-y-[60%] absolute text-primary-500/50"
+							/>
+						</div>
+						<p class="font-bold">Select an output location above</p>
+					</div>
+				{/if}
 			</div>
 		</div>
 	</div>

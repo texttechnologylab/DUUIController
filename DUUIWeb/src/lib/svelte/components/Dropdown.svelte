@@ -54,7 +54,7 @@
 					{name}
 					value={option}
 					rounded="rounded-md"
-					active="variant-filled-primary dark:variant-soft-primary"
+					active="variant-filled-primary"
 				>
 					<svelte:fragment slot="lead">
 						<Fa class={equals('' + value, '' + option) ? '' : 'invisible'} icon={faCheck} />

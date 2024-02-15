@@ -65,7 +65,7 @@
 		getUsagePlotOptions
 	} from './charts'
 	import { getFilterOrGeneric } from '$lib/utils'
-	import ComponentTemplates from '../editor/ComponentTemplates.svelte'
+	import ComponentTemplates from '../build/ComponentTemplates.svelte'
 
 	const modalStore = getModalStore()
 	const toastStore = getToastStore()
@@ -305,7 +305,7 @@
 	const drawerStore = getDrawerStore()
 	const addDrawer: DrawerSettings = {
 		id: 'component',
-		width: 'w-full sm:w-1/2',
+		width: 'w-full 2xl:w-1/2',
 		position: 'right',
 		rounded: 'rounded-none',
 		meta: {
@@ -322,7 +322,7 @@
 	const cloneComponent = ({ component }) => {
 		drawerStore.open({
 			id: 'component',
-			width: 'w-full sm:w-1/2',
+			width: 'w-full 2xl:w-1/2',
 			position: 'right',
 			rounded: 'rounded-none',
 			meta: {
@@ -426,12 +426,12 @@
 <div data-popup="add-component" class="z-50">
 	<div class="popup-solid">
 		<div class="flex flex-col p-2 gap-2">
-			<button class="button-neutral !border-none" on:click={addComponent}>
+			<button class="button-neutral !border-none !justify-start" on:click={addComponent}>
 				<Fa icon={faPlus} />
 				<span>New</span>
 			</button>
 			<button
-				class="button-neutral !border-none"
+				class="button-neutral !border-none !justify-start"
 				on:click={() => {
 					modalStore.trigger({
 						type: 'component',
@@ -547,7 +547,7 @@
 	<div class="p-4 mb-32">
 		<div class="text-xs md:text-base flex">
 			<TabGroup
-				regionList="border-none"
+				regionList="border-none grid grid-cols-3 md:block"
 				active="!border-b-0 section-wrapper"
 				rounded="rounded-md !rounded-b-none"
 				hover="hover:bg-surface-200/20 dark:hover:bg-surface-900/70"
@@ -619,7 +619,7 @@
 					</div>
 					<JsonInput bind:data={settings} label="Settings" />
 				</div>
-				<hr class="hr !w-full">
+				<hr class="hr !w-full" />
 				<div class="space-y-4 p-4">
 					<h2 class="h2 text-center">Components</h2>
 					<div class="min-h-[400px] space-y-8 isolate md:p-16">
@@ -650,7 +650,7 @@
 											"
 										>
 											<button
-												class="button-neutral bg-surface-100-800-token !aspect-square !rounded-full !p-3"
+												class="button-neutral bg-surface-100-800-token !aspect-square !rounded-full"
 												use:popup={addComponentPopup}
 											>
 												<Fa icon={faPlus} />
@@ -662,7 +662,7 @@
 						</ul>
 						<div class="mx-auto flex items-center justify-center group">
 							<button
-								class="button-neutral !aspect-square !rounded-full !p-3 bg-surface-100-800-token"
+								class="button-neutral !aspect-square !rounded-full bg-surface-100-800-token"
 								use:popup={addComponentPopup}
 							>
 								<Fa icon={faPlus} />
@@ -742,17 +742,17 @@
 							<h3 class="h2">Status</h3>
 							<div class="max-w-full" use:chart={statusPlotOptions} />
 						</div>
-						<hr class="hr">
+						<hr class="hr" />
 						<div class="p-4 space-y-4">
 							<h3 class="h2">Errors</h3>
 							<div class="max-w-full" use:chart={errorsPlotOptions} />
 						</div>
-						<hr class="hr">
+						<hr class="hr" />
 						<div class="p-4 space-y-4">
 							<h3 class="h2">IO</h3>
 							<div class="max-w-full" use:chart={ioPlotOptions} />
 						</div>
-						<hr class="hr">
+						<hr class="hr" />
 						<div class="p-4 space-y-4">
 							<h3 class="h2">Usage per Month</h3>
 							<div class="max-w-full" use:chart={usagePlotOptions} />

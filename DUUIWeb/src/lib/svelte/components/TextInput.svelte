@@ -31,7 +31,7 @@
 
 {#if help}
 	<div data-popup={id}>
-		<div class="text-sm z-50 max-w-[50ch] variant-filled-primary rounded-sm p-4 shadow-md">
+		<div class="text-sm z-50 max-w-[50ch] variant-filled-primary rounded-md p-4 shadow-md">
 			<div class="grid grid-cols-[auto_1fr] items-center gap-4">
 				<Fa icon={faLightbulb} size="2x" />
 				<p class="border-l pl-4">{help}</p>
@@ -43,13 +43,10 @@
 <label class="{label ? 'label' : ''} flex flex-col {hidden ? 'hidden' : ''} {style}">
 	<span class="form-label flex items-center gap-4">{label} </span>
 
-	{#if error}
-		<span class="pl-1 text-xs text-error-500 font-bold">{error}</span>
-	{/if}
 	<input
 		{disabled}
 		{placeholder}
-		class="input-wrapper {error ? 'input-error' : ''}"
+		class="input-wrapper {error ? '!border-error-500' : ''}"
 		use:popup={helpPopup}
 		type="text"
 		{name}
@@ -59,4 +56,7 @@
 		on:keydown
 		on:change
 	/>
+	{#if error}
+		<span class="pl-1 text-xs text-error-500 font-bold">{error}</span>
+	{/if}
 </label>
