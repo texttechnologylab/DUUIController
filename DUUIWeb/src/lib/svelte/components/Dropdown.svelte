@@ -45,7 +45,7 @@
 </div>
 
 <div data-popup={name}>
-	<div class="popup-solid p-2">
+	<div class="popup-solid p-2 !z-[9999]">
 		<ListBox class="overflow-hidden" rounded="rounded-md" spacing="space-y-2">
 			{#each options as option}
 				<ListBoxItem
@@ -54,6 +54,7 @@
 					{name}
 					value={option}
 					rounded="rounded-md"
+					hover="hover:bg-surface-100-800-token"
 					active="variant-filled-primary"
 				>
 					<svelte:fragment slot="lead">

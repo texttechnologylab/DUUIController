@@ -241,26 +241,26 @@
 			</div>
 		</div> -->
 		<div class="p-4 flex flex-col gap-4 border-b border-color">
-			<h2 class="h2">Annotations</h2>
-			<div class="flex items-end gap-4 justify-end">
-				<button
-					class="button-neutral mr-auto"
-					on:click={() => (annotationsExpanded = !annotationsExpanded)}
-				>
-					<div class:turn={annotationsExpanded} class="transition-transform duration-300">
-						<Fa icon={faChevronDown} size="lg" />
+			{#if _document.annotations && Object.entries(_document.annotations).length > 0}
+				<h2 class="h2">Annotations</h2>
+				<div class="flex items-end gap-4 justify-end">
+					<button
+						class="button-neutral mr-auto"
+						on:click={() => (annotationsExpanded = !annotationsExpanded)}
+					>
+						<div class:turn={annotationsExpanded} class="transition-transform duration-300">
+							<Fa icon={faChevronDown} size="lg" />
+						</div>
+						<span>{annotationsExpanded ? 'Collapse' : 'Expand'}</span>
+					</button>
+					<div class="grid md:grid-cols-2 items-end gap-4">
+						<Number label="Minimum count" name="minimumCount" bind:value={minimumCount} />
+						<Search placeholder="Search" bind:query={searchText} />
 					</div>
-					<span>{annotationsExpanded ? 'Collapse' : 'Expand'}</span>
-				</button>
-				<div class="grid md:grid-cols-2 items-end gap-4">
-					<Number label="Minimum count" name="minimumCount" bind:value={minimumCount} />
-					<Search placeholder="Search" bind:query={searchText} />
 				</div>
-			</div>
 
-			<div class:open={annotationsExpanded} class="content dimmed">
-				<div class="content-wrapper space-y-4">
-					{#if _document.annotations && Object.entries(_document.annotations).length > 0}
+				<div class:open={annotationsExpanded} class="content dimmed">
+					<div class="content-wrapper space-y-4">
 						<div
 							class="self-stretch text-sm overflow-hidden grid sm:grid-cols-2 xl:grid-cols-3 gap-4"
 						>
@@ -277,15 +277,15 @@
 								</div>
 							{/each}
 						</div>
-					{/if}
+					</div>
 				</div>
-			</div>
-			{#if loaded}
-				<div use:chart={options} />
-				{#if _document.events}
-					<h2 class="h2">Timeline</h2>
-					<div class="pr-4" use:chart={eventOptions} />
+				{#if loaded}
+					<div use:chart={options} />
 				{/if}
+			{/if}
+			{#if loaded && _document.events}
+				<h2 class="h2">Timeline</h2>
+				<div class="pr-4" use:chart={eventOptions} />
 			{/if}
 		</div>
 	</div>

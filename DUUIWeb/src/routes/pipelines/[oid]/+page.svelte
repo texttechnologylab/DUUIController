@@ -129,6 +129,8 @@
 			(c: { index: any; oid: any }) =>
 				(c.index = $currentPipelineStore.components.map((c: DUUIComponent) => c.oid).indexOf(c.oid))
 		)
+
+		updatePipeline()
 	}
 
 	const updatePipeline = async () => {
@@ -285,6 +287,14 @@
 			}
 		)
 
+		const json = await response.json()
+		const data = json.processInfo
+		processes = data.processes
+		count = data.count
+		paginationSettings.total = count
+
+		sortedProcessses = processes
+
 		goto(
 			`/pipelines/${pipeline.oid}
 			?limit=${paginationSettings.limit}
@@ -293,14 +303,6 @@
 			&order=${sort.order}
 			&tab=1`
 		)
-
-		const json = await response.json()
-		const data = json.processInfo
-		processes = data.processes
-		count = data.count
-		paginationSettings.total = count
-
-		sortedProcessses = processes
 	}
 	const drawerStore = getDrawerStore()
 	const addDrawer: DrawerSettings = {
@@ -526,7 +528,7 @@
 					>
 				{/if}
 			</button>
-			{#if $currentPipelineStore.user_id !== null && tabSet !== 2}
+			{#if $currentPipelineStore.user_id !== null}
 				<a class="button-primary" href={`/processes?pipeline_id=${$currentPipelineStore.oid}`}>
 					<Fa icon={faRocket} />
 					<span>Process</span>
@@ -547,7 +549,7 @@
 	<div class="p-4 mb-32">
 		<div class="text-xs md:text-base flex">
 			<TabGroup
-				regionList="border-none grid grid-cols-3 md:block"
+				regionList="border-none"
 				active="!border-b-0 section-wrapper"
 				rounded="rounded-md !rounded-b-none"
 				hover="hover:bg-surface-200/20 dark:hover:bg-surface-900/70"

@@ -32,7 +32,7 @@
 		<p>{pipeline.components.length} Component{pipeline.components.length !== 1 ? 's' : ''}</p>
 
 		<!-- Times used -->
-		<p class="hidden md:block">{pipeline.times_used}</p>
+		<p>{pipeline.times_used}</p>
 
 		<!-- Drivers -->
 		<div class="flex items-center gap-4">
@@ -41,7 +41,7 @@
 			{/each}
 		</div>
 	</div>
-	
+
 	<!-- Tags -->
 	<div class="flex flex-wrap gap-2 self-end">
 		{#each pipeline.tags.sort((a, b) => (a < b ? -1 : 1)) as tag}

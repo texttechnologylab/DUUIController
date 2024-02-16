@@ -403,6 +403,7 @@
 								drawerStore.open({
 									id: 'process',
 									position: 'right',
+									rounded: 'rounded-none',
 									width: 'w-full sm:w-1/4',
 									meta: { process: process }
 								})}

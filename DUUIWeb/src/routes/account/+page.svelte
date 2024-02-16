@@ -56,10 +56,10 @@
 	const deleteAccount = async () => {
 		const confirm = await showConfirmationModal(
 			{
-				title: 'Regenerate API Key',
+				title: 'Delete Account',
 				message:
-					'If you regenarate your API key, the current one will not work anymore. Make sure to update your API key in all applications its used in.',
-				textYes: 'Regenerate'
+					'Deleting your Account also deletes all pipelines and processes every created. Are you sure?',
+				textYes: 'Delete'
 			},
 			modalStore
 		)
@@ -219,22 +219,6 @@
 			<Fa icon={faCheck} />
 			<span>Save</span>
 		</button>
-		<hr class="hr" />
-		<div class="space-y-4">
-			<p>Need help? Start a quick tour that explains basic concepts.</p>
-			<button
-				class="button-primary button-modal"
-				on:click={() => {
-					modalStore.trigger({
-						type: 'component',
-						component: 'helpModal'
-					})
-				}}
-			>
-				<Fa icon={faMapSigns} />
-				<span>Help</span>
-			</button>
-		</div>
 	</div>
 
 	<div class="space-y-4">

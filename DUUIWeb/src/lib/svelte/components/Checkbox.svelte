@@ -3,7 +3,7 @@
 	import Fa from 'svelte-fa'
 
 	export let label: string
-	export let name: string
+	export let name: string = ""
 	export let size:
 		| 'xs'
 		| 'sm'
@@ -26,7 +26,7 @@
 	export let iconUnchecked: IconDefinition | null = null
 </script>
 
-<label class="flex {column ? 'flex-col-reverse' : ''} items-start gap-4 text-sm">
+<label class="flex {column ? 'flex-col-reverse' : ''} items-center gap-4 text-sm">
 	<button on:click={() => (checked = !checked)}>
 		<div
 			class="input-wrapper aspect-square !p-1"

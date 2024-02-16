@@ -80,7 +80,7 @@
 </script>
 
 <div
-	class="z-50 bg-surface-50-900-token w-full max-w-screen-md rounded-md overflow-hidden border-2 border-color"
+	class="z-50 bg-surface-50-900-token w-full max-w-screen-lg rounded-md overflow-hidden border-2 border-color"
 >
 	<div class="modal-header bg-surface-100-800-token">
 		<h3 class="h3">Getting Started</h3>

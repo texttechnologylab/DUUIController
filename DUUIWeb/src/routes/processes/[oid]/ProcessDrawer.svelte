@@ -19,15 +19,26 @@
 	)
 </script>
 
-<div class="p-4 space-y-4 gradient bg-repeat h-screen">
-	<div class="flex items-stretch gap-4 justify-between">
-		<button class="button-neutral" on:click={drawerStore.close}>
-			<Fa icon={faAngleDoubleRight} />
-		</button>
+<div class=" space-y-4 h-full bg-surface-100-800-token">
+	<div class="flex items-stretch gap-4 justify-between border-b border-color p-4">
 		<button class="button-neutral" use:clipboard={json}>
 			<Fa icon={faClipboardList} />
 			<span>Copy</span>
 		</button>
+		<button class="button-neutral" on:click={drawerStore.close}>
+			<Fa icon={faClose} />
+			<span>Close</span>
+		</button>
 	</div>
-	<pre>{json}</pre>
+	<pre class="p-4 break-words">{json}</pre>
 </div>
+
+<style>
+	pre {
+		white-space: pre-wrap; /* Since CSS 2.1 */
+		white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+		white-space: -pre-wrap; /* Opera 4-6 */
+		white-space: -o-pre-wrap; /* Opera 7 */
+		word-wrap: break-word; /* Internet Explorer 5.5+ */
+	}
+</style>

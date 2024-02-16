@@ -15,6 +15,8 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 import duui.process.IDUUIProcessHandler;
 import org.bson.Document;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.DUUIDocument;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.DUUILocalDocumentHandler;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.IDUUIDocumentHandler;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
 import spark.Request;
@@ -29,6 +31,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Collection;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -229,12 +232,13 @@ public class Main {
         }
     }
 
-    public static String uploadFile(Request request, Response response) throws ServletException, IOException {
+    public static String uploadFile(Request request, Response response) throws ServletException, IOException, DbxException {
         String authorization = request.headers("Authorization");
         authenticate(authorization);
 
         Document user = authenticate(authorization);
         if (isNullOrEmpty(user)) return unauthorized(response);
+
 
         request.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement("/temp"));
         Collection<Part> parts = request.raw().getParts();
@@ -251,11 +255,24 @@ public class Main {
 
             try (InputStream is = part.getInputStream()) {
                 Files.copy(is, path, StandardCopyOption.REPLACE_EXISTING);
-
                 DUUIHTTPMetrics.incrementBytesUploaded((double) path.toFile().length());
             } catch (IOException exception) {
                 response.status(500);
                 return "Failed to upload file " + exception;
+            }
+        }
+
+        boolean storeFiles = request.queryParamOrDefault("store", "false").equals("true");
+        if (storeFiles) {
+            String provider = request.queryParamOrDefault("provider", "");
+            String path = request.queryParamOrDefault("path", "");
+
+            IDUUIDocumentHandler handler = getHandler(provider, getUserId(request));
+            if (handler != null) {
+                DUUILocalDocumentHandler localHandler = new DUUILocalDocumentHandler();
+                List<DUUIDocument> paths = localHandler.listDocuments(root.toString(), "", true);
+                List<DUUIDocument> documents = localHandler.readDocuments(paths.stream().map(DUUIDocument::getPath).toList());
+                handler.writeDocuments(documents, path);
             }
         }
 

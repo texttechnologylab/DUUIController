@@ -80,10 +80,8 @@
 			</div>
 		</div>
 
-		<section class="bg-surface-50-900-token w-screen p-4 border-y border-color">
-			<div
-				class="container mx-auto py-16 gap-4 grid md:grid-cols-2 xl:grid-cols-3 items-start isolate"
-			>
+		<section class="bg-surface-50-900-token w-screen p-4 border-y border-color py-16 space-y-16">
+			<div class="container mx-auto gap-4 grid md:grid-cols-2 xl:grid-cols-3 items-start isolate">
 				<Feature
 					icon={faUserGroup}
 					title="Accessible"
@@ -103,27 +101,22 @@
 					<Feature icon={faChartSimple} title="Monitor" content="" />
 				</div> -->
 			</div>
-			<div class="container mx-auto text-start p-4 py-8 space-y-8">
-				<div class=" grid md:grid-cols-2 items-center justify-center md:gap-16 gap-4">
-					<div class="space-y-2">
-						<h3 class="h3">Monitoring</h3>
-						<p>
-							Pipelines are monitored in detail on a Document level including metrics for performed
-							annotations and durations for each step in a process.
-						</p>
-					</div>
-					<img src={Document} alt="" />
+			<div class="container mx-auto text-start py-8 space-y-8 grid md:grid-cols-2">
+				<div class="flex gap-4 flex-col">
+					<h3 class="h3">Monitoring</h3>
+					<p class="grow">
+						Processes are monitored on a Document level including metrics for performed
+						annotations and durations for each step.
+					</p>
+					<p class="self-start text-white">
+						Lorem ipsum dolor sit amet consectetur adipisicing elit. Delectus fuga inventore autem
+						quod excepturi? Non sunt numquam ipsum, adipisci perferendis molestiae exercitationem
+						saepe ullam iure, nulla mollitia eius, assumenda dolorem!
+					</p>
 				</div>
-				
-				<div class=" grid md:grid-cols-2 items-center justify-center md:gap-16 gap-4">
+				<div class="relative">
 					<img src={Pipeline} alt="" />
-					<div class="space-y-2">
-						<h3 class="h3">Monitoring</h3>
-						<p>
-							Pipelines are monitored in detail on a Document level including metrics for performed
-							annotations and durations for each step in a process.
-						</p>
-					</div>
+					<img class="absolute top-1/3 scale-75 left-0 md:-left-1/3" src={Document} alt="" />
 				</div>
 			</div>
 		</section>
