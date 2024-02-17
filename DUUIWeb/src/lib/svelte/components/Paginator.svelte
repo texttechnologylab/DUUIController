@@ -51,7 +51,7 @@
 		style="shadow-md grow bg-surface-50-900-token self-stretch"
 	/>
 	<div
-		class="input-no-highlight !bg-surface-50-900-token !py-0 flex justify-center !rounded-md shadow-md"
+		class="input-no-highlight bordered-soft !bg-surface-50-900-token !py-0 flex justify-center !rounded-md shadow-md"
 	>
 		<div class="grid grid-cols-2">
 			<button

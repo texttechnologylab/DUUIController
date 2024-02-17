@@ -143,10 +143,6 @@
 			method: 'PUT',
 			body: JSON.stringify($currentPipelineStore)
 		})
-
-		if (response.ok) {
-			toastStore.trigger(successToast('Changes saved successfully'))
-		}
 	}
 
 	const deletePipeline = async () => {
@@ -546,7 +542,7 @@
 			</button>
 		</div>
 	</div>
-	<div class="p-4 mb-32">
+	<div class="p-4 mb-16">
 		<div class="text-xs md:text-base flex">
 			<TabGroup
 				regionList="border-none"
@@ -652,7 +648,7 @@
 											"
 										>
 											<button
-												class="button-neutral bg-surface-100-800-token !aspect-square !rounded-full"
+												class="button-neutral bg-surface-100-800-token !aspect-square !rounded-full !p-3"
 												use:popup={addComponentPopup}
 											>
 												<Fa icon={faPlus} />
@@ -664,7 +660,7 @@
 						</ul>
 						<div class="mx-auto flex items-center justify-center group">
 							<button
-								class="button-neutral !aspect-square !rounded-full bg-surface-100-800-token"
+								class="button-neutral !aspect-square !rounded-full bg-surface-100-800-token !p-3"
 								use:popup={addComponentPopup}
 							>
 								<Fa icon={faPlus} />
@@ -685,7 +681,8 @@
 									class="button-neutral border-none !rounded-none !justify-start {index ===
 									sort.index
 										? 'bg-surface-50-900-token'
-										: ''}"
+										: ''}
+										{[1, 2, 3, 6].includes(index) ? '!hidden lg:!inline-flex' : ''}"
 									on:click={() => sortTable(index)}
 								>
 									<span>{column}</span>
@@ -706,13 +703,13 @@
 											text-xs lg:text-sm"
 									>
 										<p>{datetimeToString(new Date(process.started_at))}</p>
-										<p>
+										<p class="hidden lg:inline-flex">
 											{process.input.provider}
 										</p>
-										<p>
+										<p class="hidden lg:inline-flex">
 											{process.output.provider}
 										</p>
-										<p>{process.document_names.length}</p>
+										<p class="hidden lg:inline-flex">{process.document_names.length}</p>
 										<p>
 											{((process.progress / process.document_names.length) * 100 || 0).toFixed(2)}
 											%
@@ -725,7 +722,7 @@
 											/>
 											<span>{process.status}</span>
 										</p>
-										<p>
+										<p class="hidden lg:inline-flex">
 											{getDuration(process.started_at, process.finished_at)}
 										</p>
 									</a>

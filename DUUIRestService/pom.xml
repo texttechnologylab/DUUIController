@@ -9,49 +9,61 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>copy-dependencies</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>copy-dependencies</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>
-                                ${project.build.directory}/libs
-                            </outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.2-beta-4</version>
                 <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <finalName>DUUIRestService</finalName>
+                    <appendAssemblyId>false</appendAssemblyId>
                     <archive>
                         <manifest>
+                            <mainClass>api.Main</mainClass>
                             <addClasspath>true</addClasspath>
-                            <classpathPrefix>libs/</classpathPrefix>
-                            <mainClass>
-                                api.Main
-                            </mainClass>
                         </manifest>
                     </archive>
                 </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
-    <groupId>org.example</groupId>
+
+    <!--    <build>-->
+    <!--        <plugins>-->
+    <!--            <plugin>-->
+    <!--                <artifactId>maven-assembly-plugin</artifactId>-->
+    <!--                <configuration>-->
+    <!--                    <archive>-->
+    <!--                        <manifest>-->
+    <!--                            <mainClass>api.Main</mainClass>-->
+    <!--                        </manifest>-->
+    <!--                    </archive>-->
+    <!--                    <descriptorRefs>-->
+    <!--                        <descriptorRef>jar-with-dependencies</descriptorRef>-->
+    <!--                    </descriptorRefs>-->
+    <!--                </configuration>-->
+    <!--            </plugin>-->
+    <!--        </plugins>-->
+    <!--    </build>-->
+    <groupId>org.texttechnologylab</groupId>
     <artifactId>DUUIRestService</artifactId>
     <version>1.0</version>
-
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
     </properties>
+
     <repositories>
         <repository>
             <id>jitpack.io</id>
@@ -81,16 +93,16 @@
         </dependency>
 
 
-        <dependency>
-            <groupId>com.github.texttechnologylab</groupId>
-            <artifactId>DockerUnifiedUIMAInterface</artifactId>
-            <version>web-api-SNAPSHOT</version>
-        </dependency>
         <!--        <dependency>-->
-        <!--            <groupId>org.texttechnologylab</groupId>-->
+        <!--            <groupId>com.github.texttechnologylab</groupId>-->
         <!--            <artifactId>DockerUnifiedUIMAInterface</artifactId>-->
-        <!--            <version>1.0</version>-->
+        <!--            <version>web-api-SNAPSHOT</version>-->
         <!--        </dependency>-->
+        <dependency>
+            <groupId>org.texttechnologylab</groupId>
+            <artifactId>DockerUnifiedUIMAInterface</artifactId>
+            <version>1.0</version>
+        </dependency>
 
         <dependency>
             <groupId>org.xerial</groupId>
@@ -134,11 +146,28 @@
         </dependency>
 
         <dependency>
+            <groupId>de.tudarmstadt.ukp.dkpro.core</groupId>
+            <artifactId>de.tudarmstadt.ukp.dkpro.core.opennlp-asl</artifactId>
+            <version>1.10.0</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/de.tudarmstadt.ukp.dkpro.core/de.tudarmstadt.ukp.dkpro.core.io.text-asl -->
+        <dependency>
+            <groupId>de.tudarmstadt.ukp.dkpro.core</groupId>
+            <artifactId>de.tudarmstadt.ukp.dkpro.core.io.text-asl</artifactId>
+            <version>1.10.0</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/de.tudarmstadt.ukp.dkpro.core/de.tudarmstadt.ukp.dkpro.core.tokit-asl -->
+        <dependency>
+            <groupId>de.tudarmstadt.ukp.dkpro.core</groupId>
+            <artifactId>de.tudarmstadt.ukp.dkpro.core.tokit-asl</artifactId>
+            <version>1.10.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <version>4.0.1</version> <!-- Use the appropriate version -->
         </dependency>
-
     </dependencies>
 
 

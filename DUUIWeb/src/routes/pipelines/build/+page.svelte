@@ -4,8 +4,7 @@
 	import {
 		DUUIDrivers,
 		blankComponent,
-		type DUUIComponent,
-		type DUUIDriverFilter
+		type DUUIComponent
 	} from '$lib/duui/component'
 	import {
 		blankPipeline,
@@ -35,14 +34,14 @@
 		faUpload
 	} from '@fortawesome/free-solid-svg-icons'
 	import type { DrawerSettings } from '@skeletonlabs/skeleton'
-	import { getDrawerStore, getModalStore, getToastStore } from '@skeletonlabs/skeleton'
+	import { getDrawerStore, getToastStore } from '@skeletonlabs/skeleton'
+	import pkg from 'lodash'
 	import { onMount } from 'svelte'
 	import { dndzone, type DndEvent } from 'svelte-dnd-action'
 	import Fa from 'svelte-fa'
 	import { flip } from 'svelte/animate'
-	import ComponentTemplates from './ComponentTemplates.svelte'
 	import { v4 as uuidv4 } from 'uuid'
-	import pkg from 'lodash'
+	import ComponentTemplates from './ComponentTemplates.svelte'
 	const { cloneDeep } = pkg
 
 	export let data
@@ -319,7 +318,6 @@
 								bind:query={searchText}
 								icon={faSearch}
 								placeholder="Search..."
-								style="input-wrapper !rounded-none md:!rounded-sm p-4 md:p-3"
 							/>
 						</div>
 					</div>
@@ -402,7 +400,7 @@
 											"
 									>
 										<button
-											class="button-neutral bg-surface-100-800-token !aspect-square !rounded-full"
+											class="button-neutral bg-surface-100-800-token !aspect-square !rounded-full !p-3"
 											on:click={() => drawerStore.open(drawer)}
 										>
 											<Fa icon={faPlus} />
@@ -414,7 +412,7 @@
 					</ul>
 					<div class="mx-auto flex items-center justify-center">
 						<button
-							class="button-neutral !aspect-square !rounded-full bg-surface-100-800-token"
+							class="button-neutral !aspect-square !rounded-full bg-surface-100-800-token !p-3"
 							on:click={() => drawerStore.open(drawer)}
 						>
 							<Fa icon={faPlus} />

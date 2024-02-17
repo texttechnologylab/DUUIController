@@ -8,7 +8,7 @@
 </script>
 
 <div class="endpoint">
-	<div class="flex gap-8 items-center p-4 bg-surface-50-900-token">
+	<div class="flex gap-8 items-center p-4 bg-surface-50-900-token ">
 		<p class="font-bold text-lg basis-16">{endpoint.method}</p>
 		<p>{endpoint.route}</p>
 		<button

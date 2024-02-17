@@ -275,6 +275,7 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
 
     @Override
     public void onException(Exception exception) {
+        exception.printStackTrace();
         DUUIProcessController.setStatus(getProcessID(), DUUIStatus.FAILED);
         DUUIProcessController.setError(
             getProcessID(),

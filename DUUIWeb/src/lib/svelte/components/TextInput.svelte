@@ -22,7 +22,7 @@
 	const helpPopup: PopupSettings = {
 		event: 'hover',
 		target: id,
-		placement: 'bottom-start',
+		placement: 'bottom',
 		middleware: {
 			offset: 0
 		}
@@ -30,13 +30,14 @@
 </script>
 
 {#if help}
-	<div data-popup={id}>
-		<div class="text-sm z-50 max-w-[50ch] variant-filled-primary rounded-md p-4 shadow-md">
+	<div data-popup={id} class="z-50">
+		<div class="text-sm max-w-[50ch] variant-filled-primary rounded-md p-4 shadow-md">
 			<div class="grid grid-cols-[auto_1fr] items-center gap-4">
 				<Fa icon={faLightbulb} size="2x" />
 				<p class="border-l pl-4">{help}</p>
 			</div>
 		</div>
+		<div class="arrow !left-1/2 !-translate-x-1/2 variant-filled-primary" />
 	</div>
 {/if}
 

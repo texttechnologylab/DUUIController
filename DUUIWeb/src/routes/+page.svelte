@@ -205,7 +205,7 @@
 			</div>
 		</div>
 		<div class="w-screen variant-filled-primary min-h-[200px]">
-			<div class="flex flex-col justify-center items-center py-16 gap-8">
+			<div class="flex flex-col justify-center items-center p-4 py-16 gap-8">
 				<h2 class="h2">Automate big data analysis with DUUI</h2>
 				<section class="md:p-8 grid md:grid-cols-2 gap-4">
 					<button class="button bg-surface-50-900-token text-surface-900-50-token">

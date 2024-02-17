@@ -47,7 +47,7 @@
 	if (input.provider === IO.File) {
 		input.path = ''
 	}
-	
+
 	let output: DUUIDocumentProvider = {
 		provider: ($page.url.searchParams.get('output_provider') as IOProvider) || 'None',
 		path: $page.url.searchParams.get('output_path') || '',
@@ -364,6 +364,7 @@
 											label="Minimum size"
 											max={2147483647}
 											name="skipFiles"
+											help="All files with a size smaller than {skipFiles} bytes will not be processed."
 											bind:value={skipFiles}
 										/>
 										<span class="text-xs pl-2">Bytes</span>
@@ -372,6 +373,7 @@
 										label="Worker count"
 										min={1}
 										max={100}
+										help="The number of threads used for processing. The actual number of threads is limited by the system."
 										name="workerCount"
 										bind:value={workerCount}
 									/>

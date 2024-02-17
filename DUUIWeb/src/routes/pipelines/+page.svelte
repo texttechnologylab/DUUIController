@@ -248,7 +248,7 @@
 						<Fa icon={faPlus} />
 						<span class="text-xs md:text-base">New</span>
 					</a>
-					<button class="input-wrapper button" use:popup={sortPopup}>
+					<button class="input-wrapper inline-flex gap-4 items-center px-4" use:popup={sortPopup}>
 						<Fa icon={faSort} />
 						<span>Sort</span>
 					</button>
@@ -264,7 +264,7 @@
 						bind:query={searchText}
 						icon={faSearch}
 						placeholder="Search"
-						style="input-wrapper !rounded-none md:!rounded-sm p-4 md:p-3"
+						style="input-wrapper"
 					/>
 				</div>
 			</div>

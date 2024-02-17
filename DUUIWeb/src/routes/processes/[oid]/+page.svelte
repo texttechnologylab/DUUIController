@@ -274,9 +274,9 @@
 			rounded="rounded-none"
 			meter="variant-filled-primary"
 		/> -->
-		<div class="p-4 py-8 space-y-4">
-			<div class="mx-auto grid md:flex items-center gap-8 justify-center h3">
-				<div class="flex items-center gap-4">
+		<div class="p-4 space-y-4">
+			<div class="mx-auto grid grid-cols-2 md:flex items-center gap-8 justify-center h3">
+				<div class="flex items-center gap-4 justify-center">
 					<Fa
 						size="lg"
 						icon={getStatusIcon(process.status)}
@@ -286,7 +286,7 @@
 						{process.status}
 					</p>
 				</div>
-				<div class="flex items-center gap-4">
+				<div class="flex items-center gap-4 col-span-2 row-start-2 justify-center">
 					<Fa icon={faListCheck} size="lg" />
 					<p>
 						{process.progress} / {process.document_names.length} ({progresAsPercent(
@@ -295,7 +295,7 @@
 						)}%)
 					</p>
 				</div>
-				<div class="flex items-center gap-4">
+				<div class="flex items-center gap-4 justify-center">
 					<Fa icon={faClockRotateLeft} size="lg" />
 					<p>{getDuration(process.started_at, process.finished_at)}</p>
 				</div>
@@ -344,7 +344,8 @@
 									class="button-neutral border-none !rounded-none !justify-start {index ===
 									sort.index
 										? 'bg-surface-50-900-token'
-										: ''}"
+										: ''}
+										{[3, 4].includes(index) ? '!hidden lg:!inline-flex' : ''}"
 									on:click={() => sortTable(index)}
 								>
 									<span>{column}</span>
@@ -383,8 +384,8 @@
 										/>
 										<span>{document.status}</span>
 									</p>
-									<p>{formatFileSize(document.size)}</p>
-									<p>{formatMilliseconds(getTotalDuration(document))}</p>
+									<p class="hidden lg:inline-flex">{formatFileSize(document.size)}</p>
+									<p class="hidden lg:inline-flex">{formatMilliseconds(getTotalDuration(document))}</p>
 								</button>
 							{/each}
 						</div>
@@ -393,7 +394,7 @@
 				</div>
 			</div>
 
-			<div class="section-wrapper space-y-8 p-4 !mb-32">
+			<div class="section-wrapper space-y-8 p-4 !mb-16">
 				<div class="space-y-8">
 					<div class="flex justify-between items-center gap-4">
 						<h2 class="h3">Settings</h2>
