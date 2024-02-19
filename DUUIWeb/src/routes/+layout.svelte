@@ -54,7 +54,7 @@
 	const drawerStore = getDrawerStore()
 	const sidebarDrawer: DrawerSettings = {
 		id: 'sidebar',
-		width: 'w-full sm:w-[40%]',
+		width: 'w-full sm:w-1/2',
 		rounded: 'rounded-none'
 	}
 
@@ -122,10 +122,10 @@
 </Drawer>
 
 <!-- App Shell  -->
-<AppShell class="dark:bg-surface-700 ">
+<AppShell >
 	<svelte:fragment slot="header">
 		<!-- App Bar -->
-		<AppBar shadow="shadow-md" background="bg-surface-50-900-token z-[100]">
+		<AppBar background="bg-surface-50-900-token border-b border-color z-[100]">
 			<svelte:fragment slot="lead">
 				<div class="flex items-center gap-4">
 					<button class="btn-icon lg:hidden" on:click={() => drawerStore.open(sidebarDrawer)}>

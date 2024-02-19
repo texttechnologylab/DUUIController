@@ -93,16 +93,16 @@
         </dependency>
 
 
-        <!--        <dependency>-->
-        <!--            <groupId>com.github.texttechnologylab</groupId>-->
-        <!--            <artifactId>DockerUnifiedUIMAInterface</artifactId>-->
-        <!--            <version>web-api-SNAPSHOT</version>-->
-        <!--        </dependency>-->
-        <dependency>
-            <groupId>org.texttechnologylab</groupId>
-            <artifactId>DockerUnifiedUIMAInterface</artifactId>
-            <version>1.0</version>
-        </dependency>
+                <dependency>
+                    <groupId>com.github.texttechnologylab</groupId>
+                    <artifactId>DockerUnifiedUIMAInterface</artifactId>
+                    <version>web-api-SNAPSHOT</version>
+                </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.texttechnologylab</groupId>-->
+<!--            <artifactId>DockerUnifiedUIMAInterface</artifactId>-->
+<!--            <version>1.0</version>-->
+<!--        </dependency>-->
 
         <dependency>
             <groupId>org.xerial</groupId>

@@ -642,7 +642,7 @@
 									{#if component.index < $currentPipelineStore.components.length - 1}
 										<div
 											class="my-4 mx-auto flex items-center justify-center
-											relative
+											relative 
 											before:absolute before:h-full before:w-1 before:-translate-x-1/2 before:left-1/2
 											before:bg-surface-100-800-token before:-z-50 before:scale-y-[200%]
 											"

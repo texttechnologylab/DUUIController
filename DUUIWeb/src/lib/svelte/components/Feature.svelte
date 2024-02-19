@@ -9,16 +9,16 @@
 </script>
 
 <div
-	class="border-color border
-	p-4 py-8 space-y-4 relative bg-fancy
-	text-start {classes} shadow-md
-	flex flex-col justify-start items-start border-l-8 !border-l-primary-500 rounded-md bg-surface-200/10 md:pl-8 self-stretch
+	class="
+	p-4 py-32 space-y-4 relative bg-fancy
+	text-center md:text-xl {classes}
+	flex flex-col justify-center items-center self-stretch
 	"
 >
-	<div class="aspect-square flex justify-start rounded-md py-4 dimmed items-center">
+	<div class="aspect-square flex justify-start rounded-md py-4 items-center">
 		<Fa size="2x" {icon} />
 	</div>
-	<h3 class="text-2xl font-bold">{title}</h3>
-	<p class="max-w-[45ch] dimmed">{content}</p>
+	<h3 class="h2 font-bold">{title}</h3>
+	<p class="mx-auto max-w-[45ch]">{content}</p>
 	<slot />
 </div>

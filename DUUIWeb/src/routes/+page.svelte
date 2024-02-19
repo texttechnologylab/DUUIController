@@ -4,23 +4,24 @@
 		faArrowUpRightFromSquare,
 		faArrowsAlt,
 		faBook,
-		faChartSimple,
 		faCheck,
 		faChevronRight,
 		faCloud,
 		faGlobe,
+		faPlus,
 		faRecycle,
+		faRefresh,
 		faUserGroup
 	} from '@fortawesome/free-solid-svg-icons'
 
 	import { goto } from '$app/navigation'
 	import Logo from '$lib/assets/Logo.svg'
+	import Mobile from '$lib/assets/Screenshots/Mobile Control.png'
+	import Pipeline from '$lib/assets/Screenshots/Pipeline_Processes.png'
 	import { userSession } from '$lib/store'
 	import Link from '$lib/svelte/components/Link.svelte'
 	import { faAmazon, faDropbox, faGithub, faXTwitter } from '@fortawesome/free-brands-svg-icons'
 	import Fa from 'svelte-fa'
-	import Document from '$lib/assets/Screenshots/Document_with_Download.png'
-	import Pipeline from '$lib/assets/Screenshots/Pipeline_Processes.png'
 
 	const logout = async () => {
 		const response = await fetch('/account/logout', { method: 'PUT' })
@@ -42,46 +43,87 @@
 	<title>DUUI</title>
 </svelte:head>
 
-<main class="container mx-auto flex justify-center items-center" id="top">
-	<div
-		class="text-center flex flex-col items-center bg-surface-200/30 dark:bg-surface-500/80 isolate"
-	>
-		<div class="text-center p-8 md:my-12 self-stretch">
-			<div class="space-y-8 md:space-y-16 2xl:my-8 flex flex-col items-center">
-				<div class="space-y-2">
-					<p class="text-lg md:text-xl py-4 mx-auto">Natural Language Processing</p>
-					<h1 class="text-3xl md:text-6xl font-bold !mb-8">Docker Unified UIMA Interface</h1>
-					<p class="max-w-[60ch] mx-auto dimmed md:text-lg font-medium">
-						A scalable, flexible, lightweight and feature rich NLP framework for automated and
-						distributed analysis of large text corpora.
-					</p>
-				</div>
+<main class="flex justify-center items-center bg-surface-50-900-token" id="top">
+	<div class="container mx-auto text-center flex flex-col items-center isolate">
+		<div class="w-screen bg-surface-50-900-token top">
+			<div class="text-center">
+				<div class="space-y-8 md:space-y-16 lg:space-y-32 lg:pt-16">
+					<div class="flex flex-col items-center space-y-8 md:space-y-16">
+						<div class="space-y-2 py-4">
+							<p class="text-lg md:text-xl mx-auto dimmed">Docker Unified UIMA Interface</p>
+							<h1 class="text-5xl md:text-7xl font-bold !my-8">One platform. Unlimited Tools.</h1>
+							<p class="max-w-[60ch] mx-auto md:text-lg font-medium dimmed">
+								A scalable, flexible, lightweight and feature rich NLP framework for automated and
+								distributed analysis of large text corpora.
+							</p>
+						</div>
 
-				<div class="grid md:grid-cols-2 gap-4">
-					{#if $userSession === undefined}
-						<a href="/account/register" class="button-modal button-primary shadow-md">
-							<span> Get Started </span>
-							<Fa icon={faChevronRight} />
-						</a>
-					{:else}
-						<a href="/pipelines" class="button-modal button-primary">
-							<span> Get back to it </span>
-							<Fa icon={faChevronRight} />
-						</a>
-					{/if}
-					<a
-						href="/documentation"
-						class="text-primary-700-200-token shadow-md button-modal hover:variant-soft-primary transition-colors button bordered-soft"
-					>
-						<span> Documentation </span>
-						<Fa icon={faBook} />
-					</a>
+						<div class="grid md:grid-cols-2 gap-4">
+							{#if $userSession === undefined}
+								<a
+									href="/account/register"
+									class="cta button-primary !justify-center button-modal shadow-md"
+								>
+									<span> Get Started </span>
+									<Fa icon={faChevronRight} />
+								</a>
+							{:else}
+								<a
+									href="/pipelines"
+									class="cta button-primary !justify-center button-modal shadow-md"
+								>
+									<span> Get back to it </span>
+									<Fa icon={faChevronRight} />
+								</a>
+							{/if}
+							<a
+								href="/documentation"
+								target="_blank"
+								class="cta !hidden md:!inline-flex text-primary-700-200-token shadow-md
+								 button-modal hover:variant-soft-primary transition-colors button bordered-soft"
+							>
+								<span> Documentation </span>
+								<Fa icon={faBook} />
+							</a>
+						</div>
+					</div>
+					<div class="grid gap-8 lg:gap-12 justify-center pb-8 mx-auto">
+						<div class="section-wrapper">
+							<div class="flex gap-16 p-4 px-16 items-center rounded-md bg-surface-100-800-token">
+								<Fa icon={faCheck} size="2x" />
+								<p class="md:h4">Catch attention</p>
+							</div>
+						</div>
+
+						<div class="section-wrapper">
+							<div class="flex gap-16 p-4 px-16 items-center bg-surface-100-800-token">
+								{#if $userSession}
+									<Fa icon={faCheck} size="2x" />
+									<p class="md:h4">Converted to User</p>
+								{:else}
+									<Fa icon={faRefresh} spin size="2x" />
+									<p class="md:h4">Convert to User</p>
+								{/if}
+							</div>
+						</div>
+
+						<div>
+							<a
+								href="#features"
+								class="anchor-neutral bg-surface-100-800-token !aspect-square !rounded-full"
+							>
+								<Fa icon={faPlus} />
+							</a>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
 
-		<section class="bg-surface-50-900-token w-screen p-4 border-y border-color py-16 space-y-16">
-			<div class="container mx-auto gap-4 grid md:grid-cols-2 xl:grid-cols-3 items-start isolate">
+		<section class="w-screen py-16 space-y-16" id="features">
+			<div
+				class="bottom variant-filled-primary mx-auto grid md:grid-cols-2 xl:grid-cols-3 items-start isolate min-h-[400px] divide-y divide-x"
+			>
 				<Feature
 					icon={faUserGroup}
 					title="Accessible"
@@ -101,26 +143,44 @@
 					<Feature icon={faChartSimple} title="Monitor" content="" />
 				</div> -->
 			</div>
-			<div class="container mx-auto text-start py-8 space-y-8 grid md:grid-cols-2">
+			<div class="relative container mx-auto text-center text-lg py-8 space-y-16">
 				<div class="flex gap-4 flex-col">
-					<h3 class="h3">Monitoring</h3>
-					<p class="grow">
-						Processes are monitored on a Document level including metrics for performed
-						annotations and durations for each step.
-					</p>
-					<p class="self-start text-white">
-						Lorem ipsum dolor sit amet consectetur adipisicing elit. Delectus fuga inventore autem
-						quod excepturi? Non sunt numquam ipsum, adipisci perferendis molestiae exercitationem
-						saepe ullam iure, nulla mollitia eius, assumenda dolorem!
-					</p>
+					<h3 class="h2">Monitoring</h3>
+					<div class="grid grid-cols-2 gap-4 text-start justify-center items-center py-8">
+						<p>
+							Processes are monitored on a Document level including metrics for performed
+							annotations and durations for each step.
+						</p>
+						<p>
+							Stay informed on how your pipelines are doing even on mobile. Quick access to both
+							metrics and controls in one place.
+						</p>
+					</div>
 				</div>
-				<div class="relative">
-					<img src={Pipeline} alt="" />
-					<img class="absolute top-1/3 scale-75 left-0 md:-left-1/3" src={Document} alt="" />
+				<div class="overflow-hidden bordered-soft rounded-md shadow-md">
+					<img class="max-w-[200%] md:max-w-full" src={Pipeline} alt="" />
+				</div>
+				<div class="absolute top-1/4 md:top-[15%] -right-1/2 md:right-0">
+					<img
+						class="bordered-soft shadow-md rounded-md 2xl:max-w-none max-w-[50%] md:max-w-[75%]"
+						src={Mobile}
+						alt=""
+					/>
+				</div>
+			</div>
+			<div class="container mx-auto py-8 space-y-16 gap-4 text-center text-lg">
+				<div class="flex gap-4 flex-col">
+					<h3 class="h2">UIMA conform</h3>
+					<p class="grow mx-auto">
+						All DUUI based annotators are UIMA conform, allowing for the integration of a large
+						number of existing and newly created tools.
+					</p>
 				</div>
 			</div>
 		</section>
-		<div class="w-screen relative overflow-hidden">
+		<div
+			class="bg-surface-100-800-token w-screen relative overflow-hidden z-50 py-32 bottom-divide"
+		>
 			<div class="container max-w-7xl mx-auto space-y-8 my-8">
 				<section
 					class="flex flex-col md:flex-row gap-4 p-4 md:py-8 items-center text-left justify-between mx-auto"
@@ -168,10 +228,9 @@
 					</div>
 				</section>
 				<!-- Virtualization -->
-				<hr class="hr" />
 
 				<section
-					class="flex flex-col-reverse md:flex-row gap-4 p-4 md:py-8 items-center text-left justify-between mx-auto"
+					class="flex flex-col-reverse md:flex-row gap-4 p-4 md:py-32 items-center text-left justify-between mx-auto"
 				>
 					<div class="space-y-4 p-4 justify-center">
 						<ul class="space-y-4">
@@ -205,17 +264,24 @@
 			</div>
 		</div>
 		<div class="w-screen variant-filled-primary min-h-[200px]">
-			<div class="flex flex-col justify-center items-center p-4 py-16 gap-8">
+			<div class="flex flex-col justify-center items-center p-4 py-32 gap-16 bg-fancy">
 				<h2 class="h2">Automate big data analysis with DUUI</h2>
-				<section class="md:p-8 grid md:grid-cols-2 gap-4">
-					<button class="button bg-surface-50-900-token text-surface-900-50-token">
+				<section class="grid md:grid-cols-2 gap-16">
+					<a
+						class="cta uppercase box-shadow font-bold button bg-surface-50-900-token text-surface-900-50-token !justify-center box"
+						href="/account/login"
+					>
 						<span>Create Account</span>
 						<Fa icon={faChevronRight} />
-					</button>
-					<button class="button bg-surface-50-900-token text-surface-900-50-token">
+					</a>
+					<a
+						class="cta uppercase box-shadow font-bold button bg-surface-50-900-token text-surface-900-50-token !justify-center"
+						target="_blank"
+						href="https://github.com/texttechnologylab"
+					>
 						<span>GitHub</span>
 						<Fa icon={faGithub} />
-					</button>
+					</a>
 				</section>
 			</div>
 		</div>
@@ -223,7 +289,7 @@
 </main>
 
 <footer>
-	<div class="border-t border-surface-400/20 bg-surface-50-900-token">
+	<div class=" border-t border-color bg-surface-50-900-token">
 		<div
 			class="relative
 		 lg:after:visible after:invisible after:absolute after:w-[2px] after:h-full after:scale-y-[80%] after:bg-surface-400/20 after:left-1/2 after:top-0 after:rounded-full
@@ -298,3 +364,35 @@
 		</div>
 	</div>
 </footer>
+
+<style>
+	.top {
+		clip-path: polygon(0 0, 100% 0, 100% calc(100% - 70px), 50% 100%, 0 calc(100% - 70px));
+	}
+	.bottom {
+		clip-path: polygon(0 0, 50% 70px, 100% 0, 100% 100%, 0 100%);
+		margin-top: -70px;
+	}
+
+	.top-divide {
+		clip-path: polygon(0 0, 100% 0, 100% 100%, 0 calc(100% - 137px));
+	}
+	.bottom-divide {
+		clip-path: polygon(0 0, 100% 137px, 100% 100%, 0 100%);
+		margin-top: -127px;
+	}
+
+	.cta {
+		transform: skewX(-15deg);
+		transition: all 0.3s ease-out;
+	}
+
+	.box-shadow {
+		box-shadow: 6px 6px 0 black;
+		transition: all 0.3s ease-out;
+	}
+
+	.box-shadow:hover {
+		box-shadow: 12px 12px 0 black;
+	}
+</style>
