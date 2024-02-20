@@ -85,7 +85,7 @@
 		</button>
 	</div>
 	<div
-		class="flex flex-col md:flex-row justify-center items-center md:items-start gap-4 fixed bottom-0 w-full sm:w-1/2"
+		class="flex flex-col md:flex-row justify-center items-center md:items-start gap-4"
 	>
 		<div class="flex items-center gap-8 p-4 variant-filled-primary w-full justify-center">
 			<a

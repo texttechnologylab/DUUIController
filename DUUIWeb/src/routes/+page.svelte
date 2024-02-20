@@ -51,7 +51,9 @@
 					<div class="flex flex-col items-center space-y-8 md:space-y-16">
 						<div class="space-y-2 py-4">
 							<p class="text-lg md:text-xl mx-auto dimmed">Docker Unified UIMA Interface</p>
-							<h1 class="text-5xl md:text-7xl font-bold !my-8">One platform. Unlimited Tools.</h1>
+							<h1 class="text-5xl md:text-7xl font-bold !my-8 p-4">
+								One platform. Unlimited Tools.
+							</h1>
 							<p class="max-w-[60ch] mx-auto md:text-lg font-medium dimmed">
 								A scalable, flexible, lightweight and feature rich NLP framework for automated and
 								distributed analysis of large text corpora.
@@ -62,7 +64,7 @@
 							{#if $userSession === undefined}
 								<a
 									href="/account/register"
-									class="cta button-primary !justify-center button-modal shadow-md"
+									class="cta button-primary box-shadow !text-xl !justify-center button-modal shadow-md"
 								>
 									<span> Get Started </span>
 									<Fa icon={faChevronRight} />
@@ -70,7 +72,7 @@
 							{:else}
 								<a
 									href="/pipelines"
-									class="cta button-primary !justify-center button-modal shadow-md"
+									class="cta button-primary box-shadow !justify-center button-modal shadow-md"
 								>
 									<span> Get back to it </span>
 									<Fa icon={faChevronRight} />
@@ -87,7 +89,7 @@
 							</a>
 						</div>
 					</div>
-					<div class="grid gap-8 lg:gap-12 justify-center pb-8 mx-auto">
+					<div class="grid gap-8 lg:gap-12 justify-center pb-8 mx-auto pt-16">
 						<div class="section-wrapper">
 							<div class="flex gap-16 p-4 px-16 items-center rounded-md bg-surface-100-800-token">
 								<Fa icon={faCheck} size="2x" />
@@ -138,15 +140,16 @@
 					icon={faArrowsAlt}
 					title="Scalable"
 					content="DUUI guarantees horizontal and vertical via a native Docker Swarm implementation. Docker enables machine-specific resource management."
+					classes="md:col-span-2 xl:col-span-1"
 				/>
 				<!-- <div class="col-start-2">
 					<Feature icon={faChartSimple} title="Monitor" content="" />
 				</div> -->
 			</div>
-			<div class="relative container mx-auto text-center text-lg py-8 space-y-16">
+			<div class="p-4 relative container mx-auto text-center text-lg py-8 space-y-16">
 				<div class="flex gap-4 flex-col">
 					<h3 class="h2">Monitoring</h3>
-					<div class="grid grid-cols-2 gap-4 text-start justify-center items-center py-8">
+					<div class="grid md:grid-cols-2 gap-8 justify-center items-center py-8 text-justify">
 						<p>
 							Processes are monitored on a Document level including metrics for performed
 							annotations and durations for each step.
@@ -157,82 +160,76 @@
 						</p>
 					</div>
 				</div>
-				<div class="overflow-hidden bordered-soft rounded-md shadow-md">
-					<img class="max-w-[200%] md:max-w-full" src={Pipeline} alt="" />
-				</div>
-				<div class="absolute top-1/4 md:top-[15%] -right-1/2 md:right-0">
+				<img
+					class="rounded-md bordered-soft shadow-md max-w-[200%] md:max-w-full"
+					src={Pipeline}
+					alt=""
+				/>
+				<div class="absolute top-1/2 md:top-1/3 xl:top-[15%] -right-1/2 md:right-0">
 					<img
-						class="bordered-soft shadow-md rounded-md 2xl:max-w-none max-w-[50%] md:max-w-[75%]"
+						class="bordered-soft shadow-md rounded-md 2xl:max-w-none max-w-[50%] xl:max-w-[75%]"
 						src={Mobile}
 						alt=""
 					/>
 				</div>
 			</div>
-			<div class="container mx-auto py-8 space-y-16 gap-4 text-center text-lg">
+			<div class="container mx-auto py-16 space-y-16 gap-4 text-center text-lg">
 				<div class="flex gap-4 flex-col">
 					<h3 class="h2">UIMA conform</h3>
 					<p class="grow mx-auto">
 						All DUUI based annotators are UIMA conform, allowing for the integration of a large
-						number of existing and newly created tools.
+						number of existing and newly created tools. DUUI bundles the diversity of UIMA
+						annotators in one framework.
 					</p>
 				</div>
 			</div>
 		</section>
 		<div
-			class="bg-surface-100-800-token w-screen relative overflow-hidden z-50 py-32 bottom-divide"
+			class="bg-surface-100-800-token w-screen relative overflow-hidden z-50 py-32 md:py-48 bottom-divide"
 		>
-			<div class="container max-w-7xl mx-auto space-y-8 my-8">
-				<section
-					class="flex flex-col md:flex-row gap-4 p-4 md:py-8 items-center text-left justify-between mx-auto"
-				>
-					<div class="space-y-4 p-4">
-						<h2 class="text-2xl font-bold">Integrated Cloud Storage</h2>
-						<p class="text-surface-500 dark:text-surface-200">
-							DUUI has built in support for connections to multiple cloud providers like Dropbox,
-							Amazon Web Services (AWS) and OneDrive.
-						</p>
-					</div>
-					<div class="space-y-4 text-white p-4 justify-start">
+			<div class="container mx-auto gap-8 my-8 grid md:grid-cols-2 justify-center items-start">
+				<!-- Cloud -->
+				<section class="flex flex-col items-center justify-center gap-4">
+					<h2 class="h2">Storage</h2>
+					<p class="dimmed">
+						DUUI has built in support for connections to multiple cloud providers like Dropbox,
+						Amazon Web Services (AWS) and NextCloud.
+					</p>
+					<div class="space-y-8 p-4 grid my-4">
 						<a
 							href="https://www.dropbox.com"
 							target="_blank"
-							class="flex gap-4 items-center text-lg p-4 px-8 grow-from-left"
+							class="cta button-primary box-shadow !text-xl !justify-start"
 						>
 							<Fa size="lg" icon={faDropbox} />
 							<p>Dropbox</p>
-
-							<Fa icon={faArrowUpRightFromSquare} class="ml-auto" />
 						</a>
 						<a
 							href="https://aws.amazon.com"
 							target="_blank"
-							class="flex gap-4 items-center text-lg p-4 px-8 grow-from-left"
+							class="cta button-primary box-shadow !text-xl !justify-start"
 						>
 							<Fa size="lg" icon={faAmazon} />
 							<p>AWS</p>
-
-							<Fa icon={faArrowUpRightFromSquare} class="ml-auto" />
 						</a>
 
 						<a
-							href="https://www.microsoft.com/de-de/microsoft-365/onedrive/online-cloud-storage"
+							href="https://nextcloud.com/de/"
 							target="_blank"
-							class="flex gap-4 items-center text-lg p-4 px-8 grow-from-left"
+							class="cta button-primary box-shadow !text-xl !justify-start"
 						>
 							<Fa size="lg" icon={faCloud} />
-							<p>OneDrive</p>
+							<p>NextCloud</p>
 							<span class="variant-filled badge hidden md:inline">Development</span>
-
-							<Fa icon={faArrowUpRightFromSquare} class="ml-auto" />
 						</a>
 					</div>
 				</section>
-				<!-- Virtualization -->
 
-				<section
-					class="flex flex-col-reverse md:flex-row gap-4 p-4 md:py-32 items-center text-left justify-between mx-auto"
-				>
-					<div class="space-y-4 p-4 justify-center">
+				<!-- Virtualization -->
+				<section class="flex flex-col items-center justify-center gap-4">
+					<h2 class="h2">Virtualization</h2>
+					<p class="dimmed">Docker and Kubernetes are essential parts of DUUI.</p>
+					<div class="space-y-4 p-4 justify-center text-start">
 						<ul class="space-y-4">
 							<li class="flex gap-4 items-center">
 								<Fa icon={faCheck} size="2x" class="text-primary-500" />
@@ -254,19 +251,13 @@
 							</li>
 						</ul>
 					</div>
-					<div class="space-y-4 p-4">
-						<h2 class="text-2xl font-bold">Scalability through Containers</h2>
-						<p class="max-w-[50ch] text-surface-500 dark:text-surface-200">
-							Docker and Kubernetes are essential parts of DUUI.
-						</p>
-					</div>
 				</section>
 			</div>
 		</div>
-		<div class="w-screen variant-filled-primary min-h-[200px]">
+		<div class="w-screen variant-filled-primary top">
 			<div class="flex flex-col justify-center items-center p-4 py-32 gap-16 bg-fancy">
 				<h2 class="h2">Automate big data analysis with DUUI</h2>
-				<section class="grid md:grid-cols-2 gap-16">
+				<section class="grid md:grid-cols-2 gap-8">
 					<a
 						class="cta uppercase box-shadow font-bold button bg-surface-50-900-token text-surface-900-50-token !justify-center box"
 						href="/account/login"
@@ -288,18 +279,14 @@
 	</div>
 </main>
 
-<footer>
-	<div class=" border-t border-color bg-surface-50-900-token">
-		<div
-			class="relative
-		 lg:after:visible after:invisible after:absolute after:w-[2px] after:h-full after:scale-y-[80%] after:bg-surface-400/20 after:left-1/2 after:top-0 after:rounded-full
-		 flex flex-col md:flex-row gap-4 md:justify-between py-16 max-w-7xl container mx-auto p-4 space-y-16 md:space-y-0"
-		>
+<footer class="bottom">
+	<div class="bg-surface-50-900-token pt-16">
+		<div class="grid gap-16 justify-center py-16 container mx-auto p-4">
 			<div class="space-y-4 md:my-0 md:border-none">
 				<div class="flex flex-col md:flex-row justify-center space-y-8">
 					<div class="grid grid-cols-1 gap-4 place-items-center">
 						<img src={Logo} class="max-h-8" alt="" />
-						<p class="!text-sm">Lightweight NLP Framework</p>
+						<p class="dimmed">Lightweight NLP Framework</p>
 					</div>
 				</div>
 				<div class="flex flex-col md:flex-row justify-center items-center md:items-start gap-4">
@@ -328,23 +315,24 @@
 					</div>
 				</div>
 			</div>
+			<hr class="hr" />
 
 			<div
-				class="flex flex-col md:flex-row gap-8 md:gap-16 justify-between text-base
+				class="flex flex-col md:flex-row gap-8 md:gap-16 justify-between
 					   text-center md:text-left"
 			>
 				<div class="flex flex-col gap-2 justify-center items-center">
-					<p class="text-surface-700-200-token font-bold md:mb-4">Pipelines</p>
+					<p class="text-surface-700-200-token font-bold h4 md:mb-4">Pipelines</p>
 					<Link href="/pipelines" dimmed={true}>Dashboard</Link>
 					<Link href="/pipelines/build" dimmed={true}>Builder</Link>
 				</div>
 				<div class="flex flex-col gap-2 justify-center items-center">
-					<p class="text-surface-700-200-token font-bold md:mb-4">Documentation</p>
+					<p class="text-surface-700-200-token font-bold h4 md:mb-4">Documentation</p>
 					<Link href="/documentation" dimmed={true}>Framework</Link>
 					<Link href="/documentation/api" dimmed={true}>API Reference</Link>
 				</div>
 				<div class="flex flex-col gap-2 justify-center items-center">
-					<p class="text-surface-700-200-token font-bold md:mb-4">Account</p>
+					<p class="text-surface-700-200-token font-bold h4 md:mb-4">Account</p>
 					{#if $userSession}
 						<Link href="/account" dimmed={true}>Account</Link>
 
