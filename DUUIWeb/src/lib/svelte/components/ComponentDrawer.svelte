@@ -306,7 +306,7 @@
 			<ComponentOptions {component} />
 		</div>
 
-		<div class="space-y-4 border-t border-color pt-4 pb-20">
+		<div class="space-y-4 border-t border-color pt-4">
 			<h4 class="h4">Parameters</h4>
 			<JsonInput bind:data={parameters} />
 			<!-- <ComponentParameters bind:parameters={component.parameters} /> -->

@@ -66,6 +66,7 @@
 	} from './charts'
 	import { getFilterOrGeneric } from '$lib/utils'
 	import ComponentTemplates from '../build/ComponentTemplates.svelte'
+	import { componentDrawerSettings } from '$lib/config'
 
 	const modalStore = getModalStore()
 	const toastStore = getToastStore()
@@ -303,9 +304,7 @@
 	const drawerStore = getDrawerStore()
 	const addDrawer: DrawerSettings = {
 		id: 'component',
-		width: 'w-full 2xl:w-1/2',
-		position: 'right',
-		rounded: 'rounded-none',
+		...componentDrawerSettings,
 		meta: {
 			component: blankComponent($currentPipelineStore.oid, $currentPipelineStore.components.length),
 			inEditor: false,
@@ -320,9 +319,7 @@
 	const cloneComponent = ({ component }) => {
 		drawerStore.open({
 			id: 'component',
-			width: 'w-full 2xl:w-1/2',
-			position: 'right',
-			rounded: 'rounded-none',
+			...componentDrawerSettings,
 			meta: {
 				component: {
 					...component,
@@ -642,7 +639,7 @@
 									{#if component.index < $currentPipelineStore.components.length - 1}
 										<div
 											class="my-4 mx-auto flex items-center justify-center
-											relative 
+											relative
 											before:absolute before:h-full before:w-1 before:-translate-x-1/2 before:left-1/2
 											before:bg-surface-100-800-token before:-z-50 before:scale-y-[200%]
 											"
@@ -736,25 +733,25 @@
 		{:else if tabSet === 2}
 			<div class="space-y-8">
 				{#if loaded && pipeline.statistics}
-					<div class="grid gap-16 section-wrapper p-4 text-center">
+					<div class="grid gap-16 section-wrapper p-4 text-center max-w-full">
 						<div class="p-4 space-y-4">
 							<h3 class="h2">Status</h3>
-							<div class="max-w-full" use:chart={statusPlotOptions} />
+							<div use:chart={statusPlotOptions} />
 						</div>
 						<hr class="hr" />
 						<div class="p-4 space-y-4">
 							<h3 class="h2">Errors</h3>
-							<div class="max-w-full" use:chart={errorsPlotOptions} />
+							<div use:chart={errorsPlotOptions} />
 						</div>
 						<hr class="hr" />
 						<div class="p-4 space-y-4">
 							<h3 class="h2">IO</h3>
-							<div class="max-w-full" use:chart={ioPlotOptions} />
+							<div use:chart={ioPlotOptions} />
 						</div>
 						<hr class="hr" />
 						<div class="p-4 space-y-4">
 							<h3 class="h2">Usage per Month</h3>
-							<div class="max-w-full" use:chart={usagePlotOptions} />
+							<div use:chart={usagePlotOptions} />
 						</div>
 					</div>
 				{:else}

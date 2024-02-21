@@ -46,7 +46,7 @@
 		{/if}
 		<LightSwitch rounded="rounded-full" on:click={() => ($isDarkModeStore = !$isDarkModeStore)} />
 	</div>
-	<div class="p-8 space-y-8 text-xl">
+	<div class="p-8 space-y-8 text-xl h-full">
 		<a href="/" class="flex items-center gap-4 animate-text">
 			<Fa icon={faHome} />
 			Home
@@ -84,9 +84,7 @@
 			<span>Help</span>
 		</button>
 	</div>
-	<div
-		class="flex flex-col md:flex-row justify-center items-center md:items-start gap-4"
-	>
+	<div class="flex flex-col md:flex-row justify-center items-center md:items-start gap-4">
 		<div class="flex items-center gap-8 p-4 variant-filled-primary w-full justify-center">
 			<a
 				target="_blank"

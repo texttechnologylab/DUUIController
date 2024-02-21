@@ -5,7 +5,7 @@ import type { DUUIProcess } from '$lib/duui/process'
 import { getDuration } from '$lib/duui/utils/time'
 
 const theme = {
-	palette: 'palette2', // upto palette10
+	palette: 'palette1', // upto palette10
 	monochrome: {
 		enabled: false
 	}

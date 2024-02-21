@@ -56,6 +56,7 @@
 		{readonly}
 		on:keydown
 		on:change
+		on:focusout
 	/>
 	{#if error}
 		<span class="pl-1 text-xs text-error-500 font-bold">{error}</span>

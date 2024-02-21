@@ -1,7 +1,6 @@
 <script lang="ts">
 	import Feature from '$lib/svelte/components/Feature.svelte'
 	import {
-		faArrowUpRightFromSquare,
 		faArrowsAlt,
 		faBook,
 		faCheck,
@@ -47,11 +46,11 @@
 	<div class="container mx-auto text-center flex flex-col items-center isolate">
 		<div class="w-screen bg-surface-50-900-token top">
 			<div class="text-center">
-				<div class="space-y-8 md:space-y-16 lg:space-y-32 lg:pt-16">
+				<div class="space-y-8 md:space-y-24 lg:pt-16">
 					<div class="flex flex-col items-center space-y-8 md:space-y-16">
 						<div class="space-y-2 py-4">
 							<p class="text-lg md:text-xl mx-auto dimmed">Docker Unified UIMA Interface</p>
-							<h1 class="text-5xl md:text-7xl font-bold !my-8 p-4">
+							<h1 class="text-5xl md:text-7xl font-bold p-4">
 								One platform. Unlimited Tools.
 							</h1>
 							<p class="max-w-[60ch] mx-auto md:text-lg font-medium dimmed">
@@ -355,11 +354,21 @@
 
 <style>
 	.top {
-		clip-path: polygon(0 0, 100% 0, 100% calc(100% - 70px), 50% 100%, 0 calc(100% - 70px));
+		clip-path: polygon(0 0, 100% 0, 100% calc(100% - 50px), 50% 100%, 0 calc(100% - 50px));
 	}
 	.bottom {
-		clip-path: polygon(0 0, 50% 70px, 100% 0, 100% 100%, 0 100%);
-		margin-top: -70px;
+		clip-path: polygon(0 0, 50% 50px, 100% 0, 100% 100%, 0 100%);
+		margin-top: -50px;
+	}
+
+	@media (min-width: 600px) {
+		.top {
+			clip-path: polygon(0 0, 100% 0, 100% calc(100% - 70px), 50% 100%, 0 calc(100% - 70px));
+		}
+		.bottom {
+			clip-path: polygon(0 0, 50% 70px, 100% 0, 100% 100%, 0 100%);
+			margin-top: -70px;
+		}
 	}
 
 	.top-divide {

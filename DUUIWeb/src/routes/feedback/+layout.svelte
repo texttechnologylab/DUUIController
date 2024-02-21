@@ -7,6 +7,6 @@
 	})
 </script>
 
-<div id="top" class="h-full p-4 space-y-4 scroll-mt-4">
+<div id="top">
 	<slot />
 </div>

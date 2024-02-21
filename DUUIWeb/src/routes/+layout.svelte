@@ -122,10 +122,10 @@
 </Drawer>
 
 <!-- App Shell  -->
-<AppShell >
+<AppShell>
 	<svelte:fragment slot="header">
 		<!-- App Bar -->
-		<AppBar background="bg-surface-50-900-token border-b border-color z-[100]">
+		<AppBar class="border-b border-color z-[100]" background="bg-surface-50-900-token">
 			<svelte:fragment slot="lead">
 				<div class="flex items-center gap-4">
 					<button class="btn-icon lg:hidden" on:click={() => drawerStore.open(sidebarDrawer)}>
@@ -189,7 +189,7 @@
 					class="md:block hidden"
 					rounded="rounded-full"
 					on:click={() => ($isDarkModeStore = !$isDarkModeStore)}
-				/>
+				/> 
 			</svelte:fragment>
 		</AppBar>
 	</svelte:fragment>

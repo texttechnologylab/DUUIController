@@ -5,6 +5,7 @@
 	import { v4 as uuidv4 } from 'uuid'
 	import pkg from 'lodash'
 	import { currentPipelineStore } from '$lib/store'
+	import { componentDrawerSettings } from '$lib/config'
 	const { cloneDeep } = pkg
 
 	const modalStore = getModalStore()
@@ -18,9 +19,7 @@
 		copy.index = $currentPipelineStore.components.length
 		drawerStore.open({
 			id: 'component',
-			width: 'w-full 2xl:w-1/2',
-			position: 'right',
-			rounded: 'rounded-none',
+			...componentDrawerSettings,
 			meta: {
 				component: copy,
 				inEditor: false,
@@ -31,8 +30,8 @@
 	}
 </script>
 
-<div class="section-wrapper p-4 h-full w-full md:w-modal-wide">
-	<div class="h-full">
+<div class="section-wrapper !bg-surface-100-800-token bordered-soft p-4 w-full md:w-modal-wide">
+	<div>
 		<ComponentTemplates
 			components={templates}
 			on:select={(event) => selectTemplate(event.detail.component)}

@@ -10,6 +10,7 @@
 	import { getDrawerStore, type DrawerSettings } from '@skeletonlabs/skeleton'
 	import { createEventDispatcher } from 'svelte'
 	import Fa from 'svelte-fa'
+	import { componentDrawerSettings } from '$lib/config'
 
 	export let component: DUUIComponent
 	export let example: boolean = false
@@ -21,9 +22,7 @@
 	const drawerStore = getDrawerStore()
 	const drawer: DrawerSettings = {
 		id: 'component',
-		width: 'w-full 2xl:w-1/2',
-		position: 'right',
-		rounded: 'rounded-none',
+		...componentDrawerSettings,
 		meta: { component: component, inEditor: inEditor, example: example }
 	}
 </script>

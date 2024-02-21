@@ -1,11 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
-	import {
-		DUUIDrivers,
-		blankComponent,
-		type DUUIComponent
-	} from '$lib/duui/component'
+	import { DUUIDrivers, blankComponent, type DUUIComponent } from '$lib/duui/component'
 	import {
 		blankPipeline,
 		getPipelineCategories,
@@ -42,6 +38,7 @@
 	import { flip } from 'svelte/animate'
 	import { v4 as uuidv4 } from 'uuid'
 	import ComponentTemplates from './ComponentTemplates.svelte'
+	import { componentDrawerSettings } from '$lib/config'
 	const { cloneDeep } = pkg
 
 	export let data
@@ -74,7 +71,6 @@
 	onMount(() => {
 		loaded = true
 	})
-
 
 	$: {
 		filteredTemplatePipelines = templatePipelines.filter(
@@ -168,9 +164,7 @@
 	const drawerStore = getDrawerStore()
 	const drawer: DrawerSettings = {
 		id: 'component',
-		width: 'w-full 2xl:w-1/2',
-		position: 'right',
-		rounded: 'rounded-none',
+		...componentDrawerSettings,
 		meta: {
 			component: blankComponent($currentPipelineStore.oid, $currentPipelineStore.components.length),
 			inEditor: true,
@@ -314,11 +308,7 @@
 									bind:value={driverFilter}
 								/> -->
 
-							<Search
-								bind:query={searchText}
-								icon={faSearch}
-								placeholder="Search..."
-							/>
+							<Search bind:query={searchText} icon={faSearch} placeholder="Search..." />
 						</div>
 					</div>
 					<div id="templates" class="grid gap-4 md:gap-8 md:grid-cols-2 xl:grid-cols-3">

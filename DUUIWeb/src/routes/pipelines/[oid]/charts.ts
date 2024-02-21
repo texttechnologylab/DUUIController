@@ -10,7 +10,7 @@ let gridSettings = {
 }
 
 let theme = {
-	palette: 'palette2', // upto palette10
+	palette: 'palette1', // upto palette10
 	monochrome: {
 		enabled: false
 	}
@@ -35,7 +35,7 @@ export const getStatusPlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) 
 			}
 		],
 		chart: {
-			height: 350,
+			height: 550,
 			type: 'bar'
 		},
 		plotOptions: {
@@ -114,7 +114,7 @@ export const getErrorsPlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) 
 			}
 		],
 		chart: {
-			height: 350,
+			height: 550,
 			type: 'bar'
 		},
 		plotOptions: {
@@ -211,7 +211,7 @@ export const getIOPlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) => {
 			}
 		],
 		chart: {
-			height: 350,
+			height: 550,
 			type: 'bar'
 		},
 		plotOptions: {
@@ -312,7 +312,7 @@ export const getUsagePlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) =
 			}
 		},
 		chart: {
-			height: 350,
+			height: 550,
 			type: 'bar',
 
 			dropShadow: {
