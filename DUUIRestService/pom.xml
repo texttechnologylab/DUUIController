@@ -19,7 +19,7 @@
                     <appendAssemblyId>false</appendAssemblyId>
                     <archive>
                         <manifest>
-                            <mainClass>api.Main</mainClass>
+                            <mainClass>org.texttechnologylab.duui.api.Main</mainClass>
                             <addClasspath>true</addClasspath>
                         </manifest>
                     </archive>
