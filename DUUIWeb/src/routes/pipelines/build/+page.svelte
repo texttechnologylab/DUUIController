@@ -293,7 +293,7 @@
 						class="card-fancy text-left grid items-start min-h-[300px] md:col-span-2 xl:col-span-1 xl:col-start-2"
 						on:click={() => selectPipelineTemplate()}
 					>
-						<div class="flex items-center gap-4 justify-between">
+						<div class="flex-center-4 justify-between">
 							<p class="text-lg font-bold">Start from scratch</p>
 							<p class="badge variant-filled-warning">New</p>
 						</div>
@@ -382,7 +382,7 @@
 			</div>
 		{:else if step === 2}
 			<div class="space-y-8">
-				<div class="min-h-[400px] space-y-8 isolate md:p-16">
+				<div class="min-h-[400px] space-y-8 isolate md:p-16 section-wrapper">
 					{#if $currentPipelineStore.components.length === 0}
 						<p class="mx-auto text-center h2 font-bold">Add a Component to get Started</p>
 					{/if}

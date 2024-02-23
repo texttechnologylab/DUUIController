@@ -144,8 +144,8 @@ export const getTimelinePlotOptions = (
 			labels: {
 				show: true,
 				style: {
-					colors: darkmode ? 'white' : 'black',
-				},
+					colors: darkmode ? 'white' : 'black'
+				}
 			}
 		},
 		tooltip: {

@@ -38,7 +38,9 @@
 	const modalStore = getModalStore()
 </script>
 
-<aside class="space-y-4 z-50 bg-surface-100-800-token h-full flex flex-col">
+<aside
+	class=" z-50 bg-surface-100-800-token h-full flex flex-col md:border-r border-color"
+>
 	<div
 		class="p-4 sticky top-0 bg-surface-50-900-token border-color border-b flex items-center justify-between"
 	>
@@ -51,32 +53,32 @@
 		<LightSwitch rounded="rounded-full" on:click={() => ($isDarkModeStore = !$isDarkModeStore)} />
 	</div>
 	<div class="p-8 space-y-8 text-xl h-full">
-		<a href="/" class="flex items-center gap-4 animate-text">
+		<a href="/" class="flex-center-4 transition-300 hover:text-primary-500">
 			<Fa icon={faHome} />
 			Home
 		</a>
-		<a href="/pipelines" class="flex items-center gap-4 animate-text">
+		<a href="/pipelines" class="flex-center-4 transition-300 hover:text-primary-500">
 			<Fa icon={faLayerGroup} />
 			Pipelines
 		</a>
-		<a href="/pipelines/build" class="flex items-center gap-4 animate-text">
+		<a href="/pipelines/build" class="flex-center-4 transition-300 hover:text-primary-500">
 			<Fa icon={faTools} />
 			Builder
 		</a>
-		<a href="/documentation" class="flex items-center gap-4 animate-text">
+		<a href="/documentation" class="flex-center-4 transition-300 hover:text-primary-500">
 			<Fa icon={faBook} />
 			Documentation
 		</a>
-		<a href="/documentation/api" class="flex items-center gap-4 animate-text">
+		<a href="/documentation/api" class="flex-center-4 transition-300 hover:text-primary-500">
 			<Fa icon={faReadme} />
 			API Reference
 		</a>
-		<a href="/account" class="flex items-center gap-4 animate-text">
+		<a href="/account" class="flex-center-4 transition-300 hover:text-primary-500">
 			<Fa icon={faUser} />
 			Account
 		</a>
 		<button
-			class="flex items-center gap-4 animate-text"
+			class="flex-center-4 transition-300 hover:text-primary-500"
 			on:click={() => {
 				modalStore.trigger({
 					type: 'component',
@@ -89,7 +91,7 @@
 		</button>
 
 		{#if $userSession}
-			<button class="flex items-center gap-4 animate-text" on:click={logout}>
+			<button class="flex-center-4 transition-300 hover:text-primary-500" on:click={logout}>
 				<Fa icon={faArrowRightFromBracket} />
 				<span>Logout</span>
 			</button>

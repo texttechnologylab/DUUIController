@@ -27,7 +27,7 @@
 			on:click|preventDefault={toggleVisibility}
 			tabindex="-1"
 		>
-			<Fa class="w-4 animate-text" icon={hidden ? faEyeSlash : faEye} />
+			<Fa class="w-4 transition-300" icon={hidden ? faEyeSlash : faEye} />
 		</button>
 		{#if hidden}
 			<input

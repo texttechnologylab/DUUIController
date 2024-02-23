@@ -21,13 +21,13 @@
 
 	import { isDarkModeStore, userSession } from '$lib/store'
 	import ConfirmModal from '$lib/svelte/components/ConfirmModal.svelte'
-	import DocumentModal from '$lib/svelte/components/DocumentDrawer.svelte'
 	import Documentation from '$lib/svelte/components/Documentation.svelte'
+	import DocumentModal from '$lib/svelte/components/Drawer/DocumentDrawer.svelte'
 	import Link from '$lib/svelte/components/Link.svelte'
-	import PromptModal from '$lib/svelte/components/PromptModal.svelte'
+	import HelpModal from '$lib/svelte/components/Modal/HelpModal.svelte'
+	import PromptModal from '$lib/svelte/components/Modal/PromptModal.svelte'
+	import WelcomeModal from '$lib/svelte/components/Modal/WelcomeModal.svelte'
 	import Sidebar from '$lib/svelte/components/Sidebar.svelte'
-	import HelpModal from '$lib/svelte/components/modals/HelpModal.svelte'
-	import WelcomeModal from '$lib/svelte/components/modals/WelcomeModal.svelte'
 	import { arrow, autoUpdate, computePosition, flip, offset, shift } from '@floating-ui/dom'
 	import { Modal } from '@skeletonlabs/skeleton'
 
@@ -38,9 +38,9 @@
 	import typescript from 'highlight.js/lib/languages/typescript'
 	import xml from 'highlight.js/lib/languages/xml'
 
-	import ComponentDrawer from '$lib/svelte/components/ComponentDrawer.svelte'
-	import DocumentDrawer from '$lib/svelte/components/DocumentDrawer.svelte'
-	import TemplateModal from '$lib/svelte/components/modals/TemplateModal.svelte'
+	import ComponentDrawer from '$lib/svelte/components/Drawer/ComponentDrawer.svelte'
+	import DocumentDrawer from '$lib/svelte/components/Drawer/DocumentDrawer.svelte'
+	import TemplateModal from '$lib/svelte/components/Modal/TemplateModal.svelte'
 	import 'highlight.js/styles/github-dark.css'
 	import { onMount } from 'svelte'
 	import ProcessDrawer from './processes/[oid]/ProcessDrawer.svelte'
@@ -127,7 +127,7 @@
 		<!-- App Bar -->
 		<AppBar class="border-b border-color z-[100]" background="bg-surface-50-900-token">
 			<svelte:fragment slot="lead">
-				<div class="flex items-center gap-4">
+				<div class="flex-center-4">
 					<button class="btn-icon lg:hidden" on:click={() => drawerStore.open(sidebarDrawer)}>
 						<Fa icon={faBars} size="lg" />
 					</button>
@@ -169,7 +169,7 @@
 						<Link href="/account/register">Register</Link>
 					{/if}
 					<button
-						class="animate-underline animate-text"
+						class="animate-underline transition-300 hover:text-primary-500"
 						on:click={() => {
 							modalStore.trigger({
 								type: 'component',

@@ -1,10 +1,12 @@
 <script lang="ts">
 	import type { DUUIProcess } from '$lib/duui/process'
+	import { successToast } from '$lib/duui/utils/ui'
 	import { faAngleDoubleRight, faClipboardList, faClose } from '@fortawesome/free-solid-svg-icons'
-	import { clipboard, getDrawerStore } from '@skeletonlabs/skeleton'
+	import { clipboard, getDrawerStore, getToastStore } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
 
 	const drawerStore = getDrawerStore()
+	const toastStore = getToastStore()
 	export let process: DUUIProcess = $drawerStore.meta['process']
 
 	const json = JSON.stringify(
@@ -19,9 +21,17 @@
 	)
 </script>
 
-<div class=" space-y-4 h-full bg-surface-100-800-token ">
-	<div class="flex items-stretch gap-4 justify-between border-b border-color bg-surface-50-900-token">
-		<button class="button-menu border-r border-color" use:clipboard={json}>
+<div class=" space-y-4 h-full bg-surface-100-800-token">
+	<div
+		class="flex items-stretch gap-4 justify-between border-b border-color bg-surface-50-900-token"
+	>
+		<button
+			class="button-menu border-r border-color"
+			use:clipboard={json}
+			on:click={() => {
+				toastStore.trigger(successToast('Copied!'))
+			}}
+		>
 			<Fa icon={faClipboardList} />
 			<span>Copy</span>
 		</button>

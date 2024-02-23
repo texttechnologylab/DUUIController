@@ -3,6 +3,26 @@
 @tailwind utilities;
 @tailwind variants;
 
+@font-face {
+	font-family: 'Open Sans';
+	src: url('/fonts/OpenSans.ttf');
+}
+
+@font-face {
+	font-family: 'Space Grotesk';
+	src: url('/fonts/SpaceGrotesk.ttf');
+}
+
+@font-face {
+	font-family: 'Oxanium';
+	src: url('/fonts/Oxanium.ttf');
+}
+
+:root [data-theme='theme'] {
+	--theme-font-family-base: 'Oxanium', sans-serif;
+	--theme-font-family-heading: 'Oxanium', sans-serif;
+}
+
 html,
 body {
 	height: 100%;
@@ -40,43 +60,11 @@ p {
 }
 
 #sidebar-left {
-	@apply bg-surface-100-800-token;
-}
-
-#sidebar-right {
-	@apply md:border-l-2 border-color shadow-md scroll-smooth;
+	@apply bg-surface-50-900-token;
 }
 
 .page-wrapper {
 	@apply p-4 space-y-8 md:px-8 z-[10];
-}
-
-.divider {
-	@apply divide-surface-200 dark:divide-surface-500;
-}
-
-.border-color {
-	@apply border-surface-200 dark:border-surface-500;
-}
-
-@font-face {
-	font-family: 'Open Sans';
-	src: url('/fonts/OpenSans.ttf');
-}
-
-@font-face {
-	font-family: 'Space Grotesk';
-	src: url('/fonts/SpaceGrotesk.ttf');
-}
-
-@font-face {
-	font-family: 'Oxanium';
-	src: url('/fonts/Oxanium.ttf');
-}
-
-:root [data-theme='theme'] {
-	--theme-font-family-base: 'Oxanium', sans-serif;
-	--theme-font-family-heading: 'Oxanium', sans-serif;
 }
 
 .section-wrapper {
@@ -131,8 +119,12 @@ p {
 	@apply bg-surface-400/20 !border-0 rounded-full h-4 w-1/2 mx-auto;
 }
 
-.grow-from-left {
-	@apply relative isolate overflow-hidden bg-primary-500 font-bold rounded-full shadow-md after:absolute after:inset-0 after:bg-primary-700 after:-z-10 after:rounded-full after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-right after:duration-500 text-white hover:after:origin-left after:ease-in-out;
+.divider {
+	@apply divide-surface-200 dark:divide-surface-500;
+}
+
+.border-color {
+	@apply border-surface-200 dark:border-surface-500;
 }
 
 .animate-underline {
@@ -141,16 +133,12 @@ p {
 		   after:transition-transform after:origin-right after:duration-300 after:ease-in-out;
 }
 
-.partial-underline {
-	@apply relative after:absolute after:w-1/2 after:h-[2px] after:bg-primary-500 after:rounded-full;
+.flex-center-4 {
+	@apply flex items-center gap-4;
 }
 
-.animate-text {
-	@apply hover:text-primary-500 transition-colors duration-300;
-}
-
-.animate-text-error {
-	@apply hover:text-error-500 transition-colors duration-300;
+.transition-300 {
+	@apply transition-colors duration-300;
 }
 
 .button {
@@ -264,7 +252,8 @@ p {
 }
 
 .toast {
-	@apply border-2 border-l-8 border-color rounded-md shadow-md bg-surface-100-800-token text-surface-600-300-token shadow-md text-xl p-4;
+	@apply border border-l-8 border-color rounded-md shadow-md 
+	bg-surface-100-800-token text-surface-600-300-token shadow-md text-xl p-4 px-8;
 }
 
 .toast-error {

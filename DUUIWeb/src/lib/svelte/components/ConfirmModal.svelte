@@ -22,7 +22,7 @@
 		<div class="p-8 space-y-8">
 			<p>{message}</p>
 			<div class="modal-footer">
-				<div class="flex items-center gap-4 justify-start">
+				<div class="flex-center-4 justify-start">
 					<button
 						class="button-modal button-error"
 						on:click={() => {

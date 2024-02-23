@@ -49,7 +49,7 @@
 				<img
 					class="snap-center w-[1024px] rounded-container-token"
 					src={image}
-                    alt=""
+					alt=""
 					loading="lazy"
 				/>
 			{/each}
@@ -63,7 +63,7 @@
 			<Fa icon={faArrowRight} />
 		</button>
 	</div>
-	<div class="flex items-center gap-4 justify-center">
+	<div class="flex-center-4 justify-center">
 		{#each images as id, i}
 			<button
 				class="w-2 h-2 {i === index

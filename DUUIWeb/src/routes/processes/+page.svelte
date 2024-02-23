@@ -232,7 +232,7 @@
 		{#if uploading}
 			<div class="w-full">
 				<div class="section-wrapper p-8 space-y-8">
-					<div class="flex items-center gap-4 justify-between">
+					<div class="flex-center-4 justify-between">
 						<p>Uploading {files?.length || 0} files</p>
 
 						<Fa icon={faFileArrowUp} size="3x" class="text-surface-300/20" />
@@ -259,7 +259,7 @@
 				 {isValidInput(input, files) ? '!border-success-500 ' : '!border-error-500'}"
 					>
 						<!-- INPUT -->
-						<div class="flex items-center gap-4 justify-between">
+						<div class="flex-center-4 justify-between">
 							<h2 class="h2">Input</h2>
 							{#if isValidInput(input, files)}
 								<Fa icon={faCheck} class="text-success-500" size="2x" />
@@ -267,7 +267,7 @@
 						</div>
 
 						<div class="grid gap-4">
-							<div class="flex items-center gap-4">
+							<div class="flex-center-4">
 								<div class="flex-1">
 									<Dropdown label="Source" options={IO_INPUT} bind:value={input.provider} />
 								</div>
@@ -409,14 +409,14 @@
 						class="section-wrapper p-4 space-y-4 flex flex-col justify-start relative
 				 {isValidOutput(output) ? '!border-success-500 ' : '!border-error-500'}"
 					>
-						<div class="flex items-center gap-4 justify-between">
+						<div class="flex-center-4 justify-between">
 							<h2 class="h2">Output</h2>
 							{#if isValidOutput(output)}
 								<Fa icon={faCheck} class="text-success-500" size="2x" />
 							{/if}
 						</div>
 						<div class="space-y-4">
-							<div class="flex items-center gap-4">
+							<div class="flex-center-4">
 								<div class="flex-1">
 									<Dropdown label="Target" options={IO_OUTPUT} bind:value={output.provider} />
 								</div>

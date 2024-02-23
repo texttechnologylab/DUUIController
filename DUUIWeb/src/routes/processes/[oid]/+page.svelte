@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
-	import { getTotalDuration, type DUUIDocument } from '$lib/duui/io.js'
+	import { getTotalDuration, type DUUIDocument, IO } from '$lib/duui/io.js'
 	import { Status, isActive } from '$lib/duui/monitor.js'
 	import { processToSeachParams } from '$lib/duui/process.js'
 	import { equals, formatFileSize, progresAsPercent, snakeToTitleCase } from '$lib/duui/utils/text'
@@ -20,6 +20,8 @@
 		faCancel,
 		faChevronLeft,
 		faClockRotateLeft,
+		faFileDownload,
+		faFileUpload,
 		faFilter,
 		faListCheck,
 		faRefresh,
@@ -28,11 +30,11 @@
 		faTrash
 	} from '@fortawesome/free-solid-svg-icons'
 	import {
-		ProgressBar,
 		getDrawerStore,
 		getModalStore,
 		getToastStore,
-		type DrawerSettings
+		type DrawerSettings,
+		ProgressBar
 	} from '@skeletonlabs/skeleton'
 
 	import KeyValue from '$lib/svelte/components/KeyValue.svelte'
@@ -42,7 +44,7 @@
 	import { showConfirmationModal } from '$lib/svelte/utils/modal'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
-	import { faJs } from '@fortawesome/free-brands-svg-icons'
+	import { isDarkModeStore } from '$lib/store.js'
 
 	export let data
 	const toastStore = getToastStore()
@@ -102,6 +104,16 @@
 				clearInterval(interval)
 			}
 		}
+
+		async function loadApexCharts() {
+			const module = await import('apexcharts')
+			ApexCharts = module.default
+			window.ApexCharts = ApexCharts
+			loaded = true
+		}
+
+		loadApexCharts()
+
 		let interval: NodeJS.Timeout
 		if (!process.is_finished) {
 			interval = setInterval(updateProcess, UPDATE_INTERVAL)
@@ -209,6 +221,31 @@
 		sort.index = index
 		updateTable()
 	}
+
+	let ApexCharts
+	let loaded: boolean = false
+
+	const chart = (node: HTMLDivElement, options: any) => {
+		if (!loaded) return
+
+		let _chart = new ApexCharts(node, options)
+		_chart.render()
+
+		return {
+			update(options: any) {
+				_chart.updateOptions(options)
+			},
+			destroy() {
+				_chart.destroy()
+			}
+		}
+	}
+
+	// let progressChartOptions
+
+	// $: {
+	// 	progressChartOptions = getProgressChartOptions($isDarkModeStore)
+	// }
 </script>
 
 <div class="menu-mobile">
@@ -267,39 +304,8 @@
 				{/if}
 			</div>
 		</div>
-		<!-- <ProgressBar
-			value={process.progress}
-			max={process.document_names.length}
-			height="h-4"
-			rounded="rounded-none"
-			meter="variant-filled-primary"
-		/> -->
-		<div class="p-4 space-y-4">
-			<div class="mx-auto grid grid-cols-2 md:flex items-center gap-8 justify-center h3">
-				<div class="flex items-center gap-4 justify-center">
-					<Fa
-						size="lg"
-						icon={getStatusIcon(process.status)}
-						class={equals(process.status, Status.Active) ? 'animate-spin-slow ' : ''}
-					/>
-					<p>
-						{process.status}
-					</p>
-				</div>
-				<div class="flex items-center gap-4 col-span-2 row-start-2 justify-center">
-					<Fa icon={faListCheck} size="lg" />
-					<p>
-						{process.progress} / {process.document_names.length} ({progresAsPercent(
-							process.progress,
-							process.document_names.length
-						)}%)
-					</p>
-				</div>
-				<div class="flex items-center gap-4 justify-center">
-					<Fa icon={faClockRotateLeft} size="lg" />
-					<p>{getDuration(process.started_at, process.finished_at)}</p>
-				</div>
-			</div>
+
+		<div class="p-4 space-y-4 overflow-x-hidden">
 			{#if process.error}
 				<p
 					class="text-error-500 font-bold p-4 variant-soft-error bordered-soft text-center mx-auto max-w-screen-lg rounded-md"
@@ -307,6 +313,46 @@
 					ERROR: {process.error}
 				</p>
 			{/if}
+			<div>
+				<div
+					class="mx-auto grid md:grid-cols-3 items-center md:justify-between h3 section-wrapper p-4 md:divide-x divider
+					!border-b-0 !rounded-b-none"
+				>
+					<div class="flex-center-4 justify-center">
+						<Fa
+							icon={getStatusIcon(process.status)}
+							class={equals(process.status, Status.Active) ? 'animate-spin-slow ' : ''}
+						/>
+						<p>
+							{process.status}
+						</p>
+					</div>
+					<div class="flex-center-4 justify-center">
+						<Fa icon={faListCheck} />
+						<p>
+							{process.progress} / {process.document_names.length} ({progresAsPercent(
+								process.progress,
+								process.document_names.length
+							)}%)
+						</p>
+					</div>
+					<div class="flex-center-4 justify-center">
+						<Fa icon={faClockRotateLeft} />
+						<p>{getDuration(process.started_at, process.finished_at)}</p>
+					</div>
+				</div>
+				<div class="section-wrapper !border-t-0 !rounded-t-none overflow-hidden">
+					<ProgressBar
+						value={process.progress}
+						max={process.document_names.length}
+						height="h-4"
+						rounded="!rounded-none"
+						track="bg-surface-100-800-token"
+						meter="bg-gradient-to-r from-primary-500/50 to-primary-500"
+					/>
+				</div>
+			</div>
+
 			<div>
 				<div class="md:text-base flex items-center">
 					<div
@@ -395,6 +441,37 @@
 						</div>
 					</div>
 					<Paginator bind:settings={paginationSettings} on:change={updateTable} />
+				</div>
+			</div>
+
+			<div class="section-wrapper space-y-8 p-4 !mb-16">
+				<h2 class="h3">Process Graph</h2>
+				<div
+					class="flex flex-col gap-8 items-center relative before:bg-surface-100-800-token isolate before:card
+						   before:absolute before:h-full before:w-1 before:-translate-x-1/2 before:left-1/2
+						   before:-z-50"
+				>
+					<div
+						class="card px-16 py-8 relative flex justify-center items-center gap-4 flex-col text-center"
+					>
+						<Fa icon={faFileDownload} size="2x" />
+						<p>{process.input.provider}</p>
+						<p>{process.document_names.length} Documents</p>
+					</div>
+					{#each pipeline.components as component}
+						<div class="card px-16 py-8 w-modal-slim text-center">
+							<p>{component.name}</p>
+						</div>
+					{/each}
+					{#if process.output.provider !== IO.None}
+						<div
+							class="card px-16 py-8 relative flex justify-center items-center gap-4 flex-col text-center"
+						>
+							<Fa icon={faFileUpload} size="2x" />
+							<p>{process.output.provider}</p>
+							<p>{process.document_names.length} Documents</p>
+						</div>
+					{/if}
 				</div>
 			</div>
 

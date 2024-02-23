@@ -19,10 +19,10 @@
 	import {
 		getDrawerStore,
 		getModalStore,
+		popup,
 		type DrawerSettings,
 		type ModalSettings,
-		type PopupSettings,
-		popup
+		type PopupSettings
 	} from '@skeletonlabs/skeleton'
 
 	import { dndzone, type DndEvent } from 'svelte-dnd-action'
@@ -41,8 +41,7 @@
 		errorToast,
 		getStatusIcon,
 		infoToast,
-		scrollIntoView,
-		successToast
+		scrollIntoView
 	} from '$lib/duui/utils/ui'
 	import { currentPipelineStore, isDarkModeStore } from '$lib/store'
 	import Chips from '$lib/svelte/components/Chips.svelte'
@@ -54,9 +53,11 @@
 	import { getToastStore, Tab, TabGroup } from '@skeletonlabs/skeleton'
 	import type { PageServerData } from './$types'
 
+	import { componentDrawerSettings } from '$lib/config'
 	import { IO_INPUT, IO_OUTPUT } from '$lib/duui/io'
-	import ButtonMenu from '$lib/svelte/components/ButtonMenu.svelte'
+	import MobilePopup from '$lib/svelte/components/MobilePopup.svelte'
 	import { showConfirmationModal } from '$lib/svelte/utils/modal'
+	import { getFilterOrGeneric } from '$lib/utils'
 	import { onMount } from 'svelte'
 	import {
 		getErrorsPlotOptions,
@@ -64,9 +65,6 @@
 		getStatusPlotOptions,
 		getUsagePlotOptions
 	} from './charts'
-	import { getFilterOrGeneric } from '$lib/utils'
-	import ComponentTemplates from '../build/ComponentTemplates.svelte'
-	import { componentDrawerSettings } from '$lib/config'
 
 	const modalStore = getModalStore()
 	const toastStore = getToastStore()
@@ -468,7 +466,7 @@
 		<span>Delete</span>
 	</button>
 
-	<ButtonMenu>
+	<MobilePopup>
 		<button class="button !justify-start" on:click={copyPipeline}>
 			<Fa icon={faFileClipboard} />
 			<span>Copy</span>
@@ -486,7 +484,7 @@
 				<span>{$currentPipelineStore.status === Status.Inactive ? 'Instantiate' : 'Shutdown'}</span>
 			{/if}
 		</button>
-	</ButtonMenu>
+	</MobilePopup>
 </div>
 
 <div class="h-full">

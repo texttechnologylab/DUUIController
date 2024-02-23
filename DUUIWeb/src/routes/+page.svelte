@@ -15,10 +15,10 @@
 
 	import { goto } from '$app/navigation'
 	import Logo from '$lib/assets/Logo.svg'
-	import Mobile from '$lib/assets/Screenshots/Mobile.png'
 	import Mobile_Dark from '$lib/assets/Screenshots/Mobile Dark.png'
-	import Processes from '$lib/assets/Screenshots/Processes.png'
+	import Mobile from '$lib/assets/Screenshots/Mobile.png'
 	import Processes_Dark from '$lib/assets/Screenshots/Processes Dark.png'
+	import Processes from '$lib/assets/Screenshots/Processes.png'
 	import { userSession } from '$lib/store'
 	import Link from '$lib/svelte/components/Link.svelte'
 	import { faAmazon, faDropbox, faGithub, faXTwitter } from '@fortawesome/free-brands-svg-icons'
@@ -44,7 +44,7 @@
 	<title>DUUI</title>
 </svelte:head>
 
-<main class="flex justify-center items-center bg-surface-50-900-token" id="top">
+<main class="bg-surface-50-900-token" id="top">
 	<div class="container mx-auto text-center flex flex-col items-center isolate">
 		<div class="w-screen bg-surface-50-900-token top">
 			<div class="text-center">
@@ -92,14 +92,18 @@
 
 					<div class="grid gap-8 justify-center pb-8 mx-auto">
 						<div class="section-wrapper">
-							<div class="flex gap-16 p-4 px-16 items-center rounded-md bg-surface-50-900-token">
+							<div
+								class="flex gap-16 p-4 px-16 items-center rounded-md bg-surface-50-900-token dark:bg-surface-200-700-token"
+							>
 								<Fa icon={faCheck} size="2x" />
 								<p class="md:h4">Catch attention</p>
 							</div>
 						</div>
 
 						<div class="section-wrapper">
-							<div class="flex gap-16 p-4 px-16 items-center bg-surface-50-900-token">
+							<div
+								class="flex gap-16 p-4 px-16 items-center bg-surface-50-900-token dark:bg-surface-200-700-token"
+							>
 								{#if $userSession}
 									<Fa icon={faCheck} size="2x" />
 									<p class="md:h4">Converted to User</p>
@@ -384,6 +388,4 @@
 		clip-path: polygon(0 0, 100% 137px, 100% 100%, 0 100%);
 		margin-top: -127px;
 	}
-
-	
 </style>

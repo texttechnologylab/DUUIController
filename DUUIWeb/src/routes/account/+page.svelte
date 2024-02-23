@@ -11,7 +11,6 @@
 		faFilePen,
 		faFileText,
 		faLink,
-		faMapSigns,
 		faRefresh,
 		faTrash,
 		faXmarkCircle
@@ -228,21 +227,26 @@
 				{#if connections.key}
 					<div class="space-y-2">
 						<Secret value={$userSession?.connections.key} style="pt-2" />
-						<div class="flex items-center gap-2 text-sm">
-							<p
-								class="text-primary-500 hover:text-primary-400 cursor-pointer transition-colors px-2 border-r"
+						<div
+							class="grid grid-cols-3 items-center justify-center section-wrapper divide-x divider text-sm"
+						>
+							<button
+								class="button-neutral !justify-center !border-none !rounded-none"
 								use:clipboard={$userSession?.connections.key || ''}
+								on:click={() => {
+									toastStore.trigger(successToast('Copied!'))
+								}}
 							>
 								Copy
-							</p>
+							</button>
 							<button
-								class="text-primary-500 hover:text-primary-400 transition-colors pr-2 border-r"
+								class="button-neutral !justify-center !border-y-0 !rounded-none !border-x border-color"
 								on:click={generateApiKey}
 							>
 								Regenerate
 							</button>
 							<button
-								class="text-error-500 hover:text-error-400 transition-colors"
+								class="button-neutral !justify-center !border-none !rounded-none"
 								on:click={deleteApiKey}
 							>
 								Delete
@@ -273,13 +277,13 @@
 				{#if connections.dropbox}
 					<p>Your Dropbox account has been connected successfully.</p>
 					<div>
-						<p class="flex items-center gap-4">
+						<p class="flex-center-4">
 							<Fa icon={faCheck} size="lg" class="text-primary-500" />
 							<span
 								>Read files and folders contained in your <strong>Dropbox Account</strong>
 							</span>
 						</p>
-						<p class="flex items-center gap-4 mb-4">
+						<p class="flex-center-4 mb-4">
 							<Fa icon={faCheck} size="lg" class="text-primary-500" />
 							<span>Create files and folders in your <strong>Dropbox Account</strong> </span>
 						</p>
@@ -309,7 +313,7 @@
 								>Read files and folders contained in your <strong>Dropbox Storage</strong>
 							</span>
 						</p>
-						<p class="flex items-center gap-4 mb-4">
+						<p class="flex-center-4 mb-4">
 							<Fa icon={faFilePen} size="lg" class="text-primary-500" />
 							<span>Create files and folders in your <strong>Dropbox Storage</strong> </span>
 						</p>

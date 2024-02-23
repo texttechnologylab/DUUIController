@@ -30,11 +30,11 @@
 
 <li
 	id={slugify(component.name)}
-	class="section-wrapper scroll-mt-4 md:scroll-mt-24 pointer-events-auto
+	class="section-wrapper scroll-mt-4 md:scroll-mt-24 pointer-events-auto 
 	{!component.driver || !component.name || !component.target ? '!border-error-500' : ''}
 	"
 >
-	<header class="flex justify-between gap-4 items-center p-4 bg-surface-50-900-token">
+	<header class="flex justify-between gap-4 items-center p-4 bg-surface-50-900-token dark:bg-surface-200-700-token">
 		<div class="md:flex md:items-center grid gap-4">
 			<DriverIcon driver={component.driver} />
 			<p class="md:h4 grow">{component.name}</p>

@@ -83,7 +83,7 @@
 				{/if}
 			{:else}
 				<div class="grid gap-1">
-					<div class="flex items-center gap-4">
+					<div class="flex-center-4">
 						<TextInput
 							bind:value={key}
 							placeholder="Key"
@@ -102,7 +102,7 @@
 							on:click={create}><Fa icon={faCheck} size="lg" /></button
 						>
 					</div>
-					<div class="flex items-center gap-4">
+					<div class="flex-center-4">
 						<TextInput
 							bind:value
 							placeholder="Value"
@@ -128,14 +128,14 @@
 		<div class="flex flex-wrap justify-start items-start gap-2">
 			{#each data.entries() as [_key, _value]}
 				<div class="input-wrapper p-4 min-w-[180px]">
-					<div class="flex items-center gap-4 justify-between">
+					<div class="flex-center-4 justify-between">
 						<p class="text-lg font-bold">{_value}</p>
 						<button
 							class="rounded-full hover:text-error-500 transition-colors"
 							on:click={() => remove(_key)}><Fa icon={faClose} size="lg" /></button
 						>
 					</div>
-					<div class="flex items-center gap-4 justify-between">
+					<div class="flex-center-4 justify-between">
 						<p class="dimmed text-sm leading-tight">{_key}</p>
 						<button
 							class="aspect-square rounded-full hover:text-primary-500 transition-colors"

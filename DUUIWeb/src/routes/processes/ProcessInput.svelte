@@ -16,7 +16,7 @@
 </script>
 
 <div class="grid gap-4">
-	<div class="flex items-center gap-4">
+	<div class="flex-center-4">
 		<div class="flex-1">
 			<Dropdown label="Source" options={IO_INPUT} bind:value={input.provider} />
 		</div>

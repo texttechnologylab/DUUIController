@@ -12,7 +12,7 @@
 	const builder: boolean = $page.url.pathname === '/pipelines'
 </script>
 
-<div class="flex items-center gap-4 justify-between">
+<div class="flex-center-4 justify-between">
 	<h4 class="h4 font-bold">{pipeline.name}</h4>
 
 	<!-- Is user owned or template -->
@@ -35,7 +35,7 @@
 		<p>{pipeline.times_used}</p>
 
 		<!-- Drivers -->
-		<div class="flex items-center gap-4">
+		<div class="flex-center-4">
 			{#each usedDrivers(pipeline) as driver}
 				<DriverIcon {driver} />
 			{/each}

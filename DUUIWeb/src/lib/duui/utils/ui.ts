@@ -51,6 +51,11 @@ export const documentStatusNamesString = [
 	'Waiting'
 ]
 
+/**
+ * Select the appropriate icon for the given status.
+ * @param status
+ * @returns An IconDefinition according to svelte-fa
+ */
 export function getStatusIcon(status: string) {
 	if (equals(status, Status.Input)) return faFileDownload
 	if (equals(status, Status.Setup)) return faArrowTrendUp
@@ -64,6 +69,11 @@ export function getStatusIcon(status: string) {
 	return faQuestion
 }
 
+/**
+ * Select the appropriate icon for the given document status.
+ * @param document
+ * @returns An IconDefinition according to svelte-fa
+ */
 export const getDocumentStatusIcon = (document: DUUIDocument) => {
 	if (equals(document.status, Status.Setup)) return faArrowTrendUp
 	if (equals(document.status, Status.Input)) return faFileDownload
@@ -80,6 +90,12 @@ export const getDocumentStatusIcon = (document: DUUIDocument) => {
 	return document.error ? faClose : document.is_finished ? faCheck : faRefresh
 }
 
+/**
+ * Create an object for a success Toast
+ * @param message The message to display
+ * @param duration The duration to keep the toast visible
+ * @returns Settings describing the toast.
+ */
 export const successToast = (message: string, duration: number = 4000): ToastSettings => {
 	return {
 		message: message,
@@ -89,6 +105,12 @@ export const successToast = (message: string, duration: number = 4000): ToastSet
 	}
 }
 
+/**
+ * Create an object for an informative Toast
+ * @param message The message to display
+ * @param duration The duration to keep the toast visible
+ * @returns Settings describing the toast.
+ */
 export const infoToast = (message: string, duration: number = 4000): ToastSettings => {
 	return {
 		message: message,
@@ -98,6 +120,12 @@ export const infoToast = (message: string, duration: number = 4000): ToastSettin
 	}
 }
 
+/**
+ * Create an object for an error Toast
+ * @param message The message to display
+ * @param duration The duration to keep the toast visible
+ * @returns Settings describing the toast.
+ */
 export const errorToast = (message: string, duration: number = 4000): ToastSettings => {
 	return {
 		message: message,
@@ -107,6 +135,10 @@ export const errorToast = (message: string, duration: number = 4000): ToastSetti
 	}
 }
 
+/**
+ * Scroll the element with the specified id into view.
+ * @param id The id tag of the HTMLElement
+ */
 export const scrollIntoView = (id: string) => {
 	const el = document.querySelector(`#${id}`)
 	if (!el) return
