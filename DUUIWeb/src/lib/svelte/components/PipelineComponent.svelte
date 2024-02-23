@@ -16,6 +16,7 @@
 	export let example: boolean = false
 	export let inEditor: boolean = false
 	export let cloneable: boolean = false
+	export let editable: boolean = true
 
 	const dispatcher = createEventDispatcher()
 
@@ -33,7 +34,7 @@
 	{!component.driver || !component.name || !component.target ? '!border-error-500' : ''}
 	"
 >
-	<header class="flex justify-between gap-4 items-center p-4 bg-surface-100-800-token">
+	<header class="flex justify-between gap-4 items-center p-4 bg-surface-50-900-token">
 		<div class="md:flex md:items-center grid gap-4">
 			<DriverIcon driver={component.driver} />
 			<p class="md:h4 grow">{component.name}</p>
@@ -51,6 +52,7 @@
 				</button>
 			{/if}
 			<button
+				disabled={!editable}
 				class="pointer-events-auto button-neutral !border-none"
 				on:click={() => {
 					drawerStore.open(drawer)

@@ -25,11 +25,12 @@
 		faArrowLeft,
 		faArrowRight,
 		faCheck,
+		faChevronDown,
 		faPlus,
 		faSearch,
 		faUpload
 	} from '@fortawesome/free-solid-svg-icons'
-	import type { DrawerSettings } from '@skeletonlabs/skeleton'
+	import { Accordion, AccordionItem, type DrawerSettings } from '@skeletonlabs/skeleton'
 	import { getDrawerStore, getToastStore } from '@skeletonlabs/skeleton'
 	import pkg from 'lodash'
 	import { onMount } from 'svelte'
@@ -39,6 +40,7 @@
 	import { v4 as uuidv4 } from 'uuid'
 	import ComponentTemplates from './ComponentTemplates.svelte'
 	import { componentDrawerSettings } from '$lib/config'
+	import Carousel from '$lib/svelte/components/Carousel.svelte'
 	const { cloneDeep } = pkg
 
 	export let data
@@ -184,6 +186,8 @@
 			goto(`/pipelines`)
 		}
 	}
+
+	let settingsExpanded: boolean = false
 </script>
 
 <div class="menu-mobile">
@@ -229,58 +233,64 @@
 </div>
 
 <div class="h-full gradient bg-repeat">
-	<div class="sticky top-0 bg-surface-50-900-token border-y p-4 border-color hidden md:block z-10">
-		<div class="grid grid-cols-2 md:flex items-center md:justify-between gap-4 relative">
-			<button
-				class="button-neutral"
-				on:click={() => {
-					if (step == 0) {
-						goto('/pipelines')
-					} else {
-						step -= 1
-						goto(`/pipelines/build?step=${step}`)
+	{#if step !== 0}
+		<div class="sticky top-0 bg-surface-50-900-token border-b border-color hidden md:block z-10">
+			<div class="grid grid-cols-2 md:flex items-center md:justify-between relative">
+				<button
+					class="button-menu border-r border-color"
+					on:click={() => {
+						if (step == 0) {
+							goto('/pipelines')
+						} else {
+							step -= 1
+							goto(`/pipelines/build?step=${step}`)
 
-						scrollIntoView('top')
-					}
-				}}
-			>
-				<Fa icon={faArrowLeft} />
-				<span>Back</span>
-			</button>
-			{#if user?.role === 'Admin' && step === 2 && $currentPipelineStore.components.length !== 0}
-				<button class="col-span-2 button-success md:ml-auto row-start-2" on:click={uploadPipeline}>
-					<Fa icon={faUpload} />
-					<span>Publish as Template</span>
+							scrollIntoView('top')
+						}
+					}}
+				>
+					<Fa icon={faArrowLeft} />
+					<span>Back</span>
 				</button>
-			{/if}
-			<button
-				class={step === 2 ? 'button-success' : 'button-primary'}
-				on:click={() => {
-					if (step === 2) {
-						createPipeline()
-					} else {
-						step += 1
-						goto(`/pipelines/build?step=${step}`)
+				{#if user?.role === 'Admin' && step === 2 && $currentPipelineStore.components.length !== 0}
+					<button
+						class="col-span-2 button-menu font-bold md:ml-auto row-start-2 border-l border-color"
+						on:click={uploadPipeline}
+					>
+						<Fa icon={faUpload} />
+						<span>Publish as Template</span>
+					</button>
+				{/if}
+				<button
+					class="button-menu font-bold border-l border-color {step === 2 ? 'text-success-500' : ''}"
+					on:click={() => {
+						if (step === 2) {
+							createPipeline()
+						} else {
+							step += 1
+							goto(`/pipelines/build?step=${step}`)
 
-						scrollIntoView('top')
-					}
-				}}
-				disabled={(step === 1 && !$currentPipelineStore.name) ||
-					(step === 2 && $currentPipelineStore.components.length === 0)}
-			>
-				<span>{step <= 1 ? 'Next' : 'Finish'}</span>
-				<Fa icon={step === 2 ? faCheck : faArrowRight} />
-			</button>
+							scrollIntoView('top')
+						}
+					}}
+					disabled={(step === 1 && !$currentPipelineStore.name) ||
+						(step === 2 && $currentPipelineStore.components.length === 0)}
+				>
+					<span>{step <= 1 ? 'Next' : 'Finish'}</span>
+					<Fa icon={step === 2 ? faCheck : faArrowRight} />
+				</button>
+			</div>
 		</div>
-	</div>
-
-	<div class="p-4 space-y-8 pb-20">
+	{/if}
+	<div class="p-4 md:p-16 space-y-8 pb-16">
+		{#if step !== 2}
+			<h1 class="h1 text-center">Build a new Pipeline</h1>
+		{/if}
 		{#if step === 0}
-			<h1 class="h2">Start from scratch</h1>
 			<div class="space-y-8">
 				<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-8">
 					<button
-						class="card-fancy text-left grid items-start min-h-[300px]"
+						class="card-fancy text-left grid items-start min-h-[300px] md:col-span-2 xl:col-span-1 xl:col-start-2"
 						on:click={() => selectPipelineTemplate()}
 					>
 						<div class="flex items-center gap-4 justify-between">
@@ -324,11 +334,8 @@
 				</div>
 			</div>
 		{:else if step === 1}
-			<h1 class="h1 text-center my-4">
-				{$currentPipelineStore.name || 'New Pipeline'}
-			</h1>
 			<div class="space-y-8">
-				<div class="grid md:grid-cols-2 gap-4">
+				<div class="container mx-auto max-w-4xl grid gap-4">
 					<div
 						class="section-wrapper flex flex-col gap-4 p-4 {$currentPipelineStore.name !== ''
 							? ''
@@ -352,9 +359,24 @@
 							bind:values={$currentPipelineStore.tags}
 						/>
 					</div>
-					<div class="section-wrapper p-4 relative grid">
-						<JsonInput label="Settings" bind:data={settings} />
-						<!-- <SettingsMapper bind:map={settings} /> -->
+					<div class="section-wrapper">
+						<div class="flex gap-8 items-center p-4 bg-surface-50-900-token border-b border-color">
+							<h3 class="h3">Settings</h3>
+							<button
+								class="ml-auto transition-transform duration-300 button-neutral !aspect-square !p-2 !rounded-full"
+								class:turn={settingsExpanded}
+								on:click={() => (settingsExpanded = !settingsExpanded)}
+							>
+								<Fa icon={faChevronDown} size="lg" />
+							</button>
+						</div>
+						<div class:open={settingsExpanded} class="content dimmed bg-surface-100-800-token">
+							<div class="content-wrapper">
+								<div class="p-4 relative grid">
+									<JsonInput bind:data={settings} />
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -430,3 +452,23 @@
 		{/if}
 	</div>
 </div>
+
+<style>
+	.content-wrapper {
+		overflow: hidden;
+	}
+
+	.content {
+		display: grid;
+		grid-template-rows: 0fr;
+		transition: grid-template-rows 300ms;
+	}
+
+	.open {
+		grid-template-rows: 1fr;
+	}
+
+	.turn {
+		transform: rotate(180deg);
+	}
+</style>

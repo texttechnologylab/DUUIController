@@ -6,6 +6,7 @@
 	import DriverIcon from '../DriverIcon.svelte'
 	import { dndzone } from 'svelte-dnd-action'
 	import { flip } from 'svelte/animate'
+	import PipelineComponent from '../PipelineComponent.svelte'
 
 	const modalStore = getModalStore()
 
@@ -25,7 +26,7 @@
 		{
 			name: 'Component 1',
 			driver: 'DUUIDockerDriver',
-			target: '',
+			target: 'temp',
 			oid: '',
 			id: '1',
 			tags: [],
@@ -52,7 +53,7 @@
 		{
 			name: 'Component 2',
 			driver: 'DUUIRemoteDriver',
-			target: '',
+			target: 'temp',
 			oid: '',
 			id: '2',
 			tags: [],
@@ -80,7 +81,7 @@
 </script>
 
 <div
-	class="z-50 bg-surface-50-900-token w-full max-w-screen-lg rounded-md overflow-hidden border-2 border-color"
+	class="z-50 bg-surface-50-900-token w-full max-w-screen-lg rounded-md overflow-hidden border border-color"
 >
 	<div class="modal-header bg-surface-100-800-token">
 		<h3 class="h3">Getting Started</h3>
@@ -88,16 +89,19 @@
 			<Fa icon={faClose} size="lg" />
 		</button>
 	</div>
-	<div class="modal-body">
+	<div class="modal-body md:p-8 space-y-12">
 		<div class="p-8 space-y-12 text-lg grid justify-center">
-			<p>
-				DUUI automates big data analysis using
-				<a class="anchor" href="/documentation#pipeline">Pipelines</a> are containers for
-				<a href="/documentation#component" class="anchor">Components</a> that make up an executable
-				workflow. Each Component must follow the implementation as defined by DUUI and is therefore
-				a <a href="https://uima.apache.org/" class="anchor">UIMA</a> conform annotator. A pipeline consists
-				of one or multiple Components that can be customized through various settings.
-			</p>
+			<div class="space-y-4">
+				<p class="font-bold h2">About Docker Unified UIMA Interface (DUUI)</p>
+				<p>
+					DUUI automates big data analysis using
+					<a class="anchor" href="/documentation#pipeline">Pipelines</a> are containers for
+					<a href="/documentation#component" class="anchor">Components</a> that make up an
+					executable workflow. Each Component must follow the implementation as defined by DUUI and
+					is therefore a <a href="https://uima.apache.org/" class="anchor">UIMA</a> conform annotator.
+					A pipeline consists of one or multiple Components that can be customized through various settings.
+				</p>
+			</div>
 
 			<hr class="hr" />
 			<div class="grid gap-4">
@@ -128,24 +132,7 @@
 				>
 					{#each exampleComponents as component (component.id)}
 						<div animate:flip={{ duration: 300 }} class="relative !cursor-move">
-							<div class="section-wrapper scroll-mt-4 md:scroll-mt-24 pointer-events-aut o">
-								<header class="flex justify-between gap-4 items-center p-4 bg-surface-50-900-token">
-									<div class="md:flex md:items-center grid gap-4">
-										<DriverIcon driver={component.driver} />
-										<p class="md:h4 grow">{component.name}</p>
-									</div>
-									<div class="scroll-mt-4 md:scroll-mt-16 flex-col-reverse gap-4 md:flex-row flex">
-										<div class="pointer-events-auto flex flex-col justify-center gap-2">
-											<Fa icon={faClone} size="lg" />
-											<p>Clone</p>
-										</div>
-										<div class="pointer-events-auto flex flex-col justify-center gap-2">
-											<Fa icon={faEdit} size="lg" />
-											<p>Edit</p>
-										</div>
-									</div>
-								</header>
-							</div>
+							<PipelineComponent editable={false} {component} />
 						</div>
 					{/each}
 				</ul>
@@ -153,7 +140,7 @@
 			<p>
 				Pipelines can be created from scratch or using a Template in the <a
 					href="/pipelines/build"
-					class="anchor">Builder</a
+					class="anchor">Pipeline Builder</a
 				>.
 			</p>
 			<hr class="hr" />
@@ -178,7 +165,7 @@
 			</div>
 		</div>
 		<hr class="hr" />
-		<div class="p-4 flex justify-center gap-4">
+		<div class="p-8 flex justify-center gap-4">
 			<a href="/documentation" class="anchor">Further reading</a>
 			<a href="/documentation/api" class="anchor">Use the API instead</a>
 		</div>

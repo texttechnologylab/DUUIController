@@ -1,9 +1,6 @@
 <script lang="ts">
 	import {
-		faClose,
-		faEnvelope,
-		faFileClipboard,
-		type IconDefinition
+		faClose
 	} from '@fortawesome/free-solid-svg-icons'
 	import { getModalStore } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'

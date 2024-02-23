@@ -40,7 +40,12 @@
 </button>
 
 <div class="popup-solid z-50" data-popup={name}>
-	<ListBox {name} multiple={true} class="grid grid-cols-{columns} overflow-hidden" spacing="space-y-0">
+	<ListBox
+		{name}
+		multiple={true}
+		class="grid grid-cols-{columns} overflow-hidden"
+		spacing="space-y-0"
+	>
 		{#each options as option}
 			<ListBoxItem
 				on:change

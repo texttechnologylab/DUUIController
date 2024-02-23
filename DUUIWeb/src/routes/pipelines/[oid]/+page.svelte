@@ -107,15 +107,15 @@
 
 	let limit = +($page.url.searchParams.get('limit') || '10')
 	let paginationSettings: PaginationSettings = {
-		page: Math.floor(+($page.url.searchParams.get('skip') || '0'), limit),
+		page: Math.floor(+($page.url.searchParams.get('skip') || '0') / limit),
 		limit: limit,
 		total: count,
 		sizes: [5, 10, 20, 50]
 	}
 
-	let statusFilter: string[] = [Status.Any]
-	let inputFilter: string[] = ['Any']
-	let outputFilter: string[] = ['Any']
+	let statusFilter: string[] = ($page.url.searchParams.get('status') || 'Any').split(';')
+	let inputFilter: string[] = ($page.url.searchParams.get('input') || 'Any').split(';')
+	let outputFilter: string[] = ($page.url.searchParams.get('output') || 'Any').split(';')
 
 	let sortedProcessses: DUUIProcess[] = processes
 	let tabSet: number = +($page.url.searchParams.get('tab') || 0)
@@ -298,6 +298,9 @@
 			&skip=${paginationSettings.page * paginationSettings.limit}
 			&sort=${sort.index}
 			&order=${sort.order}
+			&status=${statusFilter.join(';')}
+			&input=${inputFilter.join(';')}
+			&output=${outputFilter.join(';')}
 			&tab=1`
 		)
 	}
@@ -487,24 +490,24 @@
 </div>
 
 <div class="h-full">
-	<div class="sticky top-0 bg-surface-50-900-token border-y p-4 border-color hidden lg:block z-10">
-		<div class=" flex items-center justify-start relative md:gap-4">
-			<a href="/pipelines" class="anchor-neutral">
+	<div class="sticky top-0 bg-surface-50-900-token border-b border-color hidden lg:block z-10">
+		<div class=" flex items-center justify-start relative">
+			<a href="/pipelines" class="anchor-menu border-r border-color">
 				<Fa icon={faArrowLeft} />
 				<span class="text-xs md:text-base">Pipelines</span>
 			</a>
 
-			<button class="button-neutral" on:click={exportPipeline}>
+			<button class="button-menu border-r border-color" on:click={exportPipeline}>
 				<Fa icon={faFileExport} />
 				<span class="text-xs md:text-base">Export</span>
 			</button>
 
-			<button class="button-neutral" on:click={copyPipeline}>
+			<button class="button-menu border-r border-color" on:click={copyPipeline}>
 				<Fa icon={faFileClipboard} />
 				<span class="text-xs md:text-base">Copy</span>
 			</button>
 			<button
-				class="button-neutral {$currentPipelineStore.status === Status.Setup ||
+				class="button-menu border-r border-color {$currentPipelineStore.status === Status.Setup ||
 				$currentPipelineStore.status === Status.Shutdown
 					? 'aspect-square !px-4'
 					: ''}"
@@ -522,18 +525,21 @@
 				{/if}
 			</button>
 			{#if $currentPipelineStore.user_id !== null}
-				<a class="button-primary" href={`/processes?pipeline_id=${$currentPipelineStore.oid}`}>
+				<a
+					class="anchor-menu font-bold border-r border-color"
+					href={`/processes?pipeline_id=${$currentPipelineStore.oid}`}
+				>
 					<Fa icon={faRocket} />
 					<span>Process</span>
 				</a>
 			{/if}
 
-			<button class="button-success md:ml-auto" on:click={updatePipeline}>
+			<button class="button-menu md:ml-auto border-x border-color" on:click={updatePipeline}>
 				<Fa icon={faFileCircleCheck} />
 				<span class="text-xs md:text-base">Update</span>
 			</button>
 
-			<button class="button-error" on:click={deletePipeline}>
+			<button class="button-menu border-r border-color" on:click={deletePipeline}>
 				<Fa icon={faTrash} />
 				<span class="text-xs md:text-base">Delete</span>
 			</button>
@@ -575,7 +581,7 @@
 					<Select
 						on:change={updateTable}
 						style="z-50 !rounded-none hidden sm:flex px-8"
-						border="border-none"
+						border="border-x border-color"
 						label="Input"
 						name="input"
 						bind:selected={inputFilter}
@@ -733,22 +739,22 @@
 		{:else if tabSet === 2}
 			<div class="space-y-8">
 				{#if loaded && pipeline.statistics}
-					<div class="grid gap-16 section-wrapper p-4 text-center max-w-full">
+					<div class="grid xl:grid-cols-2 gap-16 section-wrapper p-4 text-center max-w-full">
 						<div class="p-4 space-y-4">
 							<h3 class="h2">Status</h3>
 							<div use:chart={statusPlotOptions} />
 						</div>
-						<hr class="hr" />
+						<!-- <hr class="hr" /> -->
 						<div class="p-4 space-y-4">
 							<h3 class="h2">Errors</h3>
 							<div use:chart={errorsPlotOptions} />
 						</div>
-						<hr class="hr" />
+						<!-- <hr class="hr" /> -->
 						<div class="p-4 space-y-4">
 							<h3 class="h2">IO</h3>
 							<div use:chart={ioPlotOptions} />
 						</div>
-						<hr class="hr" />
+						<!-- <hr class="hr" /> -->
 						<div class="p-4 space-y-4">
 							<h3 class="h2">Usage per Month</h3>
 							<div use:chart={usagePlotOptions} />

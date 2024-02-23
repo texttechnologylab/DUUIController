@@ -23,6 +23,7 @@
 		faFilter,
 		faListCheck,
 		faRefresh,
+		faRepeat,
 		faSearch,
 		faTrash
 	} from '@fortawesome/free-solid-svg-icons'
@@ -193,9 +194,10 @@
 	const showDocumentModal = (document: DUUIDocument) => {
 		const drawer: DrawerSettings = {
 			id: 'document',
-			width: 'w-full h-full',
-			position: 'bottom',
+			width: 'w-full lg:w-[60%] h-full',
+			position: 'right',
 			rounded: 'rounded-none',
+			border: 'border-l border-color',
 			meta: { process: process, document: document, pipeline: pipeline }
 		}
 
@@ -242,25 +244,23 @@
 
 <div>
 	<div class="grid">
-		<div
-			class="sticky top-0 bg-surface-50-900-token border-y p-4 border-color hidden md:block z-[20]"
-		>
-			<div class="grid grid-cols-3 md:flex items-center md:justify-start gap-4 relative">
-				<a class="anchor-neutral" href={`/pipelines/${pipeline.oid}?tab=1`}>
+		<div class="sticky top-0 bg-surface-50-900-token border-b border-color hidden md:block z-[20]">
+			<div class="grid grid-cols-3 md:flex items-center md:justify-start relative">
+				<a class="anchor-menu border-r border-color" href={`/pipelines/${pipeline.oid}?tab=1`}>
 					<Fa icon={faArrowLeft} />
 					<span>{pipeline.name}</span>
 				</a>
 				{#if process.is_finished}
-					<button class="button-primary" on:click={restart}>
-						<Fa icon={faRefresh} />
+					<button class="button-menu border-r border-color" on:click={restart}>
+						<Fa icon={faRepeat} />
 						<span>Restart</span>
 					</button>
-					<button class="button-error md:ml-auto" on:click={deleteProcess}>
+					<button class="button-menu border-l border-color md:ml-auto" on:click={deleteProcess}>
 						<Fa icon={faTrash} />
 						<span>Delete</span>
 					</button>
 				{:else}
-					<button class="button-error md:ml-auto" on:click={cancelProcess}>
+					<button class="button-menu border-l border-color md:ml-auto" on:click={cancelProcess}>
 						<Fa icon={faCancel} />
 						<span>Cancel</span>
 					</button>
@@ -301,7 +301,9 @@
 				</div>
 			</div>
 			{#if process.error}
-				<p class="text-error-500 font-bold p-2 md:max-w-[60ch] max-w-[40ch]">
+				<p
+					class="text-error-500 font-bold p-4 variant-soft-error bordered-soft text-center mx-auto max-w-screen-lg rounded-md"
+				>
 					ERROR: {process.error}
 				</p>
 			{/if}
@@ -385,7 +387,9 @@
 										<span>{document.status}</span>
 									</p>
 									<p class="hidden lg:inline-flex">{formatFileSize(document.size)}</p>
-									<p class="hidden lg:inline-flex">{formatMilliseconds(getTotalDuration(document))}</p>
+									<p class="hidden lg:inline-flex">
+										{formatMilliseconds(getTotalDuration(document))}
+									</p>
 								</button>
 							{/each}
 						</div>
@@ -405,6 +409,7 @@
 									id: 'process',
 									position: 'right',
 									rounded: 'rounded-none',
+									border: 'border-l border-color',
 									width: 'w-full sm:w-1/4',
 									meta: { process: process }
 								})}

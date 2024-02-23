@@ -33,6 +33,49 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <!--generate types dynamically -->
+                <groupId>org.apache.uima</groupId>
+                <artifactId>jcasgen-maven-plugin</artifactId>
+                <version>2.9.0</version>
+                <configuration>
+                    <limitToProject>true</limitToProject>
+                    <typeSystemIncludes>
+                        <include>src/main/resources/org/texttechnologylab/types/reproducibleAnnotations.xml
+                        </include>
+                    </typeSystemIncludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <!--call it in the generate-source phase -->
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!--            <plugin>-->
+            <!--                <groupId>org.codehaus.mojo</groupId>-->
+            <!--                <artifactId>build-helper-maven-plugin</artifactId>-->
+            <!--                <version>1.10</version>-->
+            <!--                <executions>-->
+            <!--                    <execution>-->
+            <!--                        <id>addToSourceFolder</id>-->
+            <!--                        <goals>-->
+            <!--                            &lt;!&ndash;add the generated sources &ndash;&gt;-->
+            <!--                            <goal>add-source</goal>-->
+            <!--                        </goals>-->
+            <!--                        <phase>process-sources</phase>-->
+            <!--                        <configuration>-->
+            <!--                            <sources>-->
+            <!--                                &lt;!&ndash;default path to generated sources &ndash;&gt;-->
+            <!--                                <source>${project.build.directory}/generated-sources/jcasgen</source>-->
+            <!--                            </sources>-->
+            <!--                        </configuration>-->
+            <!--                    </execution>-->
+            <!--                </executions>-->
+            <!--            </plugin>-->
         </plugins>
     </build>
 
@@ -93,16 +136,16 @@
         </dependency>
 
 
-                <dependency>
-                    <groupId>com.github.texttechnologylab</groupId>
-                    <artifactId>DockerUnifiedUIMAInterface</artifactId>
-                    <version>web-api-SNAPSHOT</version>
-                </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.texttechnologylab</groupId>-->
-<!--            <artifactId>DockerUnifiedUIMAInterface</artifactId>-->
-<!--            <version>1.0</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>com.github.texttechnologylab</groupId>
+            <artifactId>DockerUnifiedUIMAInterface</artifactId>
+            <version>web-api-SNAPSHOT</version>
+        </dependency>
+        <!--        <dependency>-->
+        <!--            <groupId>org.texttechnologylab</groupId>-->
+        <!--            <artifactId>DockerUnifiedUIMAInterface</artifactId>-->
+        <!--            <version>1.0</version>-->
+        <!--        </dependency>-->
 
         <dependency>
             <groupId>org.xerial</groupId>
@@ -150,6 +193,13 @@
             <artifactId>de.tudarmstadt.ukp.dkpro.core.opennlp-asl</artifactId>
             <version>1.10.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>de.tudarmstadt.ukp.dkpro.core</groupId>
+            <artifactId>de.tudarmstadt.ukp.dkpro.core.api.metadata-asl</artifactId>
+            <version>1.10.0</version>
+        </dependency>
+
         <!-- https://mvnrepository.com/artifact/de.tudarmstadt.ukp.dkpro.core/de.tudarmstadt.ukp.dkpro.core.io.text-asl -->
         <dependency>
             <groupId>de.tudarmstadt.ukp.dkpro.core</groupId>

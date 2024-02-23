@@ -11,9 +11,10 @@
 		<div class="space-y-1">
 			<label for="slider" class="flex items-center">
 				<SlideToggle
-					background="bg-surface-200-700-token"
+					background="bg-surface-100-800-token"
 					active="bg-primary-500"
-					rounded="rounded-sm"
+					rounded="rounded-full"
+					border="bordered-soft"
 					name="slider"
 					bind:checked={component.options.use_GPU}
 				>
@@ -26,9 +27,10 @@
 		<div class="space-y-1">
 			<label for="slider" class="flex items-center">
 				<SlideToggle
-					background="bg-surface-200-700-token"
+					background="bg-surface-100-800-token"
 					active="bg-primary-500"
-					rounded="rounded-sm"
+					rounded="rounded-full"
+					border="bordered-soft"
 					name="slider"
 					bind:checked={component.options.docker_image_fetching}
 				>

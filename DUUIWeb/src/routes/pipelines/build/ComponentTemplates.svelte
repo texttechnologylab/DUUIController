@@ -1,14 +1,30 @@
 <script lang="ts">
-	import DriverIcon from '$lib/svelte/components/DriverIcon.svelte'
+	import { componentDrawerSettings } from '$lib/config'
 	import { DUUIDriverFilters, type DUUIComponent, type DUUIDriverFilter } from '$lib/duui/component'
-	import { faSearch } from '@fortawesome/free-solid-svg-icons'
-	import { createEventDispatcher } from 'svelte'
-	import Search from '$lib/svelte/components/Search.svelte'
 	import { equals, includes } from '$lib/duui/utils/text'
+	import { userSession } from '$lib/store'
+	import DriverIcon from '$lib/svelte/components/DriverIcon.svelte'
 	import Dropdown from '$lib/svelte/components/Dropdown.svelte'
+	import Search from '$lib/svelte/components/Search.svelte'
+	import { faEdit, faSearch } from '@fortawesome/free-solid-svg-icons'
+	import { getDrawerStore, popup, type DrawerSettings } from '@skeletonlabs/skeleton'
+	import { createEventDispatcher } from 'svelte'
+	import Fa from 'svelte-fa'
 
 	const dispatcher = createEventDispatcher()
 	export let components: DUUIComponent[]
+
+	const drawerStore = getDrawerStore()
+
+	const onEdit = (component: DUUIComponent) => {
+		const drawer: DrawerSettings = {
+			id: 'component',
+			...componentDrawerSettings,
+			meta: { component: component, inEditor: false, example: false }
+		}
+
+		drawerStore.open(drawer)
+	}
 
 	const onSelect = (component: DUUIComponent) => {
 		dispatcher('select', {
@@ -56,12 +72,12 @@
 	<div class="grid lg:grid-cols-2 xl:grid-cols-3 gap-4">
 		{#each filteredComponents as component (component.oid)}
 			<button
-				class="card-fancy text-left grid min-h-[300px] items-start col-span-1"
+				class="card-fancy text-left grid min-h-[250px] items-start col-span-1"
 				on:click={() => onSelect(component)}
 			>
 				<div class="flex flex-col md:flex-row items-start justify-between gap-4">
-					<DriverIcon driver={component.driver} />
 					<p class="text-lg font-bold break-words">{component.name}</p>
+					<DriverIcon driver={component.driver} />
 				</div>
 				<p>{component.description}</p>
 				<div class="flex flex-wrap gap-2 self-end">
@@ -71,12 +87,21 @@
 						</span>
 					{/each}
 				</div>
+				{#if $userSession && $userSession.role === 'Admin'}
+					<button
+						class="pointer-events-auto button-neutral self-start ml-auto"
+						on:click={() => onEdit(component)}
+					>
+						<Fa icon={faEdit} size="lg" />
+						<p>Edit</p>
+					</button>
+				{/if}
 			</button>
 		{/each}
 	</div>
 	<div>
 		{#if filteredComponents.length === 0}
-			<p class="py-32 text-center h3">No templates found</p>
+			<h2 class="py-32 text-center h2 mx-auto">No templates found</h2>
 		{/if}
 	</div>
 </div>

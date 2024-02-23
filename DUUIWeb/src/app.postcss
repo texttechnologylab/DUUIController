@@ -21,18 +21,26 @@ p {
 	max-width: min(100%, 65ch);
 }
 
-
-
 #page {
 	@apply scroll-smooth gradient;
 }
 
-.pattern2 {
-	background-image: url('src/lib/assets/dot-grid.webp');
+.cta {
+	transform: skewX(-15deg);
+	transition: all 0.3s ease-out;
+}
+
+.box-shadow {
+	transition: all 0.3s ease-out;
+}
+
+.box-shadow:hover {
+	box-shadow: 12px 12px 0 rgb(var(--color-primary-700) / 0.2),
+		-12px -12px 0 rgb(var(--color-primary-700) / 0.2);
 }
 
 #sidebar-left {
-	@apply border-r-2 border-color shadow-md bg-surface-50-900-token;
+	@apply bg-surface-100-800-token;
 }
 
 #sidebar-right {
@@ -41,6 +49,10 @@ p {
 
 .page-wrapper {
 	@apply p-4 space-y-8 md:px-8 z-[10];
+}
+
+.divider {
+	@apply divide-surface-200 dark:divide-surface-500;
 }
 
 .border-color {
@@ -104,7 +116,7 @@ p {
 }
 
 .dimmed {
-	@apply text-surface-500 dark:text-surface-200 transition-colors duration-300;
+	@apply text-surface-400 dark:text-surface-300 transition-colors duration-300;
 }
 
 .container-full-h {
@@ -162,7 +174,7 @@ p {
 }
 
 .button-neutral {
-	@apply button  bordered-soft enabled:hover:bg-surface-200-700-token text-surface-700-200-token transition-colors duration-300;
+	@apply button bordered-soft enabled:hover:bg-surface-200-700-token text-surface-700-200-token transition-colors duration-300;
 }
 
 .anchor-neutral {
@@ -174,7 +186,15 @@ p {
 }
 
 .button-mobile {
-	@apply inline-flex flex-col gap-1 bg-fancy items-center justify-center px-2 py-3 text-xs disabled:opacity-50;
+	@apply inline-flex flex-col gap-1 bg-fancy items-center justify-center px-2 py-3 text-sm disabled:opacity-50;
+}
+
+.button-menu {
+	@apply button !rounded-none enabled:hover:bg-surface-200-700-token text-surface-700-200-token transition-colors duration-300;
+}
+
+.anchor-menu {
+	@apply button !rounded-none hover:bg-surface-200-700-token text-surface-700-200-token transition-colors duration-300;
 }
 
 .menu-mobile {
@@ -218,7 +238,7 @@ p {
 }
 
 .endpoint {
-	@apply rounded-md bordered-soft bg-surface-200/50 dark:bg-surface-800;
+	@apply rounded-md overflow-hidden bordered-soft bg-surface-200/50 dark:bg-surface-800;
 }
 
 .sr-only:not(:focus):not(:active) {

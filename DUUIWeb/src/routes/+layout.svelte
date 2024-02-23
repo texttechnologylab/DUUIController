@@ -2,7 +2,7 @@
 	import Logo from '$lib/assets/Logo.svg'
 	import '../app.postcss'
 
-	import { faArrowRightFromBracket, faBars, faMapSigns } from '@fortawesome/free-solid-svg-icons'
+	import { faArrowRightFromBracket, faBars } from '@fortawesome/free-solid-svg-icons'
 	import {
 		AppBar,
 		AppShell,
@@ -10,9 +10,9 @@
 		LightSwitch,
 		Toast,
 		getDrawerStore,
+		getModalStore,
 		type DrawerSettings,
-		type ModalComponent,
-		getModalStore
+		type ModalComponent
 	} from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
 
@@ -24,25 +24,25 @@
 	import DocumentModal from '$lib/svelte/components/DocumentDrawer.svelte'
 	import Documentation from '$lib/svelte/components/Documentation.svelte'
 	import Link from '$lib/svelte/components/Link.svelte'
+	import PromptModal from '$lib/svelte/components/PromptModal.svelte'
 	import Sidebar from '$lib/svelte/components/Sidebar.svelte'
+	import HelpModal from '$lib/svelte/components/modals/HelpModal.svelte'
+	import WelcomeModal from '$lib/svelte/components/modals/WelcomeModal.svelte'
 	import { arrow, autoUpdate, computePosition, flip, offset, shift } from '@floating-ui/dom'
 	import { Modal } from '@skeletonlabs/skeleton'
-	import HelpModal from '$lib/svelte/components/modals/HelpModal.svelte'
-	import PromptModal from '$lib/svelte/components/PromptModal.svelte'
-	import WelcomeModal from '$lib/svelte/components/modals/WelcomeModal.svelte'
 
 	import { storeHighlightJs } from '@skeletonlabs/skeleton'
 	import hljs from 'highlight.js/lib/core'
 	import java from 'highlight.js/lib/languages/java'
+	import python from 'highlight.js/lib/languages/python'
 	import typescript from 'highlight.js/lib/languages/typescript'
 	import xml from 'highlight.js/lib/languages/xml'
-	import python from 'highlight.js/lib/languages/python'
 
 	import ComponentDrawer from '$lib/svelte/components/ComponentDrawer.svelte'
-	import 'highlight.js/styles/github-dark.css'
 	import DocumentDrawer from '$lib/svelte/components/DocumentDrawer.svelte'
-	import { onMount } from 'svelte'
 	import TemplateModal from '$lib/svelte/components/modals/TemplateModal.svelte'
+	import 'highlight.js/styles/github-dark.css'
+	import { onMount } from 'svelte'
 	import ProcessDrawer from './processes/[oid]/ProcessDrawer.svelte'
 
 	export let data
@@ -189,7 +189,7 @@
 					class="md:block hidden"
 					rounded="rounded-full"
 					on:click={() => ($isDarkModeStore = !$isDarkModeStore)}
-				/> 
+				/>
 			</svelte:fragment>
 		</AppBar>
 	</svelte:fragment>

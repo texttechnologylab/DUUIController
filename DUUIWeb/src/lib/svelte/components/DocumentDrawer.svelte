@@ -139,7 +139,7 @@
 	}
 </script>
 
-<div class="bg-surface-50-900-token">
+<div class="h-full bg-surface-50-900-token">
 	<div id="scroll-top" />
 	<div
 		class="w-full z-50 grid

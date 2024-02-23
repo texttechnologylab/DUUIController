@@ -19,13 +19,14 @@
 	)
 </script>
 
-<div class=" space-y-4 h-full bg-surface-100-800-token">
-	<div class="flex items-stretch gap-4 justify-between border-b border-color p-4">
-		<button class="button-neutral" use:clipboard={json}>
+<div class=" space-y-4 h-full bg-surface-100-800-token ">
+	<div class="flex items-stretch gap-4 justify-between border-b border-color bg-surface-50-900-token">
+		<button class="button-menu border-r border-color" use:clipboard={json}>
 			<Fa icon={faClipboardList} />
 			<span>Copy</span>
 		</button>
-		<button class="button-neutral" on:click={drawerStore.close}>
+		<p class="text-lg self-center">Settings</p>
+		<button class="button-menu border-l border-color" on:click={drawerStore.close}>
 			<Fa icon={faClose} />
 			<span>Close</span>
 		</button>

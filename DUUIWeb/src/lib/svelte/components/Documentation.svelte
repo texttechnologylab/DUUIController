@@ -6,7 +6,7 @@
 
 {#if $page.url.pathname.includes('/documentation')}
 	<aside
-		class="overflow-x-hidden overflow-y-auto h-full p-4 text-left space-y-8 hidden md:block w-auto text-lg"
+		class="border-color shadow-md border-r overflow-x-hidden overflow-y-auto h-full p-4 text-left space-y-8 hidden md:block w-auto text-lg"
 	>
 		<div class="space-y-4 px-2">
 			<p class="h3 font-bold p-2">Documentation</p>

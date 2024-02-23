@@ -47,7 +47,7 @@ public class DUUIPipelineRequestHandler {
         }
 
         if (request.queryParamOrDefault("statistics", "false").equals("true")) {
-            Document statistics = DUUIPipelineController.getStatisticsForPipeline(pipelineId);
+            Document statistics = DUUIPipelineController.getPipelineStatistics(pipelineId);
             result.append("statistics", statistics);
         }
         return result.toJson();
@@ -104,7 +104,7 @@ public class DUUIPipelineRequestHandler {
                 .getList("pipelines", Document.class)
                 .forEach(pipeline -> pipeline.append(
                     "statistics",
-                    DUUIPipelineController.getStatisticsForPipeline(pipeline.getString("oid"))));
+                    DUUIPipelineController.getPipelineStatistics(pipeline.getString("oid"))));
         }
 
         response.status(200);

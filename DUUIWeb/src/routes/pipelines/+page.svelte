@@ -3,10 +3,12 @@
 	import {
 		faArrowDownWideShort,
 		faArrowUpWideShort,
+		faChevronRight,
 		faChevronUp,
 		faClose,
 		faFilter,
 		faPlus,
+		faQuestion,
 		faRefresh,
 		faSearch,
 		faSort
@@ -209,52 +211,38 @@
 	{#if pipelines.length === 0}
 		<div class="h-full flex items-center justify-center">
 			<div class="flex flex-col justify-center items-center">
-				<div class="section-wrapper p-8 space-y-8">
-					<h1 class="h2 font-bold">Create your first pipeline in the Builder</h1>
-
-					<div>
-						<p>After you create a Pipeline, you will find it here.</p>
-					</div>
+				<div class="section-wrapper p-8 md:p-32 space-y-8 md:space-y-16 text-center">
+					<h1 class="h1">No pipelines yet</h1>
 					<div class="flex justify-center">
-						<a class="button-primary" href="/pipelines/build">
-							<Fa icon={faPlus} />
-							<span>Create</span>
+						<a class="button-primary cta box-shadow" href="/pipelines/build">
+							<span>Pipeline Builder</span>
+							<Fa icon={faChevronRight} />
 						</a>
 					</div>
-
-					<!-- <div class="grid grid-cols-2 gap-4 p"> -->
-
-					<!-- <FileButton
-							name="files"
-							bind:files={importFiles}
-							on:change={importPipeline}
-							button="button-primary w-full"
-							accept=".json"
-						>
-							<Fa icon={faFileImport} />
-							<span>Import</span>
-						</FileButton> -->
-					<!-- </div> -->
+					<p>After you create a Pipeline, you will find it here.</p>
 				</div>
 			</div>
 		</div>
 	{:else}
 		<div class="grid relative pb-16">
-			<div
-				class="sticky top-0 bg-surface-50-900-token border-y p-4 border-color hidden md:block z-10"
-			>
-				<div class="grid md:flex items-center md:justify-between relative gap-4">
-					<a class="button button-primary mr-auto" href="/pipelines/build">
+			<div class="sticky top-0 bg-surface-50-900-token border-b border-color hidden md:block z-10">
+				<div class="grid md:flex items-stretch md:justify-between relative">
+					<a class="anchor-menu mr-auto border-r border-color" href="/pipelines/build">
 						<Fa icon={faPlus} />
 						<span class="text-xs md:text-base">New</span>
 					</a>
-					<button class="input-wrapper inline-flex gap-4 items-center px-4" use:popup={sortPopup}>
+					<button
+						class="button-menu inline-flex gap-4 items-center px-4 border-x border-color"
+						use:popup={sortPopup}
+					>
 						<Fa icon={faSort} />
 						<span>Sort</span>
 					</button>
 
 					<Dropdown
 						name="driver"
+						style="button-menu"
+						border="border-none"
 						placement="bottom-end"
 						options={['Any'].concat(DUUIDrivers)}
 						bind:value={driverFilter}
@@ -264,41 +252,51 @@
 						bind:query={searchText}
 						icon={faSearch}
 						placeholder="Search"
-						style="input-wrapper"
+						style="input-no-highlight !border-y-0 !border-r-0 !border-l border-color !rounded-none !bg-transparent transition-all focus-within:pr-32 focus-within:!bg-surface-50-900-token"
 					/>
 				</div>
 			</div>
-
-			<div class="h-full sticky top-32">
-				<div class="md:min-h-[800px] p-4 space-y-4">
-					<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-8 relative">
-						{#each filteredPipelines as pipeline}
-							<a
-								class="card-fancy {pipeline.status === Status.Idle
-									? '!border-l-8 !border-l-success-500'
-									: ''} grid items-start min-h-[300px]"
-								href="/pipelines/{pipeline.oid}"
-							>
-								<PipelineCard {pipeline} />
-							</a>
-						{/each}
+			{#if filteredPipelines.length === 0}
+				<div class="h-full flex items-center justify-center p-16">
+					<div
+						class="section-wrapper px-32 p-16 space-y-4 text-center flex items-center justify-center flex-col"
+					>
+						<h1 class="h2">Nothing found</h1>
+						<Fa icon={faQuestion} size="2x" />
 					</div>
-					{#if count - pipelines.length > 0}
-						<div class="flex items-center justify-center py-16">
-							<button
-								disabled={loading}
-								class="button-primary {loading ? 'aspect-square' : ''}"
-								on:click={loadMore}
-							>
-								<Fa icon={faRefresh} spin={loading} />
-								{#if !loading}
-									<span>Load more</span>
-								{/if}
-							</button>
-						</div>
-					{/if}
 				</div>
-			</div>
+			{:else}
+				<div class="h-full sticky top-32">
+					<div class="md:min-h-[800px] p-4 space-y-4">
+						<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-8 relative">
+							{#each filteredPipelines as pipeline}
+								<a
+									class="card-fancy {pipeline.status === Status.Idle
+										? '!border-l-8 !border-l-success-500'
+										: ''} grid items-start min-h-[300px]"
+									href="/pipelines/{pipeline.oid}"
+								>
+									<PipelineCard {pipeline} />
+								</a>
+							{/each}
+						</div>
+						{#if count - pipelines.length > 0}
+							<div class="flex items-center justify-center py-16">
+								<button
+									disabled={loading}
+									class="button-primary {loading ? 'aspect-square' : ''}"
+									on:click={loadMore}
+								>
+									<Fa icon={faRefresh} spin={loading} />
+									{#if !loading}
+										<span>Load more</span>
+									{/if}
+								</button>
+							</div>
+						{/if}
+					</div>
+				</div>
+			{/if}
 		</div>
 	{/if}
 </div>

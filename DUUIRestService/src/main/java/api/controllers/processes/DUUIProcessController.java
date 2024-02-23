@@ -557,4 +557,20 @@ public class DUUIProcessController {
         DUUIDocument document = handler.readDocument(path);
         return document.toInputStream();
     }
+
+    public static Document getAverageRunDurationByProvider(String pipelineId) {
+        List<Document> pipeline = DUUIMongoDBStorage
+            .Processses()
+            .aggregate(
+                List.of(
+                    Aggregates.match(Filters.eq("pipeline_id", pipelineId)),
+                    Aggregates.addFields(new Field<>("duration",
+                        new Document("$subtract", List.of("$finished_at", "$started_at")))),
+                    Aggregates.group("$input.provider", Accumulators.avg("$duration", 1))
+                )
+            ).into(new ArrayList<>());
+
+        if (isNullOrEmpty(pipeline)) return new Document();
+        return pipeline.get(0);
+    }
 }

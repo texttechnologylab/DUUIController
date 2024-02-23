@@ -361,7 +361,7 @@ public class DUUIPipelineController {
      * @param pipelineId The identifier for the pipeline
      * @return A BSON Document with the aggregation result.
      */
-    public static Document getStatisticsForPipeline(String pipelineId) {
+    public static Document getPipelineStatistics(String pipelineId) {
         List<Document> facets = DUUIMongoDBStorage
             .Processses()
             .aggregate(

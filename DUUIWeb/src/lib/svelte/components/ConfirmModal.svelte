@@ -11,7 +11,7 @@
 
 </script>
 
-<div class="z-50 bg-surface-50-900-token w-modal rounded-md overflow-hidden border-2 border-color">
+<div class="z-50 bg-surface-50-900-token w-modal rounded-md overflow-hidden border border-color">
 	<div class="modal-header bg-surface-100-800-token">
 		<h3 class="h3">{title}</h3>
 		<button on:click={modalStore.close}>

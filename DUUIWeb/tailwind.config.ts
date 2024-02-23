@@ -49,7 +49,11 @@ export default {
 					{
 						name: 'rocket',
 						enhancements: true
-					}
+					},
+					'modern',
+					'crimson',
+					'gold-nouveau',
+					"hamlindigo"
 				]
 			}
 		})

@@ -10,15 +10,15 @@
 
 <div
 	class="
-	p-4 py-24 md:py-32 space-y-4 relative bg-fancy
-	text-center md:text-xl {classes}
+	p-4 md:pt-24 pb-4 space-y-4 relative bg-fancy first-of-type:pt-24
+	text-center  {classes}
 	flex flex-col justify-center items-center self-stretch
 	"
 >
 	<div class="aspect-square flex justify-center rounded-md py-4 items-center">
 		<Fa size="2x" {icon} />
 	</div>
-	<h3 class="h2 font-bold">{title}</h3>
+	<h2 class="h3 font-bold">{title}</h2>
 	<p class="mx-auto max-w-[45ch]">{content}</p>
 	<slot />
 </div>

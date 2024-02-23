@@ -3,6 +3,7 @@
 	import { isDarkModeStore, userSession } from '$lib/store'
 	import { faGithub, faReadme, faXTwitter } from '@fortawesome/free-brands-svg-icons'
 	import {
+		faArrowRightFromBracket,
 		faBars,
 		faBook,
 		faGlobe,
@@ -11,7 +12,8 @@
 		faMapSigns,
 		faQuestion,
 		faTools,
-		faUser
+		faUser,
+		faUserMinus
 	} from '@fortawesome/free-solid-svg-icons'
 	import { LightSwitch, getDrawerStore, getModalStore } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
@@ -36,8 +38,10 @@
 	const modalStore = getModalStore()
 </script>
 
-<aside class="space-y-4 z-50 bg-surface-50-900-token h-full flex flex-col">
-	<div class="p-4 sticky top-0 bg-surface-50-900-token flex items-center justify-between shadow-md">
+<aside class="space-y-4 z-50 bg-surface-100-800-token h-full flex flex-col">
+	<div
+		class="p-4 sticky top-0 bg-surface-50-900-token border-color border-b flex items-center justify-between"
+	>
 		<button class="btn-icon" on:click={() => drawerStore.close()}>
 			<Fa icon={faBars} size="lg" />
 		</button>
@@ -83,9 +87,18 @@
 			<Fa icon={faMapSigns} />
 			<span>Help</span>
 		</button>
+
+		{#if $userSession}
+			<button class="flex items-center gap-4 animate-text" on:click={logout}>
+				<Fa icon={faArrowRightFromBracket} />
+				<span>Logout</span>
+			</button>
+		{/if}
 	</div>
-	<div class="flex flex-col md:flex-row justify-center items-center md:items-start gap-4">
-		<div class="flex items-center gap-8 p-4 variant-filled-primary w-full justify-center">
+	<div
+		class="flex flex-col md:flex-row justify-center items-center md:items-start gap-4 border-t border-color bg-surface-50-900-token"
+	>
+		<div class="flex items-center gap-8 p-4 w-full justify-center">
 			<a
 				target="_blank"
 				href="https://github.com/texttechnologylab"

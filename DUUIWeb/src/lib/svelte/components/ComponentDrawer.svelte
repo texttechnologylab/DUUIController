@@ -6,13 +6,12 @@
 	import {
 		faAngleDoubleRight,
 		faCancel,
-		faCheck,
 		faFileCircleCheck,
 		faTrash
 	} from '@fortawesome/free-solid-svg-icons'
 	import { getDrawerStore, getModalStore, getToastStore } from '@skeletonlabs/skeleton'
 	import pkg from 'lodash'
-	import { createEventDispatcher, onMount } from 'svelte'
+	import { createEventDispatcher } from 'svelte'
 	import Fa from 'svelte-fa'
 	import { v4 as uuidv4 } from 'uuid'
 	import Chips from './Chips.svelte'
@@ -22,7 +21,6 @@
 	import JsonInput from './JsonInput.svelte'
 	import TextArea from './TextArea.svelte'
 	import TextInput from './TextInput.svelte'
-	import ComponentTemplates from '../../../routes/pipelines/build/ComponentTemplates.svelte'
 	const { cloneDeep } = pkg
 
 	const drawerStore = getDrawerStore()
@@ -36,8 +34,6 @@
 
 	let parameters: Map<string, string> = new Map(Object.entries(component.parameters))
 	const dispatcher = createEventDispatcher()
-
-	
 
 	const onUpdate = async () => {
 		if (!inEditor) {
@@ -53,9 +49,11 @@
 			}
 
 			dispatcher('updated', { ...component })
-			$currentPipelineStore.components.forEach((c, index) => (c.index = index))
-			component.id = uuidv4()
-			$currentPipelineStore.components[component.index] = component
+			if (component.pipeline_id) {
+				$currentPipelineStore.components.forEach((c, index) => (c.index = index))
+				component.id = uuidv4()
+				$currentPipelineStore.components[component.index] = component
+			}
 		}
 
 		drawerStore.close()
@@ -213,12 +211,12 @@
 		class="p-4 flex items-center gap-4 justify-between sticky top-0 z-10 bg-surface-100-800-token border-b border-color"
 	>
 		<div class="flex items-center gap-4">
-			<button
+			<!-- <button
 				class="!hidden md:!inline-flex button-neutral !rounded-full aspect-square !p-3"
 				on:click={drawerStore.close}
 			>
 				<Fa icon={faAngleDoubleRight} size="lg" />
-			</button>
+			</button> -->
 			<div class="flex items-center gap-4">
 				<DriverIcon driver={component.driver} />
 				<h3 class="h3">{component.name}</h3>
@@ -229,32 +227,32 @@
 			{#if example}
 				<button
 					disabled={!component.driver || !component.name || !component.target}
-					class="button-success"
+					class="button-neutral"
 					on:click={onCreate}
 				>
 					<Fa icon={faFileCircleCheck} />
 					<span>Save</span>
 				</button>
-				<button type="button" class="button-error" on:click={onRemove}>
+				<button type="button" class="button-neutral" on:click={onRemove}>
 					<Fa icon={faTrash} />
 					<span>Remove</span>
 				</button>
 			{:else if creating}
 				<button
 					disabled={!component.driver || !component.name || !component.target}
-					class="button-success ml-auto"
+					class="button-neutral ml-auto"
 					on:click={() => (inEditor ? onEdited() : onCreate())}
 				>
 					<Fa icon={faFileCircleCheck} />
 					Confirm
 				</button>
-				<button type="button" class="button-error" on:click={drawerStore.close}>
+				<button type="button" class="button-neutral" on:click={drawerStore.close}>
 					<Fa icon={faCancel} />
 					Cancel
 				</button>
 			{:else}
 				<button
-					class="button-success ml-auto"
+					class="button-neutral ml-auto"
 					on:click={() => (inEditor ? onEdited() : onUpdate())}
 					disabled={!component.driver || !component.name || !component.target}
 				>
@@ -263,7 +261,7 @@
 				</button>
 				<button
 					type="button"
-					class="button-error"
+					class="button-neutral"
 					on:click={() => (inEditor ? onRemove() : onDelete())}
 				>
 					<Fa icon={faTrash} />
@@ -273,7 +271,7 @@
 		</div>
 	</div>
 
-	<div class="space-y-8 p-4 bg-surface-50-900-token">
+	<div class="space-y-8 p-4 bg-surface-50-900-token pb-16 md:pb-4">
 		<div class="space-y-4">
 			<h4 class="h4">Properties</h4>
 

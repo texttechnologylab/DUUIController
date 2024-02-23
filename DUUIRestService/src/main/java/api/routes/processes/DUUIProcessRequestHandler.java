@@ -91,7 +91,6 @@ public class DUUIProcessRequestHandler {
 
         Document result = DUUIProcessController.findMany(filters);
 
-
         if (result == null) return notFound(response);
         return result.toJson();
     }

@@ -34,12 +34,19 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 	}
 
 	const loadProcesses = async (): Promise<{ processes: DUUIProcess[]; count: number }> => {
+		let statusFilter: string[] = (url.searchParams.get('status') || 'Any').split(';')
+		let inputFilter: string[] = (url.searchParams.get('input') || 'Any').split(';')
+		let outputFilter: string[] = (url.searchParams.get('output') || 'Any').split(';')
+
 		const result = await fetch(
 			`${API_URL}/processes?pipeline_id=${params.oid}
 				&limit=${url.searchParams.get('limit') || 10}
 				&offset=${url.searchParams.get('offset') || 0}
 				&sort=started_at
-				&order=-1`,
+				&order=-1
+				&status=${statusFilter.join(';')}
+				&input=${inputFilter.join(';')}
+				&output=${outputFilter.join(';')}`,
 			{
 				method: 'GET',
 				mode: 'cors',
@@ -59,6 +66,6 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 	return {
 		pipeline: await loadPipeline(),
 		processInfo: await loadProcesses(),
-		templateComponents: (await fetchComponentTemplates()).components,
+		templateComponents: (await fetchComponentTemplates()).components
 	}
 }

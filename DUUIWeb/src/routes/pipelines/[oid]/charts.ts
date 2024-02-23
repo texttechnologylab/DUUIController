@@ -35,7 +35,7 @@ export const getStatusPlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) 
 			}
 		],
 		chart: {
-			height: 550,
+			height: 450,
 			type: 'bar'
 		},
 		plotOptions: {
@@ -105,52 +105,61 @@ export const getErrorsPlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) 
 		}
 	}
 
+	const data: Object[] = []
+
+	x.forEach((element, index) => {
+		data.push({ x: element, y: y.at(index) })
+	})
+
 	return {
 		series: [
 			{
 				name: 'Error',
-				data: y,
+				data: data,
 				color: '#f95959'
 			}
 		],
 		chart: {
-			height: 550,
-			type: 'bar'
+			height: 450,
+			type: 'treemap'
 		},
 		plotOptions: {
+			treemap: {
+				useFillColorAsStroke: true
+			},
 			bar: {
 				borderRadius: 8
 			}
 		},
 		grid: gridSettings,
-		xaxis: {
-			categories: x,
-			position: 'top',
-			axisBorder: {
-				show: false
-			},
-			axisTicks: {
-				show: false
-			},
-			crosshairs: {
-				fill: {
-					type: 'gradient',
-					gradient: {
-						colorFrom: '#D8E3F0',
-						colorTo: '#BED1E6',
-						stops: [0, 100],
-						opacityFrom: 0.4,
-						opacityTo: 0.5
-					}
-				}
-			},
-			labels: {
-				show: true,
-				style: {
-					colors: darkmode ? 'white' : 'black'
-				}
-			}
-		},
+		// xaxis: {
+		// 	categories: x,
+		// 	position: 'top',
+		// 	axisBorder: {
+		// 		show: false
+		// 	},
+		// 	axisTicks: {
+		// 		show: false
+		// 	},
+		// 	crosshairs: {
+		// 		fill: {
+		// 			type: 'gradient',
+		// 			gradient: {
+		// 				colorFrom: '#D8E3F0',
+		// 				colorTo: '#BED1E6',
+		// 				stops: [0, 100],
+		// 				opacityFrom: 0.4,
+		// 				opacityTo: 0.5
+		// 			}
+		// 		}
+		// 	},
+		// 	labels: {
+		// 		show: true,
+		// 		style: {
+		// 			colors: darkmode ? 'white' : 'black'
+		// 		}
+		// 	}
+		// },
 		yaxis: {
 			axisBorder: {
 				show: false
@@ -211,7 +220,7 @@ export const getIOPlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) => {
 			}
 		],
 		chart: {
-			height: 550,
+			height: 450,
 			type: 'bar'
 		},
 		plotOptions: {
@@ -306,14 +315,16 @@ export const getUsagePlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) =
 				data: yValues
 			}
 		],
-		plotOptions: {
-			bar: {
-				borderRadius: 8
-			}
+		stroke: {
+			curve: 'stepline'
 		},
+		markers: {
+			size: 6
+		},
+		
 		chart: {
-			height: 550,
-			type: 'bar',
+			height: 450,
+			type: 'line',
 
 			dropShadow: {
 				enabled: true,
@@ -336,7 +347,7 @@ export const getUsagePlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) =
 			}
 		},
 		dataLabels: {
-			enabled: true
+			enabled: false
 		},
 		theme: theme,
 		grid: gridSettings,

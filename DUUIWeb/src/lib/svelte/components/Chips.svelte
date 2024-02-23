@@ -52,7 +52,10 @@
 			{#each values.sort((a, b) => (a < b ? -1 : 1)) as value}
 				<div class="flex items-center gap-1 chip variant-ghost-primary">
 					<span>{value}</span>
-					<button class="animate-text" on:click={() => discard(value)}>
+					<button
+						class="hover:text-error-500 duration-300 transition-colors"
+						on:click={() => discard(value)}
+					>
 						<Fa icon={faClose} />
 					</button>
 				</div>

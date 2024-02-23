@@ -61,24 +61,15 @@
 </div>
 
 <style>
-	.cta {
-		transform: skewX(-15deg);
-		transition: all 0.3s ease-out;
-	}
-
-	.box-shadow {
-		box-shadow: 6px 6px 0 black;
-		transition: all 0.3s ease-out;
-	}
-
-	.box-shadow:hover {
-		box-shadow: 12px 12px 0 black;
-	}
-
 	.pattern {
-		background-image: radial-gradient(#006c9890 0.5px, transparent 0.5px),
-			radial-gradient(#006c9890 0.5px, transparent 0.5px);
-		background-size: 20px 20px;
-		background-position: 0 0, 10px 10px;
+		background-image: repeating-linear-gradient(
+			45deg,
+			#006c9811 0,
+			#006c9811 0.5px,
+			transparent 0,
+			transparent 50%
+		);
+		background-size: 16px 16px;
+		background-color: rgba(71, 212, 255, 0);
 	}
 </style>
