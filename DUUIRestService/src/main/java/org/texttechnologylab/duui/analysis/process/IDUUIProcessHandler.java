@@ -1,4 +1,4 @@
-package org.texttechnologylab.duui.process;
+package org.texttechnologylab.duui.analysis.process;
 
 
 public interface IDUUIProcessHandler extends Runnable {

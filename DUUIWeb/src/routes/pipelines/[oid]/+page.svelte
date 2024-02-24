@@ -44,12 +44,12 @@
 		scrollIntoView
 	} from '$lib/duui/utils/ui'
 	import { currentPipelineStore, isDarkModeStore } from '$lib/store'
-	import Chips from '$lib/svelte/components/Chips.svelte'
-	import JsonInput from '$lib/svelte/components/JsonInput.svelte'
+	import Chips from '$lib/svelte/components/Input/Chips.svelte'
+	import JsonInput from '$lib/svelte/components/Input/JsonInput.svelte'
 	import Paginator from '$lib/svelte/components/Paginator.svelte'
-	import Select from '$lib/svelte/components/Select.svelte'
-	import TextArea from '$lib/svelte/components/TextArea.svelte'
-	import Text from '$lib/svelte/components/TextInput.svelte'
+	import Select from '$lib/svelte/components/Input/Select.svelte'
+	import TextArea from '$lib/svelte/components/Input/TextArea.svelte'
+	import Text from '$lib/svelte/components/Input/TextInput.svelte'
 	import { getToastStore, Tab, TabGroup } from '@skeletonlabs/skeleton'
 	import type { PageServerData } from './$types'
 

@@ -9,7 +9,7 @@ import java.util.Properties;
 
 public class Config {
 
-    private Properties properties;
+    private final Properties properties;
 
     public Config(String configPath) throws IOException {
         properties = new Properties();

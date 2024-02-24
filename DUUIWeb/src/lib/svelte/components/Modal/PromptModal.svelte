@@ -4,7 +4,7 @@
 	} from '@fortawesome/free-solid-svg-icons'
 	import { getModalStore } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
-	import TextInput from '../TextInput.svelte'
+	import TextInput from '../Input/TextInput.svelte'
 
 	const modalStore = getModalStore()
 	export let title: string = $modalStore[0].meta['title']

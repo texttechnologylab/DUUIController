@@ -2,9 +2,9 @@
 	import { INPUT_EXTENSIONS, IO, IO_INPUT, type DUUIDocumentProvider, isValidS3BucketName } from '$lib/duui/io'
 	import { Languages } from '$lib/duui/process'
 	import { equals } from '$lib/duui/utils/text'
-	import Dropdown from '$lib/svelte/components/Dropdown.svelte'
-	import TextArea from '$lib/svelte/components/TextArea.svelte'
-	import TextInput from '$lib/svelte/components/TextInput.svelte'
+	import Dropdown from '$lib/svelte/components/Input/Dropdown.svelte'
+	import TextArea from '$lib/svelte/components/Input/TextArea.svelte'
+	import TextInput from '$lib/svelte/components/Input/TextInput.svelte'
 	import { FileDropzone } from '@skeletonlabs/skeleton'
 
 	export let input: DUUIDocumentProvider

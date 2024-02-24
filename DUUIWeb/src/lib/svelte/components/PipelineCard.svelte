@@ -24,7 +24,7 @@
 </div>
 
 <!-- Description -->
-<p class="">{pipeline.description}</p>
+<p class="line-clamp-2">{pipeline.description}</p>
 
 <div class="self-end space-y-8">
 	<div class="pt-4 flex items-center justify-between self-end">

@@ -20,11 +20,11 @@
 	import { Languages } from '$lib/duui/process'
 	import { equals } from '$lib/duui/utils/text'
 	import { errorToast } from '$lib/duui/utils/ui'
-	import Checkbox from '$lib/svelte/components/Checkbox.svelte'
-	import Dropdown from '$lib/svelte/components/Dropdown.svelte'
-	import Number from '$lib/svelte/components/Number.svelte'
-	import TextArea from '$lib/svelte/components/TextArea.svelte'
-	import TextInput from '$lib/svelte/components/TextInput.svelte'
+	import Checkbox from '$lib/svelte/components/Input/Checkbox.svelte'
+	import Dropdown from '$lib/svelte/components/Input/Dropdown.svelte'
+	import Number from '$lib/svelte/components/Input/Number.svelte'
+	import TextArea from '$lib/svelte/components/Input/TextArea.svelte'
+	import TextInput from '$lib/svelte/components/Input/TextInput.svelte'
 	import {
 		faArrowLeft,
 		faCheck,

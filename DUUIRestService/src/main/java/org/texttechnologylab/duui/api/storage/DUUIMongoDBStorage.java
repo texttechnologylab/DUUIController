@@ -173,15 +173,15 @@ public class DUUIMongoDBStorage {
     }
 
     /**
-     * For a given filter name extract the string from the request query parameters (name=A;B;C;D...) and
+     * For a given filter queryParameter extract the string from the request query parameters (queryParameter=A;B;C;D...) and
      * return a {@link List} of filter names
      *
-     * @param request the request object.
-     * @param name    the name of the query parameter
+     * @param request        the request object.
+     * @param queryParameter the queryParameter of the query parameter
      * @return a list of Strings to filter by.
      */
-    public static List<String> getFilterOrAny(Request request, String name) {
-        String filter = request.queryParamOrDefault(name, "Any");
+    public static List<String> getFilterOrDefault(Request request, String queryParameter) {
+        String filter = request.queryParamOrDefault(queryParameter, "Any");
         if (isNullOrEmpty(filter)) return List.of("Any");
 
         return Stream.of(filter.split(";"))

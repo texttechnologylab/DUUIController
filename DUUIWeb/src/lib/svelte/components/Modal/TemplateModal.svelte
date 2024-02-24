@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { DUUIComponent } from '$lib/duui/component'
 	import { getDrawerStore, getModalStore, type DrawerSettings } from '@skeletonlabs/skeleton'
-	import ComponentTemplates from '../../../../routes/pipelines/build/ComponentTemplates.svelte'
+	import ComponentTemplates from '../ComponentTemplates.svelte'
 	import { v4 as uuidv4 } from 'uuid'
 	import pkg from 'lodash'
 	import { currentPipelineStore } from '$lib/store'

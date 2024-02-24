@@ -14,8 +14,8 @@
 		getAnnotationsPlotOptions,
 		getTimelinePlotOptions
 	} from '../../../../routes/processes/[oid]/chart'
-	import Number from '../Number.svelte'
-	import Search from '../Search.svelte'
+	import Number from '../Input/Number.svelte'
+	import Search from '../Input/Search.svelte'
 
 	const drawerStore = getDrawerStore()
 

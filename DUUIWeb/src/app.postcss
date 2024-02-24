@@ -18,7 +18,9 @@
 	src: url('/fonts/Oxanium.ttf');
 }
 
-:root [data-theme='theme'] {
+:root [data-theme='theme-red'],
+:root [data-theme='theme-blue'],
+:root [data-theme='theme-purple'] {
 	--theme-font-family-base: 'Oxanium', sans-serif;
 	--theme-font-family-heading: 'Oxanium', sans-serif;
 }
@@ -84,7 +86,7 @@ p {
 }
 
 .bg-fancy {
-	@apply dark:bg-surface-900/70 hover:bg-surface-200/20 dark:hover:bg-surface-700/50 transition-colors duration-300;
+	@apply dark:bg-surface-900/70 hover:bg-surface-200/20 dark:hover:bg-surface-700/50 transition-300;
 }
 
 .bg-fancy-solid {
@@ -96,7 +98,7 @@ p {
 }
 
 .card-fancy {
-	@apply section-wrapper hover:bg-surface-200/20 p-8 hover:variant-glass space-y-4 transition-colors duration-300 hover:border-primary-500;
+	@apply section-wrapper hover:bg-surface-200/20 p-8 hover:variant-glass space-y-4 transition-300 hover:border-primary-500;
 }
 
 .popup-solid {
@@ -104,7 +106,7 @@ p {
 }
 
 .dimmed {
-	@apply text-surface-400 dark:text-surface-300 transition-colors duration-300;
+	@apply text-surface-400 dark:text-surface-300 transition-300;
 }
 
 .container-full-h {
@@ -162,11 +164,11 @@ p {
 }
 
 .button-neutral {
-	@apply button bordered-soft enabled:hover:bg-surface-200-700-token text-surface-700-200-token transition-colors duration-300;
+	@apply button bordered-soft enabled:hover:variant-filled-primary text-surface-700-200-token transition-300;
 }
 
 .anchor-neutral {
-	@apply button bordered-soft hover:bg-surface-200-700-token text-surface-700-200-token transition-colors duration-300;
+	@apply button bordered-soft hover:variant-filled-primary text-surface-700-200-token transition-300;
 }
 
 .button-modal {
@@ -178,11 +180,11 @@ p {
 }
 
 .button-menu {
-	@apply button !rounded-none enabled:hover:bg-surface-200-700-token text-surface-700-200-token transition-colors duration-300;
+	@apply button !rounded-none enabled:hover:variant-filled-primary text-surface-700-200-token transition-300;
 }
 
 .anchor-menu {
-	@apply button !rounded-none hover:bg-surface-200-700-token text-surface-700-200-token transition-colors duration-300;
+	@apply button !rounded-none hover:variant-filled-primary text-surface-700-200-token transition-300;
 }
 
 .menu-mobile {

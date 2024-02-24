@@ -18,6 +18,9 @@ public class DUUIStorageMetrics {
             .register();
     }
 
+    public static void register() {
+    }
+
     public static void incrementPipelinesCounter() {
         collectionPipelines.inc();
     }

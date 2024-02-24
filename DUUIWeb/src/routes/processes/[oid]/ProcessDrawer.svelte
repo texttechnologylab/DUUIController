@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { DUUIProcess } from '$lib/duui/process'
 	import { successToast } from '$lib/duui/utils/ui'
-	import { faAngleDoubleRight, faClipboardList, faClose } from '@fortawesome/free-solid-svg-icons'
+	import { faClipboardList, faClose } from '@fortawesome/free-solid-svg-icons'
 	import { clipboard, getDrawerStore, getToastStore } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
 

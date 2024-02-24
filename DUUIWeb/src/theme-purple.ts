@@ -2,8 +2,8 @@ import type { CustomThemeConfig } from '@skeletonlabs/tw-plugin'
 
 // Visit https://www.skeleton.dev/docs/themes to create a custom theme
 
-export const Theme: CustomThemeConfig = {
-	name: 'theme',
+export const ThemePurple: CustomThemeConfig = {
+	name: 'theme-purple',
 	properties: {
 		// =~= Theme Properties =~=
 		'--theme-font-family-base': `system-ui`,
@@ -22,17 +22,17 @@ export const Theme: CustomThemeConfig = {
 		'--on-error': '255 255 255',
 		'--on-surface': '255 255 255',
 		// =~= Theme Colors  =~=
-		// primary | #006c98
-		'--color-primary-50': '217 233 240', // #d9e9f0
-		'--color-primary-100': '204 226 234', // #cce2ea
-		'--color-primary-200': '191 218 229', // #bfdae5
-		'--color-primary-300': '153 196 214', // #99c4d6
-		'--color-primary-400': '77 152 183', // #4d98b7
-		'--color-primary-500': '0 108 152', // #006c98
-		'--color-primary-600': '0 97 137', // #006189
-		'--color-primary-700': '0 81 114', // #005172
-		'--color-primary-800': '0 65 91', // #00415b
-		'--color-primary-900': '0 53 74', // #00354a
+		// primary | #731dd8
+		'--color-primary-50': '234 221 249', // #eaddf9
+		'--color-primary-100': '227 210 247', // #e3d2f7
+		'--color-primary-200': '220 199 245', // #dcc7f5
+		'--color-primary-300': '199 165 239', // #c7a5ef
+		'--color-primary-400': '157 97 228', // #9d61e4
+		'--color-primary-500': '115 29 216', // #731dd8
+		'--color-primary-600': '104 26 194', // #681ac2
+		'--color-primary-700': '86 22 162', // #5616a2
+		'--color-primary-800': '69 17 130', // #451182
+		'--color-primary-900': '56 14 106', // #380e6a
 		// secondary | #00bcff
 		'--color-secondary-50': '217 245 255', // #d9f5ff
 		'--color-secondary-100': '204 242 255', // #ccf2ff

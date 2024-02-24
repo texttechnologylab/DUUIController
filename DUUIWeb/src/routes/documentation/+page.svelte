@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { blankComponent } from '$lib/duui/component'
 	import { currentPipelineStore, exampleComponent } from '$lib/store.js'
-	import Chips from '$lib/svelte/components/Chips.svelte'
+	import Chips from '$lib/svelte/components/Input/Chips.svelte'
 	import PipelineCard from '$lib/svelte/components/PipelineCard.svelte'
 	import PipelineComponent from '$lib/svelte/components/PipelineComponent.svelte'
-	import TextInput from '$lib/svelte/components/TextInput.svelte'
+	import TextInput from '$lib/svelte/components/Input/TextInput.svelte'
 	import { faArrowUp, faCheck, faClone, faEdit, faPlus } from '@fortawesome/free-solid-svg-icons'
 	import { TableOfContents, clipboard, tocCrawler } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'

@@ -3,7 +3,7 @@ package org.texttechnologylab.duui.api.controllers.pipelines;
 import org.texttechnologylab.duui.api.controllers.components.DUUIComponentController;
 import org.texttechnologylab.duui.api.controllers.processes.DUUIProcessController;
 import org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage;
-import org.texttechnologylab.duui.process.IDUUIProcessHandler;
+import org.texttechnologylab.duui.analysis.process.IDUUIProcessHandler;
 import org.texttechnologylab.duui.api.storage.MongoDBFilters;
 import com.mongodb.client.model.*;
 import org.apache.commons.compress.compressors.CompressorException;

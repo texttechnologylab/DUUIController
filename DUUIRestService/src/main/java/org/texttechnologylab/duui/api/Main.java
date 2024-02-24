@@ -13,7 +13,7 @@ import org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage;
 import com.dropbox.core.DbxException;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
-import org.texttechnologylab.duui.process.IDUUIProcessHandler;
+import org.texttechnologylab.duui.analysis.process.IDUUIProcessHandler;
 import org.bson.Document;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.DUUIDocument;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.DUUILocalDocumentHandler;

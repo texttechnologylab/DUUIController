@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/stores'
-	import Rating from '$lib/svelte/components/Rating.svelte'
-	import TextArea from '$lib/svelte/components/TextArea.svelte'
-	import TextInput from '$lib/svelte/components/TextInput.svelte'
+	import Rating from '$lib/svelte/components/Input/Rating.svelte'
+	import TextArea from '$lib/svelte/components/Input/TextArea.svelte'
+	import TextInput from '$lib/svelte/components/Input/TextInput.svelte'
 
 	let requirements = 4
 	let frustration = 4

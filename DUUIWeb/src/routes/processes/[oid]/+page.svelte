@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
-	import { getTotalDuration, type DUUIDocument, IO } from '$lib/duui/io.js'
+	import { IO, getTotalDuration, type DUUIDocument } from '$lib/duui/io.js'
 	import { Status, isActive } from '$lib/duui/monitor.js'
 	import { processToSeachParams } from '$lib/duui/process.js'
 	import { equals, formatFileSize, progresAsPercent, snakeToTitleCase } from '$lib/duui/utils/text'
@@ -30,21 +30,20 @@
 		faTrash
 	} from '@fortawesome/free-solid-svg-icons'
 	import {
+		ProgressBar,
 		getDrawerStore,
 		getModalStore,
 		getToastStore,
-		type DrawerSettings,
-		ProgressBar
+		type DrawerSettings
 	} from '@skeletonlabs/skeleton'
 
+	import Search from '$lib/svelte/components/Input/Search.svelte'
+	import Select from '$lib/svelte/components/Input/Select.svelte'
 	import KeyValue from '$lib/svelte/components/KeyValue.svelte'
 	import Paginator from '$lib/svelte/components/Paginator.svelte'
-	import Search from '$lib/svelte/components/Search.svelte'
-	import Select from '$lib/svelte/components/Select.svelte'
 	import { showConfirmationModal } from '$lib/svelte/utils/modal'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
-	import { isDarkModeStore } from '$lib/store.js'
 
 	export let data
 	const toastStore = getToastStore()

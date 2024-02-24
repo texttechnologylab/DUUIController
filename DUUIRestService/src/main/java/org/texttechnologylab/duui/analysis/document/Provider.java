@@ -1,4 +1,4 @@
-package org.texttechnologylab.duui.document;
+package org.texttechnologylab.duui.analysis.document;
 
 public class Provider {
     public static final String NONE = "None";

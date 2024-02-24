@@ -17,15 +17,14 @@
 	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
 	import { DUUIDrivers, type DUUIDriver } from '$lib/duui/component'
+	import { Status } from '$lib/duui/monitor.js'
 	import { usedDrivers } from '$lib/duui/pipeline'
-	import Dropdown from '$lib/svelte/components/Dropdown.svelte'
+	import Dropdown from '$lib/svelte/components/Input/Dropdown.svelte'
+	import Search from '$lib/svelte/components/Input/Search.svelte'
 	import PipelineCard from '$lib/svelte/components/PipelineCard.svelte'
-	import Search from '$lib/svelte/components/Search.svelte'
 	import { popup, type PopupSettings } from '@skeletonlabs/skeleton'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
-	import { ProgressRadial } from '@skeletonlabs/skeleton'
-	import { Status } from '$lib/duui/monitor.js'
 
 	export let data
 

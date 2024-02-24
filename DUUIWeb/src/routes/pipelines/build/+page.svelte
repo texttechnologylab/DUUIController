@@ -12,14 +12,14 @@
 	import { includes } from '$lib/duui/utils/text'
 	import { scrollIntoView, successToast } from '$lib/duui/utils/ui'
 	import { currentPipelineStore } from '$lib/store'
-	import Chips from '$lib/svelte/components/Chips.svelte'
+	import Chips from '$lib/svelte/components/Input/Chips.svelte'
 	import DriverIcon from '$lib/svelte/components/DriverIcon.svelte'
-	import JsonInput from '$lib/svelte/components/JsonInput.svelte'
+	import JsonInput from '$lib/svelte/components/Input/JsonInput.svelte'
 	import PipelineCard from '$lib/svelte/components/PipelineCard.svelte'
 	import PipelineComponent from '$lib/svelte/components/PipelineComponent.svelte'
-	import Search from '$lib/svelte/components/Search.svelte'
-	import TextArea from '$lib/svelte/components/TextArea.svelte'
-	import TextInput from '$lib/svelte/components/TextInput.svelte'
+	import Search from '$lib/svelte/components/Input/Search.svelte'
+	import TextArea from '$lib/svelte/components/Input/TextArea.svelte'
+	import TextInput from '$lib/svelte/components/Input/TextInput.svelte'
 	import {
 		faArrowDown,
 		faArrowLeft,
@@ -38,7 +38,7 @@
 	import Fa from 'svelte-fa'
 	import { flip } from 'svelte/animate'
 	import { v4 as uuidv4 } from 'uuid'
-	import ComponentTemplates from './ComponentTemplates.svelte'
+	import ComponentTemplates from '../../../lib/svelte/components/ComponentTemplates.svelte'
 	import { componentDrawerSettings } from '$lib/config'
 	import Carousel from '$lib/svelte/components/Carousel.svelte'
 	const { cloneDeep } = pkg

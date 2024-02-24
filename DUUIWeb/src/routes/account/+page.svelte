@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { successToast } from '$lib/duui/utils/ui.js'
 	import { userSession } from '$lib/store.js'
-	import Password from '$lib/svelte/components/Password.svelte'
-	import Secret from '$lib/svelte/components/Secret.svelte'
-	import Text from '$lib/svelte/components/TextInput.svelte'
+	import Password from '$lib/svelte/components/Input/Password.svelte'
+	import Secret from '$lib/svelte/components/Input/Secret.svelte'
+	import Text from '$lib/svelte/components/Input/TextInput.svelte'
 	import { showConfirmationModal } from '$lib/svelte/utils/modal.js'
 	import {
 		faAdd,

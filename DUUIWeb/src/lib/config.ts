@@ -7,3 +7,5 @@ export const componentDrawerSettings: DrawerSettings = {
 	rounded: 'rounded-none',
 	border: 'border-l border-color'
 }
+
+export const COLORS = { blue: '#006c98', red: '#f87060', purple: '#731dd8' }

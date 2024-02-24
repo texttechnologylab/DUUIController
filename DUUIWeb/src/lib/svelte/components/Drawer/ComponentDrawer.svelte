@@ -14,13 +14,13 @@
 	import { createEventDispatcher } from 'svelte'
 	import Fa from 'svelte-fa'
 	import { v4 as uuidv4 } from 'uuid'
-	import Chips from '../Chips.svelte'
-	import ComponentOptions from '../ComponentOptions.svelte'
+	import Chips from '../Input/Chips.svelte'
+	import ComponentOptions from '../Input/ComponentOptions.svelte'
 	import DriverIcon from '../DriverIcon.svelte'
-	import Dropdown from '../Dropdown.svelte'
-	import JsonInput from '../JsonInput.svelte'
-	import TextArea from '../TextArea.svelte'
-	import TextInput from '../TextInput.svelte'
+	import Dropdown from '../Input/Dropdown.svelte'
+	import JsonInput from '../Input/JsonInput.svelte'
+	import TextArea from '../Input/TextArea.svelte'
+	import TextInput from '../Input/TextInput.svelte'
 	const { cloneDeep } = pkg
 
 	const drawerStore = getDrawerStore()

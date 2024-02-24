@@ -12,7 +12,7 @@ import org.texttechnologylab.duui.api.controllers.processes.InvalidIOException;
 import org.texttechnologylab.duui.api.routes.DUUIRequestHelper;
 import org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage;
 import org.texttechnologylab.duui.api.storage.MongoDBFilters;
-import org.texttechnologylab.duui.document.DUUIDocumentProvider;
+import org.texttechnologylab.duui.analysis.document.DUUIDocumentProvider;
 import spark.Request;
 import spark.Response;
 
@@ -49,9 +49,9 @@ public class DUUIProcessRequestHandler {
         int order = DUUIRequestHelper.getOrder(request, 1);
         String sort = request.queryParamOrDefault("sort", "started_at");
 
-        List<String> statusFilter = DUUIMongoDBStorage.getFilterOrAny(request, "status");
-        List<String> inputFilter = DUUIMongoDBStorage.getFilterOrAny(request, "input");
-        List<String> outputFilter = DUUIMongoDBStorage.getFilterOrAny(request, "output");
+        List<String> statusFilter = DUUIMongoDBStorage.getFilterOrDefault(request, "status");
+        List<String> inputFilter = DUUIMongoDBStorage.getFilterOrDefault(request, "input");
+        List<String> outputFilter = DUUIMongoDBStorage.getFilterOrDefault(request, "output");
 
         MongoDBFilters filters = new MongoDBFilters();
 
