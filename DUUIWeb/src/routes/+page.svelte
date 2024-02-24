@@ -306,21 +306,21 @@
 						<a
 							target="_blank"
 							href="https://github.com/texttechnologylab"
-							class="transition-opacity opacity-70 hover:opacity-100"
+							class="transition-300 hover:text-primary-500"
 						>
 							<Fa icon={faGithub} size="2x" />
 						</a>
 						<a
 							target="_blank"
 							href="https://twitter.com/ttlab_ffm"
-							class="transition-opacity opacity-70 hover:opacity-100"
+							class="transition-300 hover:text-primary-500"
 						>
 							<Fa icon={faXTwitter} size="2x" />
 						</a>
 						<a
 							target="_blank"
 							href="https://www.texttechnologylab.org/"
-							class="transition-opacity opacity-70 hover:opacity-100"
+							class="transition-300 hover:text-primary-500"
 						>
 							<Fa icon={faGlobe} size="2x" />
 						</a>

@@ -35,7 +35,7 @@
 	let filteredPipelines = pipelines
 
 	const paginationSettings: PaginationSettings = {
-		limit: 6,
+		limit: 12,
 		page: 0,
 		total: count,
 		sizes: [20, 50]
@@ -46,7 +46,7 @@
 		order: -1
 	}
 
-	paginationSettings.limit = +($page.url.searchParams.get('limit') || '6')
+	paginationSettings.limit = +($page.url.searchParams.get('limit') || '12')
 
 	let unused: boolean = false
 
@@ -76,7 +76,7 @@
 
 	const loadMore = async () => {
 		loading = true
-		paginationSettings.limit += 6
+		paginationSettings.limit += 12
 		const response = await fetch(`/api/pipelines/batch?limit=${paginationSettings.limit}`, {
 			method: 'GET'
 		})

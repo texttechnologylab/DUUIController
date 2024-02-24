@@ -4,6 +4,7 @@
 	import { faGithub, faReadme, faXTwitter } from '@fortawesome/free-brands-svg-icons'
 	import {
 		faArrowRightFromBracket,
+		faArrowRightToBracket,
 		faBars,
 		faBook,
 		faGlobe,
@@ -13,7 +14,8 @@
 		faQuestion,
 		faTools,
 		faUser,
-		faUserMinus
+		faUserMinus,
+		faUserPlus
 	} from '@fortawesome/free-solid-svg-icons'
 	import { LightSwitch, getDrawerStore, getModalStore } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
@@ -38,9 +40,7 @@
 	const modalStore = getModalStore()
 </script>
 
-<aside
-	class=" z-50 bg-surface-100-800-token h-full flex flex-col md:border-r border-color"
->
+<aside class=" z-50 bg-surface-100-800-token h-full flex flex-col md:border-r border-color">
 	<div
 		class="p-4 sticky top-0 bg-surface-50-900-token border-color border-b flex items-center justify-between"
 	>
@@ -57,14 +57,16 @@
 			<Fa icon={faHome} />
 			Home
 		</a>
-		<a href="/pipelines" class="flex-center-4 transition-300 hover:text-primary-500">
-			<Fa icon={faLayerGroup} />
-			Pipelines
-		</a>
-		<a href="/pipelines/build" class="flex-center-4 transition-300 hover:text-primary-500">
-			<Fa icon={faTools} />
-			Builder
-		</a>
+		{#if $userSession}
+			<a href="/pipelines" class="flex-center-4 transition-300 hover:text-primary-500">
+				<Fa icon={faLayerGroup} />
+				Pipelines
+			</a>
+			<a href="/pipelines/build" class="flex-center-4 transition-300 hover:text-primary-500">
+				<Fa icon={faTools} />
+				Builder
+			</a>
+		{/if}
 		<a href="/documentation" class="flex-center-4 transition-300 hover:text-primary-500">
 			<Fa icon={faBook} />
 			Documentation
@@ -73,10 +75,7 @@
 			<Fa icon={faReadme} />
 			API Reference
 		</a>
-		<a href="/account" class="flex-center-4 transition-300 hover:text-primary-500">
-			<Fa icon={faUser} />
-			Account
-		</a>
+
 		<button
 			class="flex-center-4 transition-300 hover:text-primary-500"
 			on:click={() => {
@@ -91,10 +90,21 @@
 		</button>
 
 		{#if $userSession}
+			<a href="/account" class="flex-center-4 transition-300 hover:text-primary-500">
+				<Fa icon={faUser} />
+				Account
+			</a>
 			<button class="flex-center-4 transition-300 hover:text-primary-500" on:click={logout}>
 				<Fa icon={faArrowRightFromBracket} />
 				<span>Logout</span>
 			</button>
+		{:else}
+			<a href="/account/login" class="flex-center-4 transition-300 hover:text-primary-500"
+				><Fa icon={faArrowRightToBracket} /><span>Login</span></a
+			>
+			<a href="/account/register" class="flex-center-4 transition-300 hover:text-primary-500"
+				><Fa icon={faUserPlus} /><span>Register</span></a
+			>
 		{/if}
 	</div>
 	<div
@@ -104,21 +114,21 @@
 			<a
 				target="_blank"
 				href="https://github.com/texttechnologylab"
-				class="transition-opacity opacity-70 hover:opacity-100"
+				class="transition-300 hover:text-primary-500"
 			>
 				<Fa icon={faGithub} size="2x" />
 			</a>
 			<a
 				target="_blank"
 				href="https://twitter.com/ttlab_ffm"
-				class="transition-opacity opacity-70 hover:opacity-100"
+				class="transition-300 hover:text-primary-500"
 			>
 				<Fa icon={faXTwitter} size="2x" />
 			</a>
 			<a
 				target="_blank"
 				href="https://www.texttechnologylab.org/"
-				class="transition-opacity opacity-70 hover:opacity-100"
+				class="transition-300 hover:text-primary-500"
 			>
 				<Fa icon={faGlobe} size="2x" />
 			</a>
