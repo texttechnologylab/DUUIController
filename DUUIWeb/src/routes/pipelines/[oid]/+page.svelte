@@ -37,12 +37,7 @@
 	import type { DUUIProcess } from '$lib/duui/process'
 	import { datetimeToString, equals } from '$lib/duui/utils/text'
 	import { getDuration } from '$lib/duui/utils/time'
-	import {
-		errorToast,
-		getStatusIcon,
-		infoToast,
-		scrollIntoView
-	} from '$lib/duui/utils/ui'
+	import { errorToast, getStatusIcon, infoToast, scrollIntoView } from '$lib/duui/utils/ui'
 	import { currentPipelineStore, isDarkModeStore } from '$lib/store'
 	import Chips from '$lib/svelte/components/Input/Chips.svelte'
 	import JsonInput from '$lib/svelte/components/Input/JsonInput.svelte'
