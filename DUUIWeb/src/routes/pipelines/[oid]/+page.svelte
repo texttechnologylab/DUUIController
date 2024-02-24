@@ -676,7 +676,7 @@
 								<button
 									class="button-neutral border-none !rounded-none !justify-start {index ===
 									sort.index
-										? 'bg-surface-50-900-token'
+										? '!variant-filled-primary'
 										: ''}
 										{[1, 2, 3, 6].includes(index) ? '!hidden lg:!inline-flex' : ''}"
 									on:click={() => sortTable(index)}
