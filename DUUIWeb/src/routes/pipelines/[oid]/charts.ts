@@ -1,3 +1,4 @@
+import { COLORS } from '$lib/config'
 import type { DUUIPipeline } from '$lib/duui/pipeline'
 import { equals } from '$lib/duui/utils/text'
 
@@ -9,16 +10,28 @@ let gridSettings = {
 	}
 }
 
-let theme = {
-	palette: 'palette1', // upto palette10
-	monochrome: {
-		enabled: false
+const getColor = (alternate: boolean = false) => {
+	let color = COLORS.blue
+
+	try {
+		let THEME = document.body.dataset.theme || 'blue'
+		color = COLORS[THEME.replace('theme-', '')]
+	} catch (err) {}
+
+	if (alternate) {
+		return invertHex(color)
 	}
+	return color
 }
+
+function invertHex(hex: string) {
+	return (Number(`0x1${hex}`) ^ 0xffffff).toString(16).substring(1).toUpperCase()
+}
+
+invertHex('00FF00') // Returns FF00FF
 
 export const getStatusPlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) => {
 	if (!pipeline.statistics) return {}
-
 	gridSettings = {
 		borderColor: darkmode ? '#e7e7e720' : '#29292920',
 		row: {
@@ -31,7 +44,8 @@ export const getStatusPlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) 
 		series: [
 			{
 				name: 'Status',
-				data: pipeline.statistics.status.map((s) => s.count)
+				data: pipeline.statistics.status.map((s) => s.count),
+				color: getColor()
 			}
 		],
 		chart: {
@@ -84,8 +98,7 @@ export const getStatusPlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) 
 					colors: darkmode ? 'white' : 'black'
 				}
 			}
-		},
-		theme: theme
+		}
 	}
 }
 
@@ -116,7 +129,7 @@ export const getErrorsPlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) 
 			{
 				name: 'Error',
 				data: data,
-				color: '#f95959'
+				color: getColor()
 			}
 		],
 		chart: {
@@ -173,8 +186,7 @@ export const getErrorsPlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) 
 					colors: darkmode ? 'white' : 'black'
 				}
 			}
-		},
-		theme: theme
+		}
 	}
 }
 
@@ -212,11 +224,13 @@ export const getIOPlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) => {
 		series: [
 			{
 				name: 'Input',
-				data: input
+				data: input,
+				color: getColor()
 			},
 			{
 				name: 'Output',
-				data: output
+				data: output,
+				color: getColor(true)
 			}
 		],
 		chart: {
@@ -267,8 +281,7 @@ export const getIOPlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) => {
 					colors: darkmode ? 'white' : 'black'
 				}
 			}
-		},
-		theme: theme
+		}
 	}
 }
 
@@ -312,7 +325,8 @@ export const getUsagePlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) =
 		series: [
 			{
 				name: '# Processes',
-				data: yValues
+				data: yValues,
+				color: getColor()
 			}
 		],
 		stroke: {
@@ -321,7 +335,7 @@ export const getUsagePlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) =
 		markers: {
 			size: 6
 		},
-		
+
 		chart: {
 			height: 450,
 			type: 'line',
@@ -349,7 +363,6 @@ export const getUsagePlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) =
 		dataLabels: {
 			enabled: false
 		},
-		theme: theme,
 		grid: gridSettings,
 		xaxis: {
 			categories: xLabels,

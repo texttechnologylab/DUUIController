@@ -5,8 +5,6 @@
 		faArrowDownWideShort,
 		faArrowLeft,
 		faArrowUpWideShort,
-		faChevronDown,
-		faChevronUp,
 		faFileCircleCheck,
 		faFileClipboard,
 		faFileExport,
@@ -21,10 +19,8 @@
 	import {
 		getDrawerStore,
 		getModalStore,
-		popup,
 		type DrawerSettings,
-		type ModalSettings,
-		type PopupSettings
+		type ModalSettings
 	} from '@skeletonlabs/skeleton'
 
 	import { dndzone, type DndEvent } from 'svelte-dnd-action'
@@ -43,16 +39,17 @@
 	import { currentPipelineStore, isDarkModeStore } from '$lib/store'
 	import Chips from '$lib/svelte/components/Input/Chips.svelte'
 	import JsonInput from '$lib/svelte/components/Input/JsonInput.svelte'
-	import Paginator from '$lib/svelte/components/Paginator.svelte'
 	import Select from '$lib/svelte/components/Input/Select.svelte'
 	import TextArea from '$lib/svelte/components/Input/TextArea.svelte'
 	import Text from '$lib/svelte/components/Input/TextInput.svelte'
+	import Paginator from '$lib/svelte/components/Paginator.svelte'
 	import { getToastStore, Tab, TabGroup } from '@skeletonlabs/skeleton'
 	import type { PageServerData } from './$types'
 
 	import { componentDrawerSettings } from '$lib/config'
 	import { IO_INPUT, IO_OUTPUT } from '$lib/duui/io'
 	import MobilePopup from '$lib/svelte/components/MobilePopup.svelte'
+	import Popup from '$lib/svelte/components/Popup.svelte'
 	import { showConfirmationModal } from '$lib/svelte/utils/modal'
 	import { getFilterOrGeneric } from '$lib/utils'
 	import { onMount } from 'svelte'
@@ -62,7 +59,6 @@
 		getStatusPlotOptions,
 		getUsagePlotOptions
 	} from './charts'
-	import Popup from '$lib/svelte/components/Popup.svelte'
 
 	const modalStore = getModalStore()
 	const toastStore = getToastStore()
