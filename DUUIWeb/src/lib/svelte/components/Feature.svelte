@@ -18,7 +18,7 @@
 	<div class="aspect-square flex justify-center rounded-md py-4 items-center">
 		<Fa size="2x" {icon} />
 	</div>
-	<h2 class="h3 font-bold">{title}</h2>
+	<h2 class="h3">{title}</h2>
 	<p class="mx-auto max-w-[45ch]">{content}</p>
 	<slot />
 </div>

@@ -208,7 +208,7 @@
 	</button>
 </div>
 
-<div class="h-full">
+<div class="h-full isolate">
 	<div class="sticky top-0 bg-surface-50-900-token border-b border-color hidden md:block z-10">
 		<div class="grid grid-cols-2 md:justify-between md:flex items-center relative">
 			<button class="button-menu border-r border-color" on:click={() => goto(onCancelURL)}>

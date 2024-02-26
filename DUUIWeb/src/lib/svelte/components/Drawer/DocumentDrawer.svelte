@@ -148,7 +148,7 @@
 		<div class="flex-center-4">
 			<Fa icon={getStatusIcon(_document.status)} size="lg" class="dimmed" />
 			{#if input.provider === IO.File}
-				<p class="text-sm md:text-base">
+				<p class="text-sm md:text-base max-w-[10ch]">
 					{_document.name}
 				</p>
 			{:else}

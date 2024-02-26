@@ -52,6 +52,7 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 	return {
 		dropbBoxURL: getDropboxAuthURL(),
 		registered: (cookies.get('just_registered') || 'false') === 'true',
-		user: (await fetchProfile()).user
+		user: (await fetchProfile()).user,
+		theme: +(cookies.get('theme') || '0')
 	}
 }

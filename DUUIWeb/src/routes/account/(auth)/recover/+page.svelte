@@ -55,7 +55,7 @@
 	{:else}
 		<div class="section-wrapper p-8 space-y-16 scroll-mt-4" id="top">
 			<div class="space-y-8">
-				<h2 class="h2 font-bold">Recover Password</h2>
+				<h2 class="h2">Recover Password</h2>
 				<p class="max-w-[60ch]">
 					Enter the E-Mail of your account below and we will send you a link to update your
 					password.

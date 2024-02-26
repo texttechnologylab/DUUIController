@@ -8,4 +8,4 @@ export const componentDrawerSettings: DrawerSettings = {
 	border: 'border-l border-color'
 }
 
-export const COLORS = { blue: '#006c98', red: '#f87060', purple: '#731dd8' }
+export const COLORS = { blue: '#006c98', red: '#f87060', purple: '#731dd8', green: '#44d268' }

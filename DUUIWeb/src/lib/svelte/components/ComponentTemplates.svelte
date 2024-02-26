@@ -6,10 +6,11 @@
 	import DriverIcon from '$lib/svelte/components/DriverIcon.svelte'
 	import Dropdown from '$lib/svelte/components/Input/Dropdown.svelte'
 	import Search from '$lib/svelte/components/Input/Search.svelte'
-	import { faEdit, faSearch } from '@fortawesome/free-solid-svg-icons'
+	import { faEdit, faEllipsisH, faSearch } from '@fortawesome/free-solid-svg-icons'
 	import { getDrawerStore, popup, type DrawerSettings } from '@skeletonlabs/skeleton'
 	import { createEventDispatcher } from 'svelte'
 	import Fa from 'svelte-fa'
+	import Popup from './Popup.svelte'
 
 	const dispatcher = createEventDispatcher()
 	export let components: DUUIComponent[]
@@ -63,7 +64,7 @@
 
 <div class="space-y-8">
 	<div class="md:flex justify-between items-end space-y-4 md:space-y-0">
-		<h2 class="h2 font-bold">Templates</h2>
+		<h2 class="h2">Templates</h2>
 		<div class="grid sm:grid-cols-2 items-end gap-4">
 			<Dropdown bind:value={filter} options={DUUIDriverFilters} />
 			<Search bind:query={searchText} icon={faSearch} placeholder="Search..." />
@@ -72,7 +73,7 @@
 	<div class="grid lg:grid-cols-2 xl:grid-cols-3 gap-4">
 		{#each filteredComponents as component (component.oid)}
 			<button
-				class="card-fancy text-left grid min-h-[250px] items-start col-span-1"
+				class="card-fancy !overflow-visible text-left grid min-h-[250px] items-start col-span-1"
 				on:click={() => onSelect(component)}
 			>
 				<div class="flex flex-col md:flex-row items-start justify-between gap-4">
@@ -82,19 +83,30 @@
 				<p>{component.description}</p>
 				<div class="flex flex-wrap gap-2 self-end">
 					{#each component.tags.sort((a, b) => (a < b ? -1 : 1)) as tag}
-						<span class="chip variant-ghost-primary">
+						<span class="tag">
 							{tag}
 						</span>
 					{/each}
 				</div>
 				{#if $userSession && $userSession.role === 'Admin'}
-					<button
-						class="pointer-events-auto button-neutral self-start ml-auto"
-						on:click={() => onEdit(component)}
-					>
-						<Fa icon={faEdit} size="lg" />
-						<p>Edit</p>
-					</button>
+					<Popup>
+						<svelte:fragment slot="trigger">
+							<div class="flex items-center justify-center">
+								<Fa icon={faEllipsisH} />
+							</div>
+						</svelte:fragment>
+						<svelte:fragment slot="popup">
+							<div class="popup-solid p-4">
+								<button
+									class="pointer-events-auto button-neutral border-none"
+									on:click={() => onEdit(component)}
+								>
+									<Fa icon={faEdit} size="lg" />
+									<p>Edit</p>
+								</button>
+							</div>
+						</svelte:fragment>
+					</Popup>
 				{/if}
 			</button>
 		{/each}

@@ -5,6 +5,8 @@
 		faArrowDownWideShort,
 		faArrowLeft,
 		faArrowUpWideShort,
+		faChevronDown,
+		faChevronUp,
 		faFileCircleCheck,
 		faFileClipboard,
 		faFileExport,
@@ -60,6 +62,7 @@
 		getStatusPlotOptions,
 		getUsagePlotOptions
 	} from './charts'
+	import Popup from '$lib/svelte/components/Popup.svelte'
 
 	const modalStore = getModalStore()
 	const toastStore = getToastStore()
@@ -398,45 +401,11 @@
 				break
 		}
 	}
-
-	const addComponentPopup: PopupSettings = {
-		event: 'click',
-		target: 'add-component',
-		placement: 'top',
-		closeQuery: 'button',
-		middleware: {
-			offset: 4
-		}
-	}
 </script>
 
 <svelte:head>
 	<title>{$currentPipelineStore.name}</title>
 </svelte:head>
-
-<div data-popup="add-component" class="z-50">
-	<div class="popup-solid">
-		<div class="flex flex-col p-2 gap-2">
-			<button class="button-neutral !border-none !justify-start" on:click={addComponent}>
-				<Fa icon={faPlus} />
-				<span>New</span>
-			</button>
-			<button
-				class="button-neutral !border-none !justify-start"
-				on:click={() => {
-					modalStore.trigger({
-						type: 'component',
-						component: 'templateModal',
-						meta: { templates: templateComponents }
-					})
-				}}
-			>
-				<Fa icon={faToolbox} />
-				<span>Template</span>
-			</button>
-		</div>
-	</div>
-</div>
 
 <div class="menu-mobile-lg">
 	<a href="/pipelines" class="button-mobile">
@@ -482,7 +451,7 @@
 	</MobilePopup>
 </div>
 
-<div class="h-full">
+<div class="h-full isolate">
 	<div class="sticky top-0 bg-surface-50-900-token border-b border-color hidden lg:block z-10">
 		<div class=" flex items-center justify-start relative">
 			<a href="/pipelines" class="anchor-menu border-r border-color">
@@ -621,7 +590,7 @@
 							use:dndzone={{ items: $currentPipelineStore.components, dropTargetStyle: {} }}
 							on:consider={(event) => handleDndConsider(event)}
 							on:finalize={(event) => handleDndFinalize(event)}
-							class="grid md:max-w-5xl mx-auto !cursor-move group"
+							class="grid md:max-w-5xl mx-auto !cursor-move"
 						>
 							{#each $currentPipelineStore.components as component (component.id)}
 								<div animate:flip={{ duration: 300 }} class="relative !cursor-move">
@@ -643,24 +612,82 @@
 											before:bg-surface-100-800-token before:-z-50 before:scale-y-[200%]
 											"
 										>
-											<button
-												class="button-neutral bg-surface-100-800-token !aspect-square !rounded-full !p-3"
-												use:popup={addComponentPopup}
-											>
-												<Fa icon={faPlus} />
-											</button>
+											<Popup position="top">
+												<svelte:fragment slot="trigger">
+													<button
+														class="button-neutral bg-surface-100-800-token !aspect-square !rounded-full !p-3"
+													>
+														<Fa icon={faPlus} />
+													</button>
+												</svelte:fragment>
+												<svelte:fragment slot="popup">
+													<div class="popup-solid">
+														<div class="flex flex-col p-4 gap-2">
+															<button
+																class="button-neutral !border-none !justify-start"
+																on:click={addComponent}
+															>
+																<Fa icon={faPlus} />
+																<span>New</span>
+															</button>
+															<button
+																class="button-neutral !border-none !justify-start"
+																on:click={() => {
+																	modalStore.trigger({
+																		type: 'component',
+																		component: 'templateModal',
+																		meta: { templates: templateComponents }
+																	})
+																}}
+															>
+																<Fa icon={faToolbox} />
+																<span>Template</span>
+															</button>
+														</div>
+													</div>
+												</svelte:fragment>
+											</Popup>
 										</div>
 									{/if}
 								</div>
 							{/each}
 						</ul>
-						<div class="mx-auto flex items-center justify-center group">
-							<button
-								class="button-neutral !aspect-square !rounded-full bg-surface-100-800-token !p-3"
-								use:popup={addComponentPopup}
-							>
-								<Fa icon={faPlus} />
-							</button>
+						<div class="mx-auto flex items-center justify-center">
+							<Popup position="top">
+								<svelte:fragment slot="trigger">
+									<button
+										class="button-neutral bg-surface-100-800-token !aspect-square !rounded-full !p-3"
+									>
+										<Fa icon={faPlus} />
+									</button>
+								</svelte:fragment>
+								<svelte:fragment slot="popup">
+									<div class="popup-solid">
+										<div class="flex flex-col p-4 gap-2">
+											<button
+												class="button-neutral !border-none !justify-start"
+												on:click={addComponent}
+											>
+												<Fa icon={faPlus} />
+												<span>New</span>
+											</button>
+											<button
+												class="button-neutral !border-none !justify-start"
+												on:click={() => {
+													modalStore.trigger({
+														type: 'component',
+														component: 'templateModal',
+														meta: { templates: templateComponents }
+													})
+												}}
+											>
+												<Fa icon={faToolbox} />
+												<span>Template</span>
+											</button>
+										</div>
+									</div>
+								</svelte:fragment>
+							</Popup>
 						</div>
 					</div>
 				</div>

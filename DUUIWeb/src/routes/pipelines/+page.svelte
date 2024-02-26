@@ -25,6 +25,7 @@
 	import { popup, type PopupSettings } from '@skeletonlabs/skeleton'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
+	import Popup from '$lib/svelte/components/Popup.svelte'
 
 	export let data
 
@@ -223,7 +224,7 @@
 			</div>
 		</div>
 	{:else}
-		<div class="grid relative pb-16">
+		<div class="grid relative pb-16 isolate">
 			<div class="sticky top-0 bg-surface-50-900-token border-b border-color hidden md:block z-10">
 				<div class="grid md:flex items-stretch md:justify-between relative">
 					<a class="anchor-menu mr-auto border-r border-color" href="/pipelines/build">
@@ -251,7 +252,7 @@
 						bind:query={searchText}
 						icon={faSearch}
 						placeholder="Search"
-						style="input-no-highlight !border-y-0 !border-r-0 !border-l border-color !rounded-none !bg-transparent transition-all focus-within:pr-32 focus-within:!bg-surface-50-900-token"
+						style="input-no-highlight !border-y-0 !border-r-0 !border-l border-color !rounded-none !bg-transparent duration-300 transition-all focus-within:pr-32 focus-within:!bg-surface-50-900-token"
 					/>
 				</div>
 			</div>
@@ -266,7 +267,7 @@
 				</div>
 			{:else}
 				<div class="h-full sticky top-32">
-					<div class="md:min-h-[800px] p-4 space-y-4">
+					<div class="md:min-h-[800px] container mx-auto p-4 space-y-4">
 						<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-8 relative">
 							{#each filteredPipelines as pipeline}
 								<a

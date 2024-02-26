@@ -13,7 +13,7 @@
 </script>
 
 <div class="flex-center-4 justify-between">
-	<h4 class="h4 font-bold">{pipeline.name}</h4>
+	<h4 class="h4">{pipeline.name}</h4>
 
 	<!-- Is user owned or template -->
 	{#if pipeline.user_id === null || pipeline.user_id === undefined}
@@ -45,7 +45,7 @@
 	<!-- Tags -->
 	<div class="flex flex-wrap gap-2 self-end">
 		{#each pipeline.tags.sort((a, b) => (a < b ? -1 : 1)) as tag}
-			<span class="chip variant-ghost-primary">
+			<span class="tag">
 				{tag}
 			</span>
 		{/each}

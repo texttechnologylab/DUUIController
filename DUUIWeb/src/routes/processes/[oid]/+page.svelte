@@ -279,7 +279,7 @@
 </div>
 
 <div>
-	<div class="grid">
+	<div class="grid isolate">
 		<div class="sticky top-0 bg-surface-50-900-token border-b border-color hidden md:block z-[20]">
 			<div class="grid grid-cols-3 md:flex items-center md:justify-start relative">
 				<a class="anchor-menu border-r border-color" href={`/pipelines/${pipeline.oid}?tab=1`}>

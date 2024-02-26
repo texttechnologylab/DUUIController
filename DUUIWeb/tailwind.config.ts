@@ -5,6 +5,7 @@ import forms from '@tailwindcss/forms'
 import { ThemeBlue } from './src/theme-blue'
 import { ThemeRed } from './src/theme-red'
 import { ThemePurple } from './src/theme-purple'
+import { ThemeGreen } from './src/theme-green'
 
 export default {
 	darkMode: 'class',
@@ -46,7 +47,7 @@ export default {
 		forms,
 		skeleton({
 			themes: {
-				custom: [ThemeBlue, ThemeRed, ThemePurple],
+				custom: [ThemeBlue, ThemeRed, ThemePurple, ThemeGreen],
 				preset: [
 					{
 						name: 'rocket',

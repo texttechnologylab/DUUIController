@@ -7,6 +7,8 @@
 		faAngleDoubleRight,
 		faCancel,
 		faFileCircleCheck,
+		faInfo,
+		faQuestion,
 		faTrash
 	} from '@fortawesome/free-solid-svg-icons'
 	import { getDrawerStore, getModalStore, getToastStore } from '@skeletonlabs/skeleton'
@@ -21,6 +23,7 @@
 	import JsonInput from '../Input/JsonInput.svelte'
 	import TextArea from '../Input/TextArea.svelte'
 	import TextInput from '../Input/TextInput.svelte'
+	import Popup from '../Popup.svelte'
 	const { cloneDeep } = pkg
 
 	const drawerStore = getDrawerStore()
@@ -276,15 +279,30 @@
 			<h4 class="h4">Properties</h4>
 
 			<TextInput label="Name" name="name" bind:value={component.name} />
+
+			<Popup>
+				<svelte:fragment slot="trigger">
+					<TextInput
+						style="md:col-span-2"
+						label="Target"
+						name="target"
+						bind:value={component.target}
+						error={component.target === '' ? "Target can't be empty" : ''}
+					/>
+				</svelte:fragment>
+				<svelte:fragment slot="popup">
+					<div class="popup-solid flex items-center">
+						<div class="p-4 px-8 flex items-center justify-center">
+							<Fa icon={faInfo} size="2x" />
+						</div>
+						<p class="border-l border-color p-4 grow">
+							The target can be a Docker image name (Docker, Swarm and Kubernetes Driver), a URL
+							(Remote Driver) or a Java class path (UIMADriver).
+						</p>
+					</div>
+				</svelte:fragment>
+			</Popup>
 			<Dropdown label="Driver" name="driver" options={DUUIDrivers} bind:value={component.driver} />
-			<TextInput
-				style="md:col-span-2"
-				label="Target"
-				name="target"
-				help="The target can be a Docker image name (Docker, Swarm and Kubernetes Driver), a URL (Remote Driver) or a Java class path (UIMADriver)."
-				bind:value={component.target}
-				error={component.target === '' ? "Target can't be empty" : ''}
-			/>
 
 			<Chips style="md:col-span-2" label="Tags" bind:values={component.tags} />
 			<TextArea

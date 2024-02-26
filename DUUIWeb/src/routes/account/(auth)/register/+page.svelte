@@ -73,7 +73,7 @@
 					{message}
 				</p>
 			{/if}
-			<h2 class="h2 font-bold mb-16">Register</h2>
+			<h2 class="h2 mb-16">Register</h2>
 			<div class="flex flex-col gap-8">
 				<div class="space-y-4">
 					<Text bind:value={email} label="Email" name="email" required />

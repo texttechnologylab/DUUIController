@@ -232,7 +232,7 @@
 	</button>
 </div>
 
-<div class="h-full gradient bg-repeat">
+<div class="h-full gradient bg-repeat isolate">
 	{#if step !== 0}
 		<div class="sticky top-0 bg-surface-50-900-token border-b border-color hidden md:block z-10">
 			<div class="grid grid-cols-2 md:flex items-center md:justify-between relative">
@@ -309,7 +309,7 @@
 				<hr class="hr !my-16" />
 				<div class="space-y-4">
 					<div class="md:flex justify-between items-end space-y-4">
-						<h2 class="h2 font-bold">Templates</h2>
+						<h2 class="h2">Templates</h2>
 						<div class="grid gap-4">
 							<!-- <Dropdown
 									name="driverFilter"
@@ -384,7 +384,7 @@
 			<div class="space-y-8">
 				<div class="min-h-[400px] space-y-8 isolate md:p-16 section-wrapper">
 					{#if $currentPipelineStore.components.length === 0}
-						<p class="mx-auto text-center h2 font-bold">Add a Component to get Started</p>
+						<h2 class="mx-auto text-center h2">Add a Component to get Started</h2>
 					{/if}
 					<ul
 						use:dndzone={{ items: $currentPipelineStore.components, dropTargetStyle: {} }}

@@ -18,7 +18,7 @@
 	<div
 		class="p-4 flex items-center justify-between gap-4 border-b border-color bg-surface-100 dark:bg-surface-700"
 	>
-		<p class="h3 font-bold">{title}</p>
+		<p class="h3">{title}</p>
 		<button
 			on:click={() => modalStore.close()}
 			class="text-surface-400 hover:text-surface-900 dark:hover:text-surface-100 transform-colors duration-300"

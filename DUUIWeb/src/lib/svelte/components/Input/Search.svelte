@@ -11,10 +11,10 @@
 <label class="label flex flex-col">
 	<div class="flex items-center relative">
 		{#if icon}
-			<Fa {icon} class="absolute right-4 top-1/2 -translate-y-1/2 text-surface-400" />
+			<Fa {icon} class="absolute right-4 top-1/2 -translate-y-1/2 text-surface-400 " />
 		{/if}
 		<input
-			class="bg-transparent border-0 grow {style}"
+			class="bg-transparent border-0 grow {style} duration-300 transition-all focus-within:pr-32"
 			type="text"
 			bind:value={query}
 			on:keydown

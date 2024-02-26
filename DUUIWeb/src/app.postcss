@@ -20,7 +20,8 @@
 
 :root [data-theme='theme-red'],
 :root [data-theme='theme-blue'],
-:root [data-theme='theme-purple'] {
+:root [data-theme='theme-purple'],
+:root [data-theme='theme-green'] {
 	--theme-font-family-base: 'Oxanium', sans-serif;
 	--theme-font-family-heading: 'Oxanium', sans-serif;
 }
@@ -102,7 +103,7 @@ p {
 }
 
 .popup-solid {
-	@apply rounded-md bordered-soft bg-surface-50-900-token focus-within:ring-primary-500 focus-within:ring-0 z-[9999] shadow-md;
+	@apply rounded-md bordered-soft bg-surface-50-900-token focus-within:ring-primary-500 focus-within:ring-0 !z-[9999] shadow-md;
 }
 
 .dimmed {
@@ -276,4 +277,8 @@ p {
 
 .apexcharts-menu {
 	@apply !text-surface-600;
+}
+
+.tag {
+	@apply flex items-center gap-1 chip rounded-full variant-soft-primary;
 }

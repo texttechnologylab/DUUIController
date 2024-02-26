@@ -10,7 +10,7 @@
 			   h-full p-4 text-left space-y-8 hidden md:block w-auto text-lg"
 	>
 		<div class="space-y-4 px-2">
-			<p class="h3 font-bold p-2">Documentation</p>
+			<p class="h3 p-2">Documentation</p>
 			<div class="flex flex-col gap-2 links">
 				<a href="/documentation#introduction" class="flex-center-4 p-2 transition-300">
 					{#if $page.url.href.endsWith('introduction')}
@@ -52,7 +52,7 @@
 		<hr class="hr !w-full" />
 
 		<div class="space-y-4 px-2">
-			<p class="h3 font-bold p-2">API Reference</p>
+			<p class="h3 p-2">API Reference</p>
 			<div class="flex flex-col gap-2">
 				<a href="/documentation/api#rest" class="flex-center-4 p-2 transition-300">
 					{#if $page.url.href.endsWith('rest')}

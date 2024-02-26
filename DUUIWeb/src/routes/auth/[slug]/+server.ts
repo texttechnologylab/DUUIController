@@ -49,6 +49,16 @@ const login = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 	})
 
 	const { user } = await update.json()
+
+	if (update.ok) {
+		event.cookies.delete('just_registered', {
+			path: '/',
+			sameSite: 'lax',
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			maxAge: 60 * 60 * 24 * 30
+		})
+	}
 	return json({ user: user })
 }
 

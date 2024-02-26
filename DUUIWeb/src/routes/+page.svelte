@@ -272,7 +272,7 @@
 				<section class="grid md:grid-cols-2 gap-8">
 					<a
 						class="cta uppercase box-shadow font-bold button bg-surface-50-900-token text-surface-900-50-token !justify-center box"
-						href="/account/login"
+						href="/account/register"
 					>
 						<span>Create Account</span>
 						<Fa icon={faChevronRight} />

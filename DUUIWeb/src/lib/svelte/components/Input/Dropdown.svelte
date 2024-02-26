@@ -45,7 +45,7 @@
 </div>
 
 <div data-popup={name}>
-	<div class="popup-solid p-2 !z-[9999]">
+	<div class="popup-solid p-2">
 		<ListBox class="overflow-hidden" rounded="rounded-md" spacing="space-y-2">
 			{#each options as option}
 				<ListBoxItem

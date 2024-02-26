@@ -255,7 +255,7 @@ public class DUUIUserController {
 
         Document credentials = DUUIMongoDBStorage
             .Users()
-            .find(Filters.eq("email", email))
+            .find(Filters.eq("email", email.toLowerCase()))
             .projection(Projections.include("email", "password"))
             .first();
 

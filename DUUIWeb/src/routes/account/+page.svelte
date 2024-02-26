@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { COLORS } from '$lib/config.js'
+	import { toTitleCase } from '$lib/duui/utils/text.js'
 	import { successToast } from '$lib/duui/utils/ui.js'
 	import { userSession } from '$lib/store.js'
 	import Password from '$lib/svelte/components/Input/Password.svelte'
@@ -15,12 +17,18 @@
 		faTrash,
 		faXmarkCircle
 	} from '@fortawesome/free-solid-svg-icons'
-	import { clipboard, getModalStore, getToastStore } from '@skeletonlabs/skeleton'
+	import {
+		RadioGroup,
+		RadioItem,
+		clipboard,
+		getModalStore,
+		getToastStore
+	} from '@skeletonlabs/skeleton'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
 
 	export let data
-	const { user, registered, dropbBoxURL } = data
+	let { user, registered, dropbBoxURL, theme } = data
 	const toastStore = getToastStore()
 
 	if (user && $userSession) {
@@ -43,6 +51,25 @@
 	let minioAccessKey: string = $userSession?.connections.minio.access_key || ''
 	let minioEndpoint: string = $userSession?.connections.minio.endpoint || ''
 	let minioSecretKey: string = $userSession?.connections.minio.secret_key || ''
+
+	const updateTheme = async (color: string) => {
+		const response = await fetch(`/api/theme?color=${color}`, {
+			method: 'PUT'
+		})
+
+		if (response.ok) {
+			const result = await response.json()
+			theme = +result.theme
+		}
+	}
+
+	const themes = Object.keys(COLORS)
+	$: {
+		try {
+			const body = document.body
+			body.dataset.theme = 'theme-' + themes[theme]
+		} catch (err) {}
+	}
 
 	const updateUser = async (data: object) => {
 		const response = await fetch('/api/users', { method: 'PUT', body: JSON.stringify(data) })
@@ -205,8 +232,26 @@
 
 <div class="gap-4 max-w-7xl md:py-16 grid md:grid-cols-2 items-start">
 	<div class="section-wrapper p-8 space-y-4">
-		<h2 class="h3 font-bold">Profile</h2>
+		<h2 class="h3">Profile</h2>
 		<Text label="Name" name="name" bind:value={name} />
+
+		<div class="label">
+			<p class="form-label">Theme</p>
+			<RadioGroup class="section-wrapper w-full" active="variant-filled-primary" padding="p-4">
+				<RadioItem bind:group={theme} name="blue" value={0} on:click={() => updateTheme('blue')}
+					>Blue</RadioItem
+				>
+				<RadioItem bind:group={theme} name="red" value={1} on:click={() => updateTheme('red')}
+					>Red</RadioItem
+				>
+				<RadioItem bind:group={theme} name="purple" value={2} on:click={() => updateTheme('purple')}
+					>Purple</RadioItem
+				>
+				<RadioItem bind:group={theme} name="green" value={3} on:click={() => updateTheme('green')}
+					>Green</RadioItem
+				>
+			</RadioGroup>
+		</div>
 		<button
 			class="button-neutral"
 			disabled={!name}
@@ -222,7 +267,7 @@
 
 	<div class="space-y-4">
 		<div class="section-wrapper p-8 space-y-8 scroll-mt-4" id="authorization">
-			<h2 class="h3 font-bold">API Key</h2>
+			<h2 class="h3">API Key</h2>
 			<div class="space-y-8">
 				{#if connections.key}
 					<div class="space-y-2">
@@ -272,7 +317,7 @@
 			</p>
 		</div>
 		<div class="section-wrapper p-8 grid grid-rows-[auto_1fr_auto] gap-8">
-			<h2 class="h3 font-bold">Dropbox</h2>
+			<h2 class="h3">Dropbox</h2>
 			<div class="space-y-8">
 				{#if connections.dropbox}
 					<p>Your Dropbox account has been connected successfully.</p>
@@ -335,7 +380,7 @@
 			</p>
 		</div>
 		<div class="section-wrapper p-8 grid grid-rows-[auto_1fr_auto] gap-8">
-			<h2 class="h3 font-bold">Minio / AWS</h2>
+			<h2 class="h3">Minio / AWS</h2>
 			<div class="space-y-4">
 				{#if connections.minio}
 					<p>Your account has been connected to Minio / AWS successfully.</p>
