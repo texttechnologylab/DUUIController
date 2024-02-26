@@ -1,15 +1,29 @@
+import { COLORS } from '$lib/config'
 import type { DUUIDocument } from '$lib/duui/io'
 import type { DUUIEvent } from '$lib/duui/monitor'
 import type { DUUIPipeline } from '$lib/duui/pipeline'
 import type { DUUIProcess } from '$lib/duui/process'
 import { getDuration } from '$lib/duui/utils/time'
 
-const theme = {
-	palette: 'palette1', // upto palette10
-	monochrome: {
-		enabled: false
+const getColor = (alternate: boolean = false) => {
+	let color = COLORS.blue
+
+	try {
+		let THEME = document.body.dataset.theme || 'blue'
+		color = COLORS[THEME.replace('theme-', '')]
+	} catch (err) {}
+
+	if (alternate) {
+		return invertHex(color)
 	}
+	return color
 }
+
+function invertHex(hex: string) {
+	return (Number(`0x1${hex}`) ^ 0xffffff).toString(16).substring(1).toUpperCase()
+}
+
+invertHex('00FF00') // Returns FF00FF
 
 export const getAnnotationsPlotOptions = (annotations: Map<string, number>, darkmode: boolean) => {
 	if (!annotations) return {}
@@ -34,10 +48,16 @@ export const getAnnotationsPlotOptions = (annotations: Map<string, number>, dark
 		},
 		plotOptions: {
 			treemap: {
-				useFillColorAsStroke: true
+				useFillColorAsStroke: true,
+				enableShades: true
 			}
 		},
-		theme: theme
+		theme: {
+			monochrome: {
+				enabled: true,
+				color: getColor()
+			}
+		}
 	}
 }
 
@@ -100,7 +120,8 @@ export const getTimelinePlotOptions = (
 	return {
 		series: [
 			{
-				data: steps
+				data: steps,
+				color: getColor()
 			}
 		],
 		chart: {
@@ -163,7 +184,6 @@ export const getTimelinePlotOptions = (
 					'</div>'
 				)
 			}
-		},
-		theme: theme
+		}
 	}
 }
