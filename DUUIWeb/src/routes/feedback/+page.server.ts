@@ -1,4 +1,4 @@
-import { redirect, type Actions } from '@sveltejs/kit'
+import type { Actions } from '@sveltejs/kit'
 
 export const actions: Actions = {
 	send: async ({ request, fetch }) => {
@@ -14,9 +14,5 @@ export const actions: Actions = {
 			method: 'POST',
 			body: data
 		})
-
-		if (response.ok) {
-			redirect(302, "/feedback?success=true")
-		}
 	}
 }

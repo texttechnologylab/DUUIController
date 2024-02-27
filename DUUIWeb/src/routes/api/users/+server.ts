@@ -11,31 +11,9 @@ export const PUT = async ({ request, locals }) => {
 	const response = await fetch(`${API_URL}/users/${user.oid}`, {
 		method: 'PUT',
 		mode: 'cors',
-		body: JSON.stringify(await request.json())
+		body: JSON.stringify(await request.json()),
+		
 	})
 
 	return response
-}
-
-export const DELETE = async ({ cookies, locals }) => {
-	const user = locals.user
-	if (!user) {
-		error(401, 'Unauthorized')
-	}
-
-	await fetch(`${API_URL}/users/${user.oid}`, {
-		method: 'DELETE',
-		mode: 'cors',
-		headers: {
-			Authorization: cookies.get('session') || ''
-		}
-	})
-
-	cookies.set('session', '', {
-		path: '/',
-		httpOnly: true,
-		sameSite: 'strict',
-		secure: process.env.NODE_ENV === 'production',
-		expires: new Date(0)
-	})
 }

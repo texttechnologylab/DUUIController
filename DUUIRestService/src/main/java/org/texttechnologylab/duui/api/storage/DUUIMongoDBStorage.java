@@ -1,5 +1,10 @@
 package org.texttechnologylab.duui.api.storage;
 
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoCredential;
+import com.mongodb.ServerAddress;
+import com.mongodb.client.internal.MongoClientImpl;
+import org.texttechnologylab.duui.api.Config;
 import org.texttechnologylab.duui.api.Main;
 import org.texttechnologylab.duui.api.metrics.providers.DUUIStorageMetrics;
 import org.texttechnologylab.duui.api.routes.DUUIRequestHelper;
@@ -84,7 +89,22 @@ public class DUUIMongoDBStorage {
      */
     public static MongoClient getClient() {
         if (mongoClient == null) {
-            mongoClient = MongoClients.create(getConnectionURI());
+            Config pConfig = Main.config;
+            //mongodb://[username:password@]host1[:port1][,...hostN[:portN]][/[defaultauthdb][?options]]
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("mongodb://");
+            sb.append(pConfig.getMongoUser());
+            sb.append(":");
+            sb.append(pConfig.getMongoPassword());
+            sb.append("@");
+            sb.append(pConfig.getMongoHost());
+            sb.append(":"+pConfig.getMongoPort());
+            sb.append("/?authSource="+pConfig.getMongoDatabase());
+
+            mongoClient = MongoClients.create(sb.toString());
+
+//            mongoClient = MongoClients.create(getConnectionURI());
         }
         return mongoClient;
     }

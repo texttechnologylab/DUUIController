@@ -1,4 +1,3 @@
-import { COLORS } from '$lib/config'
 import type { DUUIPipeline } from '$lib/duui/pipeline'
 import { equals } from '$lib/duui/utils/text'
 
@@ -10,22 +9,16 @@ let gridSettings = {
 	}
 }
 
-const getColor = (alternate: boolean = false) => {
-	let color = COLORS.blue
-
-	try {
-		let THEME = document.body.dataset.theme || 'blue'
-		color = COLORS[THEME.replace('theme-', '')]
-	} catch (err) {}
-
-	if (alternate) {
-		return '#6495ED'
+let theme = {
+	palette: 'palette2', // upto palette10
+	monochrome: {
+		enabled: false
 	}
-	return color
 }
 
 export const getStatusPlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) => {
 	if (!pipeline.statistics) return {}
+
 	gridSettings = {
 		borderColor: darkmode ? '#e7e7e720' : '#29292920',
 		row: {
@@ -38,12 +31,11 @@ export const getStatusPlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) 
 		series: [
 			{
 				name: 'Status',
-				data: pipeline.statistics.status.map((s) => s.count),
-				color: getColor()
+				data: pipeline.statistics.status.map((s) => s.count)
 			}
 		],
 		chart: {
-			height: 450,
+			height: 350,
 			type: 'bar'
 		},
 		plotOptions: {
@@ -92,7 +84,8 @@ export const getStatusPlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) 
 					colors: darkmode ? 'white' : 'black'
 				}
 			}
-		}
+		},
+		theme: theme
 	}
 }
 
@@ -112,33 +105,52 @@ export const getErrorsPlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) 
 		}
 	}
 
-	const data: Object[] = []
-
-	x.forEach((element, index) => {
-		data.push({ x: element, y: y.at(index) })
-	})
-
 	return {
 		series: [
 			{
 				name: 'Error',
-				data: data,
-				color: getColor()
+				data: y,
+				color: '#f95959'
 			}
 		],
 		chart: {
-			height: 450,
-			type: 'treemap'
+			height: 350,
+			type: 'bar'
 		},
 		plotOptions: {
-			treemap: {
-				useFillColorAsStroke: true
-			},
 			bar: {
 				borderRadius: 8
 			}
 		},
 		grid: gridSettings,
+		xaxis: {
+			categories: x,
+			position: 'top',
+			axisBorder: {
+				show: false
+			},
+			axisTicks: {
+				show: false
+			},
+			crosshairs: {
+				fill: {
+					type: 'gradient',
+					gradient: {
+						colorFrom: '#D8E3F0',
+						colorTo: '#BED1E6',
+						stops: [0, 100],
+						opacityFrom: 0.4,
+						opacityTo: 0.5
+					}
+				}
+			},
+			labels: {
+				show: true,
+				style: {
+					colors: darkmode ? 'white' : 'black'
+				}
+			}
+		},
 		yaxis: {
 			axisBorder: {
 				show: false
@@ -152,7 +164,8 @@ export const getErrorsPlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) 
 					colors: darkmode ? 'white' : 'black'
 				}
 			}
-		}
+		},
+		theme: theme
 	}
 }
 
@@ -190,27 +203,20 @@ export const getIOPlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) => {
 		series: [
 			{
 				name: 'Input',
-				data: input,
-				color: getColor()
+				data: input
 			},
 			{
 				name: 'Output',
-				data: output,
-				color: getColor(true)
+				data: output
 			}
 		],
 		chart: {
-			height: 450,
+			height: 350,
 			type: 'bar'
 		},
 		plotOptions: {
 			bar: {
 				borderRadius: 8
-			}
-		},
-		legend: {
-			labels: {
-				colors: darkmode ? 'white' : 'black'
 			}
 		},
 		grid: gridSettings,
@@ -252,7 +258,8 @@ export const getIOPlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) => {
 					colors: darkmode ? 'white' : 'black'
 				}
 			}
-		}
+		},
+		theme: theme
 	}
 }
 
@@ -296,20 +303,17 @@ export const getUsagePlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) =
 		series: [
 			{
 				name: '# Processes',
-				data: yValues,
-				color: getColor()
+				data: yValues
 			}
 		],
-		stroke: {
-			curve: 'stepline'
+		plotOptions: {
+			bar: {
+				borderRadius: 8
+			}
 		},
-		markers: {
-			size: 6
-		},
-
 		chart: {
-			height: 450,
-			type: 'line',
+			height: 350,
+			type: 'bar',
 
 			dropShadow: {
 				enabled: true,
@@ -332,8 +336,9 @@ export const getUsagePlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) =
 			}
 		},
 		dataLabels: {
-			enabled: false
+			enabled: true
 		},
+		theme: theme,
 		grid: gridSettings,
 		xaxis: {
 			categories: xLabels,

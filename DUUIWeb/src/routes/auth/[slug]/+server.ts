@@ -49,16 +49,6 @@ const login = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 	})
 
 	const { user } = await update.json()
-
-	if (update.ok) {
-		event.cookies.delete('just_registered', {
-			path: '/',
-			sameSite: 'lax',
-			httpOnly: true,
-			secure: process.env.NODE_ENV === 'production',
-			maxAge: 60 * 60 * 24 * 30
-		})
-	}
 	return json({ user: user })
 }
 
@@ -103,21 +93,11 @@ const register = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 			email: email,
 			password: encryptedPassword,
 			session: session,
-			role: 'Trial'
+			role: 'user'
 		})
 	})
 
 	const { user } = await postResponse.json()
-
-	if (postResponse.ok) {
-		event.cookies.set('just_registered', 'true', {
-			path: '/',
-			sameSite: 'lax',
-			httpOnly: true,
-			secure: process.env.NODE_ENV === 'production',
-			maxAge: 60 * 60 * 24 * 30
-		})
-	}
 	return json({ user: user })
 }
 

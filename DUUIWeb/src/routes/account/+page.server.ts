@@ -1,8 +1,8 @@
 import { API_URL } from '$env/static/private'
 import { handleLoginRedirect } from '$lib/utils'
-import { fail, redirect } from '@sveltejs/kit'
+import { error, fail, redirect } from '@sveltejs/kit'
 import { DropboxAuth } from 'dropbox'
-import type { PageServerLoad } from './$types'
+import type { Actions, PageServerLoad } from './$types'
 
 export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 	if (!locals.user) {
@@ -51,8 +51,31 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 
 	return {
 		dropbBoxURL: getDropboxAuthURL(),
-		registered: (cookies.get('just_registered') || 'false') === 'true',
-		user: (await fetchProfile()).user,
-		theme: +(cookies.get('theme') || '0')
+		user: (await fetchProfile()).user
+	}
+}
+
+export const actions: Actions = {
+	async deleteAccount({ locals, cookies }) {
+		const user = locals.user
+		if (!user) {
+			error(401, 'Unauthorized')
+		}
+
+		await fetch(`${API_URL}/users/${user.oid}`, {
+			method: 'DELETE',
+			mode: 'cors',
+			headers: {
+				Authorization: cookies.get('session') || ''
+			}
+		})
+
+		cookies.set('session', '', {
+			path: '/',
+			httpOnly: true,
+			sameSite: 'strict',
+			secure: process.env.NODE_ENV === 'production',
+			expires: new Date(0)
+		})
 	}
 }

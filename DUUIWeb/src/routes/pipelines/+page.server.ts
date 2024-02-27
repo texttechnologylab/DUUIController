@@ -12,9 +12,8 @@ export const load: PageServerLoad = async ({
 	if (!locals.user) {
 		redirect(300, '/user/login')
 	}
-
 	const loadPipelines = async (): Promise<{ pipelines: DUUIPipeline[]; count: number }> => {
-		const limit = +(url.searchParams.get('limit') || '12')
+		const limit = +(url.searchParams.get('limit') || '50')
 
 		const response = await fetch(`${API_URL}/pipelines?limit=${limit}`, {
 			method: 'GET',

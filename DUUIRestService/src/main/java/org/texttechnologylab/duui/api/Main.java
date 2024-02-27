@@ -78,7 +78,8 @@ public class Main {
             port(2605);
         }
 
-        ipAddress(config.getHost());
+        // not nessecary
+//        ipAddress(config.getHost());
 
         File fileUploadDirectory = Paths.get(config.getFileUploadPath()).toFile();
 

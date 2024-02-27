@@ -3,7 +3,7 @@
 	export let value: any
 </script>
 
-<div class="card p-4">
+<div class="input-no-highlight p-4">
 	<p class="font-bold text-lg">{value}</p>
 	<p>{key}</p>
 </div>

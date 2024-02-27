@@ -2,10 +2,7 @@ import { join } from 'path'
 import type { Config } from 'tailwindcss'
 import { skeleton } from '@skeletonlabs/tw-plugin'
 import forms from '@tailwindcss/forms'
-import { ThemeBlue } from './src/theme-blue'
-import { ThemeRed } from './src/theme-red'
-import { ThemePurple } from './src/theme-purple'
-import { ThemeGreen } from './src/theme-green'
+import { Theme } from './src/theme'
 
 export default {
 	darkMode: 'class',
@@ -47,16 +44,12 @@ export default {
 		forms,
 		skeleton({
 			themes: {
-				custom: [ThemeBlue, ThemeRed, ThemePurple, ThemeGreen],
+				custom: [Theme],
 				preset: [
 					{
 						name: 'rocket',
 						enhancements: true
-					},
-					'modern',
-					'crimson',
-					'gold-nouveau',
-					'hamlindigo'
+					}
 				]
 			}
 		})

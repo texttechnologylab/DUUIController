@@ -2,18 +2,7 @@
 	import Logo from '$lib/assets/Logo.svg'
 	import '../app.postcss'
 
-	import {
-		faArrowRightFromBracket,
-		faArrowRightToBracket,
-		faBars,
-		faBook,
-		faChevronDown,
-		faLayerGroup,
-		faMapSigns,
-		faTools,
-		faUser,
-		faUserPlus
-	} from '@fortawesome/free-solid-svg-icons'
+	import { faArrowRightFromBracket, faBars } from '@fortawesome/free-solid-svg-icons'
 	import {
 		AppBar,
 		AppShell,
@@ -21,7 +10,6 @@
 		LightSwitch,
 		Toast,
 		getDrawerStore,
-		getModalStore,
 		type DrawerSettings,
 		type ModalComponent
 	} from '@skeletonlabs/skeleton'
@@ -32,51 +20,36 @@
 
 	import { isDarkModeStore, userSession } from '$lib/store'
 	import ConfirmModal from '$lib/svelte/components/ConfirmModal.svelte'
+	import DocumentModal from '$lib/svelte/components/DocumentDrawer.svelte'
 	import Documentation from '$lib/svelte/components/Documentation.svelte'
-	import DocumentModal from '$lib/svelte/components/Drawer/DocumentDrawer.svelte'
 	import Link from '$lib/svelte/components/Link.svelte'
-	import HelpModal from '$lib/svelte/components/Modal/HelpModal.svelte'
-	import PromptModal from '$lib/svelte/components/Modal/PromptModal.svelte'
-	import WelcomeModal from '$lib/svelte/components/Modal/WelcomeModal.svelte'
 	import Sidebar from '$lib/svelte/components/Sidebar.svelte'
 	import { arrow, autoUpdate, computePosition, flip, offset, shift } from '@floating-ui/dom'
 	import { Modal } from '@skeletonlabs/skeleton'
 
+	import PromptModal from '$lib/svelte/components/PromptModal.svelte'
 	import { storeHighlightJs } from '@skeletonlabs/skeleton'
 	import hljs from 'highlight.js/lib/core'
 	import java from 'highlight.js/lib/languages/java'
-	import python from 'highlight.js/lib/languages/python'
 	import typescript from 'highlight.js/lib/languages/typescript'
 	import xml from 'highlight.js/lib/languages/xml'
+	import python from 'highlight.js/lib/languages/python'
 
-	import ComponentDrawer from '$lib/svelte/components/Drawer/ComponentDrawer.svelte'
-	import DocumentDrawer from '$lib/svelte/components/Drawer/DocumentDrawer.svelte'
-	import TemplateModal from '$lib/svelte/components/Modal/TemplateModal.svelte'
-	import Popup from '$lib/svelte/components/Popup.svelte'
-	import { faReadme } from '@fortawesome/free-brands-svg-icons'
+	import ComponentDrawer from '$lib/svelte/components/ComponentDrawer.svelte'
 	import 'highlight.js/styles/github-dark.css'
+	import DocumentDrawer from '$lib/svelte/components/DocumentDrawer.svelte'
 	import { onMount } from 'svelte'
-	import ProcessDrawer from './processes/[oid]/ProcessDrawer.svelte'
-	import { COLORS } from '$lib/config'
 
 	export let data
-	let { user, theme } = data
+	let { user } = data
 	$userSession = user
-
-	const themes = Object.keys(COLORS)
-	$: {
-		try {
-			const body = document.body
-			body.dataset.theme = 'theme-' + themes[theme]
-		} catch (err) {}
-	}
 
 	initializeStores()
 
 	const drawerStore = getDrawerStore()
 	const sidebarDrawer: DrawerSettings = {
 		id: 'sidebar',
-		width: 'w-full sm:w-1/2',
+		width: 'w-full sm:w-[40%]',
 		rounded: 'rounded-none'
 	}
 
@@ -121,12 +94,8 @@
 	const modalRegistry: Record<string, ModalComponent> = {
 		documentModal: { ref: DocumentModal },
 		promptModal: { ref: PromptModal },
-		confirmModal: { ref: ConfirmModal },
-		welcomeModal: { ref: WelcomeModal },
-		helpModal: { ref: HelpModal },
-		templateModal: { ref: TemplateModal }
+		confirmModal: { ref: ConfirmModal }
 	}
-	const modalStore = getModalStore()
 </script>
 
 <Modal components={modalRegistry} />
@@ -138,18 +107,16 @@
 		<DocumentDrawer />
 	{:else if $drawerStore.id === 'component'}
 		<ComponentDrawer />
-	{:else if $drawerStore.id === 'process'}
-		<ProcessDrawer />
 	{/if}
 </Drawer>
 
 <!-- App Shell  -->
-<AppShell>
+<AppShell class="dark:bg-surface-700 ">
 	<svelte:fragment slot="header">
 		<!-- App Bar -->
-		<AppBar class="border-b border-color z-[100]" background="bg-surface-50-900-token">
+		<AppBar shadow="shadow-lg" background="bg-surface-50-900-token z-[100]">
 			<svelte:fragment slot="lead">
-				<div class="flex-center-4">
+				<div class="flex items-center gap-4">
 					<button class="btn-icon lg:hidden" on:click={() => drawerStore.open(sidebarDrawer)}>
 						<Fa icon={faBars} size="lg" />
 					</button>
@@ -170,100 +137,37 @@
 						<Link href="/feedback">Feedback</Link>
 					{/if}
 					{#if $userSession}
-						<Popup>
-							<svelte:fragment slot="trigger">
-								<button
-									class="p-0 btn inline-flex items-center animate-underline transition-300 group-hover:text-primary-500"
-								>
-									<span>Pipelines</span>
-									<Fa icon={faChevronDown} />
-								</button>
-							</svelte:fragment>
-							<svelte:fragment slot="popup">
-								<div class="popup-solid p-4 flex flex-col gap-4">
-									<a href="/pipelines" class="anchor-neutral border-none !gap-8"
-										><Fa icon={faLayerGroup} /><span>Dashboard</span></a
-									>
-									<a href="/pipelines/build" class="anchor-neutral border-none !gap-8"
-										><Fa icon={faTools} /><span>Builder</span></a
-									>
-								</div>
-							</svelte:fragment>
-						</Popup>
+						<Link href="/pipelines">Pipelines</Link>
+						<Link href="/pipelines/editor">Editor</Link>
 					{/if}
-					<Popup>
-						<svelte:fragment slot="trigger">
-							<button
-								class="p-0 btn inline-flex items-center animate-underline transition-300 hover:text-primary-500"
-							>
-								<span>Documentation</span>
-								<Fa icon={faChevronDown} />
-							</button>
-						</svelte:fragment>
-						<svelte:fragment slot="popup">
-							<div class="popup-solid p-4 flex flex-col gap-4">
-								<a href="/documentation" class="anchor-neutral border-none !gap-8"
-									><Fa icon={faBook} /><span>Documentation</span></a
-								>
-								<a href="/documentation/api" class="anchor-neutral border-none !gap-8"
-									><Fa icon={faReadme} /><span>API Reference</span></a
-								>
-								<button
-									class="button-neutral border-none !gap-8"
-									on:click={() => {
-										modalStore.trigger({
-											type: 'component',
-											component: 'helpModal'
-										})
-									}}
-								>
-									<Fa icon={faMapSigns} />
-									<span>Help</span>
-								</button>
-							</div>
-						</svelte:fragment>
-					</Popup>
+					<Link href="/documentation">Documentation</Link>
+					<Link href="/documentation/api">API Reference</Link>
 
-					<Popup>
-						<svelte:fragment slot="trigger">
-							<button
-								class="p-0 btn inline-flex items-center animate-underline transition-300 hover:text-primary-500"
-							>
-								<span>Account</span>
-								<Fa icon={faChevronDown} />
-							</button>
-						</svelte:fragment>
-						<svelte:fragment slot="popup">
-							<div class="popup-solid p-4 flex flex-col gap-4 -translate-x-1/4">
-								{#if $userSession}
-									<a href="/account" class="anchor-neutral border-none !gap-8"
-										><Fa icon={faUser} /><span>Profile</span></a
-									>
-									<button class="button-neutral border-none !gap-8" on:click={logout}>
-										<Fa icon={faArrowRightFromBracket} />
-										<span>Logout</span>
-									</button>
-								{:else}
-									<a href="/account/login" class="anchor-neutral border-none !gap-8"
-										><Fa icon={faArrowRightToBracket} /><span>Login</span></a
-									>
-									<a href="/account/register" class="anchor-neutral border-none !gap-8"
-										><Fa icon={faUserPlus} /><span>Register</span></a
-									>
-								{/if}
-							</div>
-						</svelte:fragment>
-					</Popup>
-					<LightSwitch
-						class="md:block hidden mx-auto border bordered-soft"
-						rounded="rounded-full"
-						on:click={() => ($isDarkModeStore = !$isDarkModeStore)}
-					/>
+					{#if $userSession}
+						<Link href="/account">Account</Link>
+						<button
+							class="p-0 btn inline-flex items-center hover:text-primary-500 transition-colors
+							animate-underline"
+							on:click={logout}
+						>
+							<span>Logout</span>
+							<Fa icon={faArrowRightFromBracket} />
+						</button>
+					{:else}
+						<Link href="/account/login">Login</Link>
+						<Link href="/account/register">Register</Link>
+					{/if}
 				</div>
 
 				<a href="/">
 					<img src={Logo} alt="The letters DUUI" class="md:hidden block max-h-8 pr-4" />
 				</a>
+
+				<LightSwitch
+					class="md:block hidden"
+					rounded="rounded-full"
+					on:click={() => ($isDarkModeStore = !$isDarkModeStore)}
+				/>
 			</svelte:fragment>
 		</AppBar>
 	</svelte:fragment>
