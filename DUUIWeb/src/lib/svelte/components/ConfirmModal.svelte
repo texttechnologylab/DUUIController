@@ -11,7 +11,7 @@
 
 </script>
 
-<div class="z-50 bg-surface-50-900-token w-modal rounded-md overflow-hidden border-2 border-color">
+<div class="z-50 bg-surface-50-900-token w-modal rounded-md overflow-hidden border border-color">
 	<div class="modal-header bg-surface-100-800-token">
 		<h3 class="h3">{title}</h3>
 		<button on:click={modalStore.close}>
@@ -22,7 +22,7 @@
 		<div class="p-8 space-y-8">
 			<p>{message}</p>
 			<div class="modal-footer">
-				<div class="flex items-center gap-4 justify-start">
+				<div class="flex-center-4 justify-start">
 					<button
 						class="button-modal button-error"
 						on:click={() => {

@@ -54,14 +54,15 @@ type PaginationSettings = {
 	sizes: number[] = [5, 10, 20, 50]
 }
 
-type Sort = {
-	by: number
-	order: 1 | -1
+enum Order {
+	Ascending = 1,
+	Descending = -1
 }
 
-type ServiceStatus = 'starting' | 'active' | 'stopping' | 'inactive'
-
-type Locale = Language | undefined
+type Sort = {
+	index: number
+	order: Order
+}
 
 interface Language {
 	name: string

@@ -1,9 +1,12 @@
 <script lang="ts">
+	import { COLORS } from '$lib/config.js'
+	import { toTitleCase } from '$lib/duui/utils/text.js'
 	import { successToast } from '$lib/duui/utils/ui.js'
 	import { userSession } from '$lib/store.js'
+	import Password from '$lib/svelte/components/Input/Password.svelte'
+	import Secret from '$lib/svelte/components/Input/Secret.svelte'
+	import Text from '$lib/svelte/components/Input/TextInput.svelte'
 	import { showConfirmationModal } from '$lib/svelte/utils/modal.js'
-	import Secret from '$lib/svelte/components/Secret.svelte'
-	import Text from '$lib/svelte/components/TextInput.svelte'
 	import {
 		faAdd,
 		faCheck,
@@ -11,15 +14,21 @@
 		faFileText,
 		faLink,
 		faRefresh,
-		faSave,
+		faTrash,
 		faXmarkCircle
 	} from '@fortawesome/free-solid-svg-icons'
-	import { clipboard, getModalStore, getToastStore } from '@skeletonlabs/skeleton'
+	import {
+		RadioGroup,
+		RadioItem,
+		clipboard,
+		getModalStore,
+		getToastStore
+	} from '@skeletonlabs/skeleton'
+	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
-	import Password from '$lib/svelte/components/Password.svelte'
 
 	export let data
-	const { user, dropbBoxURL } = data
+	let { user, registered, dropbBoxURL, theme } = data
 	const toastStore = getToastStore()
 
 	if (user && $userSession) {
@@ -43,12 +52,49 @@
 	let minioEndpoint: string = $userSession?.connections.minio.endpoint || ''
 	let minioSecretKey: string = $userSession?.connections.minio.secret_key || ''
 
+	const updateTheme = async (color: string) => {
+		const response = await fetch(`/api/theme?color=${color}`, {
+			method: 'PUT'
+		})
+
+		if (response.ok) {
+			const result = await response.json()
+			theme = +result.theme
+		}
+	}
+
+	const themes = Object.keys(COLORS)
+	$: {
+		try {
+			const body = document.body
+			body.dataset.theme = 'theme-' + themes[theme]
+		} catch (err) {}
+	}
+
 	const updateUser = async (data: object) => {
 		const response = await fetch('/api/users', { method: 'PUT', body: JSON.stringify(data) })
 		if (response.ok) {
 			toastStore.trigger(successToast('Update successful'))
 		}
 		return response
+	}
+
+	const deleteAccount = async () => {
+		const confirm = await showConfirmationModal(
+			{
+				title: 'Delete Account',
+				message:
+					'Deleting your Account also deletes all pipelines and processes every created. Are you sure?',
+				textYes: 'Delete'
+			},
+			modalStore
+		)
+
+		if (!confirm) return
+
+		await fetch('/api/users', {
+			method: 'DELETE'
+		})
 	}
 
 	const generateApiKey = async () => {
@@ -151,6 +197,15 @@
 		}
 	}
 
+	onMount(() => {
+		if (registered) {
+			modalStore.trigger({
+				type: 'component',
+				component: 'welcomeModal'
+			})
+		}
+	})
+
 	$: {
 		if (!$userSession) {
 			connections = { dropbox: false, minio: false, key: false }
@@ -177,8 +232,26 @@
 
 <div class="gap-4 max-w-7xl md:py-16 grid md:grid-cols-2 items-start">
 	<div class="section-wrapper p-8 space-y-4">
-		<h2 class="h3 font-bold">Profile</h2>
+		<h2 class="h3">Profile</h2>
 		<Text label="Name" name="name" bind:value={name} />
+
+		<div class="label">
+			<p class="form-label">Theme</p>
+			<RadioGroup class="section-wrapper w-full" active="variant-filled-primary" padding="p-4">
+				<RadioItem bind:group={theme} name="blue" value={0} on:click={() => updateTheme('blue')}
+					>Blue</RadioItem
+				>
+				<RadioItem bind:group={theme} name="red" value={1} on:click={() => updateTheme('red')}
+					>Red</RadioItem
+				>
+				<RadioItem bind:group={theme} name="purple" value={2} on:click={() => updateTheme('purple')}
+					>Purple</RadioItem
+				>
+				<RadioItem bind:group={theme} name="green" value={3} on:click={() => updateTheme('green')}
+					>Green</RadioItem
+				>
+			</RadioGroup>
+		</div>
 		<button
 			class="button-neutral"
 			disabled={!name}
@@ -194,26 +267,31 @@
 
 	<div class="space-y-4">
 		<div class="section-wrapper p-8 space-y-8 scroll-mt-4" id="authorization">
-			<h2 class="h3 font-bold">API Key</h2>
+			<h2 class="h3">API Key</h2>
 			<div class="space-y-8">
 				{#if connections.key}
 					<div class="space-y-2">
 						<Secret value={$userSession?.connections.key} style="pt-2" />
-						<div class="flex items-center gap-2 text-sm">
-							<p
-								class="text-primary-500 hover:text-primary-400 cursor-pointer transition-colors px-2 border-r"
+						<div
+							class="grid grid-cols-3 items-center justify-center section-wrapper divide-x divider text-sm"
+						>
+							<button
+								class="button-neutral !justify-center !border-none !rounded-none"
 								use:clipboard={$userSession?.connections.key || ''}
+								on:click={() => {
+									toastStore.trigger(successToast('Copied!'))
+								}}
 							>
 								Copy
-							</p>
+							</button>
 							<button
-								class="text-primary-500 hover:text-primary-400 transition-colors pr-2 border-r"
+								class="button-neutral !justify-center !border-y-0 !rounded-none !border-x border-color"
 								on:click={generateApiKey}
 							>
 								Regenerate
 							</button>
 							<button
-								class="text-error-500 hover:text-error-400 transition-colors"
+								class="button-neutral !justify-center !border-none !rounded-none"
 								on:click={deleteApiKey}
 							>
 								Delete
@@ -239,18 +317,18 @@
 			</p>
 		</div>
 		<div class="section-wrapper p-8 grid grid-rows-[auto_1fr_auto] gap-8">
-			<h2 class="h3 font-bold">Dropbox</h2>
+			<h2 class="h3">Dropbox</h2>
 			<div class="space-y-8">
 				{#if connections.dropbox}
 					<p>Your Dropbox account has been connected successfully.</p>
 					<div>
-						<p class="flex items-center gap-4">
+						<p class="flex-center-4">
 							<Fa icon={faCheck} size="lg" class="text-primary-500" />
 							<span
 								>Read files and folders contained in your <strong>Dropbox Account</strong>
 							</span>
 						</p>
-						<p class="flex items-center gap-4 mb-4">
+						<p class="flex-center-4 mb-4">
 							<Fa icon={faCheck} size="lg" class="text-primary-500" />
 							<span>Create files and folders in your <strong>Dropbox Account</strong> </span>
 						</p>
@@ -280,7 +358,7 @@
 								>Read files and folders contained in your <strong>Dropbox Storage</strong>
 							</span>
 						</p>
-						<p class="flex items-center gap-4 mb-4">
+						<p class="flex-center-4 mb-4">
 							<Fa icon={faFilePen} size="lg" class="text-primary-500" />
 							<span>Create files and folders in your <strong>Dropbox Storage</strong> </span>
 						</p>
@@ -302,7 +380,7 @@
 			</p>
 		</div>
 		<div class="section-wrapper p-8 grid grid-rows-[auto_1fr_auto] gap-8">
-			<h2 class="h3 font-bold">Minio / AWS</h2>
+			<h2 class="h3">Minio / AWS</h2>
 			<div class="space-y-4">
 				{#if connections.minio}
 					<p>Your account has been connected to Minio / AWS successfully.</p>
@@ -340,5 +418,13 @@
 				for further reading.
 			</p>
 		</div>
+	</div>
+	<div
+		class="section-wrapper p-8 space-y-8 scroll-mt-4 flex justify-center items-center md:col-span-2"
+	>
+		<button class="button-error" on:click={deleteAccount}>
+			<Fa icon={faTrash} />
+			<span>Delete Account</span>
+		</button>
 	</div>
 </div>

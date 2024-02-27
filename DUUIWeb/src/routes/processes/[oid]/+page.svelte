@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
-	import { getTotalDuration, type DUUIDocument } from '$lib/duui/io.js'
+	import { IO, getTotalDuration, type DUUIDocument } from '$lib/duui/io.js'
 	import { Status, isActive } from '$lib/duui/monitor.js'
 	import { processToSeachParams } from '$lib/duui/process.js'
 	import { equals, formatFileSize, progresAsPercent, snakeToTitleCase } from '$lib/duui/utils/text'
@@ -18,10 +18,14 @@
 		faArrowLeft,
 		faArrowUpWideShort,
 		faCancel,
+		faChevronLeft,
 		faClockRotateLeft,
+		faFileDownload,
+		faFileUpload,
 		faFilter,
 		faListCheck,
 		faRefresh,
+		faRepeat,
 		faSearch,
 		faTrash
 	} from '@fortawesome/free-solid-svg-icons'
@@ -33,10 +37,10 @@
 		type DrawerSettings
 	} from '@skeletonlabs/skeleton'
 
+	import Search from '$lib/svelte/components/Input/Search.svelte'
+	import Select from '$lib/svelte/components/Input/Select.svelte'
 	import KeyValue from '$lib/svelte/components/KeyValue.svelte'
 	import Paginator from '$lib/svelte/components/Paginator.svelte'
-	import Search from '$lib/svelte/components/Search.svelte'
-	import Select from '$lib/svelte/components/Select.svelte'
 	import { showConfirmationModal } from '$lib/svelte/utils/modal'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
@@ -44,7 +48,9 @@
 	export let data
 	const toastStore = getToastStore()
 
-	let { pipeline, process, documents, count } = data
+	let { pipeline, process } = data
+	let documents: DUUIDocument[] = []
+	let count: number = 0
 
 	let progressPercent: number = 0
 
@@ -58,7 +64,7 @@
 	}
 
 	let sort: Sort = {
-		by: 0,
+		index: 0,
 		order: 1
 	}
 
@@ -97,6 +103,16 @@
 				clearInterval(interval)
 			}
 		}
+
+		async function loadApexCharts() {
+			const module = await import('apexcharts')
+			ApexCharts = module.default
+			window.ApexCharts = ApexCharts
+			loaded = true
+		}
+
+		loadApexCharts()
+
 		let interval: NodeJS.Timeout
 		if (!process.is_finished) {
 			interval = setInterval(updateProcess, UPDATE_INTERVAL)
@@ -165,7 +181,7 @@
 				?process_id=${process.oid}
 				&limit=${paginationSettings.limit}
 				&skip=${paginationSettings.limit * paginationSettings.page}
-				&sort=${sortMap.get(sort.by)}
+				&sort=${sortMap.get(sort.index)}
 				&order=${sort.order}
 				&search=${searchText}
 				&status=${filter.join(';')}`,
@@ -189,9 +205,10 @@
 	const showDocumentModal = (document: DUUIDocument) => {
 		const drawer: DrawerSettings = {
 			id: 'document',
-			width: 'w-full h-full',
-			position: 'bottom',
+			width: 'w-full lg:w-[60%] h-full',
+			position: 'right',
 			rounded: 'rounded-none',
+			border: 'border-l border-color',
 			meta: { process: process, document: document, pipeline: pipeline }
 		}
 
@@ -199,10 +216,35 @@
 	}
 
 	const sortTable = (index: number) => {
-		sort.order = sort.by !== index ? 1 : sort.order === 1 ? -1 : 1
-		sort.by = index
+		sort.order = sort.index !== index ? 1 : sort.order === 1 ? -1 : 1
+		sort.index = index
 		updateTable()
 	}
+
+	let ApexCharts
+	let loaded: boolean = false
+
+	const chart = (node: HTMLDivElement, options: any) => {
+		if (!loaded) return
+
+		let _chart = new ApexCharts(node, options)
+		_chart.render()
+
+		return {
+			update(options: any) {
+				_chart.updateOptions(options)
+			},
+			destroy() {
+				_chart.destroy()
+			}
+		}
+	}
+
+	// let progressChartOptions
+
+	// $: {
+	// 	progressChartOptions = getProgressChartOptions($isDarkModeStore)
+	// }
 </script>
 
 <div class="menu-mobile">
@@ -237,70 +279,79 @@
 </div>
 
 <div>
-	<div class="grid">
-		<div
-			class="sticky top-0 bg-surface-50-900-token border-y p-4 border-color hidden md:block z-[20]"
-		>
-			<div class="grid grid-cols-3 md:flex items-center md:justify-start gap-4 relative">
-				<a class="button-primary" href={`/pipelines/${pipeline.oid}?tab=1`}>
+	<div class="grid isolate">
+		<div class="sticky top-0 bg-surface-50-900-token border-b border-color hidden md:block z-[20]">
+			<div class="grid grid-cols-3 md:flex items-center md:justify-start relative">
+				<a class="anchor-menu border-r border-color" href={`/pipelines/${pipeline.oid}?tab=1`}>
 					<Fa icon={faArrowLeft} />
-					<span>Back</span>
+					<span>{pipeline.name}</span>
 				</a>
 				{#if process.is_finished}
-					<button class="button-primary" on:click={restart}>
-						<Fa icon={faRefresh} />
+					<button class="button-menu border-r border-color" on:click={restart}>
+						<Fa icon={faRepeat} />
 						<span>Restart</span>
 					</button>
-					<button class="button-error md:ml-auto" on:click={deleteProcess}>
+					<button class="button-menu border-l border-color md:ml-auto" on:click={deleteProcess}>
 						<Fa icon={faTrash} />
 						<span>Delete</span>
 					</button>
 				{:else}
-					<button class="button-error md:ml-auto" on:click={cancelProcess}>
+					<button class="button-menu border-l border-color md:ml-auto" on:click={cancelProcess}>
 						<Fa icon={faCancel} />
 						<span>Cancel</span>
 					</button>
 				{/if}
 			</div>
 		</div>
-		<ProgressBar
-			value={process.progress}
-			max={process.document_names.length}
-			height="h-4"
-			rounded="rounded-none"
-			meter="variant-filled-primary"
-		/>
-		<div class="p-4 py-8 space-y-4">
-			<div class="mx-auto grid md:flex items-center gap-8 justify-center h3">
-				<div class="flex items-center gap-4">
-					<Fa
-						size="lg"
-						icon={getStatusIcon(process.status)}
-						class={equals(process.status, Status.Active) ? 'animate-spin-slow ' : ''}
-					/>
-					<p>
-						{process.status}
-					</p>
-				</div>
-				<div class="flex items-center gap-4">
-					<Fa icon={faListCheck} size="lg" />
-					<p>
-						{process.progress} / {process.document_names.length} ({progresAsPercent(
-							process.progress,
-							process.document_names.length
-						)}%)
-					</p>
-				</div>
-				<div class="flex items-center gap-4">
-					<Fa icon={faClockRotateLeft} size="lg" />
-					<p>{getDuration(process.started_at, process.finished_at)}</p>
-				</div>
-			</div>
+
+		<div class="p-4 space-y-4 overflow-x-hidden">
 			{#if process.error}
-				<p class="text-error-500 font-bold p-2 md:max-w-[60ch] max-w-[40ch]">
+				<p
+					class="text-error-500 font-bold p-4 variant-soft-error bordered-soft text-center mx-auto max-w-screen-lg rounded-md"
+				>
 					ERROR: {process.error}
 				</p>
 			{/if}
+			<div>
+				<div
+					class="mx-auto grid md:grid-cols-3 items-center md:justify-between h3 section-wrapper p-4 md:divide-x divider
+					!border-b-0 !rounded-b-none"
+				>
+					<div class="flex-center-4 justify-center">
+						<Fa
+							icon={getStatusIcon(process.status)}
+							class={equals(process.status, Status.Active) ? 'animate-spin-slow ' : ''}
+						/>
+						<p>
+							{process.status}
+						</p>
+					</div>
+					<div class="flex-center-4 justify-center">
+						<Fa icon={faListCheck} />
+						<p>
+							{process.progress} / {process.document_names.length} ({progresAsPercent(
+								process.progress,
+								process.document_names.length
+							)}%)
+						</p>
+					</div>
+					<div class="flex-center-4 justify-center">
+						<Fa icon={faClockRotateLeft} />
+						<p>{getDuration(process.started_at, process.finished_at)}</p>
+					</div>
+				</div>
+				<div class="section-wrapper !border-t-0 !rounded-t-none overflow-hidden">
+					<ProgressBar
+						value={process.progress}
+						max={process.document_names.length}
+						height="h-4"
+						rounded="!rounded-none"
+						track="bg-surface-100-800-token"
+						meter="bg-gradient-to-r from-primary-500/50 to-primary-500"
+					/>
+				</div>
+			</div>
+
 			<div>
 				<div class="md:text-base flex items-center">
 					<div
@@ -330,64 +381,119 @@
 					</div>
 				</div>
 
-				<div class="section-wrapper !rounded-tr-none">
-					<div
-						class="grid grid-cols-3 lg:grid-cols-5 bg-surface-100-800-token border-b border-color"
-					>
-						{#each tableHeader as column, index}
-							<button
-								class="button-neutral border-none !rounded-none"
-								on:click={() => sortTable(index)}
-							>
-								<span>{column}</span>
-								{#if sort.by === index}
-									<Fa icon={sort.order === -1 ? faArrowDownWideShort : faArrowUpWideShort} />
-								{/if}
-							</button>
-						{/each}
-					</div>
+				<div class="space-y-4">
+					<div class="section-wrapper !rounded-tr-none">
+						<div
+							class="grid grid-cols-3 lg:grid-cols-5 bg-surface-100-800-token border-b border-color"
+						>
+							{#each tableHeader as column, index}
+								<button
+									class="button-neutral border-none !rounded-none !justify-start {index ===
+									sort.index
+										? 'bg-surface-50-900-token'
+										: ''}
+										{[3, 4].includes(index) ? '!hidden lg:!inline-flex' : ''}"
+									on:click={() => sortTable(index)}
+								>
+									<span>{column}</span>
+									{#if sort.index === index}
+										<Fa icon={sort.order === -1 ? faArrowDownWideShort : faArrowUpWideShort} />
+									{/if}
+								</button>
+							{/each}
+						</div>
 
-					<div class="overflow-hidden flex flex-col">
-						{#each documents as document}
-							<button
-								class="rounded-none
-										first:border-t-0 border-t border-color
+						<div class="overflow-hidden flex flex-col">
+							{#each documents as document}
+								<button
+									class="rounded-none
 										grid grid-cols-3 lg:grid-cols-5 gap-8 items-center
-										px-4 py-3
+										p-4
 										hover:variant-filled-primary
 										text-xs lg:text-sm text-start"
-								on:click={() => showDocumentModal(document)}
-							>
-								<p>{document.name}</p>
-								<div class="md:flex items-center justify-start md:gap-4 text-start">
-									<p>
-										{Math.round((Math.min(document.progress, maxProgress) / maxProgress) * 100)} %
+									on:click={() => showDocumentModal(document)}
+								>
+									<p>{document.name}</p>
+									<div class="md:flex items-center justify-start md:gap-4 text-start">
+										<p>
+											{Math.round((Math.min(document.progress, maxProgress) / maxProgress) * 100)} %
+										</p>
+									</div>
+									<p class="flex justify-start items-center gap-2 md:gap-4">
+										<Fa
+											icon={getDocumentStatusIcon(document)}
+											size="lg"
+											class="{equals(document.status, Status.Active)
+												? 'animate-spin-slow'
+												: equals(document.status, Status.Waiting)
+												? 'animate-hourglass'
+												: ''} w-6"
+										/>
+										<span>{document.status}</span>
 									</p>
-								</div>
-								<p class="flex justify-start items-center gap-2 md:gap-4">
-									<Fa
-										icon={getDocumentStatusIcon(document)}
-										size="lg"
-										class="{equals(document.status, Status.Active)
-											? 'animate-spin-slow'
-											: equals(document.status, Status.Waiting)
-											? 'animate-hourglass'
-											: ''} w-6"
-									/>
-									<span>{document.status}</span>
-								</p>
-								<p>{formatFileSize(document.size)}</p>
-								<p>{formatMilliseconds(getTotalDuration(document))}</p>
-							</button>
-						{/each}
+									<p class="hidden lg:inline-flex">{formatFileSize(document.size)}</p>
+									<p class="hidden lg:inline-flex">
+										{formatMilliseconds(getTotalDuration(document))}
+									</p>
+								</button>
+							{/each}
+						</div>
 					</div>
+					<Paginator bind:settings={paginationSettings} on:change={updateTable} />
 				</div>
-				<Paginator bind:settings={paginationSettings} on:change={updateTable} />
 			</div>
 
-			<div class="section-wrapper space-y-8 p-4 !mb-32">
+			<div class="section-wrapper space-y-8 p-4 !mb-16">
+				<h2 class="h3">Process Graph</h2>
+				<div
+					class="flex flex-col gap-8 items-center relative before:bg-surface-100-800-token isolate before:card
+						   before:absolute before:h-full before:w-1 before:-translate-x-1/2 before:left-1/2
+						   before:-z-50"
+				>
+					<div
+						class="card px-16 py-8 relative flex justify-center items-center gap-4 flex-col text-center"
+					>
+						<Fa icon={faFileDownload} size="2x" />
+						<p>{process.input.provider}</p>
+						<p>{process.document_names.length} Documents</p>
+					</div>
+					{#each pipeline.components as component}
+						<div class="card px-16 py-8 w-modal-slim text-center">
+							<p>{component.name}</p>
+						</div>
+					{/each}
+					{#if process.output.provider !== IO.None}
+						<div
+							class="card px-16 py-8 relative flex justify-center items-center gap-4 flex-col text-center"
+						>
+							<Fa icon={faFileUpload} size="2x" />
+							<p>{process.output.provider}</p>
+							<p>{process.document_names.length} Documents</p>
+						</div>
+					{/if}
+				</div>
+			</div>
+
+			<div class="section-wrapper space-y-8 p-4 !mb-16">
 				<div class="space-y-8">
-					<h2 class="h3">Settings</h2>
+					<div class="flex justify-between items-center gap-4">
+						<h2 class="h3">Settings</h2>
+						<button
+							class="button-neutral"
+							on:click={() =>
+								drawerStore.open({
+									id: 'process',
+									position: 'right',
+									rounded: 'rounded-none',
+									border: 'border-l border-color',
+									width: 'w-full sm:w-1/4',
+									meta: { process: process }
+								})}
+						>
+							<Fa icon={faChevronLeft} />
+							<span>Json</span>
+						</button>
+					</div>
 					<div class="grid md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-2">
 						<KeyValue key="Input" value={process.input.provider} />
 						<KeyValue key="Output" value={process.output.provider} />

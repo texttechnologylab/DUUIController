@@ -69,6 +69,12 @@ export interface DUUIComponent {
 	index: number
 }
 
+/**
+ * Create a blank component given a pipeline Id and an index in that pipeline.
+ * @param pipelineId
+ * @param index
+ * @returns
+ */
 export const blankComponent = (pipelineId: string, index: number) =>
 	<DUUIComponent>{
 		oid: uuidv4(),
@@ -98,6 +104,11 @@ export const blankComponent = (pipelineId: string, index: number) =>
 		index: index
 	}
 
+/**
+ *
+ * @param component the component to convert
+ * @returns An object with relevant component properties.
+ */
 export const componentToJson = (component: DUUIComponent) => {
 	return {
 		name: component.name,

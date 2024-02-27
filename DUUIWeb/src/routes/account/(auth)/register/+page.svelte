@@ -1,8 +1,8 @@
 <script lang="ts">
-	import Password from '$lib/svelte/components/Password.svelte'
+	import Password from '$lib/svelte/components/Input/Password.svelte'
 	import { faGlobe } from '@fortawesome/free-solid-svg-icons'
 	import { fly } from 'svelte/transition'
-	import Text from '$lib/svelte/components/TextInput.svelte'
+	import Text from '$lib/svelte/components/Input/TextInput.svelte'
 	import Fa from 'svelte-fa'
 	import { page } from '$app/stores'
 	import { userSession } from '$lib/store'
@@ -47,13 +47,9 @@
 
 		if (response.ok) {
 			userSession.set(result.user)
-			goto('/pipelines')
+			goto('/account')
 		} else {
-			if (result instanceof Object) {
-				message = result.message
-			} else {
-				message = result
-			}
+			message = result
 		}
 	}
 
@@ -77,7 +73,7 @@
 					{message}
 				</p>
 			{/if}
-			<h2 class="h2 font-bold mb-16">Register</h2>
+			<h2 class="h2 mb-16">Register</h2>
 			<div class="flex flex-col gap-8">
 				<div class="space-y-4">
 					<Text bind:value={email} label="Email" name="email" required />

@@ -2,11 +2,11 @@
 	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
 	import { userSession } from '$lib/store'
-	import Password from '$lib/svelte/components/Password.svelte'
+	import Password from '$lib/svelte/components/Input/Password.svelte'
 	import { faGlobe } from '@fortawesome/free-solid-svg-icons'
 	import Fa from 'svelte-fa'
 	import { fly } from 'svelte/transition'
-	import Text from '$lib/svelte/components/TextInput.svelte'
+	import Text from '$lib/svelte/components/Input/TextInput.svelte'
 	import { faGithub, faXTwitter } from '@fortawesome/free-brands-svg-icons'
 	import { onMount } from 'svelte'
 	import { scrollIntoView } from '$lib/duui/utils/ui'
@@ -69,7 +69,7 @@
 					{message}
 				</p>
 			{/if}
-			<h2 class="h2 font-bold mb-16">Login</h2>
+			<h2 class="h2 mb-16">Login</h2>
 			<div class="gap-8 flex flex-col">
 				<div class="space-y-4">
 					<Text bind:value={email} label="Email" name="email" />
@@ -104,7 +104,7 @@
 				   rounded-bl-[10%] bg-gradient-to-tr from-primary-500 to-primary-600 text-white
 				   flex-col justify-center items-center gap-16 translate-x-full"
 		>
-			<h2 class="h2 font-bold text-3xl text-center max-w-[15ch]">
+			<h2 class="h2 text-3xl text-center max-w-[15ch]">
 				{login ? 'Welcome Back' : 'Nice to meet you'}
 			</h2>
 

@@ -68,7 +68,6 @@
 					Using python with DUUI can be done by sending requests to the API. An example for creating
 					a pipeline and running it afterwards can be seen below.
 				</p>
-				<hr class="hr !w-full" />
 				<div class="space-y-4">
 					<h3 class="h3">Create a pipeline</h3>
 					<CodeBlock
@@ -78,65 +77,119 @@
 API_KEY = "YOUR API KEY"
 
 
-def main() -> None:
-    response = requests.post(
-        "api.duui.texttechnologylab.org/pipelines",
-        headers={"Authorization": API_KEY},
-        json={
-            "name": "Pipeline made with Python",
-            "description": "This pipeline has been created using the API with Python.",
-            "tags": ["Python", "Token"],
-            "settings": {
-                "timeout": 10000,
-            },
-            "components": [
-                {
-                    "name": "Tokenizer",
-                    "tags": ["UIMA", "Token", "Sentence"],
-                    "options": {
-                        "scale": 5,
-                    },
-                    "driver": "DUUIUIMADriver",
-                    "target": "de.tudarmstadt.ukp.dkpro.core.tokit.BreakIteratorSegmenter",
-                    "parameters": {"timeout": 50000},
-                }
-            ],
-        },
-    )
+from duui.client import DUUIClient
+from duui.config import API_KEY
+
+CLIENT = DUUIClient(API_KEY)
 
 
-if __name__ == "__main__":
-    main()
+my_pipeline = CLIENT.pipelines.create(
+	name="My Pipeline",
+	components=[
+		{
+			"name": "Tokenizer",
+			"tags": ["Token", "Sentence"],
+			"description": """Split the document into Tokens and Sentences
+				using the DKPro BreakIteratorSegmenter AnalysisEngine.""",
+			"driver": "DUUIUIMADriver",
+			"target": "de.tudarmstadt.ukp.dkpro.core.tokit.BreakIteratorSegmenter",
+		},
+		{
+			"name": "GerVADER",
+			"description": """GerVADER is a German adaptation of the sentiment
+				classification tool VADER. Classify sentences into positive,
+				negative or neutral statements.""",
+			"tags": ["Sentiment", "German"],
+			"driver": "DUUIDockerDriver",
+			"target": "docker.texttechnologylab.org/gervader_duui:latest",
+			"options": {"scale": 2, "use_GPU": True},
+		},
+	],
+	description="""This pipeline has been created using the API with Python.
+	It splits the document text into Tokens and Sentences
+	and then analyzes the Sentiment of these Sentences.""",
+	tags=["Python", "Sentence", "Sentiment"],
+)
 				`}
 					/>
 				</div>
 				<div class="space-y-4">
 					<h3 class="h3">Start a process</h3>
+					<p class="max-w-none">
+						Before starting a process, the pipeline is instantiated for better reusability. After a
+						process has completed, the pipeline won't shutdown but remain active for further
+						requests.
+					</p>
 					<CodeBlock
 						language="py"
-						code={`response = requests.post(
-	"api.duui.texttechnologylab.org/processes",
-	headers={"Authorization": API_KEY},
-	json={
-		"pipeline_id": "65bbb2ab10629974b51d19ca",
-		"input": {
-			"provider": "Dropbox",
-			"path": "/input",
-			"file_extension": ".txt",
-		},
-		"output": {
-			"provider": "Dropbox",
-			"file_extension": ".txt",
-			"path": "/output/python",
-		},
-		"settings": {
-			"recursive": True,
-			"minimum_size": 0,
-			"worker_count": 10,
-			"check_target": True,
-		},
+						code={`
+pipeline_id = my_pipeline.get("oid")
+# Instantiate the pipeline so it can be used multiple times
+# without the need to restart Docker components
+CLIENT.pipelines.instantiate(pipeline_id)
+
+# Start a process that finds .txt files with a minimum size of 500 bytes
+# recursively start from the /input directory in Dropbox.
+my_process = CLIENT.processes.start(
+	pipeline_id,
+	input={
+		"provider": "Dropbox",
+		"path": "/input",
+		"file_extension": ".txt"
 	},
+	output={
+		"provider": "Dropbox",
+		"path": "/output/python",
+		"file_extension": ".txt",
+	},
+	recursive=True,
+	sort_by_size=True,
+	minimum_size=500,
+	worker_count=3
 )
+`}
+					/>
+				</div>
+				<div class="space-y-4">
+					<h3 class="h3">Monitor the process</h3>
+					<CodeBlock
+						language="py"
+						code={`
+...
+
+import schedule
+import sys
+import time
+
+process_id = my_process.get("oid")
+
+def update() -> None:
+	process = CLIENT.processes.findOne(process_id)
+	documents = CLIENT.processes.documents(
+		process_id, status_filter=["Failed"], include_count=True
+	)
+	total = len(process["document_names"])
+
+	print(
+		f"""Progress: {round(process['progress'] / total * 100)}%
+		\t{documents['count']} Documents have failed.\r""",
+		end="",
+	)
+
+	if process["status"] in ["Completed", "Failed", "Cancelled"]:
+		print(
+			f"""Progress: {round(process['progress'] / total * 100)}
+			%\t{documents['count']} Documents have failed.""",
+		)
+
+		print(f"Process finished with status {process['status']}.")
+		sys.exit(0)
+
+schedule.every(5).seconds.do(update)
+
+while True:
+	schedule.run_pending()
+	time.sleep(1)
 				`}
 					/>
 				</div>
@@ -144,10 +197,6 @@ if __name__ == "__main__":
 		</div>
 	</div>
 </div>
-
-<a href="/documentation/api#rest" class="button-neutral rounded-full fixed bottom-8 right-8 z-50">
-	<Fa icon={faArrowUp} size="lg" />
-</a>
 
 <style>
 	h2,

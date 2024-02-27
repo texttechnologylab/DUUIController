@@ -1,18 +1,17 @@
 <script lang="ts">
 	import {
+		faAngleLeft,
+		faAngleRight,
 		faAnglesLeft,
-		faAnglesRight,
-		faChevronLeft,
-		faChevronRight
+		faAnglesRight
 	} from '@fortawesome/free-solid-svg-icons'
 	import { createEventDispatcher } from 'svelte'
-	import Dropdown from './Dropdown.svelte'
-	import IconButton from './IconButton.svelte'
+	import Fa from 'svelte-fa'
+	import Dropdown from './Input/Dropdown.svelte'
 
 	const dispatcher = createEventDispatcher()
 
 	export let settings: PaginationSettings
-	export let showJumpButtons: boolean = true
 
 	const decrement = () => {
 		settings.page = Math.max(settings.page - 1, 0)
@@ -22,7 +21,6 @@
 	const increment = () => {
 		if (settings.total <= (settings.page + 1) * settings.limit) return
 		settings.page += 1
-		
 		dispatcher('change')
 	}
 
@@ -30,66 +28,74 @@
 		settings.page = 0
 		dispatcher('change')
 	}
+
 	const toLast = () => {
-		settings.page = Math.ceil(settings.total / settings.limit)
-		if (1 + settings.page * settings.limit > settings.total) {
-			settings.page -= 1
+		let page = Math.floor(settings.total / settings.limit)
+		let first = settings.limit * page + 1
+
+		if (first > settings.total) {
+			page -= 1
 		}
+
+		settings.page = page
 		dispatcher('change')
 	}
 </script>
 
-<div
-	class="grid justify-center md:flex items-center md:justify-between gap-4 text-sm md:text-base py-4"
->
+<div class="justify-between flex gap-4 text-sm md:text-base">
 	<Dropdown
 		on:change={() => dispatcher('change')}
 		bind:value={settings.limit}
 		options={settings.sizes}
-		style="input-wrapper !bg-surface-50-900-token !py-2"
+		border="bordered-soft"
+		style="shadow-md grow bg-surface-50-900-token self-stretch"
 	/>
-	<div class="input-no-highlight !bg-surface-50-900-token !py-0 flex items-center justify-center">
-		{#if showJumpButtons}
-			<IconButton
+	<div
+		class="input-no-highlight bordered-soft !bg-surface-50-900-token !py-0 flex justify-center !rounded-md shadow-md overflow-hidden"
+	>
+		<div class="grid grid-cols-2">
+			<button
 				disabled={settings.page === 0}
-				_class="!bg-transparent text-primary-500 border-r border-surface-200 dark:border-surface-500 hover:variant-filled-primary"
-				rounded="rounded-none"
-				icon={faAnglesLeft}
 				on:click={toFirst}
-			/>
-		{/if}
-		<IconButton
-			disabled={settings.page === 0}
-			_class="!bg-transparent text-primary-500 border-r border-surface-200 dark:border-surface-500 hover:variant-filled-primary"
-			rounded="rounded-none"
-			icon={faChevronLeft}
-			on:click={decrement}
-		/>
-		{#if settings.total === 0}
-			<p class="px-4">No results</p>
-		{:else}
-			<p class="px-4">
-				{1 + settings.page * settings.limit}-{Math.min(
-					(settings.page + 1) * settings.limit,
-					settings.total
-				)} of {settings.total}
-			</p>
-		{/if}
-		<IconButton
-			disabled={settings.page === Math.floor(settings.total / settings.limit)}
-			_class="!bg-transparent text-primary-500 border-l border-surface-200 dark:border-surface-500 hover:variant-filled-primary"
-			rounded="rounded-none"
-			icon={faChevronRight}
-			on:click={increment}
-		/>
-		{#if showJumpButtons}
-			<IconButton
-				disabled={settings.page === Math.floor(settings.total / settings.limit)}
-				_class="!bg-transparent text-primary-500 border-l border-surface-200 dark:border-surface-500 hover:variant-filled-primary"
-				rounded="rounded-none"
-				icon={faAnglesRight}
+				class="button-neutral !aspect-square !border-none !rounded-none !justify-center"
+			>
+				<Fa icon={faAnglesLeft} />
+			</button>
+			<button
+				disabled={settings.page === 0}
+				on:click={decrement}
+				class="button-neutral !aspect-square !border-none !rounded-none !justify-center"
+			>
+				<Fa icon={faAngleLeft} />
+			</button>
+		</div>
+		<div class="px-4 self-center min-w-max">
+			{#if settings.total === 0}
+				<p>No results</p>
+			{:else}
+				<p>
+					{1 + settings.page * settings.limit}-{Math.min(
+						(settings.page + 1) * settings.limit,
+						settings.total
+					)} of {settings.total}
+				</p>
+			{/if}
+		</div>
+		<div class="grid grid-cols-2">
+			<button
+				disabled={(settings.page + 1) * settings.limit + 1 > settings.total}
+				on:click={increment}
+				class="button-neutral !aspect-square !border-none !rounded-none !justify-center"
+			>
+				<Fa icon={faAngleRight} />
+			</button>
+			<button
+				disabled={(settings.page + 1) * settings.limit + 1 > settings.total}
 				on:click={toLast}
-			/>
-		{/if}
+				class="button-neutral !aspect-square !border-none !rounded-none !justify-center"
+			>
+				<Fa icon={faAnglesRight} />
+			</button>
+		</div>
 	</div>
 </div>

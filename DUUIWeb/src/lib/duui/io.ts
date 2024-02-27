@@ -93,6 +93,17 @@ export const isValidInput = (input: DUUIDocumentProvider, files: FileList): bool
 	return true
 }
 
+export const isValidFileUpload = (storage: { provider: IO; path: string }) => {
+	if (equals(storage.provider, IO.Minio)) {
+		return isValidS3BucketName(storage.path || '').length === 0
+	}
+
+	if (equals(storage.provider, IO.Dropbox) && (storage.path === '/' || storage.path === ''))
+		return false
+
+	return true
+}
+
 /**
  * Check if the output settings are valid.
  *
