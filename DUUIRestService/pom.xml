@@ -138,6 +138,11 @@
             <version>4.10.2</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.github.texttechnologylab</groupId>
+            <artifactId>DockerUnifiedUIMAInterface</artifactId>
+            <version>${duui.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>de.tudarmstadt.ukp.dkpro.core</groupId>
@@ -164,11 +169,7 @@
             <version>1.10.0</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.github.texttechnologylab</groupId>
-            <artifactId>DockerUnifiedUIMAInterface</artifactId>
-            <version>${duui.version}</version>
-        </dependency>
+
         <!--        <dependency>-->
         <!--            <groupId>org.texttechnologylab</groupId>-->
         <!--            <artifactId>DockerUnifiedUIMAInterface</artifactId>-->
