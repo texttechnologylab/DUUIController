@@ -67,23 +67,7 @@ export const getTimelinePlotOptions = (
 	document: DUUIDocument,
 	darkmode: boolean
 ) => {
-	let steps: { x: string; y: number[] }[] = [
-		{
-			x: 'Setup',
-			y: [process.started_at, process.started_at + document.duration_wait]
-		}
-	]
-
-	let start = document.events.find((event) =>
-		event.event.message.includes('Starting to process')
-	)?.timestamp
-
-	if (start) {
-		steps.push({
-			x: 'Waiting',
-			y: [process.started_at + document.duration_wait, start]
-		})
-	}
+	let steps: { x: string; y: number[] }[] = []
 
 	const gridSettings = {
 		borderColor: darkmode ? '#e7e7e720' : '#29292920',

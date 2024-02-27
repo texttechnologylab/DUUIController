@@ -198,10 +198,6 @@ while True:
 	</div>
 </div>
 
-<a href="/documentation/api#rest" class="button-neutral rounded-full fixed bottom-8 right-8 z-50">
-	<Fa icon={faArrowUp} size="lg" />
-</a>
-
 <style>
 	h2,
 	h3 {

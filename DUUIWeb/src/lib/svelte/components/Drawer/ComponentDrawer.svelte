@@ -8,7 +8,6 @@
 		faCancel,
 		faFileCircleCheck,
 		faInfo,
-		faQuestion,
 		faTrash
 	} from '@fortawesome/free-solid-svg-icons'
 	import { getDrawerStore, getModalStore, getToastStore } from '@skeletonlabs/skeleton'
@@ -16,9 +15,9 @@
 	import { createEventDispatcher } from 'svelte'
 	import Fa from 'svelte-fa'
 	import { v4 as uuidv4 } from 'uuid'
+	import DriverIcon from '../DriverIcon.svelte'
 	import Chips from '../Input/Chips.svelte'
 	import ComponentOptions from '../Input/ComponentOptions.svelte'
-	import DriverIcon from '../DriverIcon.svelte'
 	import Dropdown from '../Input/Dropdown.svelte'
 	import JsonInput from '../Input/JsonInput.svelte'
 	import TextArea from '../Input/TextArea.svelte'

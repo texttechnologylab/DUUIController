@@ -54,20 +54,20 @@
 		<div class="space-y-4 px-2">
 			<p class="h3 p-2">API Reference</p>
 			<div class="flex flex-col gap-2">
-				<a href="/documentation/api#rest" class="flex-center-4 p-2 transition-300">
+				<a href="/documentation/api#rest" class="flex-center-4 p-2 transition-300 hover:text-primary-500">
 					{#if $page.url.href.endsWith('rest')}
 						<Fa icon={faAngleRight} />
 					{/if}
 					REST
 				</a>
 
-				<a class="flex-center-4 p-2 transition-300" href="/documentation/api#java">
+				<a class="flex-center-4 p-2 transition-300 hover:text-primary-500" href="/documentation/api#java">
 					{#if $page.url.href.endsWith('java')}
 						<Fa icon={faAngleRight} />
 					{/if}
 					Java
 				</a>
-				<a class="flex-center-4 p-2 transition-300" href="/documentation/api#python">
+				<a class="flex-center-4 p-2 transition-300 hover:text-primary-500" href="/documentation/api#python">
 					{#if $page.url.href.endsWith('python')}
 						<Fa icon={faAngleRight} />
 					{/if}

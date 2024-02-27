@@ -19,16 +19,10 @@ const getColor = (alternate: boolean = false) => {
 	} catch (err) {}
 
 	if (alternate) {
-		return invertHex(color)
+		return '#6495ED'
 	}
 	return color
 }
-
-function invertHex(hex: string) {
-	return (Number(`0x1${hex}`) ^ 0xffffff).toString(16).substring(1).toUpperCase()
-}
-
-invertHex('00FF00') // Returns FF00FF
 
 export const getStatusPlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) => {
 	if (!pipeline.statistics) return {}
@@ -145,34 +139,6 @@ export const getErrorsPlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) 
 			}
 		},
 		grid: gridSettings,
-		// xaxis: {
-		// 	categories: x,
-		// 	position: 'top',
-		// 	axisBorder: {
-		// 		show: false
-		// 	},
-		// 	axisTicks: {
-		// 		show: false
-		// 	},
-		// 	crosshairs: {
-		// 		fill: {
-		// 			type: 'gradient',
-		// 			gradient: {
-		// 				colorFrom: '#D8E3F0',
-		// 				colorTo: '#BED1E6',
-		// 				stops: [0, 100],
-		// 				opacityFrom: 0.4,
-		// 				opacityTo: 0.5
-		// 			}
-		// 		}
-		// 	},
-		// 	labels: {
-		// 		show: true,
-		// 		style: {
-		// 			colors: darkmode ? 'white' : 'black'
-		// 		}
-		// 	}
-		// },
 		yaxis: {
 			axisBorder: {
 				show: false
@@ -240,6 +206,11 @@ export const getIOPlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) => {
 		plotOptions: {
 			bar: {
 				borderRadius: 8
+			}
+		},
+		legend: {
+			labels: {
+				colors: darkmode ? 'white' : 'black'
 			}
 		},
 		grid: gridSettings,

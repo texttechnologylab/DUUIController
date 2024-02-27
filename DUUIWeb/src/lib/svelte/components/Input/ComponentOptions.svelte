@@ -47,7 +47,7 @@
 				<SlideToggle
 					background="bg-surface-200-700-token"
 					active="bg-primary-500"
-					rounded="rounded-sm"
+					rounded="rounded-full"
 					name="slider"
 					bind:checked={component.options.ignore_200_error}
 				>

@@ -2,11 +2,11 @@
 	import { blankComponent } from '$lib/duui/component'
 	import { currentPipelineStore, exampleComponent } from '$lib/store.js'
 	import Chips from '$lib/svelte/components/Input/Chips.svelte'
+	import TextInput from '$lib/svelte/components/Input/TextInput.svelte'
 	import PipelineCard from '$lib/svelte/components/PipelineCard.svelte'
 	import PipelineComponent from '$lib/svelte/components/PipelineComponent.svelte'
-	import TextInput from '$lib/svelte/components/Input/TextInput.svelte'
 	import { faArrowUp, faCheck, faClone, faEdit, faPlus } from '@fortawesome/free-solid-svg-icons'
-	import { TableOfContents, clipboard, tocCrawler } from '@skeletonlabs/skeleton'
+	import { clipboard } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
 
 	export let data
@@ -30,7 +30,7 @@
 	<h1 class="h1 scroll-mt-8">Documentation</h1>
 
 	<div class="flex items-start gap-8">
-		<div class="space-y-8 md:text-justify leading-normal" use:tocCrawler={{ mode: 'generate' }}>
+		<div class="space-y-8 md:text-justify leading-normal">
 			<!-- Introduction -->
 			<div class="space-y-4">
 				<h2 class="h2" id="introduction">Introduction</h2>
@@ -313,18 +313,8 @@
 				</div>
 			</div>
 		</div>
-		<TableOfContents
-			class="w-auto min-w-[300px] sticky top-28 hidden md:block section-wrapper p-4"
-		/>
 	</div>
 </div>
-
-<a
-	href="/documentation#introduction"
-	class="button-neutral rounded-full fixed bottom-8 right-8 z-[20]"
->
-	<Fa icon={faArrowUp} size="lg" />
-</a>
 
 <style>
 	h2 {

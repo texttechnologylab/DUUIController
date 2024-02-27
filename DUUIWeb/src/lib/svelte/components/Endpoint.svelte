@@ -8,7 +8,7 @@
 </script>
 
 <div class="endpoint">
-	<div class="flex gap-8 items-center p-4 bg-surface-50-900-token ">
+	<div class="flex gap-8 items-center p-4 bg-surface-50-900-token">
 		<p class="font-bold text-lg basis-16">{endpoint.method}</p>
 		<p>{endpoint.route}</p>
 		<button
@@ -19,7 +19,7 @@
 			<Fa icon={faChevronDown} size="lg" />
 		</button>
 	</div>
-	<div class:open={expanded} class="content dimmed bg-surface-100-800-token">
+	<div class:open={expanded} class="content bg-surface-100-800-token">
 		<div class="content-wrapper">
 			<div>
 				<div class="space-y-4 p-4 border-t border-color">
@@ -57,7 +57,7 @@
 						<p>All responses are returned as a JSON String.</p>
 						<div class="flex flex-wrap gap-2 items-start">
 							{#each endpoint.returns as response}
-								<p class="badge variant-ghost-primary">{response.code} - {response.message}</p>
+								<p class="tag">{response.code} - {response.message}</p>
 							{/each}
 						</div>
 					</div>
