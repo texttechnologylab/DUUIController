@@ -49,7 +49,11 @@
 			userSession.set(result.user)
 			goto('/account')
 		} else {
-			message = result
+			if (result instanceof Object) {
+				message = result.message
+			} else {
+				message = result
+			}
 		}
 	}
 

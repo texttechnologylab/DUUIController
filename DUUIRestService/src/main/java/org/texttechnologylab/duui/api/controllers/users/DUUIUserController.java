@@ -191,9 +191,7 @@ public class DUUIUserController {
         long expiresAt = System.currentTimeMillis() + 60 * 30 * 1000; // 30 Minutes
 
         DUUIMongoDBStorage
-            .getClient()
-            .getDatabase("duui")
-            .getCollection("users")
+            .Users()
             .findOneAndUpdate(Filters.eq("email", email),
                 Updates.combine(
                     Updates.set("password_reset_token", passwordResetToken),
@@ -231,9 +229,7 @@ public class DUUIUserController {
                 "You password reset duration has expired. Please request another reset.");
 
         DUUIMongoDBStorage
-            .getClient()
-            .getDatabase("duui")
-            .getCollection("users")
+            .Users()
             .findOneAndUpdate(
                 Filters.eq(user.getObjectId("_id")),
                 Updates.combine(
@@ -420,9 +416,7 @@ public class DUUIUserController {
         long timestamp = Instant.now().toEpochMilli();
 
         DUUIMongoDBStorage
-            .getClient()
-            .getDatabase("duui")
-            .getCollection("feedback")
+            .Feedback()
             .insertOne(
                 Document.parse(request.body())
                     .append("user_id", userId)

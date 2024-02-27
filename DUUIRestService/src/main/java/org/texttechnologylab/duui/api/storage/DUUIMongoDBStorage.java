@@ -1,6 +1,8 @@
 package org.texttechnologylab.duui.api.storage;
 
+import org.texttechnologylab.duui.api.Config;
 import org.texttechnologylab.duui.api.Main;
+import org.texttechnologylab.duui.api.controllers.users.DUUIUserController;
 import org.texttechnologylab.duui.api.metrics.providers.DUUIStorageMetrics;
 import org.texttechnologylab.duui.api.routes.DUUIRequestHelper;
 import com.mongodb.client.MongoClient;
@@ -19,6 +21,7 @@ import static org.texttechnologylab.duui.api.routes.DUUIRequestHelper.isNullOrEm
 public class DUUIMongoDBStorage {
 
     private static MongoClient mongoClient;
+    private static Config config;
 
     /**
      * Replaces the ObjectID object by a plain text representation of the id called oid.
@@ -84,12 +87,26 @@ public class DUUIMongoDBStorage {
      */
     public static MongoClient getClient() {
         if (mongoClient == null) {
-            mongoClient = MongoClients.create(getConnectionURI());
+            //mongodb://[username:password@]host1[:port1][,...hostN[:portN]][/[defaultauthdb][?options]]
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("mongodb://");
+            sb.append(config.getMongoUser());
+            sb.append(":");
+            sb.append(config.getMongoPassword());
+            sb.append("@");
+            sb.append(config.getMongoHost());
+            sb.append(":").append(config.getMongoPort());
+            sb.append("/?authSource=").append(config.getMongoDatabase());
+
+            mongoClient = MongoClients.create(sb.toString());
+//            mongoClient = MongoClients.create(getConnectionURI());
         }
         return mongoClient;
     }
 
-    public static void init() {
+    public static void init(Config config) {
+        DUUIMongoDBStorage.config = config;
         getClient();
     }
 
@@ -100,32 +117,36 @@ public class DUUIMongoDBStorage {
      */
     public static MongoCollection<Document> Pipelines() {
         DUUIStorageMetrics.incrementPipelinesCounter();
-        return getClient().getDatabase("duui").getCollection("pipelines");
+        return getClient().getDatabase(config.getMongoDatabase()).getCollection("pipelines");
     }
 
     public static MongoCollection<Document> Components() {
         DUUIStorageMetrics.incrementComponentsCounter();
-        return getClient().getDatabase("duui").getCollection("components");
+        return getClient().getDatabase(config.getMongoDatabase()).getCollection("components");
     }
 
     public static MongoCollection<Document> Users() {
         DUUIStorageMetrics.incrementUsersCounter();
-        return getClient().getDatabase("duui").getCollection("users");
+        return getClient().getDatabase(config.getMongoDatabase()).getCollection("users");
     }
 
     public static MongoCollection<Document> Documents() {
         DUUIStorageMetrics.incrementDocumentsCounter();
-        return getClient().getDatabase("duui").getCollection("documents");
+        return getClient().getDatabase(config.getMongoDatabase()).getCollection("documents");
     }
 
     public static MongoCollection<Document> Processses() {
         DUUIStorageMetrics.incrementProcesssesCounter();
-        return getClient().getDatabase("duui").getCollection("processes");
+        return getClient().getDatabase(config.getMongoDatabase()).getCollection("processes");
     }
 
     public static MongoCollection<Document> Events() {
         DUUIStorageMetrics.incrementEventsCounter();
-        return getClient().getDatabase("duui").getCollection("events");
+        return getClient().getDatabase(config.getMongoDatabase()).getCollection("events");
+    }
+
+    public static MongoCollection<Document> Feedback() {
+        return getClient().getDatabase(config.getMongoDatabase()).getCollection("feedback");
     }
 
 
