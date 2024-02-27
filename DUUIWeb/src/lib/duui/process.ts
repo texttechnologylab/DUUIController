@@ -21,7 +21,6 @@ export interface DUUIProcess {
 		minimum_size: number
 		worker_count: number
 		ignore_errors: boolean
-		language: string
 	}
 	document_names: string[]
 	is_finished: boolean
@@ -34,7 +33,7 @@ export interface DUUIProcess {
 }
 
 /**
- *
+ * 
  * @param process The process to convert to a string of search params.
  * @returns a string with settings for the process as serach parameters.
  */
@@ -55,9 +54,5 @@ export const processToSeachParams = (process: DUUIProcess) => {
 		&minimum_size=${process.settings.minimum_size || '0'}
 		&worker_count=${process.settings.worker_count || '1'}
 		&ignore_errors=${process.settings.ignore_errors || 'false'}
-		&language=${process.settings.language || 'Unspecified'}
 		`
 }
-
-export type Language = 'Unspecified' | 'German' | 'English' | 'French'
-export const Languages = ['Unspecified', 'German', 'English', 'French']

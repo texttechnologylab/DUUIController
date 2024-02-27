@@ -1,29 +1,15 @@
-import { COLORS } from '$lib/config'
 import type { DUUIDocument } from '$lib/duui/io'
 import type { DUUIEvent } from '$lib/duui/monitor'
 import type { DUUIPipeline } from '$lib/duui/pipeline'
 import type { DUUIProcess } from '$lib/duui/process'
 import { getDuration } from '$lib/duui/utils/time'
 
-const getColor = (alternate: boolean = false) => {
-	let color = COLORS.blue
-
-	try {
-		let THEME = document.body.dataset.theme || 'blue'
-		color = COLORS[THEME.replace('theme-', '')]
-	} catch (err) {}
-
-	if (alternate) {
-		return invertHex(color)
+const theme = {
+	palette: 'palette2', // upto palette10
+	monochrome: {
+		enabled: false
 	}
-	return color
 }
-
-function invertHex(hex: string) {
-	return (Number(`0x1${hex}`) ^ 0xffffff).toString(16).substring(1).toUpperCase()
-}
-
-invertHex('00FF00') // Returns FF00FF
 
 export const getAnnotationsPlotOptions = (annotations: Map<string, number>, darkmode: boolean) => {
 	if (!annotations) return {}
@@ -48,16 +34,10 @@ export const getAnnotationsPlotOptions = (annotations: Map<string, number>, dark
 		},
 		plotOptions: {
 			treemap: {
-				useFillColorAsStroke: true,
-				enableShades: true
+				useFillColorAsStroke: true
 			}
 		},
-		theme: {
-			monochrome: {
-				enabled: true,
-				color: getColor()
-			}
-		}
+		theme: theme
 	}
 }
 
@@ -67,7 +47,23 @@ export const getTimelinePlotOptions = (
 	document: DUUIDocument,
 	darkmode: boolean
 ) => {
-	let steps: { x: string; y: number[] }[] = []
+	let steps: { x: string; y: number[] }[] = [
+		{
+			x: 'Setup',
+			y: [process.started_at, process.started_at + document.duration_wait]
+		}
+	]
+
+	let start = document.events.find((event) =>
+		event.event.message.includes('Starting to process')
+	)?.timestamp
+
+	if (start) {
+		steps.push({
+			x: 'Waiting',
+			y: [process.started_at + document.duration_wait, start]
+		})
+	}
 
 	const gridSettings = {
 		borderColor: darkmode ? '#e7e7e720' : '#29292920',
@@ -104,8 +100,7 @@ export const getTimelinePlotOptions = (
 	return {
 		series: [
 			{
-				data: steps,
-				color: getColor()
+				data: steps
 			}
 		],
 		chart: {
@@ -149,8 +144,8 @@ export const getTimelinePlotOptions = (
 			labels: {
 				show: true,
 				style: {
-					colors: darkmode ? 'white' : 'black'
-				}
+					colors: darkmode ? 'white' : 'black',
+				},
 			}
 		},
 		tooltip: {
@@ -168,6 +163,7 @@ export const getTimelinePlotOptions = (
 					'</div>'
 				)
 			}
-		}
+		},
+		theme: theme
 	}
 }

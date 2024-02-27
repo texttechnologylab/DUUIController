@@ -1,27 +1,16 @@
 # DUUIController
 
-To build follow these steps for now:
-- Run ```mvn clean package -DskipTests```
-- Go to the generated jar and open it using any zip tool
-- Locate META-INF/org.apache.uima.fit/types.txt
-- Open types.txt and modify the content to
+For running, create a config.properties file that contains values for the following variables:
+
 ```
-classpath*:desc/type/*.xml
-classpath*:org/texttechnologylab/types/*.xml
+MONGO_DB_CONNECTION_STRING=
+DBX_APP_KEY               =
+DBX_APP_SECRET            =
+DBX_REDIRECT_URL          =
+PORT                      =
+HOST                      =
+FILE_UPLOAD_DIRECTORY     =
 ```
-- Save and close
-- Set the correct working directory (where to jar is located)
-- run 'java -jar DUUIRestService.jar PATH/TO/config.properties
- 
-#### In a config.properties file fill in the follow variables:
-- MONGO_DB_CONNECTION_STRING
-- DBX_APP_KEY               
-- DBX_APP_SECRET            
-- DBX_REDIRECT_URL          
-- ALLOWED_ORIGINS           
-- PORT                      
-- HOST                      
-- FILE_UPLOAD_DIRECTORY     
 
 The path to the config file should be passed as a command line argument.
 
