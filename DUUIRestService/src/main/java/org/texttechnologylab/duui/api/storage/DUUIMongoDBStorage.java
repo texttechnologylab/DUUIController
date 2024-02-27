@@ -103,6 +103,7 @@ public class DUUIMongoDBStorage {
             sb.append("/?authSource="+pConfig.getMongoDatabase());
 
             mongoClient = MongoClients.create(sb.toString());
+
 //            mongoClient = MongoClients.create(getConnectionURI());
         }
         return mongoClient;
