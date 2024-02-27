@@ -22,6 +22,22 @@ public class Config {
         return properties.getProperty("MONGO_DB_CONNECTION_STRING", null);
     }
 
+    public String getMongoHost(){
+        return properties.getProperty("MONGO_HOST", null);
+    }
+    public int getMongoPort(){
+        return Integer.parseInt(properties.getProperty("MONGO_PORT", "27017"));
+    }
+    public String getMongoUser(){
+        return properties.getProperty("MONGO_USER", null);
+    }
+    public String getMongoDatabase(){
+        return properties.getProperty("MONGO_DB", null);
+    }
+    public String getMongoPassword(){
+        return properties.getProperty("MONGO_PASSWORD", null);
+    }
+
     public String getDropboxKey() {
         return properties.getProperty("DBX_APP_KEY", null);
     }
