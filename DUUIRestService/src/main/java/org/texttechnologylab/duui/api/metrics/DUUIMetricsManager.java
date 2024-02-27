@@ -1,8 +1,8 @@
 package org.texttechnologylab.duui.api.metrics;
 
+import org.texttechnologylab.duui.api.metrics.providers.*;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.exporter.common.TextFormat;
-import org.texttechnologylab.duui.api.metrics.providers.*;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -14,6 +14,7 @@ public class DUUIMetricsManager {
         DUUIHTTPMetrics.register();
         DUUIProcessMetrics.register();
         DUUISystemMetrics.register();
+        DUUIStorageMetrics.register();
     }
 
     public static String export() throws IOException {

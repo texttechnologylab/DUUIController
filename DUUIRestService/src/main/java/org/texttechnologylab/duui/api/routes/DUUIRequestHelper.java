@@ -1,10 +1,11 @@
 package org.texttechnologylab.duui.api.routes;
 
-import org.bson.Document;
 import org.texttechnologylab.duui.api.controllers.users.DUUIUserController;
 import org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage;
+import org.bson.Document;
 import spark.Request;
 import spark.Response;
+
 
 import java.util.List;
 import java.util.Set;

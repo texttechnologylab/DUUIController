@@ -1,11 +1,10 @@
 package org.texttechnologylab.duui.api.controllers.pipelines;
 
-
 import org.texttechnologylab.duui.api.controllers.components.DUUIComponentController;
 import org.texttechnologylab.duui.api.controllers.processes.DUUIProcessController;
 import org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage;
+import org.texttechnologylab.duui.analysis.process.IDUUIProcessHandler;
 import org.texttechnologylab.duui.api.storage.MongoDBFilters;
-import org.texttechnologylab.duui.duui.process.IDUUIProcessHandler;
 import com.mongodb.client.model.*;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.uima.UIMAException;
@@ -30,9 +29,6 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import static org.texttechnologylab.duui.api.routes.DUUIRequestHelper.isNullOrEmpty;
-import static org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage.Pipelines;
-import static org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage.convertObjectIdToString;
-
 
 public class DUUIPipelineController {
     private static final Map<String, DUUIComposer> reusablePipelines = new HashMap<>();
@@ -70,7 +66,8 @@ public class DUUIPipelineController {
 
         try {
             result =
-                Pipelines()
+                DUUIMongoDBStorage
+                    .Pipelines()
                     .find(Filters.eq(new ObjectId(id)))
                     .first();
 
@@ -87,7 +84,7 @@ public class DUUIPipelineController {
             List<Document> components = DUUIComponentController.findMany(componentFilters);
             result.append("components", components);
         }
-        return convertObjectIdToString(result);
+        return DUUIMongoDBStorage.convertObjectIdToString(result);
     }
 
     /**
@@ -164,7 +161,8 @@ public class DUUIPipelineController {
             new Facet("count", Aggregates.count())
         ));
 
-        List<Document> documents = Pipelines()
+        List<Document> documents = DUUIMongoDBStorage
+            .Pipelines()
             .aggregate(aggregationPipeline)
             .into(new ArrayList<>());
 
@@ -205,7 +203,7 @@ public class DUUIPipelineController {
 
         DUUIMongoDBStorage
             .updateDocument(
-                Pipelines(),
+                DUUIMongoDBStorage.Pipelines(),
                 Filters.eq(new ObjectId(id)),
                 updates,
                 UPDATABLE_FIELDS
@@ -275,7 +273,8 @@ public class DUUIPipelineController {
      * @param id The pipeline id.
      */
     public static void updateTimesUsed(String id) {
-        Pipelines()
+        DUUIMongoDBStorage
+            .Pipelines()
             .updateOne(
                 Filters.eq(new ObjectId(id)),
                 Updates.combine(
@@ -300,7 +299,7 @@ public class DUUIPipelineController {
      * @return if the number of deleted pipelines is greater than 0.
      */
     public static boolean deleteOne(String id) {
-        return Pipelines()
+        return DUUIMongoDBStorage.Pipelines()
             .deleteOne(Filters.eq(new ObjectId(id)))
             .getDeletedCount() > 0;
     }
@@ -360,7 +359,7 @@ public class DUUIPipelineController {
      * @param pipelineId The identifier for the pipeline
      * @return A BSON Document with the aggregation result.
      */
-    public static Document getStatisticsForPipeline(String pipelineId) {
+    public static Document getPipelineStatistics(String pipelineId) {
         List<Document> facets = DUUIMongoDBStorage
             .Processses()
             .aggregate(

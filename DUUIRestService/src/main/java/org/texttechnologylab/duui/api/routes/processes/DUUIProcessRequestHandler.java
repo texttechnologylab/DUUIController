@@ -1,7 +1,8 @@
 package org.texttechnologylab.duui.api.routes.processes;
 
-
 import com.mongodb.client.model.Filters;
+import org.bson.Document;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
 import org.texttechnologylab.duui.api.controllers.documents.DUUIDocumentController;
 import org.texttechnologylab.duui.api.controllers.events.DUUIEventController;
 import org.texttechnologylab.duui.api.controllers.pipelines.DUUIPipelineController;
@@ -9,10 +10,9 @@ import org.texttechnologylab.duui.api.controllers.processes.DUUIProcessControlle
 import org.texttechnologylab.duui.api.controllers.processes.InsufficientWorkersException;
 import org.texttechnologylab.duui.api.controllers.processes.InvalidIOException;
 import org.texttechnologylab.duui.api.routes.DUUIRequestHelper;
+import org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage;
 import org.texttechnologylab.duui.api.storage.MongoDBFilters;
-import org.texttechnologylab.duui.duui.document.DUUIDocumentProvider;
-import org.bson.Document;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
+import org.texttechnologylab.duui.analysis.document.DUUIDocumentProvider;
 import spark.Request;
 import spark.Response;
 
@@ -23,9 +23,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static org.texttechnologylab.duui.api.controllers.processes.DUUIProcessController.findOneById;
-import static org.texttechnologylab.duui.api.routes.DUUIRequestHelper.*;
-import static org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage.convertObjectIdToString;
-import static org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage.getFilterOrAny;
 
 public class DUUIProcessRequestHandler {
 
@@ -35,7 +32,7 @@ public class DUUIProcessRequestHandler {
         Document process = findOneById(id);
         if (process == null) return DUUIRequestHelper.notFound(response);
 
-        convertObjectIdToString(process);
+        DUUIMongoDBStorage.convertObjectIdToString(process);
         response.status(200);
         return process.toJson();
     }
@@ -43,18 +40,18 @@ public class DUUIProcessRequestHandler {
     public static String findMany(Request request, Response response) {
         String pipelineId = request.queryParamOrDefault("pipeline_id", null);
 
-        if (isNullOrEmpty(pipelineId))
+        if (DUUIRequestHelper.isNullOrEmpty(pipelineId))
             return DUUIRequestHelper.badRequest(response,
                 "Missing pipeline_id parameter in url. Try /processes?pipeline_id=");
 
-        int limit = getLimit(request);
-        int skip = getSkip(request);
-        int order = getOrder(request, 1);
+        int limit = DUUIRequestHelper.getLimit(request);
+        int skip = DUUIRequestHelper.getSkip(request);
+        int order = DUUIRequestHelper.getOrder(request, 1);
         String sort = request.queryParamOrDefault("sort", "started_at");
 
-        List<String> statusFilter = getFilterOrAny(request, "status");
-        List<String> inputFilter = getFilterOrAny(request, "input");
-        List<String> outputFilter = getFilterOrAny(request, "output");
+        List<String> statusFilter = DUUIMongoDBStorage.getFilterOrDefault(request, "status");
+        List<String> inputFilter = DUUIMongoDBStorage.getFilterOrDefault(request, "input");
+        List<String> outputFilter = DUUIMongoDBStorage.getFilterOrDefault(request, "output");
 
         MongoDBFilters filters = new MongoDBFilters();
 
@@ -77,8 +74,7 @@ public class DUUIProcessRequestHandler {
 
         Document result = DUUIProcessController.findMany(filters);
 
-
-        if (result == null) return notFound(response);
+        if (result == null) return DUUIRequestHelper.notFound(response);
         return result.toJson();
     }
 
@@ -97,16 +93,17 @@ public class DUUIProcessRequestHandler {
         Document body = Document.parse(request.body());
 
         String pipelineId = body.getString("pipeline_id");
-        if (isNullOrEmpty(pipelineId)) return missingField(response, "pipeline_id");
+        if (DUUIRequestHelper.isNullOrEmpty(pipelineId))
+            return DUUIRequestHelper.missingField(response, "pipeline_id");
 
         Document pipeline = DUUIPipelineController.findOneById(pipelineId);
-        if (pipeline == null) return notFound(response);
+        if (pipeline == null) return DUUIRequestHelper.notFound(response);
 
         DUUIDocumentProvider input = new DUUIDocumentProvider(body.get("input", Document.class));
         DUUIDocumentProvider output = new DUUIDocumentProvider(body.get("output", Document.class));
 
         String error = DUUIDocumentController.validateDocumentProviders(input, output);
-        if (!error.isEmpty()) return missingField(response, error);
+        if (!error.isEmpty()) return DUUIRequestHelper.missingField(response, error);
 
         Document settings = body.get("settings", Document.class);
         try {
@@ -134,7 +131,7 @@ public class DUUIProcessRequestHandler {
         String id = request.params(":id");
 
         String result = DUUIProcessController.stop(id);
-        if (result == null) return notFound(response);
+        if (result == null) return DUUIRequestHelper.notFound(response);
 
         return result;
     }
@@ -142,28 +139,28 @@ public class DUUIProcessRequestHandler {
 
     public static String findDocuments(Request request, Response response) {
         String processId = request.params(":id");
-        String userID = getUserId(request);
+        String userID = DUUIRequestHelper.getUserId(request);
 
         Document process = DUUIProcessController.findOneById(processId);
-        if (isNullOrEmpty(process)) return notFound(response);
+        if (DUUIRequestHelper.isNullOrEmpty(process)) return DUUIRequestHelper.notFound(response);
 
         Document pipeline = DUUIPipelineController.findOneById(process.getString("pipeline_id"));
-        if (isNullOrEmpty(pipeline)) return notFound(response);
+        if (DUUIRequestHelper.isNullOrEmpty(pipeline)) return DUUIRequestHelper.notFound(response);
 
-        if (!pipeline.getString("user_id").equals(userID)) return notFound(response);
+        if (!pipeline.getString("user_id").equals(userID)) return DUUIRequestHelper.notFound(response);
 
         String statusNames = request.queryParamOrDefault("status", "Any");
-        if (isNullOrEmpty(statusNames)) statusNames = "Any";
+        if (DUUIRequestHelper.isNullOrEmpty(statusNames)) statusNames = "Any";
 
         List<String> statusFilter = Stream.of(statusNames.split(";"))
             .map(DUUIRequestHelper::toTitleCase)
             .toList();
 
         MongoDBFilters filters = new MongoDBFilters();
-        filters.limit(getLimit(request));
-        filters.skip(getSkip(request));
-        filters.order(getOrder(request, 1));
-        filters.sort(getSort(request, "name"));
+        filters.limit(DUUIRequestHelper.getLimit(request));
+        filters.skip(DUUIRequestHelper.getSkip(request));
+        filters.order(DUUIRequestHelper.getOrder(request, 1));
+        filters.sort(DUUIRequestHelper.getSort(request, "name"));
         filters.search(request.queryParamOrDefault("search", ""));
         filters.addFilter(Filters.and(
             Filters.eq("process_id", processId),
@@ -178,10 +175,10 @@ public class DUUIProcessRequestHandler {
 
     public static String findEvents(Request request, Response response) {
         String authorization = request.headers("Authorization");
-        authenticate(authorization);
+        DUUIRequestHelper.authenticate(authorization);
 
-        Document user = authenticate(authorization);
-        if (isNullOrEmpty(user)) return unauthorized(response);
+        Document user = DUUIRequestHelper.authenticate(authorization);
+        if (DUUIRequestHelper.isNullOrEmpty(user)) return DUUIRequestHelper.unauthorized(response);
 
         String id = request.params(":id");
         response.status(200);

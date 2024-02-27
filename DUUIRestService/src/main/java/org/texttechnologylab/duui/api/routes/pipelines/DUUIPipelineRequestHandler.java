@@ -1,8 +1,5 @@
 package org.texttechnologylab.duui.api.routes.pipelines;
 
-import com.mongodb.client.model.Filters;
-import org.bson.Document;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
 import org.texttechnologylab.duui.api.controllers.components.DUUIComponentController;
 import org.texttechnologylab.duui.api.controllers.pipelines.DUUIPipelineController;
 import org.texttechnologylab.duui.api.controllers.processes.DUUIProcessController;
@@ -10,17 +7,16 @@ import org.texttechnologylab.duui.api.controllers.users.Role;
 import org.texttechnologylab.duui.api.routes.DUUIRequestHelper;
 import org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage;
 import org.texttechnologylab.duui.api.storage.MongoDBFilters;
+import com.mongodb.client.model.Filters;
+import org.bson.Document;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
 import spark.Request;
 import spark.Response;
 
-import java.net.UnknownHostException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 
-import static org.texttechnologylab.duui.api.controllers.components.DUUIComponentController.mergeOptions;
-import static org.texttechnologylab.duui.api.controllers.pipelines.DUUIPipelineController.findOneById;
-import static org.texttechnologylab.duui.api.routes.DUUIRequestHelper.*;
 
 public class DUUIPipelineRequestHandler {
 
@@ -36,7 +32,7 @@ public class DUUIPipelineRequestHandler {
         String pipelineId = request.params(":id");
 
         boolean getComponents = request.queryParamOrDefault("components", "true").equals("true");
-        Document result = findOneById(pipelineId, getComponents);
+        Document result = DUUIPipelineController.findOneById(pipelineId, getComponents);
         if (result == null) return DUUIRequestHelper.notFound(response);
 
         String pipelineOwnerId = result.getString("user_id");
@@ -47,7 +43,7 @@ public class DUUIPipelineRequestHandler {
         }
 
         if (request.queryParamOrDefault("statistics", "false").equals("true")) {
-            Document statistics = DUUIPipelineController.getStatisticsForPipeline(pipelineId);
+            Document statistics = DUUIPipelineController.getPipelineStatistics(pipelineId);
             result.append("statistics", statistics);
         }
         return result.toJson();
@@ -63,9 +59,9 @@ public class DUUIPipelineRequestHandler {
         String userRole = DUUIRequestHelper.getUserProps(request, Set.of("role")).getString("role");
         if (userRole == null) return DUUIRequestHelper.unauthorized(response);
 
-        int limit = getLimit(request);
-        int skip = getSkip(request);
-        int order = getOrder(request, 1);
+        int limit = DUUIRequestHelper.getLimit(request);
+        int skip = DUUIRequestHelper.getSkip(request);
+        int order = DUUIRequestHelper.getOrder(request, 1);
 
         boolean templates = request.queryParamOrDefault("templates", "false").equals("true");
 
@@ -104,7 +100,7 @@ public class DUUIPipelineRequestHandler {
                 .getList("pipelines", Document.class)
                 .forEach(pipeline -> pipeline.append(
                     "statistics",
-                    DUUIPipelineController.getStatisticsForPipeline(pipeline.getString("oid"))));
+                    DUUIPipelineController.getPipelineStatistics(pipeline.getString("oid"))));
         }
 
         response.status(200);
@@ -115,11 +111,13 @@ public class DUUIPipelineRequestHandler {
         String userID = DUUIRequestHelper.getUserId(request);
 
         Document body = Document.parse(request.body());
+
         String name = body.getString("name");
-        if (isNullOrEmpty(name)) return DUUIRequestHelper.badRequest(response, "Missing field name");
+        if (DUUIRequestHelper.isNullOrEmpty(name))
+            return DUUIRequestHelper.badRequest(response, "Missing field name");
 
         List<Document> components = body.getList("components", Document.class);
-        if (isNullOrEmpty(components))
+        if (DUUIRequestHelper.isNullOrEmpty(components))
             return DUUIRequestHelper.badRequest(response, "Missing field components");
 
         boolean isTemplate = request
@@ -170,7 +168,7 @@ public class DUUIPipelineRequestHandler {
             }
 
             if (!component.containsKey("options")) {
-                component.append("options", mergeOptions(component.get("options", Document.class)));
+                component.append("options", DUUIComponentController.mergeOptions(component.get("options", Document.class)));
             }
         }
 
@@ -213,7 +211,7 @@ public class DUUIPipelineRequestHandler {
         return insert.toJson();
     }
 
-    public static String deleteOne(Request request, Response response) throws UnknownHostException {
+    public static String deleteOne(Request request, Response response) {
         String userID = DUUIRequestHelper.getUserId(request);
 
         Document user = DUUIRequestHelper.getUserProps(request, Set.of("role"));

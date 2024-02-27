@@ -1,6 +1,6 @@
-package org.texttechnologylab.duui.duui.document;
+package org.texttechnologylab.duui.analysis.document;
 
-import org.texttechnologylab.duui.duui.process.IDUUIProcessHandler;
+import org.texttechnologylab.duui.analysis.process.IDUUIProcessHandler;
 import org.bson.Document;
 
 import java.util.Objects;

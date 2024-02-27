@@ -1,13 +1,13 @@
-package org.texttechnologylab.duui.duui.process;
+package org.texttechnologylab.duui.analysis.process;
 
 import org.texttechnologylab.duui.api.controllers.documents.DUUIDocumentController;
 import org.texttechnologylab.duui.api.controllers.events.DUUIEventController;
 import org.texttechnologylab.duui.api.controllers.pipelines.DUUIPipelineController;
 import org.texttechnologylab.duui.api.controllers.processes.DUUIProcessController;
-import org.texttechnologylab.duui.api.controllers.users.DUUIUserController;
 import org.texttechnologylab.duui.api.metrics.providers.DUUIProcessMetrics;
-import org.texttechnologylab.duui.duui.document.DUUIDocumentProvider;
-import org.texttechnologylab.duui.duui.document.Provider;
+import org.texttechnologylab.duui.analysis.document.DUUIDocumentProvider;
+import org.texttechnologylab.duui.analysis.document.Provider;
+import org.texttechnologylab.duui.api.controllers.users.DUUIUserController;
 import com.dropbox.core.DbxException;
 import com.dropbox.core.v2.files.WriteMode;
 import de.tudarmstadt.ukp.dkpro.core.api.metadata.type.DocumentMetaData;
@@ -76,7 +76,7 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
             .withSkipVerification(true)
             .withDebugLevel(DUUIComposer.DebugLevel.DEBUG)
             .withIgnoreErrors(ignoreErrors)
-//            TODO versions of DUUI and this are incompatible
+//            TODO versions of DUUI and API are incompatible
 //            .withStorageBackend(
 //                new DUUIMongoDBStorageBackend(
 //                    DUUIMongoDBStorage.getConnectionURI()))
@@ -186,6 +186,7 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
                 .withOutputFileExtension(output.getFileExtension())
                 .withOutputHandler(outputHandler)
                 .withAddMetadata(true)
+                .withLanguage(DUUIProcessController.getLanguageCode(settings.getString("language")))
                 .withMinimumDocumentSize(Math.max(0, Math.min(Integer.MAX_VALUE, settings.getInteger("minimum_size"))))
                 .withSortBySize(settings.getBoolean("sort_by_size", false))
                 .withCheckTarget(settings.getBoolean("check_target", false))
@@ -229,6 +230,8 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
                 dmd.addToIndexes();
             }
 
+            cas.setDocumentLanguage(DUUIProcessController.getLanguageCode(settings.getString("language")));
+
             composer.addEvent(DUUIEvent.Sender.READER, "Starting Pipeline");
             DUUIProcessController.setStatus(getProcessID(), DUUIStatus.ACTIVE);
             status = DUUIStatus.ACTIVE;
@@ -266,6 +269,8 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
         DUUIProcessController.updatePipelineStatus(getProcessID(), composer.getPipelineStatus());
         DUUIProcessController.setProgress(getProcessID(), composer.getProgress());
         DUUIDocumentController.updateMany(getProcessID(), composer.getDocuments());
+        DUUIEventController.insertMany(getProcessID(), composer.getEvents());
+        DUUIProcessController.insertAnnotations(getProcessID(), composer.getDocuments());
     }
 
     @Override
@@ -308,6 +313,7 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
             .stream()
             .filter(document -> !DUUIStatus.oneOf(document.getStatus(), DUUIStatus.FAILED, DUUIStatus.CANCELLED))
             .forEach(document -> document.setStatus(DUUIStatus.COMPLETED));
+
     }
 
     @Override

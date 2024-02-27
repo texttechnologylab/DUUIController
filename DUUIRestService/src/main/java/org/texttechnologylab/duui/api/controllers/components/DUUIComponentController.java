@@ -1,11 +1,11 @@
 package org.texttechnologylab.duui.api.controllers.components;
 
+import org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage;
+import org.texttechnologylab.duui.api.storage.MongoDBFilters;
 import com.mongodb.client.model.*;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
-import org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage;
-import org.texttechnologylab.duui.api.storage.MongoDBFilters;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -15,7 +15,6 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import static org.texttechnologylab.duui.api.routes.DUUIRequestHelper.isNullOrEmpty;
-import static org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage.convertObjectIdToString;
 
 public class DUUIComponentController {
 
@@ -99,7 +98,7 @@ public class DUUIComponentController {
                 .Components()
                 .find(Filters.eq(new ObjectId(id)))
                 .first();
-            return convertObjectIdToString(component);
+            return DUUIMongoDBStorage.convertObjectIdToString(component);
         } catch (IllegalArgumentException exception) {
             return null;
         }
@@ -187,7 +186,7 @@ public class DUUIComponentController {
             .Components()
             .insertOne(component);
 
-        convertObjectIdToString(component);
+        DUUIMongoDBStorage.convertObjectIdToString(component);
         return component;
     }
 

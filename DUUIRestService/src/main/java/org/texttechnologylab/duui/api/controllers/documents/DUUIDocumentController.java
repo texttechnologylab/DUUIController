@@ -1,24 +1,23 @@
 package org.texttechnologylab.duui.api.controllers.documents;
 
+import org.texttechnologylab.duui.api.controllers.events.DUUIEventController;
+import org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage;
+import org.texttechnologylab.duui.api.storage.MongoDBFilters;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.model.*;
+import org.texttechnologylab.duui.analysis.document.DUUIDocumentProvider;
+import org.texttechnologylab.duui.analysis.document.Provider;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.DUUIDocument;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
-import org.texttechnologylab.duui.api.controllers.events.DUUIEventController;
-import org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage;
-import org.texttechnologylab.duui.api.storage.MongoDBFilters;
-import org.texttechnologylab.duui.duui.document.DUUIDocumentProvider;
-import org.texttechnologylab.duui.duui.document.Provider;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static org.texttechnologylab.duui.api.routes.DUUIRequestHelper.isNullOrEmpty;
-import static org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage.convertObjectIdToString;
+import static org.texttechnologylab.duui.api.routes.DUUIRequestHelper.*;
 
 public class DUUIDocumentController {
 
@@ -154,7 +153,7 @@ public class DUUIDocumentController {
             int count = result.get(0).getList("count", Document.class).get(0).getInteger("count");
 
             documents.forEach(document -> {
-                convertObjectIdToString(document);
+                DUUIMongoDBStorage.convertObjectIdToString(document);
                 List<Document> events = DUUIEventController.findManyByDocument(document.getString("oid"));
                 events.forEach(DUUIMongoDBStorage::convertObjectIdToString);
                 events.forEach(event -> DUUIMongoDBStorage.convertDateToTimestamp(event, "timestamp"));

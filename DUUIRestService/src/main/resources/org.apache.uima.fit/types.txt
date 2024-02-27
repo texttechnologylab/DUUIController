@@ -1,0 +1,2 @@
+classpath*:desc/type/*.xml
+classpath*:org/texttechnologylab/types/*.xml

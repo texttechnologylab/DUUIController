@@ -1,6 +1,7 @@
 package org.texttechnologylab.duui.api.controllers.users;
 
-
+import org.texttechnologylab.duui.api.Main;
+import org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage;
 import com.dropbox.core.*;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
@@ -9,8 +10,6 @@ import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
-import org.texttechnologylab.duui.api.Main;
-import org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage;
 import spark.Request;
 import spark.Response;
 
@@ -18,7 +17,6 @@ import java.time.Instant;
 import java.util.*;
 
 import static org.texttechnologylab.duui.api.routes.DUUIRequestHelper.*;
-import static org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage.convertObjectIdToString;
 
 
 public class DUUIUserController {
@@ -163,7 +161,7 @@ public class DUUIUserController {
             .Users()
             .insertOne(newUser);
 
-        convertObjectIdToString(newUser);
+        DUUIMongoDBStorage.convertObjectIdToString(newUser);
         response.status(200);
         return new Document("user", newUser).toJson();
     }
@@ -257,7 +255,7 @@ public class DUUIUserController {
 
         Document credentials = DUUIMongoDBStorage
             .Users()
-            .find(Filters.eq("email", email))
+            .find(Filters.eq("email", email.toLowerCase()))
             .projection(Projections.include("email", "password"))
             .first();
 
@@ -265,7 +263,7 @@ public class DUUIUserController {
             return notFound(response);
         }
 
-        convertObjectIdToString(credentials);
+        DUUIMongoDBStorage.convertObjectIdToString(credentials);
 
         response.status(200);
         return new Document("credentials", credentials).toJson();
@@ -316,7 +314,7 @@ public class DUUIUserController {
             .findOneAndUpdate(Filters.eq(new ObjectId(id)), updates);
 
         Document user = DUUIUserController.getUserById(id, __updatedFields);
-        convertObjectIdToString(user);
+        DUUIMongoDBStorage.convertObjectIdToString(user);
         return new Document("user", user).toJson();
     }
 
@@ -332,7 +330,7 @@ public class DUUIUserController {
         if (isNullOrEmpty(user))
             return notFound(response);
 
-        convertObjectIdToString(user);
+        DUUIMongoDBStorage.convertObjectIdToString(user);
 
         response.status(200);
         return new Document("user", user).toJson();
@@ -351,7 +349,7 @@ public class DUUIUserController {
                 response,
                 "User not fetchable. Are you logged in or have you provided an API key?");
 
-        convertObjectIdToString(user);
+        DUUIMongoDBStorage.convertObjectIdToString(user);
         return new Document("user", user).toJson();
     }
 
@@ -381,11 +379,11 @@ public class DUUIUserController {
         if (isNullOrEmpty(code)) return badRequest(response, "Missing code query parameter");
 
         DbxRequestConfig config = new DbxRequestConfig("Docker Unified UIMA interface");
-        DbxAppInfo info = new DbxAppInfo(Main.config.getDropboxAppKey(), Main.config.getDropboxAppSekret());
+        DbxAppInfo info = new DbxAppInfo(Main.config.getDropboxKey(), Main.config.getDropboxSecret());
         DbxWebAuth webAuth = new DbxWebAuth(config, info);
 
         try {
-            DbxAuthFinish finish = webAuth.finishFromCode(code, Main.config.getDropboxRedirectURL());
+            DbxAuthFinish finish = webAuth.finishFromCode(code, Main.config.getDropboxRedirectUrl());
             String accessToken = finish.getAccessToken();
             String refreshToken = finish.getRefreshToken();
             UpdateResult result = DUUIMongoDBStorage
@@ -411,9 +409,9 @@ public class DUUIUserController {
 
     public static String getDropboxAppSettings(Request request, Response response) {
         return new Document()
-            .append("key", Main.config.getDropboxAppKey())
-            .append("secret", Main.config.getDropboxAppSekret())
-            .append("url", Main.config.getDropboxRedirectURL())
+            .append("key", Main.config.getDropboxKey())
+            .append("secret", Main.config.getDropboxSecret())
+            .append("url", Main.config.getDropboxRedirectUrl())
             .toJson();
     }
 

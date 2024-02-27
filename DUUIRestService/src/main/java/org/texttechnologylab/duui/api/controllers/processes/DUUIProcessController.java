@@ -1,18 +1,5 @@
 package org.texttechnologylab.duui.api.controllers.processes;
 
-
-import com.dropbox.core.DbxException;
-import com.dropbox.core.DbxRequestConfig;
-import com.dropbox.core.oauth.DbxCredential;
-import com.mongodb.client.AggregateIterable;
-import com.mongodb.client.model.*;
-import com.mongodb.client.result.UpdateResult;
-import org.bson.Document;
-import org.bson.conversions.Bson;
-import org.bson.types.ObjectId;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.DUUIComposer;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.*;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
 import org.texttechnologylab.duui.api.Main;
 import org.texttechnologylab.duui.api.controllers.documents.DUUIDocumentController;
 import org.texttechnologylab.duui.api.controllers.events.DUUIEventController;
@@ -20,10 +7,23 @@ import org.texttechnologylab.duui.api.controllers.pipelines.DUUIPipelineControll
 import org.texttechnologylab.duui.api.controllers.users.DUUIUserController;
 import org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage;
 import org.texttechnologylab.duui.api.storage.MongoDBFilters;
-import org.texttechnologylab.duui.duui.document.DUUIDocumentProvider;
-import org.texttechnologylab.duui.duui.document.Provider;
-import org.texttechnologylab.duui.duui.process.DUUISimpleProcessHandler;
-import org.texttechnologylab.duui.duui.process.IDUUIProcessHandler;
+import com.dropbox.core.DbxException;
+import com.dropbox.core.DbxRequestConfig;
+import com.dropbox.core.oauth.DbxCredential;
+import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.model.*;
+import com.mongodb.client.result.UpdateResult;
+import org.texttechnologylab.duui.api.routes.DUUIRequestHelper;
+import org.texttechnologylab.duui.analysis.document.DUUIDocumentProvider;
+import org.texttechnologylab.duui.analysis.document.Provider;
+import org.texttechnologylab.duui.analysis.process.DUUISimpleProcessHandler;
+import org.texttechnologylab.duui.analysis.process.IDUUIProcessHandler;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.DUUIComposer;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.*;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,8 +33,6 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.texttechnologylab.duui.api.routes.DUUIRequestHelper.isNullOrEmpty;
-import static org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage.convertObjectIdToString;
 
 public class DUUIProcessController {
 
@@ -54,7 +52,17 @@ public class DUUIProcessController {
             .append("sort_by_size", false)
             .append("minimum_size", 0)
             .append("worker_count", 1)
-            .append("ignore_errors", true);
+            .append("ignore_errors", true)
+            .append("language", "");
+    }
+
+    public static String getLanguageCode(String language) {
+        return switch (language.toLowerCase()) {
+            case "german" -> "de";
+            case "english" -> "en";
+            case "french" -> "fr";
+            default -> "";
+        };
     }
 
     /**
@@ -65,7 +73,7 @@ public class DUUIProcessController {
      * @return the settings with added missing entries.
      */
     public static Document mergeSettings(Document settings) {
-        if (isNullOrEmpty(settings)) {
+        if (DUUIRequestHelper.isNullOrEmpty(settings)) {
             return getDefaultSettings();
         } else {
             Document defaultOptions = getDefaultSettings();
@@ -92,7 +100,7 @@ public class DUUIProcessController {
 
         if (process == null) return null;
 
-        return convertObjectIdToString(process.append("count", documentCount(id)));
+        return DUUIMongoDBStorage.convertObjectIdToString(process.append("count", documentCount(id)));
     }
 
     /**
@@ -118,11 +126,23 @@ public class DUUIProcessController {
         List<Bson> aggregationPipeline = new ArrayList<>();
         List<Bson> processFacet = new ArrayList<>();
 
+
+        /*
+          Add a count and duration field to the matching entries.
+          The dollar sign prefix indicates an aggregation method (size, subtract)
+          or an existing field (document_names, started_at, finished_at)
+         */
+
         aggregationPipeline.add(Aggregates.addFields(
-            new Field<>("count", new Document("$size", "$document_names")),
-            new Field<>("duration", new Document("$subtract", List.of("$finished_at", "$started_at")))
+            new Field<>("count",
+                new Document("$size", "$document_names")),
+
+            new Field<>("duration",
+                new Document("$subtract", List.of("$finished_at", "$started_at")))
         ));
 
+
+        // Apply filters to the collection, reducing the number of returned entries.
         if (!filters.getFilters().isEmpty()) {
             aggregationPipeline.add(Aggregates.match(Filters.and(filters.getFilters())));
         }
@@ -244,7 +264,7 @@ public class DUUIProcessController {
             .Processses()
             .insertOne(process);
 
-        convertObjectIdToString(process);
+        DUUIMongoDBStorage.convertObjectIdToString(process);
         String processId = process.getString("oid");
 
         Map<String, DUUIComposer> reusablePipelines = DUUIPipelineController.getReusablePipelines();
@@ -283,7 +303,7 @@ public class DUUIProcessController {
                     Filters.ne("is_finished", true)))
             .first();
 
-        if (isNullOrEmpty(process)) return null;
+        if (DUUIRequestHelper.isNullOrEmpty(process)) return null;
 
         IDUUIProcessHandler processHandler = activeProcesses.get(id);
 
@@ -493,8 +513,8 @@ public class DUUIProcessController {
                     credentials.getString("access_token"),
                     1L,
                     credentials.getString("refresh_token"),
-                    Main.config.getDropboxAppKey(),
-                    Main.config.getDropboxAppSekret()
+                    Main.config.getDropboxKey(),
+                    Main.config.getDropboxSecret()
                 )
             );
         } else if (provider.equalsIgnoreCase(Provider.MINIO)) {
@@ -535,5 +555,21 @@ public class DUUIProcessController {
     public static InputStream downloadFile(IDUUIDocumentHandler handler, String path) throws IOException {
         DUUIDocument document = handler.readDocument(path);
         return document.toInputStream();
+    }
+
+    public static Document getAverageRunDurationByProvider(String pipelineId) {
+        List<Document> pipeline = DUUIMongoDBStorage
+            .Processses()
+            .aggregate(
+                List.of(
+                    Aggregates.match(Filters.eq("pipeline_id", pipelineId)),
+                    Aggregates.addFields(new Field<>("duration",
+                        new Document("$subtract", List.of("$finished_at", "$started_at")))),
+                    Aggregates.group("$input.provider", Accumulators.avg("$duration", 1))
+                )
+            ).into(new ArrayList<>());
+
+        if (DUUIRequestHelper.isNullOrEmpty(pipeline)) return new Document();
+        return pipeline.get(0);
     }
 }

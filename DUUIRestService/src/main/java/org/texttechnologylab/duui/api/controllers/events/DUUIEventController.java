@@ -1,5 +1,7 @@
 package org.texttechnologylab.duui.api.controllers.events;
 
+import org.texttechnologylab.duui.api.controllers.documents.DUUIDocumentController;
+import org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Aggregates;
@@ -8,8 +10,6 @@ import com.mongodb.client.model.Sorts;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIEvent;
-import org.texttechnologylab.duui.api.controllers.documents.DUUIDocumentController;
-import org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -78,32 +78,39 @@ public class DUUIEventController {
      * @param events    The list of events to insert.
      */
     public static void insertMany(String processId, List<DUUIEvent> events) {
-        Document latestInsert = DUUIMongoDBStorage
-            .Events()
-            .find(Filters.eq("event.process_id", processId))
-            .sort(Sorts.descending("timestamp"))
-            .limit(1)
-            .first();
 
-        if (latestInsert != null) {
-            String message = latestInsert.get("event", Document.class).getString("message");
-            long timestamp = latestInsert.get("timestamp", Date.class).toInstant().toEpochMilli();
-            events = events.stream().filter(event -> event.getTimestamp() >= timestamp
-                && !event.getMessage().equals(message)).toList();
-        }
+//        Document latestInsert = DUUIMongoDBStorage
+//            .Events()
+//            .find(Filters.eq("event.process_id", processId))
+//            .sort(Sorts.descending("timestamp"))
+//            .limit(1)
+//            .first();
+//
+//        if (latestInsert != null) {
+//            String message = latestInsert.get("event", Document.class).getString("message");
+//            long timestamp = latestInsert.get("timestamp", Date.class).toInstant().toEpochMilli();
+//            events = events.stream().filter(event -> event.getTimestamp() >= timestamp
+//                && !event.getMessage().equals(message)).toList();
+//        }
+
+        List<DUUIEvent> inserts = new ArrayList<>(events);
 
         if (events.isEmpty()) return;
 
         DUUIMongoDBStorage
             .Events()
-            .insertMany(events.stream().map(event -> new Document(
-                "timestamp", new Date(event.getTimestamp()))
-                .append("event",
-                    new Document("process_id", processId)
-                        .append("sender", event.getSender())
-                        .append("message", event.getMessage())
-                )
-            ).collect(Collectors.toList()));
-    }
+            .insertMany(
+                events
+                    .stream()
+                    .map(event -> new Document(
+                        "timestamp", new Date(event.getTimestamp()))
+                        .append("event",
+                            new Document("process_id", processId)
+                                .append("sender", event.getSender())
+                                .append("message", event.getMessage())
+                        ))
+                    .collect(Collectors.toList()));
 
+        events.removeAll(inserts);
+    }
 }

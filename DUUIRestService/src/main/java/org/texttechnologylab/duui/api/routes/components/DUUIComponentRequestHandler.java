@@ -1,22 +1,18 @@
 package org.texttechnologylab.duui.api.routes.components;
 
-
-import com.mongodb.client.model.Filters;
-import org.bson.Document;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
 import org.texttechnologylab.duui.api.controllers.components.DUUIComponentController;
 import org.texttechnologylab.duui.api.routes.DUUIRequestHelper;
 import org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage;
 import org.texttechnologylab.duui.api.storage.MongoDBFilters;
+import com.mongodb.client.model.Filters;
+import org.bson.Document;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
 import spark.Request;
 import spark.Response;
 
 import java.util.List;
 import java.util.Set;
 
-
-import static org.texttechnologylab.duui.api.routes.DUUIRequestHelper.*;
-import static org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage.convertObjectIdToString;
 
 public class DUUIComponentRequestHandler {
 
@@ -39,26 +35,28 @@ public class DUUIComponentRequestHandler {
      * @return Response message
      */
     public static String insertOne(Request request, Response response) {
-        String userId = getUserId(request);
+        String userId = DUUIRequestHelper.getUserId(request);
         Document data = Document.parse(request.body());
 
         String name = data.getString("name");
-        if (isNullOrEmpty(name)) return missingField(response, "name");
+        if (DUUIRequestHelper.isNullOrEmpty(name)) return DUUIRequestHelper.missingField(response, "name");
 
-        if (isNullOrEmpty(data.getString("target"))) return missingField(response, "target");
+        if (DUUIRequestHelper.isNullOrEmpty(data.getString("target")))
+            return DUUIRequestHelper.missingField(response, "target");
         String driver = data.getString("driver");
-        if (isNullOrEmpty(driver)) return missingField(response, "driver");
+        if (DUUIRequestHelper.isNullOrEmpty(driver))
+            return DUUIRequestHelper.missingField(response, "driver");
         if (!DRIVERS.contains(driver))
-            return badRequest(response, "Driver must be one of " + String.join(", ", DRIVERS));
+            return DUUIRequestHelper.badRequest(response, "Driver must be one of " + String.join(", ", DRIVERS));
 
         boolean isTemplate = request.queryParamOrDefault("template", "false").equals("true");
 
-        if (isNullOrEmpty(String.valueOf(data.getInteger("index"))) && !isTemplate)
-            return missingField(response, "index");
+        if (DUUIRequestHelper.isNullOrEmpty(String.valueOf(data.getInteger("index"))) && !isTemplate)
+            return DUUIRequestHelper.missingField(response, "index");
 
         Document options = data.get("options", Document.class);
         Document parameters = data.get("parameters", Document.class);
-        if (isNullOrEmpty(parameters)) parameters = new Document();
+        if (DUUIRequestHelper.isNullOrEmpty(parameters)) parameters = new Document();
 
 
         Document component = DUUIComponentController
@@ -90,10 +88,10 @@ public class DUUIComponentRequestHandler {
 
 
         Document component = DUUIComponentController.findOneById(id);
-        if (isNullOrEmpty(component)) return DUUIRequestHelper.notFound(response);
+        if (DUUIRequestHelper.isNullOrEmpty(component)) return DUUIRequestHelper.notFound(response);
 
         response.status(200);
-        return convertObjectIdToString(component).toJson();
+        return DUUIMongoDBStorage.convertObjectIdToString(component).toJson();
 
     }
 
@@ -108,10 +106,10 @@ public class DUUIComponentRequestHandler {
         String userRole = DUUIRequestHelper.getUserProps(request, Set.of("role")).getString("role");
         if (userRole == null) return DUUIRequestHelper.unauthorized(response);
 
-        int limit = getLimit(request);
-        int skip = getSkip(request);
-        String sort = getSort(request, "name");
-        int order = getOrder(request, 1);
+        int limit = DUUIRequestHelper.getLimit(request);
+        int skip = DUUIRequestHelper.getSkip(request);
+        String sort = DUUIRequestHelper.getSort(request, "name");
+        int order = DUUIRequestHelper.getOrder(request, 1);
 
         String search = request.queryParamOrDefault("search", null);
         String pipelineId = request.queryParamOrDefault("pipeline_id", "");
@@ -170,7 +168,7 @@ public class DUUIComponentRequestHandler {
             response.status(200);
             return "Deleted";
         } else {
-            return notFound(response);
+            return DUUIRequestHelper.notFound(response);
         }
     }
 }
