@@ -13,19 +13,21 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 		method: 'GET'
 	})
 
-	const credentials: {
-		key: string
-		secret: string
-		url: string
-	} = await response.json()
+	let dropbBoxURL: String = new String('')
 
-	const dbxAuth = new DropboxAuth({
-		clientId: credentials.key,
-		clientSecret: credentials.secret
-	})
+	try {
+		const credentials: {
+			key: string
+			secret: string
+			url: string
+		} = await response.json()
 
-	const getDropboxAuthURL = async () => {
-		const response = await dbxAuth.getAuthenticationUrl(
+		const dbxAuth = new DropboxAuth({
+			clientId: credentials.key,
+			clientSecret: credentials.secret
+		})
+
+		dropbBoxURL = await dbxAuth.getAuthenticationUrl(
 			credentials.url,
 			cookies.get('session') || '',
 			'code',
@@ -34,8 +36,7 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 			undefined,
 			false
 		)
-		return response
-	}
+	} catch (error) {}
 
 	const fetchProfile = async () => {
 		const response = await fetch(`${API_URL}/users/${locals.user?.oid}`, {
@@ -50,7 +51,7 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 	}
 
 	return {
-		dropbBoxURL: getDropboxAuthURL(),
+		dropbBoxURL: dropbBoxURL,
 		registered: (cookies.get('just_registered') || 'false') === 'true',
 		user: (await fetchProfile()).user,
 		theme: +(cookies.get('theme') || '0')
