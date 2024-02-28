@@ -92,7 +92,7 @@ const register = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 				email: email,
 				password: encryptedPassword,
 				session: session,
-				role: 'User'
+				role: 'Admin'
 			})
 		})
 
