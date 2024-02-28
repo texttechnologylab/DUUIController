@@ -8,7 +8,7 @@ export async function GET({ url, cookies }) {
 		`${API_URL}/files?provider=${provider}&path=${path}`,
 		{
 			method: 'GET',
-			mode: 'cors',
+			
 			headers: {
 				Authorization: cookies.get('session') || ''
 			}

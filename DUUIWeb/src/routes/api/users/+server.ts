@@ -10,7 +10,7 @@ export const PUT = async ({ request, locals }) => {
 
 	const response = await fetch(`${API_URL}/users/${user.oid}`, {
 		method: 'PUT',
-		mode: 'cors',
+		
 		body: JSON.stringify(await request.json())
 	})
 
@@ -25,7 +25,7 @@ export const DELETE = async ({ cookies, locals }) => {
 
 	await fetch(`${API_URL}/users/${user.oid}`, {
 		method: 'DELETE',
-		mode: 'cors',
+		
 		headers: {
 			Authorization: cookies.get('session') || ''
 		}

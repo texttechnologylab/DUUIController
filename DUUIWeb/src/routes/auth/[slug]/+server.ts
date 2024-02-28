@@ -17,8 +17,7 @@ const login = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 	}
 
 	const response = await fetch(`${API_URL}/users/auth/login/${email}`, {
-		method: 'GET',
-		mode: 'cors'
+		method: 'GET'
 	})
 
 	if (!response.ok) {
@@ -43,7 +42,7 @@ const login = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 
 	const update = await fetch(`${API_URL}/users/${credentials.oid}`, {
 		method: 'PUT',
-		mode: 'cors',
+
 		body: JSON.stringify({
 			session: crypto.randomUUID()
 		})
@@ -73,8 +72,7 @@ const register = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 	}
 
 	const response = await fetch(`${API_URL}/users/auth/login/${email}`, {
-		method: 'GET',
-		mode: 'cors'
+		method: 'GET'
 	})
 
 	if (response.status !== 404) {
@@ -95,7 +93,7 @@ const register = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 
 	const postResponse = await fetch(`${API_URL}/users`, {
 		method: 'POST',
-		mode: 'cors',
+
 		body: JSON.stringify({
 			email: email,
 			password: encryptedPassword,

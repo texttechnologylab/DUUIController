@@ -41,7 +41,6 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 	const fetchProfile = async () => {
 		const response = await fetch(`${API_URL}/users/${locals.user?.oid}`, {
 			method: 'GET',
-			mode: 'cors'
 		})
 
 		if (!response.ok) {

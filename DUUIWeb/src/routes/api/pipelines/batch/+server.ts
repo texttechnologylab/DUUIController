@@ -20,7 +20,7 @@ export const GET: RequestHandler = async ({ fetch, locals, url, cookies }) => {
 		&order=${order}`,
 			{
 				method: 'GET',
-				mode: 'cors',
+				
 				headers: {
 					Authorization: cookies.get('session') || ''
 				}

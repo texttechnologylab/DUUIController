@@ -16,7 +16,7 @@ export const PUT = async ({ locals }) => {
 
 	const response = await fetch(`${API_URL}/users/${user.oid}`, {
 		method: 'PUT',
-		mode: 'cors',
+		
 		body: JSON.stringify({ 'connections.key': generatKey() })
 	})
 
@@ -32,7 +32,7 @@ export const DELETE = async ({ locals }) => {
 
 	const response = await fetch(`${API_URL}/users/${user.oid}`, {
 		method: 'PUT',
-		mode: 'cors',
+		
 		body: JSON.stringify({ 'connections.key': null })
 	})
 

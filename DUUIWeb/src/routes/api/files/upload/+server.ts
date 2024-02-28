@@ -10,7 +10,7 @@ export async function POST({ request, cookies, url }) {
 		`${API_URL}/files?store=${store}&provider=${provider}&path=${path}`,
 		{
 			method: 'POST',
-			mode: 'cors',
+			
 			body: formData,
 			headers: {
 				Authorization: cookies.get('session') || ''

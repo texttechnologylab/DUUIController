@@ -22,7 +22,7 @@ import type { PageServerLoad } from './$types'
 
 // 	const response = await fetch(`${API_URL}/users/${user?.oid}`, {
 // 		method: 'PUT',
-// 		mode: 'cors',
+// 		
 // 		body: JSON.stringify({
 // 			'connections.dropbox.access_token': access_token,
 // 			'connections.dropbox.refresh_token': refresh_token

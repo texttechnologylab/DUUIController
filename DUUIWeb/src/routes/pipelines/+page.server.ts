@@ -18,7 +18,7 @@ export const load: PageServerLoad = async ({
 
 		const response = await fetch(`${API_URL}/pipelines?limit=${limit}`, {
 			method: 'GET',
-			mode: 'cors',
+			
 			headers: {
 				Authorization: cookies.get('session') || ''
 			}

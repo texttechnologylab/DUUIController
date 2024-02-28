@@ -6,7 +6,7 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 	const fetchComponentTemplates = async (): Promise<{ components: DUUIComponent[] }> => {
 		const response = await fetch(`${API_URL}/components`, {
 			method: 'GET',
-			mode: 'cors',
+			
 			headers: {
 				Authorization: cookies.get('session') || ''
 			}
@@ -24,7 +24,7 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 			`${API_URL}/pipelines?limit=25&sort=times_used&order=-1&templates=true`,
 			{
 				method: 'GET',
-				mode: 'cors',
+				
 				headers: {
 					Authorization: cookies.get('session') || ''
 				}

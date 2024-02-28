@@ -39,7 +39,7 @@ export const GET: RequestHandler = async (event) => {
 			&status=${statusFilters}`,
 			{
 				method: 'GET',
-				mode: 'cors',
+				
 				headers: {
 					Authorization: cookies.get('session') || ''
 				}

@@ -20,7 +20,7 @@ export async function DELETE({ request, cookies }) {
 
 	const response = await fetch(`${API_URL}/${component ? 'components' : 'pipelines'}/${data.oid}`, {
 		method: 'DELETE',
-		mode: 'cors',
+		
 		headers: {
 			Authorization: cookies.get('session') || ''
 		}
@@ -34,7 +34,7 @@ export async function PUT({ request, cookies }) {
 
 	const response = await fetch(`${API_URL}/pipelines/${data.oid}`, {
 		method: 'PUT',
-		mode: 'cors',
+		
 		body: JSON.stringify(data),
 		headers: {
 			Authorization: cookies.get('session') || ''
@@ -50,7 +50,7 @@ export async function POST({ request, cookies, url }) {
 
 	const response = await fetch(`${API_URL}/pipelines?template=${isTemplate}`, {
 		method: 'POST',
-		mode: 'cors',
+		
 		body: JSON.stringify(pipeline),
 		headers: {
 			Authorization: cookies.get('session') || ''

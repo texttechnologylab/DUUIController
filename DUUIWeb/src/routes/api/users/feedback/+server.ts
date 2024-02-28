@@ -12,7 +12,7 @@ export const POST = async ({ request, cookies, locals }) => {
 
 	const response = await fetch(`${API_URL}/users/${user.oid}/feedback`, {
 		method: 'POST',
-		mode: 'cors',
+		
 		body: JSON.stringify(Object.fromEntries(feedback.entries())),
 		headers: {
 			Authorization: cookies.get('session') || ''

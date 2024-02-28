@@ -7,7 +7,7 @@ import type { PageServerLoad } from './$types'
 export const load: PageServerLoad = async ({ params, cookies, url }) => {
 	const response = await fetch(`${API_URL}/processes/${params.oid}`, {
 		method: 'GET',
-		mode: 'cors',
+		
 		headers: {
 			Authorization: cookies.get('session') || ''
 		}
@@ -18,7 +18,7 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 	const loadPipeline = async (process: DUUIProcess): Promise<DUUIPipeline> => {
 		const response = await fetch(`${API_URL}/pipelines/${process.pipeline_id}`, {
 			method: 'GET',
-			mode: 'cors',
+			
 			headers: {
 				Authorization: cookies.get('session') || ''
 			}
@@ -52,7 +52,7 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 	// 		&status=${filter}`,
 	// 		{
 	// 			method: 'GET',
-	// 			mode: 'cors',
+	// 			
 	// 			headers: {
 	// 				Authorization: cookies.get('session') || ''
 	// 			}

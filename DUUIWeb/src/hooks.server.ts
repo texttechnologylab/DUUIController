@@ -7,7 +7,7 @@ const fetchUser = async (
 ) => {
 	const response = await fetch(`${API_URL}/users/auth/`, {
 		method: 'GET',
-		mode: 'cors',
+
 		headers: {
 			Authorization: session
 		}

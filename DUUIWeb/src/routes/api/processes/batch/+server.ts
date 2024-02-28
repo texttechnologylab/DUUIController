@@ -27,7 +27,7 @@ export const GET: RequestHandler = async (event) => {
 			&output=${output}`,
 			{
 				method: 'GET',
-				mode: 'cors',
+				
 				headers: {
 					Authorization: cookies.get('session') || ''
 				}

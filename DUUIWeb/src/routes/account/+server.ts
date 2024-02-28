@@ -9,7 +9,7 @@ export async function PUT({ request, locals }) {
 
 	const response = await fetch(`${API_URL}/users/${user.oid}`, {
 		method: 'PUT',
-		mode: 'cors',
+		
 		body: JSON.stringify(await request.json())
 	})
 
