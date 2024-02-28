@@ -75,45 +75,51 @@ const register = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 		method: 'GET'
 	})
 
-	if (response.status !== 404) {
+	if (response.status === 404) {
+		if (password1 !== password2) {
+			return fail(422, {
+				error: 'Passwords do not match'
+			})
+		}
+
+		const encryptedPassword = await bcrypt.hash(password1.toString(), 10)
+		const session = crypto.randomUUID()
+
+		const postResponse = await fetch(`${API_URL}/users`, {
+			method: 'POST',
+
+			body: JSON.stringify({
+				email: email,
+				password: encryptedPassword,
+				session: session,
+				role: 'User'
+			})
+		})
+
+		const { user } = await postResponse.json()
+
+		if (postResponse.ok) {
+			event.cookies.set('just_registered', 'true', {
+				path: '/',
+				sameSite: 'lax',
+				httpOnly: true,
+				secure: process.env.NODE_ENV === 'production',
+				maxAge: 60 * 60 * 24 * 30
+			})
+		}
+		return json({ user: user })
+	}
+
+	if (response.status === 401) {
 		return fail(302, {
-			error:
-				'This email address is already registered. If you forgot your password, you can reset it.'
+			error: 'Something went wrong during registration. Please try again later.'
 		})
 	}
 
-	if (password1 !== password2) {
-		return fail(422, {
-			error: 'Passwords do not match'
-		})
-	}
-
-	const encryptedPassword = await bcrypt.hash(password1.toString(), 10)
-	const session = crypto.randomUUID()
-
-	const postResponse = await fetch(`${API_URL}/users`, {
-		method: 'POST',
-
-		body: JSON.stringify({
-			email: email,
-			password: encryptedPassword,
-			session: session,
-			role: 'User'
-		})
+	return fail(302, {
+		error:
+			'This email address is already registered. If you forgot your password, you can reset it.'
 	})
-
-	const { user } = await postResponse.json()
-
-	if (postResponse.ok) {
-		event.cookies.set('just_registered', 'true', {
-			path: '/',
-			sameSite: 'lax',
-			httpOnly: true,
-			secure: process.env.NODE_ENV === 'production',
-			maxAge: 60 * 60 * 24 * 30
-		})
-	}
-	return json({ user: user })
 }
 
 export const POST: RequestHandler = async (event) => {
