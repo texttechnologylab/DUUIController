@@ -117,7 +117,6 @@ export const componentToJson = (component: DUUIComponent) => {
 		driver: component.driver,
 		target: component.target,
 		options: component.options,
-		parameters: component.parameters,
-		index: component.index
+		parameters: component.parameters
 	}
 }

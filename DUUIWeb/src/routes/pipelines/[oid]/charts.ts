@@ -16,11 +16,12 @@ const getColor = (alternate: boolean = false) => {
 	try {
 		let THEME = document.body.dataset.theme || 'blue'
 		color = COLORS[THEME.replace('theme-', '')]
+		if (alternate) {
+			return "#696969"
+		}
 	} catch (err) {}
 
-	if (alternate) {
-		return '#6495ED'
-	}
+	
 	return color
 }
 
@@ -286,7 +287,7 @@ export const getUsagePlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) =
 	let yValues = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 	for (let index = 0; index < xLabels.length; index++) {
 		for (let item of pipeline.statistics.usage) {
-			if (item._id.year === year && item._id.month === index) {
+			if (item._id.year === year && item._id.month - 1 === index) {
 				yValues[index] = item.count
 			}
 		}

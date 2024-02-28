@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { DUUIDrivers, type DUUIComponent } from '$lib/duui/component'
+	import { DUUIDrivers, type DUUIComponent, componentToJson } from '$lib/duui/component'
 	import { errorToast, successToast } from '$lib/duui/utils/ui'
 	import { currentPipelineStore, exampleComponent } from '$lib/store'
 	import { showConfirmationModal } from '$lib/svelte/utils/modal'
@@ -7,10 +7,12 @@
 		faAngleDoubleRight,
 		faCancel,
 		faFileCircleCheck,
+		faFileExport,
+		faFileImport,
 		faInfo,
 		faTrash
 	} from '@fortawesome/free-solid-svg-icons'
-	import { getDrawerStore, getModalStore, getToastStore } from '@skeletonlabs/skeleton'
+	import { FileButton, getDrawerStore, getModalStore, getToastStore } from '@skeletonlabs/skeleton'
 	import pkg from 'lodash'
 	import { createEventDispatcher } from 'svelte'
 	import Fa from 'svelte-fa'
@@ -68,22 +70,24 @@
 			$currentPipelineStore.components = $currentPipelineStore.components
 		} else {
 			component.parameters = Object.fromEntries(parameters)
+
 			const response = await fetch('/api/components', {
 				method: 'POST',
 				body: JSON.stringify({
 					...component,
-					index: $currentPipelineStore.components.length,
+					index: component.index || $currentPipelineStore.components.length,
 					pipeline_id: $currentPipelineStore.oid
 				})
 			})
 
 			if (response.ok) {
 				const result: DUUIComponent = await response.json()
-
-				$currentPipelineStore.components = [
-					...$currentPipelineStore.components,
-					{ ...result, id: uuidv4() }
-				]
+				$currentPipelineStore.components.splice(component.index, 0, { ...result, id: uuidv4() })
+				$currentPipelineStore.components = $currentPipelineStore.components.map(
+					(c: DUUIComponent) => {
+						return { ...c, index: $currentPipelineStore.components.indexOf(c) }
+					}
+				)
 			} else {
 				errorToast(response.statusText)
 			}
@@ -96,8 +100,13 @@
 		if (creating) {
 			const copy = cloneDeep(component)
 			copy.id = uuidv4()
-			copy.index = $currentPipelineStore.components.length
-			$currentPipelineStore.components = [...$currentPipelineStore.components, copy]
+			copy.index = component.index || $currentPipelineStore.components.length
+			$currentPipelineStore.components.splice(copy.index, 0, copy)
+			$currentPipelineStore.components = $currentPipelineStore.components.map(
+				(c: DUUIComponent) => {
+					return { ...c, index: $currentPipelineStore.components.indexOf(c) }
+				}
+			)
 		} else {
 			$currentPipelineStore.components[component.index] = component
 		}
@@ -153,6 +162,20 @@
 		}
 
 		drawerStore.close()
+	}
+
+	const exportComponent = () => {
+		const blob = new Blob([JSON.stringify(componentToJson(component))], {
+			type: 'application/json'
+		})
+		const url = URL.createObjectURL(blob)
+		const anchor = document.createElement('a')
+		anchor.href = url
+		anchor.download = `${component.name}.json`
+		document.body.appendChild(anchor)
+		anchor.click()
+		document.body.removeChild(anchor)
+		URL.revokeObjectURL(url)
 	}
 </script>
 
@@ -213,19 +236,13 @@
 		class="p-4 flex-center-4 justify-between sticky top-0 z-10 bg-surface-100-800-token border-b border-color"
 	>
 		<div class="flex-center-4">
-			<!-- <button
-				class="!hidden md:!inline-flex button-neutral !rounded-full aspect-square !p-3"
-				on:click={drawerStore.close}
-			>
-				<Fa icon={faAngleDoubleRight} size="lg" />
-			</button> -->
 			<div class="flex-center-4">
 				<DriverIcon driver={component.driver} />
 				<h3 class="h3">{component.name}</h3>
 			</div>
 		</div>
 
-		<div class="hidden md:block space-x-2">
+		<div class="hidden md:flex space-x-2">
 			{#if example}
 				<button
 					disabled={!component.driver || !component.name || !component.target}
@@ -253,8 +270,12 @@
 					Cancel
 				</button>
 			{:else}
+				<button class="button-neutral" on:click={exportComponent}>
+					<Fa icon={faFileExport} />
+					<span>Export</span>
+				</button>
 				<button
-					class="button-neutral ml-auto"
+					class="button-neutral"
 					on:click={() => (inEditor ? onEdited() : onUpdate())}
 					disabled={!component.driver || !component.name || !component.target}
 				>

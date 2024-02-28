@@ -10,16 +10,13 @@
 		faFileExport,
 		faPause,
 		faPlay,
-		faPlus,
 		faRocket,
 		faRotate,
-		faToolbox,
 		faTrash
 	} from '@fortawesome/free-solid-svg-icons'
 	import {
 		getDrawerStore,
 		getModalStore,
-		type DrawerSettings,
 		type ModalSettings
 	} from '@skeletonlabs/skeleton'
 
@@ -29,7 +26,7 @@
 	import { v4 as uuidv4 } from 'uuid'
 
 	import { page } from '$app/stores'
-	import { blankComponent, type DUUIComponent } from '$lib/duui/component'
+	import { type DUUIComponent } from '$lib/duui/component'
 	import { PROCESS_STATUS_NAMES, Status } from '$lib/duui/monitor'
 	import { pipelineToJson } from '$lib/duui/pipeline'
 	import type { DUUIProcess } from '$lib/duui/process'
@@ -37,19 +34,19 @@
 	import { getDuration } from '$lib/duui/utils/time'
 	import { errorToast, getStatusIcon, infoToast, scrollIntoView } from '$lib/duui/utils/ui'
 	import { currentPipelineStore, isDarkModeStore } from '$lib/store'
+	import ComponentPopup from '$lib/svelte/components/ComponentPopup.svelte'
 	import Chips from '$lib/svelte/components/Input/Chips.svelte'
 	import JsonInput from '$lib/svelte/components/Input/JsonInput.svelte'
 	import Select from '$lib/svelte/components/Input/Select.svelte'
 	import TextArea from '$lib/svelte/components/Input/TextArea.svelte'
 	import Text from '$lib/svelte/components/Input/TextInput.svelte'
 	import Paginator from '$lib/svelte/components/Paginator.svelte'
-	import { getToastStore, Tab, TabGroup } from '@skeletonlabs/skeleton'
+	import { Tab, TabGroup, getToastStore } from '@skeletonlabs/skeleton'
 	import type { PageServerData } from './$types'
 
 	import { componentDrawerSettings } from '$lib/config'
 	import { IO_INPUT, IO_OUTPUT } from '$lib/duui/io'
 	import MobilePopup from '$lib/svelte/components/MobilePopup.svelte'
-	import Popup from '$lib/svelte/components/Popup.svelte'
 	import { showConfirmationModal } from '$lib/svelte/utils/modal'
 	import { getFilterOrGeneric } from '$lib/utils'
 	import { onMount } from 'svelte'
@@ -132,7 +129,7 @@
 			return { ...c, index: $currentPipelineStore.components.indexOf(c) }
 		})
 
-		let response = await fetch('/api/pipelines', {
+		await fetch('/api/pipelines', {
 			method: 'PUT',
 			body: JSON.stringify($currentPipelineStore)
 		})
@@ -297,19 +294,6 @@
 		)
 	}
 	const drawerStore = getDrawerStore()
-	const addDrawer: DrawerSettings = {
-		id: 'component',
-		...componentDrawerSettings,
-		meta: {
-			component: blankComponent($currentPipelineStore.oid, $currentPipelineStore.components.length),
-			inEditor: false,
-			creating: true
-		}
-	}
-
-	const addComponent = () => {
-		drawerStore.open(addDrawer)
-	}
 
 	const cloneComponent = ({ component }) => {
 		drawerStore.open({
@@ -608,82 +592,14 @@
 											before:bg-surface-100-800-token before:-z-50 before:scale-y-[200%]
 											"
 										>
-											<Popup position="top">
-												<svelte:fragment slot="trigger">
-													<button
-														class="button-neutral bg-surface-100-800-token !aspect-square !rounded-full !p-3"
-													>
-														<Fa icon={faPlus} />
-													</button>
-												</svelte:fragment>
-												<svelte:fragment slot="popup">
-													<div class="popup-solid">
-														<div class="flex flex-col p-4 gap-2">
-															<button
-																class="button-neutral !border-none !justify-start"
-																on:click={addComponent}
-															>
-																<Fa icon={faPlus} />
-																<span>New</span>
-															</button>
-															<button
-																class="button-neutral !border-none !justify-start"
-																on:click={() => {
-																	modalStore.trigger({
-																		type: 'component',
-																		component: 'templateModal',
-																		meta: { templates: templateComponents }
-																	})
-																}}
-															>
-																<Fa icon={faToolbox} />
-																<span>Template</span>
-															</button>
-														</div>
-													</div>
-												</svelte:fragment>
-											</Popup>
+											<ComponentPopup {templateComponents} index={component.index + 1} />
 										</div>
 									{/if}
 								</div>
 							{/each}
 						</ul>
 						<div class="mx-auto flex items-center justify-center">
-							<Popup position="top">
-								<svelte:fragment slot="trigger">
-									<button
-										class="button-neutral bg-surface-100-800-token !aspect-square !rounded-full !p-3"
-									>
-										<Fa icon={faPlus} />
-									</button>
-								</svelte:fragment>
-								<svelte:fragment slot="popup">
-									<div class="popup-solid">
-										<div class="flex flex-col p-4 gap-2">
-											<button
-												class="button-neutral !border-none !justify-start"
-												on:click={addComponent}
-											>
-												<Fa icon={faPlus} />
-												<span>New</span>
-											</button>
-											<button
-												class="button-neutral !border-none !justify-start"
-												on:click={() => {
-													modalStore.trigger({
-														type: 'component',
-														component: 'templateModal',
-														meta: { templates: templateComponents }
-													})
-												}}
-											>
-												<Fa icon={faToolbox} />
-												<span>Template</span>
-											</button>
-										</div>
-									</div>
-								</svelte:fragment>
-							</Popup>
+							<ComponentPopup {templateComponents} />
 						</div>
 					</div>
 				</div>

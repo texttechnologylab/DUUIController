@@ -233,11 +233,15 @@
 <div class="gap-4 max-w-7xl md:py-16 grid md:grid-cols-2 items-start">
 	<div class="section-wrapper p-8 space-y-4">
 		<h2 class="h3">Profile</h2>
-		<Text label="Name" name="name" bind:value={name} />
+		<!-- <Text label="Name" name="name" bind:value={name} /> -->
 
 		<div class="label">
 			<p class="form-label">Theme</p>
-			<RadioGroup class="section-wrapper w-full" active="variant-filled-primary" padding="p-4">
+			<RadioGroup
+				class="grid grid-cols-2 gap-2 p-2 section-wrapper w-full"
+				active="variant-filled-primary"
+				padding="p-4"
+			>
 				<RadioItem bind:group={theme} name="blue" value={0} on:click={() => updateTheme('blue')}
 					>Blue</RadioItem
 				>
@@ -252,7 +256,7 @@
 				>
 			</RadioGroup>
 		</div>
-		<button
+		<!-- <button
 			class="button-neutral"
 			disabled={!name}
 			on:click={() =>
@@ -262,7 +266,7 @@
 		>
 			<Fa icon={faCheck} />
 			<span>Save</span>
-		</button>
+		</button> -->
 	</div>
 
 	<div class="space-y-4">

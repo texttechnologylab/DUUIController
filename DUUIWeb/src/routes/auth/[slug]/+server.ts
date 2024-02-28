@@ -2,6 +2,7 @@ import { API_URL } from '$env/static/private'
 import { error, fail, json, type RequestEvent } from '@sveltejs/kit'
 import bcrypt from 'bcrypt'
 import type { RequestHandler, RouteParams } from './$types'
+import { createSession } from '$lib/utils'
 
 const login = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 	const data = await event.request.json()
@@ -52,11 +53,7 @@ const login = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 
 	if (update.ok) {
 		event.cookies.delete('just_registered', {
-			path: '/',
-			sameSite: 'lax',
-			httpOnly: true,
-			secure: process.env.NODE_ENV === 'production',
-			maxAge: 60 * 60 * 24 * 30
+			path: '/'
 		})
 	}
 	return json({ user: user })
@@ -103,7 +100,7 @@ const register = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 			email: email,
 			password: encryptedPassword,
 			session: session,
-			role: 'Trial'
+			role: 'User'
 		})
 	})
 
@@ -158,13 +155,7 @@ export const POST: RequestHandler = async (event) => {
 	const { user } = await authenticationResult.json()
 
 	event.locals.user = user
-	cookies.set('session', user.session, {
-		path: '/',
-		sameSite: 'lax',
-		httpOnly: true,
-		secure: process.env.NODE_ENV === 'production',
-		maxAge: 60 * 60 * 24 * 30
-	})
+	createSession(cookies, user.session)
 
 	return json({ user: user })
 }

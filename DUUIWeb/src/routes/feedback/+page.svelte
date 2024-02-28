@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { page } from '$app/stores'
+	import Checkbox from '$lib/svelte/components/Checkbox.svelte'
+	import Dropdown from '$lib/svelte/components/Dropdown.svelte'
 	import Rating from '$lib/svelte/components/Input/Rating.svelte'
 	import TextArea from '$lib/svelte/components/Input/TextArea.svelte'
 	import TextInput from '$lib/svelte/components/Input/TextInput.svelte'
+	import { RadioGroup } from '@skeletonlabs/skeleton'
 
 	let requirements = 4
 	let frustration = 4
@@ -13,6 +16,10 @@
 	let name: string = ''
 
 	let success: boolean = ($page.url.searchParams.get('success') || 'false') === 'true'
+
+	let experienceJava: number = 4
+	let nlpExperience: boolean = false
+	let duuiExperience: boolean = false
 </script>
 
 <div class="bg-surface-100-800-token pattern md:py-16">
@@ -31,6 +38,21 @@
 				also adding a short explanation (this is optional).
 			</p>
 			<form action="?/send" method="POST" class="grid gap-8 items-center justify-center">
+				<div class="section-wrapper grid justify-center p-4 space-y-4">
+					<p class="max-w-[40ch] mx-auto md:pb-8 h3">Experience</p>
+					<Checkbox
+						label="I worked with Natural Language Processing (NLP) before"
+						bind:checked={nlpExperience}
+						name="nlpExperience"
+						labelStyle="text-base max-w-[40ch]"
+					/>
+					<Checkbox
+						label="I worked with Docker Unified UIMA Interface (DUUI) before"
+						bind:checked={duuiExperience}
+						name="duuiExperience"
+						labelStyle="text-base max-w-[40ch]"
+					/>
+				</div>
 				<Rating
 					index={0}
 					bind:value={requirements}

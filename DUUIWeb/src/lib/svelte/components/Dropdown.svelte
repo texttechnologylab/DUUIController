@@ -14,7 +14,7 @@
 	export let icon: IconDefinition = faChevronDown
 	export let placement: Placement = 'bottom-end'
 
-	export let offset: number = 8 
+	export let offset: number = 8
 
 	export let style: string = 'input-wrapper'
 	export let rounded: string = 'rounded-md'
@@ -36,6 +36,7 @@
 		<span class="form-label">{label} </span>
 	{/if}
 	<button
+		type="button"
 		class="flex items-center justify-between gap-2 px-3 py-2 leading-6 {border} {rounded} {style}"
 		use:popup={dropdown}
 	>
@@ -44,7 +45,7 @@
 	</button>
 </div>
 
-<div class="popup-solid !m-0" data-popup={name}>
+<div class="popup-solid !m-0 overflow-hidden" data-popup={name}>
 	<ListBox rounded="rounded-none" spacing="space-y-0">
 		{#each options as option}
 			<ListBoxItem

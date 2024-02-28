@@ -1,10 +1,4 @@
 export async function PUT({ cookies }) {
-	cookies.set('session', '', {
-		path: '/',
-		httpOnly: true,
-		sameSite: 'strict',
-		secure: process.env.NODE_ENV === 'production',
-		expires: new Date(0)
-	})
+	cookies.delete('session', { path: '/' })
 	return new Response(JSON.stringify({ message: 'Logged out' }))
 }

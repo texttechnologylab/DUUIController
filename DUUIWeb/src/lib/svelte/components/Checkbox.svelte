@@ -24,18 +24,21 @@
 
 	export let iconChecked: IconDefinition = faCheck
 	export let iconUnchecked: IconDefinition | null = null
+	export let labelStyle: string = 'form-label'
 </script>
 
 <label class="flex {column ? 'flex-col-reverse' : ''} items-start gap-4 text-sm">
-	<button on:click={() => (checked = !checked)}>
+	<button on:click={() => (checked = !checked)} type="button">
 		<div
-			class="input-wrapper aspect-square !p-1"
+			class="input-wrapper aspect-square transition-300 !p-1 {checked
+				? '!variant-filled-primary'
+				: ''}"
 		>
 			{#if iconUnchecked === null}
 				<Fa
 					icon={iconChecked}
 					{size}
-					class="aspect-square transition-transform {checked
+					class="aspect-square transition-transform  {checked
 						? 'scale-100'
 						: 'scale-0'} duration-100"
 				/>
@@ -45,5 +48,5 @@
 		</div>
 	</button>
 	<input tabindex="-1" type="checkbox" {name} bind:checked class="sr-only" />
-	<span class="{column ? 'form-label' : ''} cursor-pointer">{label}</span>
+	<span class="{labelStyle} cursor-pointer">{label}</span>
 </label>

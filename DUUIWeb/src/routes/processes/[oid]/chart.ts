@@ -79,6 +79,7 @@ export const getTimelinePlotOptions = (
 
 	const components = pipeline.components.map((c) => c.name)
 	let index: number = 0
+
 	for (let component of components) {
 		let start: DUUIEvent | undefined = document.events.find((event) =>
 			event.event.message.includes(`is being processed by component ${component}`)

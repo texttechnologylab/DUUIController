@@ -31,11 +31,5 @@ export const DELETE = async ({ cookies, locals }) => {
 		}
 	})
 
-	cookies.set('session', '', {
-		path: '/',
-		httpOnly: true,
-		sameSite: 'strict',
-		secure: process.env.NODE_ENV === 'production',
-		expires: new Date(0)
-	})
+	cookies.delete('session', { path: '/' })
 }

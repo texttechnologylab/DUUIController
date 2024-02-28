@@ -1,3 +1,4 @@
+import type { Cookies } from '@sveltejs/kit'
 import { equals } from './duui/utils/text'
 
 /**
@@ -30,4 +31,16 @@ export const getFilterOrGeneric = (filters: string[], generic: string = 'Any') =
 	} else {
 		return filters.filter((item) => !equals(item, generic))
 	}
+}
+
+
+
+export const createSession = (cookies: Cookies, sessionId: string) => {
+	cookies.set('session', sessionId, {
+		path: '/',
+		sameSite: 'lax',
+		httpOnly: true,
+		secure: process.env.NODE_ENV === 'production',
+		maxAge: 60 * 60 * 24 * 30
+	})
 }

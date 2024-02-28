@@ -9,29 +9,28 @@
 		type DUUIPipeline
 	} from '$lib/duui/pipeline'
 
+	import { componentDrawerSettings } from '$lib/config'
 	import { includes } from '$lib/duui/utils/text'
 	import { scrollIntoView, successToast } from '$lib/duui/utils/ui'
 	import { currentPipelineStore } from '$lib/store'
-	import Chips from '$lib/svelte/components/Input/Chips.svelte'
 	import DriverIcon from '$lib/svelte/components/DriverIcon.svelte'
+	import Chips from '$lib/svelte/components/Input/Chips.svelte'
 	import JsonInput from '$lib/svelte/components/Input/JsonInput.svelte'
-	import PipelineCard from '$lib/svelte/components/PipelineCard.svelte'
-	import PipelineComponent from '$lib/svelte/components/PipelineComponent.svelte'
 	import Search from '$lib/svelte/components/Input/Search.svelte'
 	import TextArea from '$lib/svelte/components/Input/TextArea.svelte'
 	import TextInput from '$lib/svelte/components/Input/TextInput.svelte'
+	import PipelineCard from '$lib/svelte/components/PipelineCard.svelte'
+	import PipelineComponent from '$lib/svelte/components/PipelineComponent.svelte'
 	import {
 		faArrowDown,
 		faArrowLeft,
 		faArrowRight,
 		faCheck,
 		faChevronDown,
-		faPlus,
 		faSearch,
 		faUpload
 	} from '@fortawesome/free-solid-svg-icons'
-	import { Accordion, AccordionItem, type DrawerSettings } from '@skeletonlabs/skeleton'
-	import { getDrawerStore, getToastStore } from '@skeletonlabs/skeleton'
+	import { getDrawerStore, getToastStore, type DrawerSettings } from '@skeletonlabs/skeleton'
 	import pkg from 'lodash'
 	import { onMount } from 'svelte'
 	import { dndzone, type DndEvent } from 'svelte-dnd-action'
@@ -39,8 +38,7 @@
 	import { flip } from 'svelte/animate'
 	import { v4 as uuidv4 } from 'uuid'
 	import ComponentTemplates from '../../../lib/svelte/components/ComponentTemplates.svelte'
-	import { componentDrawerSettings } from '$lib/config'
-	import Carousel from '$lib/svelte/components/Carousel.svelte'
+	import ComponentPopup from '$lib/svelte/components/ComponentPopup.svelte'
 	const { cloneDeep } = pkg
 
 	export let data
@@ -282,7 +280,7 @@
 			</div>
 		</div>
 	{/if}
-	<div class="p-4 md:p-16 space-y-8 pb-16">
+	<div class="p-4 md:p-16 space-y-8 pb-16 container mx-auto">
 		{#if step !== 2}
 			<h1 class="h1 text-center">Build a new Pipeline</h1>
 		{/if}
@@ -335,7 +333,7 @@
 			</div>
 		{:else if step === 1}
 			<div class="space-y-8">
-				<div class="container mx-auto max-w-4xl grid gap-4">
+				<div class="max-w-4xl mx-auto grid gap-4">
 					<div
 						class="section-wrapper flex flex-col gap-4 p-4 {$currentPipelineStore.name !== ''
 							? ''
@@ -382,7 +380,7 @@
 			</div>
 		{:else if step === 2}
 			<div class="space-y-8">
-				<div class="min-h-[400px] space-y-8 isolate md:p-16 section-wrapper">
+				<div class="min-h-[400px] space-y-8 isolate p-4 md:p-16 section-wrapper">
 					{#if $currentPipelineStore.components.length === 0}
 						<h2 class="mx-auto text-center h2">Add a Component to get Started</h2>
 					{/if}
@@ -411,24 +409,14 @@
 											before:bg-surface-100-800-token before:-z-50 before:scale-y-[200%]
 											"
 									>
-										<button
-											class="button-neutral bg-surface-100-800-token !aspect-square !rounded-full !p-3"
-											on:click={() => drawerStore.open(drawer)}
-										>
-											<Fa icon={faPlus} />
-										</button>
+										<ComponentPopup position="bottom" inEditor={true} index={component.index + 1} />
 									</div>
 								{/if}
 							</div>
 						{/each}
 					</ul>
 					<div class="mx-auto flex items-center justify-center">
-						<button
-							class="button-neutral !aspect-square !rounded-full bg-surface-100-800-token !p-3"
-							on:click={() => drawerStore.open(drawer)}
-						>
-							<Fa icon={faPlus} />
-						</button>
+						<ComponentPopup position="bottom" inEditor={true} />
 					</div>
 
 					<div class="flex flex-col items-center gap-8">
