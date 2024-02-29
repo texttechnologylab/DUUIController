@@ -89,18 +89,18 @@ public class DUUIMongoDBStorage {
         if (mongoClient == null) {
             //mongodb://[username:password@]host1[:port1][,...hostN[:portN]][/[defaultauthdb][?options]]
 
-//            StringBuilder sb = new StringBuilder();
-//            sb.append("mongodb://");
-//            sb.append(config.getMongoUser());
-//            sb.append(":");
-//            sb.append(config.getMongoPassword());
-//            sb.append("@");
-//            sb.append(config.getMongoHost());
-//            sb.append(":").append(config.getMongoPort());
-//            sb.append("/?authSource=").append(config.getMongoDatabase());
+            StringBuilder sb = new StringBuilder();
+            sb.append("mongodb://");
+            sb.append(config.getMongoUser());
+            sb.append(":");
+            sb.append(config.getMongoPassword());
+            sb.append("@");
+            sb.append(config.getMongoHost());
+            sb.append(":").append(config.getMongoPort());
+            sb.append("/?authSource=").append(config.getMongoDatabase());
 
-//            mongoClient = MongoClients.create(sb.toString());
-            mongoClient = MongoClients.create(getConnectionURI());
+            mongoClient = MongoClients.create(sb.toString());
+//            mongoClient = MongoClients.create(getConnectionURI());
         }
         return mongoClient;
     }
