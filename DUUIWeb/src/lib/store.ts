@@ -9,6 +9,23 @@ export const currentPipelineStore: Writable<DUUIPipeline> = localStorageStore(
 	blankPipeline()
 )
 
+export const feedbackStore: Writable<Feedback> = localStorageStore('feedback', {
+	name: '',
+	message: '',
+	step: 0,
+	language: 'english',
+	programming: -1,
+	java: -1,
+	python: -1,
+	duui: false,
+	duuiRating: -1,
+	nlp: -1,
+	requirements: -1,
+	frustration: -1,
+	correction: -1,
+	ease: -1
+})
+
 // Used in the documentation for illustration purposes.
 export const exampleComponent: Writable<DUUIComponent> = writable(blankComponent('', 0))
 

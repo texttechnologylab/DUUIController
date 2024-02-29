@@ -7,6 +7,6 @@
 	})
 </script>
 
-<div id="top">
+<div id="top" class="h-full">
 	<slot />
 </div>

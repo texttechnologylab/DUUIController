@@ -1,22 +1,23 @@
-import { redirect, type Actions } from '@sveltejs/kit'
+import { API_URL } from '$env/static/private'
+import { json, redirect } from '@sveltejs/kit'
+import type { PageServerLoad } from './$types'
 
-export const actions: Actions = {
-	send: async ({ request, fetch }) => {
-		const data = await request.formData()
-		if (data === null) return
+export const load: PageServerLoad = async ({ fetch, locals, cookies }) => {
+	if (!locals.user) {
+		redirect(300, '/user/login')
+	}
 
-		// const requirements: number = +(data.get('requirements') || 1) - 1
-		// const frustrating: number = 7 - +(data.get('frustrating') || 1)
-		// const ease: number = +(data.get('ease') || 1) - 1
-		// const correction: number = 7 - +(data.get('correction') || 1)
-
-		const response = await fetch('/api/users/feedback', {
-			method: 'POST',
-			body: data
+	const loadFeedback = async (): Promise<{ feedback: FeedbackResult[] }> => {
+		const response = await fetch(`${API_URL}/feedback`, {
+			method: 'GET',
+			headers: {
+				Authorization: cookies.get('session') || ''
+			}
 		})
 
-		if (response.ok) {
-			redirect(302, "/feedback?success=true")
-		}
+		return await response.json()
 	}
+
+	if (locals.user?.role !== 'Admin') return { feedback: [] }
+	return { ...(await loadFeedback()) }
 }

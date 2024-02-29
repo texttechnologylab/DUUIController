@@ -412,17 +412,24 @@ public class DUUIUserController {
     }
 
     public static String insertFeedback(Request request, Response response) {
-        String userId = getUserId(request);
         long timestamp = Instant.now().toEpochMilli();
 
         DUUIMongoDBStorage
             .Feedback()
             .insertOne(
                 Document.parse(request.body())
-                    .append("user_id", userId)
                     .append("timestamp", timestamp));
 
         response.status(200);
         return "Thank you for your feedback!";
+    }
+
+    public static String getFeedback(Request request, Response response) {
+        return new Document("feedback", DUUIMongoDBStorage
+            .Feedback()
+            .find()
+            .projection(Projections.exclude("_id", "name", "message", "timestamp"))
+            .into(new ArrayList<>()))
+            .toJson();
     }
 }

@@ -1,4 +1,4 @@
-import { COLORS } from '$lib/config'
+import { getColor } from '$lib/config'
 import type { DUUIPipeline } from '$lib/duui/pipeline'
 import { equals } from '$lib/duui/utils/text'
 
@@ -10,20 +10,7 @@ let gridSettings = {
 	}
 }
 
-const getColor = (alternate: boolean = false) => {
-	let color = COLORS.blue
 
-	try {
-		let THEME = document.body.dataset.theme || 'blue'
-		color = COLORS[THEME.replace('theme-', '')]
-		if (alternate) {
-			return "#696969"
-		}
-	} catch (err) {}
-
-	
-	return color
-}
 
 export const getStatusPlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) => {
 	if (!pipeline.statistics) return {}

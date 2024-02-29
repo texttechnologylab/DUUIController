@@ -31,14 +31,14 @@
 	import { initializeStores, storePopup } from '@skeletonlabs/skeleton'
 
 	import { isDarkModeStore, userSession } from '$lib/store'
-	import ConfirmModal from '$lib/svelte/components/ConfirmModal.svelte'
 	import Documentation from '$lib/svelte/components/Documentation.svelte'
 	import DocumentModal from '$lib/svelte/components/Drawer/DocumentDrawer.svelte'
+	import Sidebar from '$lib/svelte/components/Drawer/Sidebar.svelte'
 	import Link from '$lib/svelte/components/Link.svelte'
+	import ConfirmModal from '$lib/svelte/components/Modal/ConfirmModal.svelte'
 	import HelpModal from '$lib/svelte/components/Modal/HelpModal.svelte'
 	import PromptModal from '$lib/svelte/components/Modal/PromptModal.svelte'
 	import WelcomeModal from '$lib/svelte/components/Modal/WelcomeModal.svelte'
-	import Sidebar from '$lib/svelte/components/Sidebar.svelte'
 	import { arrow, autoUpdate, computePosition, flip, offset, shift } from '@floating-ui/dom'
 	import { Modal } from '@skeletonlabs/skeleton'
 
@@ -49,6 +49,7 @@
 	import typescript from 'highlight.js/lib/languages/typescript'
 	import xml from 'highlight.js/lib/languages/xml'
 
+	import { COLORS } from '$lib/config'
 	import ComponentDrawer from '$lib/svelte/components/Drawer/ComponentDrawer.svelte'
 	import DocumentDrawer from '$lib/svelte/components/Drawer/DocumentDrawer.svelte'
 	import TemplateModal from '$lib/svelte/components/Modal/TemplateModal.svelte'
@@ -57,7 +58,6 @@
 	import 'highlight.js/styles/github-dark.css'
 	import { onMount } from 'svelte'
 	import ProcessDrawer from './processes/[oid]/ProcessDrawer.svelte'
-	import { COLORS } from '$lib/config'
 
 	export let data
 	let { user, theme } = data

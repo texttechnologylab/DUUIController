@@ -7,6 +7,7 @@
 	export let style: string = ''
 
 	export let required: boolean = false
+	export let placeholder: string = ''
 </script>
 
 <label class="label flex flex-col {style}">
@@ -18,6 +19,7 @@
 		class="input-wrapper py-4"
 		style="--webkit-overflow-scrolling: touch;"
 		{required}
+		{placeholder}
 		{name}
 		rows={4}
 		bind:value

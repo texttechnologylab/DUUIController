@@ -7,6 +7,7 @@
 		faArrowRightToBracket,
 		faBars,
 		faBook,
+		faClipboardQuestion,
 		faGlobe,
 		faHome,
 		faLayerGroup,
@@ -90,6 +91,10 @@
 		</button>
 
 		{#if $userSession}
+			<a href="/feedback" class="flex-center-4 transition-300 hover:text-primary-500">
+				<Fa icon={faClipboardQuestion} />
+				Feedback
+			</a>
 			<a href="/account" class="flex-center-4 transition-300 hover:text-primary-500">
 				<Fa icon={faUser} />
 				Account

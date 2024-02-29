@@ -100,3 +100,35 @@ type APIEndpoint = {
 	description: string
 	exampleRequest: string = ''
 }
+
+type Score = 1 | 2 | 3 | 4 | 5 | 6 | 7
+
+type Feedback = {
+	name: string
+	message: string
+	step: number
+	language: 'german' | 'english'
+	programming: number
+	nlp: number
+	duui: boolean
+	duuiRating: number
+	java: number
+	python: number
+	requirements: number
+	frustration: number
+	ease: number
+	correction: number
+}
+
+type FeedbackResult = {
+	programming: number
+	nlp: number
+	duui: boolean
+	duuiRating: number
+	java: number
+	python: number
+	requirements: number
+	frustration: number
+	ease: number
+	correction: number
+}

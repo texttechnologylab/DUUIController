@@ -65,8 +65,6 @@ public class Methods {
             put("/reset-password", DUUIUserController::resetPassword);
             put("/recover-password", DUUIUserController::recoverPassword);
             delete("/:id", DUUIUserController::deleteOne);
-            post("/:id/feedback", DUUIUserController::insertFeedback);
-
             path("/auth", () -> {
                 get("/login/:email", DUUIUserController::fetchLoginCredentials);
                 get("/", DUUIUserController::authorizeUser);
@@ -74,6 +72,9 @@ public class Methods {
                 put("/dropbox", DUUIUserController::finishDropboxOAuthFromCode);
             });
         });
+
+        post("/feedback", DUUIUserController::insertFeedback);
+        get("/feedback", DUUIUserController::getFeedback);
 
         /* Components */
         path("/components", () -> {
