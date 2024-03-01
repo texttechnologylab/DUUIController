@@ -19,6 +19,7 @@
 	export let style: string = 'input-wrapper'
 	export let rounded: string = 'rounded-md'
 	export let border: string = 'border'
+	export let textAlign: string = 'text-start'
 
 	const dropdown: PopupSettings = {
 		event: 'click',
@@ -31,9 +32,9 @@
 	}
 </script>
 
-<div class="label flex flex-col">
+<div class="label flex flex-col min-w-[220px]">
 	{#if label}
-		<span class="form-label">{label} </span>
+		<span class="form-label {textAlign}">{label} </span>
 	{/if}
 	<button
 		class="flex items-center !justify-between gap-2 px-3 py-2 leading-6 {border} {rounded} {style}"
@@ -45,7 +46,7 @@
 </div>
 
 <div data-popup={name}>
-	<div class="popup-solid p-2">
+	<div class="popup-solid p-2 min-w-[220px]">
 		<ListBox class="overflow-hidden" rounded="rounded-md" spacing="space-y-2">
 			{#each options as option}
 				<ListBoxItem

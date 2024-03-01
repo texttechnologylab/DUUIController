@@ -5,7 +5,7 @@ import dotenv
 import schedule
 
 API_KEY = dotenv.dotenv_values(".env").get("API_KEY")
-API_URL = "http://192.168.2.122:2605"
+API_URL = dotenv.dotenv_values(".env").get("API_URL")
 # api.duui.texttechnologylab.org
 
 
@@ -118,7 +118,7 @@ def main() -> None:
     #     return
 
     # pipeline = response.json()
-    pipeline_id = "653f8f749f717510ec2e9767"
+    pipeline_id = "65e0ca135bf52b6c79ff4f30"
     # print(f"Pipeline with id {pipeline_id} has been created.")
 
     # response = instantiate_pipeline(pipeline_id)

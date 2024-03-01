@@ -1,39 +1,13 @@
 import { getColor } from '$lib/config'
 import { toTitleCase } from '$lib/duui/utils/text'
 
-export const getPlotOptions = (feedback: FeedbackResult[], title: string, darkmode: boolean) => {
-	if (feedback.length === 0) return {}
-
-	const gridSettings = {
-		borderColor: darkmode ? '#e7e7e720' : '#29292920',
-		row: {
-			colors: [darkmode ? '#292929' : '#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
-			opacity: 0.5
-		}
-	}
-	let keys = [
-		'programming',
-		'nlp',
-		'duuiRating',
-		'java',
-		'python',
-		'requirements',
-		'frustration',
-		'ease',
-		'correction'
-	]
-
-	const averages: number[] = []
-	const count = feedback.length
-
-	for (let key of keys) {
-		let value = 0
-		for (let item of feedback) {
-			value += item[key]
-		}
-
-		averages.push(+(value / count).toFixed(2))
-	}
+export const getPlotOptions = (
+	keys: string[],
+	values: number[],
+	title: string,
+	darkmode: boolean
+) => {
+	if (keys.length === 0) return {}
 
 	const labelColors = Array(keys.length).fill(darkmode ? 'white' : 'black')
 
@@ -41,13 +15,13 @@ export const getPlotOptions = (feedback: FeedbackResult[], title: string, darkmo
 		series: [
 			{
 				name: 'Score',
-				data: averages,
+				data: values,
 				color: getColor()
 			}
 		],
 		chart: {
 			height: 450,
-			type: 'radar',
+			type: 'radar'
 		},
 		plotOptions: {
 			bar: {
@@ -106,6 +80,9 @@ export const getPlotOptions = (feedback: FeedbackResult[], title: string, darkmo
 				show: false
 			},
 			labels: {
+				formatter: function (value: number) {
+					return value.toFixed(0)
+				},
 				show: true,
 				style: {
 					colors: darkmode ? 'white' : 'black'

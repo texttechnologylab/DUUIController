@@ -12,6 +12,7 @@
 	import Fa from 'svelte-fa'
 	import { content } from './content'
 	import { getPlotOptions } from './charts'
+	import KeyValue from '$lib/svelte/components/KeyValue.svelte'
 
 	export let data
 
@@ -22,6 +23,10 @@
 
 	let ApexCharts
 	let loaded: boolean = false
+
+	let umuxResult: number = 0
+	let umuxKeys: string[] = ['requirements', 'frustration', 'ease', 'correction']
+	let averages: number[]
 
 	onMount(() => {
 		$feedbackStore.step = +($page.url.searchParams.get('step') || $feedbackStore.step)
@@ -36,15 +41,69 @@
 	})
 
 	let plotOptions
-	let duuiFilter: 'Experienced' | 'Inexperienced' | 'All' = 'All'
+
+	type Experience = 'Experienced' | 'Inexperienced' | 'All'
+	let duuiFilter: Experience = 'All'
+	let programmingFilter: Experience = 'All'
+
+	const keys: string[] = [
+		'programming',
+		'nlp',
+		'duuiRating',
+		'java',
+		'python',
+		'requirements',
+		'frustration',
+		'ease',
+		'correction'
+	]
+
+	let filteredFeedback: FeedbackResult[] = feedback
+
+	const getAverages = () => {
+		const averages: number[] = []
+		const count = filteredFeedback.length
+		for (let key of keys) {
+			let value = 0
+			for (let item of filteredFeedback) {
+				value += item[key]
+			}
+			if (count !== 0) {
+				averages.push(+(value / count).toFixed(2))
+			}
+		}
+		return averages
+	}
 
 	$: {
-		let filteredFeedback = feedback.filter((item) => {
+		filteredFeedback = feedback.filter((item) => {
 			if (duuiFilter === 'All') return item
 			if (duuiFilter === 'Experienced') return item.duui
 			if (duuiFilter === 'Inexperienced') return !item.duui
 		})
-		plotOptions = getPlotOptions(filteredFeedback, 'Averages ' + duuiFilter, $isDarkModeStore)
+
+		filteredFeedback = filteredFeedback.filter((item) => {
+			if (programmingFilter === 'All') return item
+			if (programmingFilter === 'Experienced') return item.programming > 4
+			if (programmingFilter === 'Inexperienced') return item.programming <= 4
+		})
+
+		averages = getAverages()
+
+		umuxResult =
+			filteredFeedback.reduce(
+				(accumulator, item) =>
+					accumulator +
+					(item.requirements -
+						1 +
+						(7 - item.frustration) +
+						(item.ease - 1) +
+						(7 - item.correction)) /
+						24,
+				0
+			) / feedback.length
+
+		plotOptions = getPlotOptions(keys, averages, 'Averages ' + duuiFilter, $isDarkModeStore)
 	}
 
 	const chart = (node: HTMLDivElement, options: any) => {
@@ -331,15 +390,54 @@
 		</div>
 	{/if}
 	{#if loaded && feedback.length > 0 && $userSession}
-		<div class="p-4 space-y-4 max-w-screen-xl mx-auto section-wrapper m-4">
-			<div use:chart={plotOptions} />
-			<div class="grid gap-4 items-center max-w-[256px] mx-auto">
+		<div class="p-4 md:p-8 space-y-8 max-w-screen-xl mx-auto section-wrapper m-4">
+			<div class="flex flex-col md:flex-row gap-4 items-center justify-center mx-auto">
 				<Dropdown
 					bind:value={duuiFilter}
 					options={['All', 'Experienced', 'Inexperienced']}
-					label="DUUI Experience"
+					label="DUUI"
+				/>
+				<Dropdown
+					bind:value={programmingFilter}
+					options={['All', 'Experienced', 'Inexperienced']}
+					label="Programming"
 				/>
 			</div>
+			<hr class="hr" />
+			{#if filteredFeedback.length > 0}
+				<div class="grid gap-8 max-w-screen-md mx-auto">
+					<div class="space-y-4">
+						<h3 class="h3 text-center">UMUX</h3>
+						<p class="text-lg text-center">{umuxResult.toFixed(2)}</p>
+						<div class="space-y-1">
+							<hr class="hr" />
+							<hr class="hr" />
+						</div>
+						<div class="space-y-2 text-center">
+							<h4 class="h4">Total Results</h4>
+							<p>{filteredFeedback.length}</p>
+						</div>
+						<div class="grid md:grid-cols-2 gap-4">
+							{#each keys as key, index}
+								{#if umuxKeys.includes(key)}
+									<KeyValue {key} value={averages[index] + ' / 7'} />
+								{/if}
+							{/each}
+						</div>
+					</div>
+					<div class="space-y-4">
+						<div use:chart={plotOptions} />
+					</div>
+				</div>
+				<hr class="hr" />
+				<p>
+					Lorem ipsum dolor sit amet, consectetur adipisicing elit. Rerum labore ipsa, inventore
+					repudiandae ea in ullam nisi molestiae quae facilis adipisci? Maxime corporis illo
+					provident delectus obcaecati tempore eveniet vitae!
+				</p>
+			{:else}
+				<p class="text-center h3">No Data</p>
+			{/if}
 		</div>
 	{/if}
 </div>

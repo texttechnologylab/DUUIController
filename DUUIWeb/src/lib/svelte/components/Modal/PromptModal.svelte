@@ -45,7 +45,7 @@
 				<span>{textYes}</span>
 			</button>
 			<button
-				class="button-error button-modal"
+				class="button-neutral button-modal hover:!variant-filled-error"
 				on:click={() => {
 					if ($modalStore[0].response) {
 						$modalStore[0]?.response('')

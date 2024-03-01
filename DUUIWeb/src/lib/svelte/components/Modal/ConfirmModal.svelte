@@ -8,7 +8,6 @@
 	export let message: string = $modalStore[0].meta['message'] || ''
 	export let textYes: string = $modalStore[0].meta['textYes'] || 'Confirm'
 	export let textNo: string = $modalStore[0].meta['textNo'] || 'Cancel'
-
 </script>
 
 <div class="z-50 bg-surface-50-900-token w-modal rounded-md overflow-hidden border border-color">
@@ -24,7 +23,7 @@
 			<div class="modal-footer">
 				<div class="flex-center-4 justify-start">
 					<button
-						class="button-modal button-error"
+						class="button-neutral button-modal hover:!variant-filled-error"
 						on:click={() => {
 							if ($modalStore[0].response) {
 								$modalStore[0]?.response(true)
@@ -35,7 +34,7 @@
 						<span>{textYes}</span>
 					</button>
 					<button
-						class="button-neutral button-modal"
+						class="button-primary button-modal"
 						on:click={() => {
 							if ($modalStore[0].response) {
 								$modalStore[0]?.response(false)
