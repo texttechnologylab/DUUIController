@@ -1,10 +1,11 @@
 import { API_URL } from '$env/static/private'
 import type { DUUIPipeline } from '$lib/duui/pipeline'
+import { handleLoginRedirect } from '$lib/utils'
 import { type RequestHandler, redirect, json } from '@sveltejs/kit'
 
 export const GET: RequestHandler = async ({ fetch, locals, url, cookies }) => {
 	if (!locals.user) {
-		redirect(300, '/user/login')
+		redirect(302, handleLoginRedirect(url))
 	}
 	const loadPipelines = async (): Promise<{ pipelines: DUUIPipeline[]; count: number }> => {
 		const limit = +(url.searchParams.get('limit') || '10')

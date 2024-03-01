@@ -2,6 +2,7 @@ import { API_URL } from '$env/static/private'
 import type { DUUIPipeline } from '$lib/duui/pipeline'
 import { redirect } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
+import { handleLoginRedirect } from '$lib/utils'
 
 export const load: PageServerLoad = async ({
 	fetch,
@@ -10,7 +11,7 @@ export const load: PageServerLoad = async ({
 	cookies
 }): Promise<{ pipelines: DUUIPipeline[]; count: number }> => {
 	if (!locals.user) {
-		redirect(300, '/user/login')
+		redirect(302, handleLoginRedirect(url))
 	}
 
 	const loadPipelines = async (): Promise<{ pipelines: DUUIPipeline[]; count: number }> => {
@@ -18,7 +19,7 @@ export const load: PageServerLoad = async ({
 
 		const response = await fetch(`${API_URL}/pipelines?limit=${limit}`, {
 			method: 'GET',
-			
+
 			headers: {
 				Authorization: cookies.get('session') || ''
 			}
