@@ -7,7 +7,6 @@ const fetchUser = async (
 ) => {
 	const response = await fetch(`${API_URL}/users/auth/`, {
 		method: 'GET',
-
 		headers: {
 			Authorization: session
 		}
@@ -15,7 +14,6 @@ const fetchUser = async (
 
 	if (response.ok) {
 		const json = await response.json()
-
 		event.locals.user = json.user
 	}
 }

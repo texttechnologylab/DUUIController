@@ -1,8 +1,8 @@
 import { API_URL } from '$env/static/private'
+import { createSession } from '$lib/utils'
 import { error, fail, json, type RequestEvent } from '@sveltejs/kit'
 import bcrypt from 'bcrypt'
 import type { RequestHandler, RouteParams } from './$types'
-import { createSession } from '$lib/utils'
 
 const login = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 	const data = await event.request.json()

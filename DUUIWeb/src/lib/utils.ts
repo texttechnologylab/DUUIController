@@ -33,14 +33,12 @@ export const getFilterOrGeneric = (filters: string[], generic: string = 'Any') =
 	}
 }
 
-
-
 export const createSession = (cookies: Cookies, sessionId: string) => {
 	cookies.set('session', sessionId, {
 		path: '/',
 		sameSite: 'lax',
 		httpOnly: true,
-		secure: process.env.NODE_ENV === 'production',
+		// secure: process.env.NODE_ENV === 'production',
 		maxAge: 60 * 60 * 24 * 30
 	})
 }
