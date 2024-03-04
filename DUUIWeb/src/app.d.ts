@@ -124,6 +124,7 @@ type Feedback = {
 type FeedbackResult = {
 	programming: number
 	nlp: number
+	nlpNeeded: boolean
 	duui: boolean
 	duuiRating: number
 	java: number

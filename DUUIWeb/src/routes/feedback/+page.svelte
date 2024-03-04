@@ -46,6 +46,7 @@
 	type Experience = 'Experienced' | 'Inexperienced' | 'All'
 	let duuiFilter: Experience = 'All'
 	let programmingFilter: Experience = 'All'
+	let nlpFilter: boolean = false
 
 	const keys: string[] = [
 		'programming',
@@ -88,6 +89,11 @@
 			if (programmingFilter === 'All') return item
 			if (programmingFilter === 'Experienced') return item.programming > 4
 			if (programmingFilter === 'Inexperienced') return item.programming <= 4
+		})
+
+		filteredFeedback = filteredFeedback.filter((item) => {
+			if (nlpFilter) return item.nlpNeeded
+			else return item
 		})
 
 		averages = getAverages()
@@ -430,6 +436,18 @@
 					options={['All', 'Experienced', 'Inexperienced']}
 					label="Programming"
 				/>
+			</div>
+			<div class="flex justify-center">
+				<SlideToggle
+					background="bg-surface-100-800-token"
+					active="variant-filled-primary"
+					rounded="rounded-full"
+					border="bordered-soft"
+					name="nlpNeeded"
+					bind:value={nlpFilter}
+				>
+					Working with NLP in the future
+				</SlideToggle>
 			</div>
 
 			<hr class="hr" />
