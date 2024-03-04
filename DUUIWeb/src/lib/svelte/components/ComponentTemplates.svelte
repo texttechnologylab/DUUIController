@@ -68,14 +68,9 @@
 <div class="space-y-8">
 	<div class="md:flex justify-between items-end space-y-4 md:space-y-0">
 		<h2 class="h2">Templates</h2>
-		<div class="grid sm:grid-cols-3 items-end gap-4">
+		<div class="grid sm:grid-cols-2 items-end gap-4">
 			<Dropdown bind:value={filter} options={DUUIDriverFilters} />
 			<Search bind:query={searchText} icon={faSearch} placeholder="Search..." />
-			{#if $userSession?.role === 'Admin'}
-				<button class="button-primary cta box-shadow" on:click={() => drawerStore.open()}
-					>Upload template</button
-				>
-			{/if}
 		</div>
 	</div>
 	<div class="grid lg:grid-cols-2 xl:grid-cols-3 gap-4">
