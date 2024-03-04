@@ -22,9 +22,9 @@
 	// })
 </script>
 
-<div class="card p-4 flex items-start justify-between">
+<div class="card p-4 flex text-center items-center justify-center">
 	<div>
-		<p class="font-bold text-lg">{value}</p>
+		<p class="font-bold  text-lg">{value}</p>
 		<p>{key}</p>
 	</div>
 	<!-- {#if copied}

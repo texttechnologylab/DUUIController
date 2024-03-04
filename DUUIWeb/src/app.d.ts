@@ -110,6 +110,7 @@ type Feedback = {
 	language: 'german' | 'english'
 	programming: number
 	nlp: number
+	nlpNeeded: boolean
 	duui: boolean
 	duuiRating: number
 	java: number

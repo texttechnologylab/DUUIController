@@ -91,3 +91,88 @@ export const getPlotOptions = (
 		}
 	}
 }
+
+export const getUsersPlotOptions = (
+	counters: {
+		duui: { experienced: number; inexperienced: number }
+		programming: { experienced: number; inexperienced: number }
+	},
+	darkmode: boolean
+) => {
+	const gridSettings = {
+		borderColor: darkmode ? '#e7e7e720' : '#29292920',
+		row: {
+			colors: [darkmode ? '#292929' : '#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+			opacity: 0.5
+		}
+	}
+
+	return {
+		series: [
+			{
+				name: 'Experienced',
+				data: [counters.duui.experienced, counters.programming.experienced],
+				color: getColor()
+			},
+			{
+				name: 'Inexperienced',
+				data: [counters.duui.inexperienced, counters.programming.inexperienced],
+				color: getColor() + '77'
+			}
+		],
+		chart: {
+			height: 450,
+			type: 'bar'
+		},
+		plotOptions: {
+			bar: {
+				borderRadius: 8
+			}
+		},
+		legend: {
+			labels: {
+				colors: darkmode ? 'white' : 'black'
+			}
+		},
+		grid: gridSettings,
+		xaxis: {
+			categories: ['DUUI', 'Programming'],
+			position: 'top',
+			axisBorder: {
+				show: false
+			},
+			axisTicks: {
+				show: false
+			},
+			crosshairs: {
+				fill: {
+					type: 'gradient',
+					gradient: {
+						colorFrom: '#D8E3F0',
+						colorTo: '#BED1E6',
+						stops: [0, 100],
+						opacityFrom: 0.4,
+						opacityTo: 0.5
+					}
+				}
+			},
+			labels: {
+				show: true,
+				style: {
+					colors: darkmode ? 'white' : 'black'
+				}
+			}
+		},
+		yaxis: {
+			axisBorder: {
+				show: false
+			},
+			labels: {
+				show: true,
+				style: {
+					colors: darkmode ? 'white' : 'black'
+				}
+			}
+		}
+	}
+}

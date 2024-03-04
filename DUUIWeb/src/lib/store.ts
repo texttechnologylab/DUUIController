@@ -20,6 +20,7 @@ export const feedbackStore: Writable<Feedback> = localStorageStore('feedback', {
 	duui: false,
 	duuiRating: -1,
 	nlp: -1,
+	nlpNeeded: false,
 	requirements: -1,
 	frustration: -1,
 	correction: -1,

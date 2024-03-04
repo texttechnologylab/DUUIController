@@ -35,21 +35,25 @@ export const content = {
 			english: 'I have experience in Natural Language Processing',
 			german: 'Ich habe Erfahrung im Bereich Natural Language Processing'
 		},
+		nlpNeeded: {
+			english: 'I will work with Natural Language Processing in the future',
+			german: 'Ich werede in Zukunft im Bereich Natural Language Processing arbeiten'
+		},
 		duui: {
 			english: 'I have used DUUI before',
 			german: 'Ich habe Erfahrung mit der Nutzung von DUUI'
 		},
 		duuiRating: {
 			english: 'Using DUUI has been pleasent with a graphical user interface',
-			german: 'Die Verwendung von DUUI ist mit einer grafischen Benutzeroberfläche angenehmer'
+			german: 'Die Verwendung von DUUI mit einer grafischen Benutzeroberfläche war angenehm'
 		},
 		java: {
-			english: 'I enjoy programming in Java',
-			german: 'Ich mag es in Java zu programmieren'
+			english: 'I can program in Java',
+			german: 'Ich kann in Java programmieren'
 		},
 		python: {
-			english: 'I enjoy programming in Python',
-			german: 'Ich mag es in Python zu programmieren'
+			english: 'I can program in Python',
+			german: 'Ich kann in Python programmieren'
 		}
 	},
 	usability: {

@@ -3,16 +3,16 @@
 	import { page } from '$app/stores'
 	import { scrollIntoView } from '$lib/duui/utils/ui'
 	import { feedbackStore, isDarkModeStore, userSession } from '$lib/store'
+	import Dropdown from '$lib/svelte/components/Input/Dropdown.svelte'
 	import Rating from '$lib/svelte/components/Input/Rating.svelte'
 	import TextArea from '$lib/svelte/components/Input/TextArea.svelte'
+	import KeyValue from '$lib/svelte/components/KeyValue.svelte'
 	import { faCheck, faChevronLeft, faChevronRight, faUser } from '@fortawesome/free-solid-svg-icons'
 	import { ProgressBar, RadioGroup, RadioItem, SlideToggle } from '@skeletonlabs/skeleton'
-	import Dropdown from '$lib/svelte/components/Input/Dropdown.svelte'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
+	import { getPlotOptions, getUsersPlotOptions } from './charts'
 	import { content } from './content'
-	import { getPlotOptions } from './charts'
-	import KeyValue from '$lib/svelte/components/KeyValue.svelte'
 
 	export let data
 
@@ -41,6 +41,7 @@
 	})
 
 	let plotOptions
+	let plotOptionsUsers
 
 	type Experience = 'Experienced' | 'Inexperienced' | 'All'
 	let duuiFilter: Experience = 'All'
@@ -68,6 +69,7 @@
 			for (let item of filteredFeedback) {
 				value += item[key]
 			}
+
 			if (count !== 0) {
 				averages.push(+(value / count).toFixed(2))
 			}
@@ -104,6 +106,19 @@
 			) / feedback.length
 
 		plotOptions = getPlotOptions(keys, averages, 'Averages ' + duuiFilter, $isDarkModeStore)
+		plotOptionsUsers = getUsersPlotOptions(
+			{
+				duui: {
+					experienced: feedback.filter((item) => item.duui).length,
+					inexperienced: feedback.filter((item) => !item.duui).length
+				},
+				programming: {
+					experienced: feedback.filter((item) => item.programming > 4).length,
+					inexperienced: feedback.filter((item) => item.programming >= 4).length
+				}
+			},
+			$isDarkModeStore
+		)
 	}
 
 	const chart = (node: HTMLDivElement, options: any) => {
@@ -183,6 +198,7 @@
 			duui: false,
 			duuiRating: -1,
 			nlp: -1,
+			nlpNeeded: false,
 			requirements: -1,
 			frustration: -1,
 			correction: -1,
@@ -195,7 +211,7 @@
 
 <div class="bg-surface-100-800-token pattern h-full">
 	{#if success}
-		<div class="h-full flex items-center justify-center p-4">
+		<div class="flex items-center justify-center p-4">
 			<div class="section-wrapper p-8 gap-8 grid justify-center">
 				<p class="text-lg">Thank you for your feedback!</p>
 				<button class="cta box-shadow button-primary !justify-center" on:click={reset}>
@@ -281,8 +297,22 @@
 										question={content.experience.nlp[language]}
 									/>
 									<div
-										class="section-wrapper p-8 text-center text-lg flex flex-col items-center justify-center"
+										class="section-wrapper text-center text-lg flex flex-col items-center justify-center space-y-4 p-4 py-8 md:p-16"
 									>
+										<p>{content.experience.nlpNeeded[language]}</p>
+										<SlideToggle
+											background="bg-surface-100-800-token"
+											active="variant-filled-primary"
+											rounded="rounded-full"
+											border="bordered-soft"
+											name="nlpNeeded"
+											bind:checked={$feedbackStore.nlpNeeded}
+										/>
+									</div>
+									<div
+										class="section-wrapper text-center text-lg flex flex-col items-center justify-center space-y-4 p-4 py-8 md:p-16"
+									>
+										<p>{content.experience.duui[language]}</p>
 										<SlideToggle
 											background="bg-surface-100-800-token"
 											active="variant-filled-primary"
@@ -291,12 +321,10 @@
 											name="duui"
 											bind:checked={$feedbackStore.duui}
 											on:change={() => ($feedbackStore.duuiRating = -1)}
-										>
-											{content.experience.duui[language]}
-										</SlideToggle>
+										/>
 										{#if $feedbackStore.duui}
 											<Rating
-												wrapper="space-y-8 p-4 py-8 md:p-16 text-center text-lg box"
+												wrapper="space-y-8 w-full pt-8 text-center text-lg"
 												name="duui_rating"
 												reason={false}
 												bind:score={$feedbackStore.duuiRating}
@@ -403,6 +431,7 @@
 					label="Programming"
 				/>
 			</div>
+
 			<hr class="hr" />
 			{#if filteredFeedback.length > 0}
 				<div class="grid gap-8 max-w-screen-md mx-auto">
@@ -425,16 +454,20 @@
 							{/each}
 						</div>
 					</div>
+
 					<div class="space-y-4">
 						<div use:chart={plotOptions} />
 					</div>
+					<div class="space-y-4">
+						<div use:chart={plotOptionsUsers} />
+					</div>
 				</div>
-				<hr class="hr" />
+				<!-- <hr class="hr" />
 				<p>
 					Lorem ipsum dolor sit amet, consectetur adipisicing elit. Rerum labore ipsa, inventore
 					repudiandae ea in ullam nisi molestiae quae facilis adipisci? Maxime corporis illo
 					provident delectus obcaecati tempore eveniet vitae!
-				</p>
+				</p> -->
 			{:else}
 				<p class="text-center h3">No Data</p>
 			{/if}
