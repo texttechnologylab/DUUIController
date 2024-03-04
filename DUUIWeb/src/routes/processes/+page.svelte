@@ -8,14 +8,14 @@
 		IO_OUTPUT,
 		OUTPUT_EXTENSIONS,
 		areSettingsValid,
+		isValidFileUpload,
 		isValidIO,
 		isValidInput,
 		isValidOutput,
 		isValidS3BucketName,
 		type DUUIDocumentProvider,
 		type FileExtension,
-		type IOProvider,
-		isValidFileUpload
+		type IOProvider
 	} from '$lib/duui/io.js'
 	import { Languages } from '$lib/duui/process'
 	import { equals } from '$lib/duui/utils/text'
@@ -32,7 +32,7 @@
 		faCloudUpload,
 		faFileArrowUp
 	} from '@fortawesome/free-solid-svg-icons'
-	import { FileDropzone, getToastStore, ProgressBar } from '@skeletonlabs/skeleton'
+	import { FileDropzone, ProgressBar, getToastStore } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
 
 	const toastStore = getToastStore()
@@ -118,7 +118,7 @@
 
 		starting = true
 
-		if (equals(input.provider, 'File')) {
+		if (equals(input.provider, IO.File)) {
 			const result = await uploadFiles()
 			if (!result) {
 				starting = false
@@ -147,7 +147,7 @@
 			input.content = ''
 		}
 
-		const response = await fetch('api/processes', {
+		const response = await fetch('/api/processes', {
 			method: 'POST',
 			body: JSON.stringify({
 				pipeline_id: pipeline_id,
@@ -167,11 +167,11 @@
 			})
 		})
 
-		let process = await response.json()
 		if (response.ok) {
+			let process = await response.json()
 			goto('/processes/' + process.oid)
 		} else {
-			toastStore.trigger(errorToast(response.statusText))
+			toastStore.trigger(errorToast(JSON.stringify(response.body)))
 			starting = false
 		}
 	}
@@ -180,6 +180,7 @@
 	let outputBucketIsValid: string = ''
 	let settingsAreValid: string = ''
 	let isValidFileStorage: boolean = false
+	let uploadBucketIsValid: string = ''
 
 	$: {
 		inputBucketIsValid = isValidS3BucketName(input.path)
@@ -187,6 +188,8 @@
 		settingsAreValid = areSettingsValid(workerCount, skipFiles)
 		isValidFileStorage =
 			input.provider !== IO.File || !fileStorage.storeFiles || isValidFileUpload(fileStorage)
+
+		uploadBucketIsValid = isValidS3BucketName(fileStorage.path)
 	}
 </script>
 
@@ -324,7 +327,7 @@
 											label="Path (bucket/path/to/file)"
 											name="fileStoragePath"
 											bind:value={fileStorage.path}
-											error={inputBucketIsValid}
+											error={uploadBucketIsValid}
 										/>
 									{:else}
 										<TextInput

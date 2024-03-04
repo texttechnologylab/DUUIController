@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { DUUIDrivers, type DUUIComponent, componentToJson } from '$lib/duui/component'
 	import { errorToast, successToast } from '$lib/duui/utils/ui'
-	import { currentPipelineStore, exampleComponent } from '$lib/store'
+	import { currentPipelineStore, exampleComponent, userSession } from '$lib/store'
 	import { showConfirmationModal } from '$lib/svelte/utils/modal'
 	import {
 		faAngleDoubleRight,
@@ -9,6 +9,7 @@
 		faFileCircleCheck,
 		faFileExport,
 		faFileImport,
+		faFileUpload,
 		faInfo,
 		faTrash
 	} from '@fortawesome/free-solid-svg-icons'
@@ -61,6 +62,24 @@
 		}
 
 		drawerStore.close()
+	}
+
+	const uploadTemplate = async () => {
+		const response = await fetch('/api/components?template=true', {
+			method: 'POST',
+			body: JSON.stringify({
+				...component,
+				index: component.index || $currentPipelineStore.components.length,
+				pipeline_id: $currentPipelineStore.oid
+			})
+		})
+
+		if (response.ok) {
+			toastStore.trigger(successToast('Uploaded'))
+			drawerStore.close()
+		} else {
+			toastStore.trigger(errorToast(response.statusText))
+		}
 	}
 
 	const onCreate = async () => {
@@ -243,6 +262,12 @@
 		</div>
 
 		<div class="hidden md:flex space-x-2">
+			{#if $userSession?.role === 'Admin'}
+				<button class="button-neutral" on:click={uploadTemplate}>
+					<Fa icon={faFileUpload} />
+					<span>Upload as Template</span>
+				</button>
+			{/if}
 			{#if example}
 				<button
 					disabled={!component.driver || !component.name || !component.target}

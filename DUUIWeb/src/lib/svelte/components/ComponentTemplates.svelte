@@ -11,6 +11,7 @@
 	import { createEventDispatcher } from 'svelte'
 	import Fa from 'svelte-fa'
 	import Popup from './Popup.svelte'
+	import ComponentPopup from './ComponentPopup.svelte'
 
 	const dispatcher = createEventDispatcher()
 	export let components: DUUIComponent[]
@@ -26,6 +27,8 @@
 
 		drawerStore.open(drawer)
 	}
+
+	const onUpload = () => {}
 
 	const onSelect = (component: DUUIComponent) => {
 		dispatcher('select', {
@@ -65,9 +68,14 @@
 <div class="space-y-8">
 	<div class="md:flex justify-between items-end space-y-4 md:space-y-0">
 		<h2 class="h2">Templates</h2>
-		<div class="grid sm:grid-cols-2 items-end gap-4">
+		<div class="grid sm:grid-cols-3 items-end gap-4">
 			<Dropdown bind:value={filter} options={DUUIDriverFilters} />
 			<Search bind:query={searchText} icon={faSearch} placeholder="Search..." />
+			{#if $userSession?.role === 'Admin'}
+				<button class="button-primary cta box-shadow" on:click={() => drawerStore.open()}
+					>Upload template</button
+				>
+			{/if}
 		</div>
 	</div>
 	<div class="grid lg:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -110,6 +118,9 @@
 				{/if}
 			</button>
 		{/each}
+	</div>
+	<div class="flex justify-center p-4">
+		<ComponentPopup />
 	</div>
 	<div>
 		{#if filteredComponents.length === 0}

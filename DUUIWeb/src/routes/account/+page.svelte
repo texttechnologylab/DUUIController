@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { COLORS } from '$lib/config.js'
-	import { toTitleCase } from '$lib/duui/utils/text.js'
 	import { successToast } from '$lib/duui/utils/ui.js'
 	import { userSession } from '$lib/store.js'
 	import Password from '$lib/svelte/components/Input/Password.svelte'

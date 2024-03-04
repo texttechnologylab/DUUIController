@@ -4,12 +4,12 @@ import { API_URL } from '$env/static/private'
  * Attempts to insert a component.
  * @returns the inserted component or the error.
  */
-export const POST = async ({ request, cookies }) => {
+export const POST = async ({ request, cookies, url }) => {
 	const component = await request.json()
-
-	const response = await fetch(`${API_URL}/components`, {
+	const isTemplate: boolean = (url.searchParams.get('template') || 'false') === 'true'
+	const response = await fetch(`${API_URL}/components?template=${isTemplate}`, {
 		method: 'POST',
-		
+
 		body: JSON.stringify(component),
 		headers: {
 			Authorization: cookies.get('session') || ''
@@ -26,7 +26,7 @@ export const POST = async ({ request, cookies }) => {
 export const GET = async ({ cookies }) => {
 	const response = await fetch(`${API_URL}/components`, {
 		method: 'GET',
-		
+
 		headers: {
 			Authorization: cookies.get('session') || ''
 		}
@@ -44,7 +44,7 @@ export const PUT = async ({ request, cookies }) => {
 
 	const response = await fetch(`${API_URL}/components/${data.oid}`, {
 		method: 'PUT',
-		
+
 		body: JSON.stringify(data),
 		headers: {
 			Authorization: cookies.get('session') || ''
@@ -63,7 +63,7 @@ export const DELETE = async ({ request, cookies }) => {
 
 	const response = await fetch(`${API_URL}/components/${data.oid}`, {
 		method: 'DELETE',
-		
+
 		headers: {
 			Authorization: cookies.get('session') || ''
 		}
