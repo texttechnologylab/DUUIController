@@ -10,7 +10,6 @@ export const PUT = async ({ request, locals }) => {
 
 	const response = await fetch(`${API_URL}/users/${user.oid}`, {
 		method: 'PUT',
-		
 		body: JSON.stringify(await request.json())
 	})
 
@@ -23,13 +22,14 @@ export const DELETE = async ({ cookies, locals }) => {
 		error(401, 'Unauthorized')
 	}
 
-	await fetch(`${API_URL}/users/${user.oid}`, {
+	const response = await fetch(`${API_URL}/users/${user.oid}`, {
 		method: 'DELETE',
-		
+
 		headers: {
 			Authorization: cookies.get('session') || ''
 		}
 	})
 
 	cookies.delete('session', { path: '/' })
+	return response
 }

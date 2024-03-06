@@ -40,12 +40,27 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 
 	const fetchProfile = async () => {
 		const response = await fetch(`${API_URL}/users/${locals.user?.oid}`, {
-			method: 'GET',
+			method: 'GET'
 		})
 
 		if (!response.ok) {
-			return fail(response.status, { messgage: response.statusText })
+			return fail(response.status, { message: response.statusText })
 		}
+		return await response.json()
+	}
+
+	const fetchUsers = async () => {
+		const response = await fetch(`${API_URL}/users`, {
+			method: 'GET',
+			headers: {
+				Authorization: cookies.get('session') || ''
+			}
+		})
+
+		if (!response.ok) {
+			return fail(response.status, { message: response.statusText })
+		}
+
 		return await response.json()
 	}
 
@@ -53,6 +68,7 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 		dropbBoxURL: dropbBoxURL,
 		registered: (cookies.get('just_registered') || 'false') === 'true',
 		user: (await fetchProfile()).user,
-		theme: +(cookies.get('theme') || '0')
+		theme: +(cookies.get('theme') || '0'),
+		users: (await fetchUsers()).users
 	}
 }

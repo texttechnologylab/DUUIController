@@ -35,6 +35,9 @@
 	import { FileDropzone, ProgressBar, getToastStore } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
 
+	export let data
+	const { user } = data
+
 	const toastStore = getToastStore()
 
 	let input: DUUIDocumentProvider = {
@@ -268,7 +271,26 @@
 								<Fa icon={faCheck} class="text-success-500" size="2x" />
 							{/if}
 						</div>
-
+						{#if input.provider === IO.Minio && user?.connections.minio.endpoint}
+							<div class="text-center w-full variant-soft-error p-4 rounded-md">
+								<p class="mx-auto">
+									To use Minio you must first connect your <a class="anchor" href="/account#minio"
+										>Account</a
+									>
+								</p>
+							</div>
+						{/if}
+						<!-- TODO ALLOW REDIRECT WITH THE SAME SETTINGS (LocalStorage ?) -->
+						{#if input.provider === IO.Dropbox && user?.connections.dropbox.refresh_token}
+							<div class="text-center w-full variant-soft-error p-4 rounded-md">
+								<p class="mx-auto">
+									To use Dropbox you must first connect your <a
+										class="anchor"
+										href="/account#dropbox">Account</a
+									>
+								</p>
+							</div>
+						{/if}
 						<div class="grid gap-4">
 							<div class="flex-center-4">
 								<div class="flex-1">

@@ -92,7 +92,7 @@ const register = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 				email: email,
 				password: encryptedPassword,
 				session: session,
-				role: 'Admin'
+				role: 'User'
 			})
 		})
 
@@ -160,6 +160,5 @@ export const POST: RequestHandler = async (event) => {
 
 	event.locals.user = user
 	createSession(cookies, user.session)
-
 	return json({ user: user })
 }

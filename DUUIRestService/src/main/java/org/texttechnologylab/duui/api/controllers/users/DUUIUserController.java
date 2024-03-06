@@ -349,6 +349,34 @@ public class DUUIUserController {
         return new Document("user", user).toJson();
     }
 
+    public static String fetchUsers(Request request, Response response) {
+        if (invalidRequestOrigin(request.ip())) {
+            response.status(401);
+            return "Unauthorized";
+        }
+
+        String userId = getUserId(request);
+        Document user = getUserById(userId, List.of("role"));
+        if (isNullOrEmpty(user) || !user.getString("role").equals(Role.ADMIN)) {
+            response.status(401);
+            return "Unauthorized";
+        }
+
+        List<Document> users = DUUIMongoDBStorage
+            .Users()
+            .find(Filters.ne("_id", new ObjectId(userId)))
+            .projection(Projections.include("_id", "email", "role"))
+            .into(new ArrayList<>());
+
+        if (isNullOrEmpty(users))
+            return badRequest(
+                response,
+                "User not fetchable. Are you logged in or have you provided an API key?");
+
+        users.forEach(DUUIMongoDBStorage::convertObjectIdToString);
+        return new Document("users", users).toJson();
+    }
+
     private static Document getUserProperties(String id) {
 
         if (isNullOrEmpty(id)) return new Document();

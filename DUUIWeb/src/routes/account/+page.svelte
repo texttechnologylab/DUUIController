@@ -1,7 +1,9 @@
 <script lang="ts">
+	import { goto } from '$app/navigation'
 	import { COLORS } from '$lib/config.js'
 	import { successToast } from '$lib/duui/utils/ui.js'
 	import { userSession } from '$lib/store.js'
+	import Dropdown from '$lib/svelte/components/Input/Dropdown.svelte'
 	import Password from '$lib/svelte/components/Input/Password.svelte'
 	import Secret from '$lib/svelte/components/Input/Secret.svelte'
 	import Text from '$lib/svelte/components/Input/TextInput.svelte'
@@ -27,7 +29,7 @@
 	import Fa from 'svelte-fa'
 
 	export let data
-	let { user, registered, dropbBoxURL, theme } = data
+	let { user, registered, dropbBoxURL, theme, users } = data
 	const toastStore = getToastStore()
 
 	if (user && $userSession) {
@@ -83,7 +85,7 @@
 			{
 				title: 'Delete Account',
 				message:
-					'Deleting your Account also deletes all pipelines and processes every created. Are you sure?',
+					'Deleting your Account also deletes all pipelines and processes ever created. Are you sure?',
 				textYes: 'Delete'
 			},
 			modalStore
@@ -222,7 +224,37 @@
 			}
 		}
 	}
-	let name: string = $userSession?.name || ''
+	let email: string = $userSession?.email || ''
+
+	const deleteUser = async (user: { oid: string; email: string; role: string }) => {
+		const confirm = await showConfirmationModal(
+			{
+				title: 'Delete Account',
+				message:
+					'Deleting the Account also deletes all pipelines and processes ever created. Are you sure?',
+				textYes: 'Delete'
+			},
+			modalStore
+		)
+
+		if (!confirm) return
+
+		const response = await fetch('/api/users/admin', {
+			method: 'DELETE',
+			body: JSON.stringify(user)
+		})
+
+		if (response.ok) {
+			users = users.filter((item: { oid: string }) => item.oid !== user.oid)
+		}
+	}
+
+	const updateRole = async (user: { oid: string; email: string; role: string }) => {
+		const response = await fetch('/api/users/admin', { method: 'PUT', body: JSON.stringify(user) })
+		if (response.ok) {
+			toastStore.trigger(successToast('Update successful'))
+		}
+	}
 </script>
 
 <svelte:head>
@@ -230,32 +262,37 @@
 </svelte:head>
 
 <div class="gap-4 max-w-7xl md:py-16 grid md:grid-cols-2 items-start">
-	<div class="section-wrapper p-8 space-y-4">
-		<h2 class="h3">Profile</h2>
-		<!-- <Text label="Name" name="name" bind:value={name} /> -->
+	<div class="space-y-4">
+		<div class="section-wrapper p-8 space-y-4">
+			<h2 class="h3">Profile</h2>
+			<Text label="E-Mail" name="email" readonly={true} bind:value={email} />
 
-		<div class="label">
-			<p class="form-label">Theme</p>
-			<RadioGroup
-				class="grid grid-cols-2 gap-2 p-2 section-wrapper w-full"
-				active="variant-filled-primary"
-				padding="p-4"
-			>
-				<RadioItem bind:group={theme} name="blue" value={0} on:click={() => updateTheme('blue')}
-					>Blue</RadioItem
+			<div class="label">
+				<p class="form-label">Theme</p>
+				<RadioGroup
+					class="grid grid-cols-2 gap-2 p-2 section-wrapper w-full"
+					active="variant-filled-primary"
+					padding="p-4"
 				>
-				<RadioItem bind:group={theme} name="red" value={1} on:click={() => updateTheme('red')}
-					>Red</RadioItem
-				>
-				<RadioItem bind:group={theme} name="purple" value={2} on:click={() => updateTheme('purple')}
-					>Purple</RadioItem
-				>
-				<RadioItem bind:group={theme} name="green" value={3} on:click={() => updateTheme('green')}
-					>Green</RadioItem
-				>
-			</RadioGroup>
-		</div>
-		<!-- <button
+					<RadioItem bind:group={theme} name="blue" value={0} on:click={() => updateTheme('blue')}
+						>Blue</RadioItem
+					>
+					<RadioItem bind:group={theme} name="red" value={1} on:click={() => updateTheme('red')}
+						>Red</RadioItem
+					>
+					<RadioItem
+						bind:group={theme}
+						name="purple"
+						value={2}
+						on:click={() => updateTheme('purple')}>Purple</RadioItem
+					>
+					<RadioItem bind:group={theme} name="green" value={3} on:click={() => updateTheme('green')}
+						>Green</RadioItem
+					>
+				</RadioGroup>
+			</div>
+
+			<!-- <button
 			class="button-neutral"
 			disabled={!name}
 			on:click={() =>
@@ -266,10 +303,32 @@
 			<Fa icon={faCheck} />
 			<span>Save</span>
 		</button> -->
+		</div>
+		{#if users}
+			<div class="section-wrapper p-8 space-y-4">
+				<h3 class="h3">Users</h3>
+				<div class="space-y-4">
+					{#each users as user}
+						<div class="grid grid-cols-[1fr_auto] items-end justify-between gap-4">
+							<Dropdown
+								on:change={() => updateRole(user)}
+								label={user.email}
+								bind:value={user.role}
+								options={['User', 'Admin', 'Trial']}
+							/>
+							<button class="button-error button-modal" on:click={() => deleteUser(user)}>
+								<Fa icon={faTrash} />
+								<span>Delete</span>
+							</button>
+						</div>
+					{/each}
+				</div>
+			</div>
+		{/if}
 	</div>
 
 	<div class="space-y-4">
-		<div class="section-wrapper p-8 space-y-8 scroll-mt-4" id="authorization">
+		<div class="section-wrapper p-8 space-y-8 scroll-mt-16" id="authorization">
 			<h2 class="h3">API Key</h2>
 			<div class="space-y-8">
 				{#if connections.key}
@@ -320,7 +379,7 @@
 			</p>
 		</div>
 		<div class="section-wrapper p-8 grid grid-rows-[auto_1fr_auto] gap-8">
-			<h2 class="h3">Dropbox</h2>
+			<h2 class="h3 scroll-mt-16"" id="dropbox">Dropbox</h2>
 			<div class="space-y-8">
 				{#if connections.dropbox}
 					<p>Your Dropbox account has been connected successfully.</p>
@@ -383,14 +442,20 @@
 			</p>
 		</div>
 		<div class="section-wrapper p-8 grid grid-rows-[auto_1fr_auto] gap-8">
-			<h2 class="h3">Minio / AWS</h2>
+			<h2 class="h3 scroll-mt-16" id="minio">Minio / AWS</h2>
 			<div class="space-y-4">
 				{#if connections.minio}
 					<p>Your account has been connected to Minio / AWS successfully.</p>
 				{:else}
 					<p>Enter your AWS credentials below to establish a connection.</p>
 				{/if}
-				<Text label="Endpoint" style="grow" name="endpoint" bind:value={minioEndpoint} />
+				<Text
+					help="The correct endpoint is the s3 API endpoint. Do not the Minio Console endpoint!"
+					label="Endpoint"
+					style="grow"
+					name="endpoint"
+					bind:value={minioEndpoint}
+				/>
 				<Password label="Username (Access Key)" name="accessKey" bind:value={minioAccessKey} />
 				<Password label="Password (Secret Key)" name="secretKey" bind:value={minioSecretKey} />
 			</div>

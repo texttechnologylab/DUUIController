@@ -4,6 +4,6 @@ import { handleLoginRedirect } from '$lib/utils'
 
 export const load: LayoutServerLoad = async ({ locals, url, cookies }) => {
 	if (!locals.user) {
-		redirect(302, handleLoginRedirect(url));
+		redirect(302, handleLoginRedirect(url))
 	}
 }

@@ -13,7 +13,6 @@
 
 	let email: string = $page.url.searchParams.get('email') || ''
 	let password: string
-	let password2: string
 
 	let redirectTo: string = $page.url.searchParams.get('redirectTo') || '/account'
 
@@ -40,6 +39,7 @@
 
 		if (response.ok) {
 			userSession.set(result.user)
+			
 			goto(redirectTo)
 		} else {
 			if (response.status === 503) message = 'Could not reach the server. Try again later.'

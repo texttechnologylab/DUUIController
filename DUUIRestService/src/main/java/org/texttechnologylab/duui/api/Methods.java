@@ -60,6 +60,7 @@ public class Methods {
             before("/*", (request, response) -> DUUIHTTPMetrics.incrementUsersRequests());
 
             get("/:id", DUUIUserController::fetchUser);
+            get("", DUUIUserController::fetchUsers);
             post("", DUUIUserController::insertOne);
             put("/:id", DUUIUserController::updateOne);
             put("/reset-password", DUUIUserController::resetPassword);

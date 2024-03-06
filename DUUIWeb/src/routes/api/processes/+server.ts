@@ -5,7 +5,7 @@ export async function GET({ cookies, url }) {
 
 	const response = await fetch(`${API_URL}/processes/${processId}`, {
 		method: 'GET',
-		
+
 		headers: {
 			Authorization: cookies.get('session') || ''
 		}
@@ -19,7 +19,6 @@ export async function POST({ request, cookies }) {
 
 	const response = await fetch(`${API_URL}/processes`, {
 		method: 'POST',
-		
 		body: JSON.stringify(data),
 		headers: {
 			Authorization: cookies.get('session') || ''
@@ -34,7 +33,7 @@ export async function PUT({ request, cookies }) {
 
 	const response = await fetch(`${API_URL}/processes/${data.oid}`, {
 		method: 'PUT',
-		
+
 		body: JSON.stringify(data),
 		headers: {
 			Authorization: cookies.get('session') || ''
@@ -49,7 +48,7 @@ export async function DELETE({ request, cookies }) {
 
 	const response = await fetch(`${API_URL}/processes/${data.oid}`, {
 		method: 'DELETE',
-		
+
 		headers: {
 			Authorization: cookies.get('session') || ''
 		}
