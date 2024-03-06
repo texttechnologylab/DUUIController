@@ -1,7 +1,7 @@
 import { API_URL } from '$env/static/private'
 import { error } from '@sveltejs/kit'
 
-export const PUT = async ({ request, locals }) => {
+export const PUT = async ({ request, locals, fetch }) => {
 	const data = await request.json()
 	const user = locals.user
 

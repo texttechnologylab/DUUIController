@@ -1,6 +1,6 @@
 import { API_URL } from '$env/static/private'
 
-export async function POST({ request, cookies }) {
+export async function POST({ request, cookies, fetch }) {
 	const data = await request.json()
 	try {
 		delete data['language']

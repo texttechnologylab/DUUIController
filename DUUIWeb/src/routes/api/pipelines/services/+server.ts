@@ -1,7 +1,7 @@
 import { API_URL } from '$env/static/private'
 import type { DUUIPipeline } from '$lib/duui/pipeline'
 
-export async function POST({ request, cookies }) {
+export async function POST({ request, cookies, fetch }) {
 	const data: DUUIPipeline = await request.json()
 
 	const response = await fetch(`${API_URL}/pipelines/${data.oid}/start`, {
@@ -15,7 +15,7 @@ export async function POST({ request, cookies }) {
 	return response
 }
 
-export async function PUT({ request, cookies }) {
+export async function PUT({ request, cookies, fetch }) {
 	const data: DUUIPipeline = await request.json()
 
 	const response = await fetch(`${API_URL}/pipelines/${data.oid}/stop`, {

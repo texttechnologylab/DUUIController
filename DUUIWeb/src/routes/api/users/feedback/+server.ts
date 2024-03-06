@@ -1,7 +1,7 @@
 import { API_URL } from '$env/static/private'
 import { error } from '@sveltejs/kit'
 
-export const POST = async ({ request, cookies, locals }) => {
+export const POST = async ({ request, cookies, locals, fetch }) => {
 	const user = locals.user
 
 	if (!user) {
@@ -12,7 +12,7 @@ export const POST = async ({ request, cookies, locals }) => {
 
 	const response = await fetch(`${API_URL}/users/${user.oid}/feedback`, {
 		method: 'POST',
-		
+
 		body: JSON.stringify(Object.fromEntries(feedback.entries())),
 		headers: {
 			Authorization: cookies.get('session') || ''

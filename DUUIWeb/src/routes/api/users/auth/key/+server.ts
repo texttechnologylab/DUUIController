@@ -7,7 +7,7 @@ const generatKey = (length: number = 64, format: BufferEncoding | undefined = 'b
 	return buffer.toString(format)
 }
 
-export const PUT = async ({ locals }) => {
+export const PUT = async ({ locals, fetch }) => {
 	const user = locals.user
 
 	if (!user) {

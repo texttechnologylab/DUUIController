@@ -1,9 +1,8 @@
 import { API_URL } from '$env/static/private'
 import { json, type RequestHandler } from '@sveltejs/kit'
 
-export const GET: RequestHandler = async (event) => {
-	const { cookies } = event
-	const searchParams = event.url.searchParams
+export const GET: RequestHandler = async ({ cookies, fetch, url }) => {
+	const searchParams = url.searchParams
 
 	const id = searchParams.get('pipeline_id') || ''
 	let limit: number = Math.min(+(searchParams.get('limit') || '10'), 50)
@@ -27,7 +26,7 @@ export const GET: RequestHandler = async (event) => {
 			&output=${output}`,
 			{
 				method: 'GET',
-				
+
 				headers: {
 					Authorization: cookies.get('session') || ''
 				}

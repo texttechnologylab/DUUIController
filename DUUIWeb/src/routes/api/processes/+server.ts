@@ -1,6 +1,6 @@
 import { API_URL } from '$env/static/private'
 
-export async function GET({ cookies, url }) {
+export async function GET({ cookies, url, fetch }) {
 	const processId = url.searchParams.get('process_id') || ''
 
 	const response = await fetch(`${API_URL}/processes/${processId}`, {
@@ -14,7 +14,7 @@ export async function GET({ cookies, url }) {
 	return response
 }
 
-export async function POST({ request, cookies }) {
+export async function POST({ request, cookies, fetch }) {
 	const data = await request.json()
 
 	const response = await fetch(`${API_URL}/processes`, {
@@ -28,7 +28,7 @@ export async function POST({ request, cookies }) {
 	return response
 }
 
-export async function PUT({ request, cookies }) {
+export async function PUT({ request, cookies, fetch }) {
 	const data = await request.json()
 
 	const response = await fetch(`${API_URL}/processes/${data.oid}`, {
@@ -43,7 +43,7 @@ export async function PUT({ request, cookies }) {
 	return response
 }
 
-export async function DELETE({ request, cookies }) {
+export async function DELETE({ request, cookies, fetch }) {
 	const data = await request.json()
 
 	const response = await fetch(`${API_URL}/processes/${data.oid}`, {
