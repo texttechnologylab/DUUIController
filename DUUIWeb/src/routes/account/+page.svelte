@@ -441,8 +441,8 @@
 					name="endpoint"
 					bind:value={minioEndpoint}
 				/>
-				<Password label="Username (Access Key)" name="accessKey" bind:value={minioAccessKey} />
-				<Password label="Password (Secret Key)" name="secretKey" bind:value={minioSecretKey} />
+				<Secret label="Username (Access Key)" name="accessKey" bind:value={minioAccessKey} />
+				<Secret label="Password (Secret Key)" name="secretKey" bind:value={minioSecretKey} />
 			</div>
 			<div class="grid md:flex justify-between gap-4">
 				<button
