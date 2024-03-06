@@ -10,7 +10,7 @@
 			   h-full p-4 text-left space-y-8 hidden md:block w-auto text-lg"
 	>
 		<div class="space-y-4 px-2">
-			<p class="h3 p-2">Documentation</p>
+			<h3 class="h3 p-2">Documentation</h3>
 			<div class="flex flex-col gap-2 links">
 				<a href="/documentation#introduction" class="flex-center-4 p-2 transition-300">
 					{#if $page.url.href.endsWith('introduction')}
@@ -52,22 +52,31 @@
 		<hr class="hr !w-full" />
 
 		<div class="space-y-4 px-2">
-			<p class="h3 p-2">API Reference</p>
+			<h3 class="h3 p-2">API Reference</h3>
 			<div class="flex flex-col gap-2">
-				<a href="/documentation/api#rest" class="flex-center-4 p-2 transition-300 hover:text-primary-500">
+				<a
+					href="/documentation/api#rest"
+					class="flex-center-4 p-2 transition-300 hover:text-primary-500"
+				>
 					{#if $page.url.href.endsWith('rest')}
 						<Fa icon={faAngleRight} />
 					{/if}
 					REST
 				</a>
 
-				<a class="flex-center-4 p-2 transition-300 hover:text-primary-500" href="/documentation/api#java">
+				<a
+					class="flex-center-4 p-2 transition-300 hover:text-primary-500"
+					href="/documentation/api#java"
+				>
 					{#if $page.url.href.endsWith('java')}
 						<Fa icon={faAngleRight} />
 					{/if}
 					Java
 				</a>
-				<a class="flex-center-4 p-2 transition-300 hover:text-primary-500" href="/documentation/api#python">
+				<a
+					class="flex-center-4 p-2 transition-300 hover:text-primary-500"
+					href="/documentation/api#python"
+				>
 					{#if $page.url.href.endsWith('python')}
 						<Fa icon={faAngleRight} />
 					{/if}

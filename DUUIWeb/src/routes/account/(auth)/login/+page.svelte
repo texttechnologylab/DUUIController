@@ -39,7 +39,7 @@
 
 		if (response.ok) {
 			userSession.set(result.user)
-			
+
 			goto(redirectTo)
 		} else {
 			if (response.status === 503) message = 'Could not reach the server. Try again later.'
@@ -64,12 +64,12 @@
 			in:fly={{ x: 600, opacity: 100, duration: 800 }}
 			class="space-y-8 md:p-16 md:px-8 relative"
 		>
+			<h2 class="h2 mb-16">Login</h2>
 			{#if message}
-				<p in:fly={{ y: -100 }} class="font-bold variant-filled-error p-4 rounded-md max-w-[40ch]">
+				<p in:fly={{ y: -100 }} class="font-bold variant-soft-error p-4 rounded-md max-w-[40ch]">
 					{message}
 				</p>
 			{/if}
-			<h2 class="h2 mb-16">Login</h2>
 			<div class="gap-8 flex flex-col">
 				<div class="space-y-4">
 					<Text bind:value={email} label="Email" name="email" />

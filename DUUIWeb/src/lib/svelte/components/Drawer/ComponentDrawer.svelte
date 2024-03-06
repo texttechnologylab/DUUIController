@@ -1,7 +1,12 @@
 <script lang="ts">
 	import { DUUIDrivers, type DUUIComponent, componentToJson } from '$lib/duui/component'
 	import { errorToast, successToast } from '$lib/duui/utils/ui'
-	import { currentPipelineStore, exampleComponent, userSession } from '$lib/store'
+	import {
+		currentPipelineStore,
+		exampleComponent,
+		examplePipelineStore,
+		userSession
+	} from '$lib/store'
 	import { showConfirmationModal } from '$lib/svelte/utils/modal'
 	import {
 		faAngleDoubleRight,
@@ -145,9 +150,15 @@
 
 		if (!confirm) return
 
-		$currentPipelineStore.components = $currentPipelineStore.components.filter(
-			(c) => c.id !== component.id
-		)
+		if (example) {
+			$examplePipelineStore.components = $examplePipelineStore.components.filter(
+				(c) => c.id !== component.id
+			)
+		} else {
+			$currentPipelineStore.components = $currentPipelineStore.components.filter(
+				(c) => c.id !== component.id
+			)
+		}
 
 		drawerStore.close()
 	}
@@ -340,7 +351,7 @@
 						<div class="p-4 px-8 flex items-center justify-center">
 							<Fa icon={faInfo} size="2x" />
 						</div>
-						<p class="border-l border-color p-4 grow">
+						<p class="border-l border-color p-4">
 							The target can be a Docker image name (Docker, Swarm and Kubernetes Driver), a URL
 							(Remote Driver) or a Java class path (UIMADriver).
 						</p>

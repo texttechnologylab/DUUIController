@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { goto } from '$app/navigation'
 	import { COLORS } from '$lib/config.js'
 	import { successToast } from '$lib/duui/utils/ui.js'
 	import { userSession } from '$lib/store.js'
@@ -37,21 +36,22 @@
 		$userSession.connections = user.connections
 	}
 
-	let connections = {
-		dropbox:
-			$userSession?.connections.dropbox.access_token !== null &&
-			$userSession?.connections.dropbox.refresh_token !== null,
-
-		minio:
-			$userSession?.connections.minio.access_key !== null &&
-			$userSession?.connections.minio.endpoint !== null &&
-			$userSession?.connections.minio.secret_key !== null,
-		key: $userSession?.connections.key != null
-	}
-
 	let minioAccessKey: string = $userSession?.connections.minio.access_key || ''
 	let minioEndpoint: string = $userSession?.connections.minio.endpoint || ''
 	let minioSecretKey: string = $userSession?.connections.minio.secret_key || ''
+
+	$: isDropboxConnected =
+		!!$userSession?.connections.dropbox.access_token &&
+		!!$userSession.connections.dropbox.refresh_token
+
+	$: isMinioConnected =
+		!!$userSession?.connections.minio.endpoint &&
+		!!$userSession?.connections.minio.access_key &&
+		!!$userSession?.connections.minio.secret_key
+
+	$: hasApiKey = !!$userSession?.connections.key
+
+	let email: string = $userSession?.email || ''
 
 	const updateTheme = async (color: string) => {
 		const response = await fetch(`/api/theme?color=${color}`, {
@@ -118,7 +118,6 @@
 		if (response.ok && $userSession) {
 			const item = await response.json()
 			$userSession.connections.key = item.user.connections.key
-			connections.key = true
 		}
 	}
 
@@ -139,7 +138,6 @@
 
 		if (response.ok && $userSession) {
 			$userSession.connections.key = null
-			connections.key = false
 		}
 	}
 
@@ -167,8 +165,9 @@
 			'connections.dropbox.refresh_token': null
 		})
 
-		if (response.ok) {
-			connections.dropbox = false
+		if (response.ok && $userSession) {
+			$userSession.connections.dropbox.access_token = null
+			$userSession.connections.dropbox.refresh_token = null
 		}
 	}
 
@@ -191,40 +190,26 @@
 		})
 
 		if (response.ok) {
-			connections.minio = false
 			minioEndpoint = ''
 			minioAccessKey = ''
 			minioSecretKey = ''
+
+			if ($userSession) {
+				$userSession.connections.minio.endpoint = null
+				$userSession.connections.minio.access_key = null
+				$userSession.connections.minio.secret_key = null
+			}
 		}
 	}
 
 	onMount(() => {
-		if (registered) {
+		if (!registered) {
 			modalStore.trigger({
 				type: 'component',
 				component: 'welcomeModal'
 			})
 		}
 	})
-
-	$: {
-		if (!$userSession) {
-			connections = { dropbox: false, minio: false, key: false }
-		} else {
-			connections = {
-				dropbox:
-					$userSession?.connections.dropbox.access_token !== null &&
-					$userSession?.connections.dropbox.refresh_token !== null,
-
-				minio:
-					$userSession?.connections.minio.access_key !== null &&
-					$userSession?.connections.minio.endpoint !== null &&
-					$userSession?.connections.minio.secret_key !== null,
-				key: $userSession?.connections.key != null
-			}
-		}
-	}
-	let email: string = $userSession?.email || ''
 
 	const deleteUser = async (user: { oid: string; email: string; role: string }) => {
 		const confirm = await showConfirmationModal(
@@ -331,7 +316,7 @@
 		<div class="section-wrapper p-8 space-y-8 scroll-mt-16" id="authorization">
 			<h2 class="h3">API Key</h2>
 			<div class="space-y-8">
-				{#if connections.key}
+				{#if hasApiKey}
 					<div class="space-y-2">
 						<Secret value={$userSession?.connections.key} style="pt-2" />
 						<div
@@ -379,9 +364,9 @@
 			</p>
 		</div>
 		<div class="section-wrapper p-8 grid grid-rows-[auto_1fr_auto] gap-8">
-			<h2 class="h3 scroll-mt-16"" id="dropbox">Dropbox</h2>
+			<h2 class="h3 scroll-mt-16" id="dropbox">Dropbox</h2>
 			<div class="space-y-8">
-				{#if connections.dropbox}
+				{#if isDropboxConnected}
 					<p>Your Dropbox account has been connected successfully.</p>
 					<div>
 						<p class="flex-center-4">
@@ -444,13 +429,13 @@
 		<div class="section-wrapper p-8 grid grid-rows-[auto_1fr_auto] gap-8">
 			<h2 class="h3 scroll-mt-16" id="minio">Minio / AWS</h2>
 			<div class="space-y-4">
-				{#if connections.minio}
+				{#if isMinioConnected}
 					<p>Your account has been connected to Minio / AWS successfully.</p>
 				{:else}
 					<p>Enter your AWS credentials below to establish a connection.</p>
 				{/if}
 				<Text
-					help="The correct endpoint is the s3 API endpoint. Do not the Minio Console endpoint!"
+					help="The correct endpoint is the s3 API endpoint. Do not use the Minio Console endpoint!"
 					label="Endpoint"
 					style="grow"
 					name="endpoint"
@@ -470,10 +455,10 @@
 							'connections.minio.secret_key': minioSecretKey
 						})}
 				>
-					<Fa icon={connections.minio ? faRefresh : faLink} />
-					<span>{connections.minio ? 'Update' : 'Connect'}</span>
+					<Fa icon={isMinioConnected ? faRefresh : faLink} />
+					<span>{isMinioConnected ? 'Update' : 'Connect'}</span>
 				</button>
-				{#if connections.minio}
+				{#if isMinioConnected}
 					<button class="button-error" on:click={revokeMinioAccess}>
 						<Fa icon={faXmarkCircle} />
 						<span>Delete</span>

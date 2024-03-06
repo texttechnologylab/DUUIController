@@ -32,7 +32,7 @@
 	}
 </script>
 
-<div class="label flex flex-col min-w-[220px]">
+<div class="label flex flex-col md:min-w-[220px]">
 	{#if label}
 		<span class="form-label {textAlign}">{label} </span>
 	{/if}
@@ -46,7 +46,7 @@
 </div>
 
 <div data-popup={name}>
-	<div class="popup-solid p-2 min-w-[220px]">
+	<div class="popup-solid p-2 md:min-w-[220px]">
 		<ListBox class="overflow-hidden" rounded="rounded-md" spacing="space-y-2">
 			{#each options as option}
 				<ListBoxItem

@@ -24,7 +24,6 @@
 		faFileUpload,
 		faFilter,
 		faListCheck,
-		faRefresh,
 		faRepeat,
 		faSearch,
 		faTrash
@@ -82,21 +81,23 @@
 	let maxProgress = process.size || pipeline.components.length
 
 	const UPDATE_INTERVAL = 1_000
+	let interval: NodeJS.Timeout
 
 	onMount(() => {
-		async function updateProcess() {
+		async function update() {
 			const response = await fetch(`/api/processes?process_id=${process.oid}`, {
 				method: 'GET'
 			})
 
-			if (!response.ok || !isActive(process.status)) {
+			if (!isActive(process.status)) {
 				clearInterval(interval)
 			}
 
-			process = await response.json()
-
-			progressPercent = progresAsPercent(process.progress, process.document_names.length)
-			updateTable()
+			if (response.ok) {
+				process = await response.json()
+				progressPercent = progresAsPercent(process.progress, process.document_names.length)
+				updateTable()
+			}
 
 			if (progressPercent > 100) progressPercent = 100
 			if (process.is_finished) {
@@ -113,11 +114,10 @@
 
 		loadApexCharts()
 
-		let interval: NodeJS.Timeout
 		if (!process.is_finished) {
-			interval = setInterval(updateProcess, UPDATE_INTERVAL)
+			interval = setInterval(update, UPDATE_INTERVAL)
 		}
-		updateProcess()
+		update()
 		return () => clearInterval(interval)
 	})
 
@@ -190,13 +190,15 @@
 			}
 		)
 
-		const json: {
-			documents: DUUIDocument[]
-			count: number
-		} = await response.json()
+		if (response.ok) {
+			const json: {
+				documents: DUUIDocument[]
+				count: number
+			} = await response.json()
 
-		documents = json.documents
-		paginationSettings.total = json.count
+			documents = json.documents
+			paginationSettings.total = json.count
+		}
 	}
 
 	const modalStore = getModalStore()
@@ -254,7 +256,7 @@
 	</a>
 	{#if process.is_finished}
 		<button class="button-mobile" on:click={restart}>
-			<Fa icon={faRefresh} />
+			<Fa icon={faRepeat} />
 			<span>Restart</span>
 		</button>
 		<button class="button-mobile" on:click={deleteProcess}>
@@ -358,7 +360,7 @@
 						class="hidden ml-auto md:flex overflow-hidden justify-between section-wrapper !shadow-none !border-b-0 !rounded-b-none z-10"
 					>
 						<Search
-							style="bg-fancy py-3"
+							style="bg-fancy py-3 "
 							bind:query={searchText}
 							placeholder="Search..."
 							icon={faSearch}
@@ -370,7 +372,7 @@
 							}}
 						/>
 						<Select
-							style="z-50 !rounded-none hidden md:flex"
+							style="z-50 !rounded-none hidden md:flex "
 							border="border-l border-color"
 							label="Status"
 							name="Status"

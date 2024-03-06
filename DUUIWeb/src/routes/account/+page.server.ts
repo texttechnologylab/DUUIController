@@ -1,6 +1,6 @@
 import { API_URL } from '$env/static/private'
 import { handleLoginRedirect } from '$lib/utils'
-import { fail, redirect } from '@sveltejs/kit'
+import { fail, redirect, type Actions } from '@sveltejs/kit'
 import { DropboxAuth } from 'dropbox'
 import type { PageServerLoad } from './$types'
 

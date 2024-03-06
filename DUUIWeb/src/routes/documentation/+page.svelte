@@ -1,25 +1,26 @@
 <script lang="ts">
 	import { blankComponent } from '$lib/duui/component'
-	import { currentPipelineStore, exampleComponent } from '$lib/store.js'
+	import type { DUUIPipeline } from '$lib/duui/pipeline.js'
+	import { currentPipelineStore, exampleComponent, examplePipelineStore } from '$lib/store.js'
 	import Chips from '$lib/svelte/components/Input/Chips.svelte'
 	import TextInput from '$lib/svelte/components/Input/TextInput.svelte'
 	import PipelineCard from '$lib/svelte/components/PipelineCard.svelte'
 	import PipelineComponent from '$lib/svelte/components/PipelineComponent.svelte'
-	import { faArrowUp, faCheck, faClone, faEdit, faPlus } from '@fortawesome/free-solid-svg-icons'
+	import { faCheck, faClone, faEdit, faPlus } from '@fortawesome/free-solid-svg-icons'
 	import { clipboard } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
 
 	export let data
-	$currentPipelineStore = data.examplePipeline
-	let exampleComponentAdded: boolean = false
+	$examplePipelineStore = data.examplePipeline
 
 	const addExampleComponent = () => {
-		exampleComponentAdded = true
-		$currentPipelineStore.components = [
-			...$currentPipelineStore.components,
-			blankComponent($currentPipelineStore.oid, $currentPipelineStore.components.length)
+		$examplePipelineStore.components = [
+			...$examplePipelineStore.components,
+			blankComponent($examplePipelineStore.oid, $examplePipelineStore.components.length)
 		]
 	}
+
+	$: exampleComponentAdded = $examplePipelineStore.components.length > 0
 </script>
 
 <svelte:head>
@@ -94,7 +95,7 @@
 								<span class="hidden lg:inline">on the right.</span>
 								<span class="lg:hidden inline">below.</span>
 							</p>
-							{#if $currentPipelineStore.tags.length === 0}
+							{#if $examplePipelineStore.tags.length === 0}
 								<p class="self-end">
 									No tags added yet. Enter a value in the text field that says Add a tag... and
 									press enter.
@@ -108,13 +109,13 @@
 						</div>
 						<div>
 							<div class="section-wrapper flex flex-col gap-4 p-4">
-								<TextInput label="Name" bind:value={$currentPipelineStore.name} />
+								<TextInput label="Name" bind:value={$examplePipelineStore.name} />
 
-								<TextInput label="Description" bind:value={$currentPipelineStore.description} />
+								<TextInput label="Description" bind:value={$examplePipelineStore.description} />
 								<Chips
 									label="Tags"
 									placeholder="Add a tag..."
-									bind:values={$currentPipelineStore.tags}
+									bind:values={$examplePipelineStore.tags}
 								/>
 							</div>
 						</div>
@@ -130,7 +131,7 @@
 							</p>
 						</div>
 						<div class="card-fancy grid items-start min-h-[300px]">
-							<PipelineCard pipeline={$currentPipelineStore} />
+							<PipelineCard pipeline={$examplePipelineStore} />
 						</div>
 					</div>
 				</div>
@@ -187,21 +188,20 @@
 										<p>
 											Open the drawer by clicking on the <Fa icon={faEdit} class="inline" /> icon and
 											add a target. If you don't have a target at hand, you can choose the DUUIDockerDriver
-											and enter
+											and enter a docker image as the target.
+										</p>
+										<div class="flex justify-center">
 											<button
 												use:clipboard={'docker.texttechnologylab.org/textimager-duui-spacy-single-de_core_news_sm:latest'}
-												class="button-surface my-2"
-												>docker.texttechnologylab.org/textimager-duui-spacy-single-de_core_news_sm:latest</button
-											> as the target.
-										</p>
+												class="button-primary">Copy example Image</button
+											>
+										</div>
 									{/if}
-									{#each $currentPipelineStore.components as component}
-										<PipelineComponent example={true} {component} />
-									{/each}
-									<button class="button-primary" on:click={addExampleComponent}>
-										<Fa icon={faPlus} />
-										<span>Create component</span>
-									</button>
+									<div class="grid gap-4">
+										{#each $examplePipelineStore.components as component}
+											<PipelineComponent example={true} {component} />
+										{/each}
+									</div>
 								</div>
 							{:else}
 								<div class="mx-auto">

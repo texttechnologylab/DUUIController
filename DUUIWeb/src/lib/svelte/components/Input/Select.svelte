@@ -32,14 +32,14 @@
 </script>
 
 <button
-	class="flex items-center justify-between gap-2 px-3 py-2 leading-6 {border} {rounded} {style} bg-fancy z-50"
+	class="flex items-center justify-between gap-2 px-3 py-2 leading-6 {border} {rounded} {style} bg-fancy z-50 md:min-w-[220px]"
 	use:popup={menu}
 >
 	<span class="grow text-left">{label}</span>
 	<Fa {icon} />
 </button>
 
-<div class="popup-solid z-50" data-popup={name}>
+<div class="popup-solid z-50 md:min-w-[220px]" data-popup={name}>
 	<ListBox
 		{name}
 		multiple={true}

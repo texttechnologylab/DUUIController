@@ -13,13 +13,13 @@
 		isValidInput,
 		isValidOutput,
 		isValidS3BucketName,
-		type DUUIDocumentProvider,
 		type FileExtension,
 		type IOProvider
 	} from '$lib/duui/io.js'
-	import { Languages } from '$lib/duui/process'
+	import { Languages, blankSettings } from '$lib/duui/process'
 	import { equals } from '$lib/duui/utils/text'
 	import { errorToast } from '$lib/duui/utils/ui'
+	import { processSettingsStore, userSession } from '$lib/store.js'
 	import Checkbox from '$lib/svelte/components/Input/Checkbox.svelte'
 	import Dropdown from '$lib/svelte/components/Input/Dropdown.svelte'
 	import Number from '$lib/svelte/components/Input/Number.svelte'
@@ -33,6 +33,7 @@
 		faFileArrowUp
 	} from '@fortawesome/free-solid-svg-icons'
 	import { FileDropzone, ProgressBar, getToastStore } from '@skeletonlabs/skeleton'
+	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
 
 	export let data
@@ -40,38 +41,79 @@
 
 	const toastStore = getToastStore()
 
-	let input: DUUIDocumentProvider = {
-		provider: ($page.url.searchParams.get('input_provider') as IOProvider) || 'Text',
-		path: $page.url.searchParams.get('input_path') || '',
-		content: $page.url.searchParams.get('input_content') || 'Sample Text.',
-		file_extension: ($page.url.searchParams.get('input_file_extension') as FileExtension) || '.txt'
-	}
-
-	if (input.provider === IO.File) {
-		input.path = ''
-	}
-
-	let output: DUUIDocumentProvider = {
-		provider: ($page.url.searchParams.get('output_provider') as IOProvider) || 'None',
-		path: $page.url.searchParams.get('output_path') || '',
-		content: $page.url.searchParams.get('output_content') || '',
-		file_extension: ($page.url.searchParams.get('output_file_extension') as FileExtension) || '.txt'
-	}
-
 	let files: FileList
 
-	let language: string = $page.url.searchParams.get('language') || 'Unspecified'
-	let notify: boolean = $page.url.searchParams.get('notify') === 'true' || false
-	let checkTarget: boolean = $page.url.searchParams.get('check_target') === 'true' || false
-	let recursive: boolean = $page.url.searchParams.get('recursive') === 'true' || true
-	let overwrite: boolean = $page.url.searchParams.get('overwrite') === 'true' || false
-	let sortBySize: boolean = $page.url.searchParams.get('sort_by_size') === 'true' || false
-	let ignoreErrors: boolean = $page.url.searchParams.get('ignore_errors') === 'true' || true
-	let skipFiles: number = +($page.url.searchParams.get('minimum_size') || '0')
-	let workerCount: number = +($page.url.searchParams.get('worker_count') || '1')
+	onMount(() => {
+		const params = $page.url.searchParams
 
-	const pipeline_id: string = $page.url.searchParams.get('pipeline_id') || ''
-	let onCancelURL = $page.url.searchParams.get('from') || `/pipelines/${pipeline_id}`
+		const reset = (params.get('reset') || 'false') === 'true'
+
+		if (reset) {
+			$processSettingsStore = blankSettings()
+			goto(`/processes?pipeline_id=${params.get('pipeline_id')}`)
+		}
+
+		$processSettingsStore.pipeline_id =
+			params.get('pipeline_id') || $processSettingsStore.pipeline_id
+
+		$processSettingsStore.settings.language =
+			params.get('language') || $processSettingsStore.settings.language
+
+		$processSettingsStore.settings.notify =
+			params.get('notify') === 'true' || $processSettingsStore.settings.notify
+
+		$processSettingsStore.settings.check_target =
+			params.get('check_target') === 'true' || $processSettingsStore.settings.check_target
+
+		$processSettingsStore.settings.recursive =
+			params.get('recursive') === 'true' || $processSettingsStore.settings.recursive
+
+		$processSettingsStore.settings.overwrite =
+			params.get('overwrite') === 'true' || $processSettingsStore.settings.overwrite
+
+		$processSettingsStore.settings.sort_by_size =
+			params.get('sort_by_size') === 'true' || $processSettingsStore.settings.sort_by_size
+
+		$processSettingsStore.settings.ignore_errors =
+			params.get('ignore_errors') === 'true' || $processSettingsStore.settings.ignore_errors
+
+		$processSettingsStore.settings.minimum_size = +(
+			params.get('minimum_size') || $processSettingsStore.settings.minimum_size
+		)
+		$processSettingsStore.settings.worker_count = +(
+			params.get('worker_count') || $processSettingsStore.settings.worker_count
+		)
+
+		$processSettingsStore.input.provider =
+			(params.get('input_provider') as IOProvider) || $processSettingsStore.input.provider
+		$processSettingsStore.input.path = params.get('input_path') || $processSettingsStore.input.path
+		$processSettingsStore.input.content =
+			params.get('input_content') || $processSettingsStore.input.content
+		$processSettingsStore.input.file_extension =
+			(params.get('input_file_extension') as FileExtension) ||
+			$processSettingsStore.input.file_extension
+
+		$processSettingsStore.output.provider =
+			(params.get('output_provider') as IOProvider) || $processSettingsStore.output.provider
+		$processSettingsStore.output.path =
+			params.get('output_path') || $processSettingsStore.output.path
+		$processSettingsStore.output.content =
+			params.get('output_content') || $processSettingsStore.output.content
+		$processSettingsStore.output.file_extension =
+			(params.get('output_file_extension') as FileExtension) ||
+			$processSettingsStore.output.file_extension
+
+		if ($processSettingsStore.input.provider === IO.File) {
+			$processSettingsStore.input.path = ''
+		}
+
+		if ($processSettingsStore.input.provider !== IO.Text) {
+			$processSettingsStore.input.content = ''
+		}
+	})
+
+	let onCancelURL =
+		$page.url.searchParams.get('from') || `/pipelines/${$processSettingsStore.pipeline_id}`
 
 	let starting: boolean = false
 	let uploading: boolean = false
@@ -108,7 +150,7 @@
 		}
 
 		const json = await fileUpload.json()
-		input.path = json.path
+		$processSettingsStore.input.path = json.path
 
 		uploading = false
 		return true
@@ -121,7 +163,7 @@
 
 		starting = true
 
-		if (equals(input.provider, IO.File)) {
+		if (equals($processSettingsStore.input.provider, IO.File)) {
 			const result = await uploadFiles()
 			if (!result) {
 				starting = false
@@ -131,70 +173,61 @@
 		}
 
 		if (
-			!input.path.startsWith('/') &&
-			equals(input.provider, IO.Dropbox) &&
-			input.path.length > 0
+			!$processSettingsStore.input.path.startsWith('/') &&
+			equals($processSettingsStore.input.provider, IO.Dropbox) &&
+			$processSettingsStore.input.path.length > 0
 		) {
-			input.path = '/' + input.path
+			$processSettingsStore.input.path = '/' + $processSettingsStore.input.path
 		}
 
 		if (
-			!output.path.startsWith('/') &&
-			equals(output.provider, IO.Dropbox) &&
-			output.path.length > 0
+			!$processSettingsStore.output.path.startsWith('/') &&
+			equals($processSettingsStore.output.provider, IO.Dropbox) &&
+			$processSettingsStore.output.path.length > 0
 		) {
-			output.path = '/' + output.path
+			$processSettingsStore.output.path = '/' + $processSettingsStore.output.path
 		}
 
-		if (input.provider !== IO.Text) {
-			input.content = ''
+		if ($processSettingsStore.input.provider !== IO.Text) {
+			$processSettingsStore.input.content = ''
 		}
 
 		const response = await fetch('/api/processes', {
 			method: 'POST',
-			body: JSON.stringify({
-				pipeline_id: pipeline_id,
-				input: { ...input },
-				output: { ...output },
-				settings: {
-					notify: notify,
-					check_target: checkTarget,
-					recursive: recursive,
-					overwrite: overwrite,
-					sort_by_size: sortBySize,
-					minimum_size: skipFiles || 0,
-					worker_count: workerCount,
-					ignore_errors: ignoreErrors,
-					language: language
-				}
-			})
+			body: JSON.stringify($processSettingsStore)
 		})
 
 		if (response.ok) {
-			let process = await response.json()
-			goto('/processes/' + process.oid)
+			try {
+				let process = await response.json()
+				goto(`/processes/${process.oid}`)
+			} catch (err) {
+				toastStore.trigger(errorToast(response.statusText))
+				goto(`/pipelines/${$processSettingsStore.pipeline_id}`)
+			}
 		} else {
 			toastStore.trigger(errorToast(JSON.stringify(response.body)))
 			starting = false
 		}
 	}
 
-	let inputBucketIsValid: string = ''
-	let outputBucketIsValid: string = ''
-	let settingsAreValid: string = ''
-	let isValidFileStorage: boolean = false
-	let uploadBucketIsValid: string = ''
-
-	$: {
-		inputBucketIsValid = isValidS3BucketName(input.path)
-		outputBucketIsValid = isValidS3BucketName(output.path)
-		settingsAreValid = areSettingsValid(workerCount, skipFiles)
-		isValidFileStorage =
-			input.provider !== IO.File || !fileStorage.storeFiles || isValidFileUpload(fileStorage)
-
-		uploadBucketIsValid = isValidS3BucketName(fileStorage.path)
-	}
+	$: inputBucketIsValid = isValidS3BucketName($processSettingsStore.input.path)
+	$: outputBucketIsValid = isValidS3BucketName($processSettingsStore.output.path)
+	$: settingsAreValid = areSettingsValid(
+		$processSettingsStore.settings.worker_count,
+		$processSettingsStore.settings.minimum_size
+	)
+	$: isValidFileStorage =
+		$processSettingsStore.input.provider !== IO.File ||
+		!fileStorage.storeFiles ||
+		isValidFileUpload(fileStorage)
+	$: uploadBucketIsValid = isValidS3BucketName(fileStorage.path)
+	$: $userSession
 </script>
+
+<svelte:head>
+	<title>New Process</title>
+</svelte:head>
 
 <div class="menu-mobile">
 	<button class="button-mobile" on:click={() => goto(onCancelURL)}>
@@ -205,7 +238,7 @@
 		class="button-mobile"
 		disabled={starting ||
 			!isValidFileStorage ||
-			!isValidIO(input, output, files) ||
+			!isValidIO($processSettingsStore.input, $processSettingsStore.output, files, $userSession) ||
 			settingsAreValid.length !== 0}
 		on:click={createProcess}
 	>
@@ -225,7 +258,12 @@
 				class="button-menu border-l border-color"
 				disabled={starting ||
 					!isValidFileStorage ||
-					!isValidIO(input, output, files) ||
+					!isValidIO(
+						$processSettingsStore.input,
+						$processSettingsStore.output,
+						files,
+						$userSession
+					) ||
 					settingsAreValid.length !== 0}
 				on:click={createProcess}
 			>
@@ -251,7 +289,7 @@
 						meter="variant-filled-primary"
 						class="bordered-soft"
 					/>
-					<a href={`/pipelines/${pipeline_id}?tab=1`} class="anchor-neutral">
+					<a href={`/pipelines/${$processSettingsStore.pipeline_id}?tab=1`} class="anchor-neutral">
 						<Fa icon={faArrowLeft} />
 						<span>Pipeline</span>
 					</a>
@@ -262,31 +300,36 @@
 				<div class="grid gap-4">
 					<div
 						class="section-wrapper space-y-4 p-4
-				 {isValidInput(input, files) ? '!border-success-500 ' : '!border-error-500'}"
+				 {isValidInput($processSettingsStore.input, files, $userSession)
+							? '!border-success-500 '
+							: '!border-error-500'}"
 					>
 						<!-- INPUT -->
 						<div class="flex-center-4 justify-between">
 							<h2 class="h2">Input</h2>
-							{#if isValidInput(input, files)}
+							{#if isValidInput($processSettingsStore.input, files, $userSession)}
 								<Fa icon={faCheck} class="text-success-500" size="2x" />
 							{/if}
 						</div>
-						{#if input.provider === IO.Minio && user?.connections.minio.endpoint}
+						{#if $processSettingsStore.input.provider === IO.Minio && !$userSession?.connections.minio.endpoint}
 							<div class="text-center w-full variant-soft-error p-4 rounded-md">
 								<p class="mx-auto">
-									To use Minio you must first connect your <a class="anchor" href="/account#minio"
-										>Account</a
+									To use Minio you must first connect your <a
+										class="anchor"
+										target="_blank"
+										href="/account#minio">Account</a
 									>
 								</p>
 							</div>
 						{/if}
-						<!-- TODO ALLOW REDIRECT WITH THE SAME SETTINGS (LocalStorage ?) -->
-						{#if input.provider === IO.Dropbox && user?.connections.dropbox.refresh_token}
+
+						{#if $processSettingsStore.input.provider === IO.Dropbox && !$userSession?.connections.dropbox.refresh_token}
 							<div class="text-center w-full variant-soft-error p-4 rounded-md">
 								<p class="mx-auto">
 									To use Dropbox you must first connect your <a
 										class="anchor"
-										href="/account#dropbox">Account</a
+										href="/account#dropbox"
+										target="_blank">Account</a
 									>
 								</p>
 							</div>
@@ -294,34 +337,42 @@
 						<div class="grid gap-4">
 							<div class="flex-center-4">
 								<div class="flex-1">
-									<Dropdown label="Source" options={IO_INPUT} bind:value={input.provider} />
+									<Dropdown
+										label="Source"
+										options={IO_INPUT}
+										bind:value={$processSettingsStore.input.provider}
+									/>
 								</div>
-								{#if !equals(input.provider, IO.Text)}
+								{#if !equals($processSettingsStore.input.provider, IO.Text)}
 									<Dropdown
 										label="File extension"
 										name="input-extension"
 										options={INPUT_EXTENSIONS}
-										bind:value={input.file_extension}
+										bind:value={$processSettingsStore.input.file_extension}
 									/>
 								{/if}
 							</div>
 
-							<Dropdown label="Language" options={Languages} bind:value={language} />
+							<Dropdown
+								label="Language"
+								options={Languages}
+								bind:value={$processSettingsStore.settings.language}
+							/>
 
-							{#if equals(input.provider, IO.Text)}
+							{#if equals($processSettingsStore.input.provider, IO.Text)}
 								<TextArea
 									label="Document Text"
 									name="content"
-									error={input.content === '' ? 'Text cannot be empty' : ''}
-									bind:value={input.content}
+									error={$processSettingsStore.input.content === '' ? 'Text cannot be empty' : ''}
+									bind:value={$processSettingsStore.input.content}
 								/>
-							{:else if equals(input.provider, IO.File)}
+							{:else if equals($processSettingsStore.input.provider, IO.File)}
 								<div class="space-y-1">
 									<p class="form-label">File</p>
 									<FileDropzone
 										name="inputFile"
 										bind:files
-										accept={input.file_extension}
+										accept={$processSettingsStore.input.file_extension}
 										multiple={true}
 										border="border border-color"
 										rounded="rounded-md"
@@ -362,19 +413,19 @@
 										/>
 									{/if}
 								{/if}
-							{:else if equals(input.provider, IO.Minio)}
+							{:else if equals($processSettingsStore.input.provider, IO.Minio)}
 								<TextInput
 									label="Path (bucket/path/to/file)"
 									error={inputBucketIsValid}
 									name="inputPath"
-									bind:value={input.path}
+									bind:value={$processSettingsStore.input.path}
 								/>
 							{:else}
 								<TextInput
 									label="Path"
 									name="inputPath"
-									bind:value={input.path}
-									error={input.path === '/'
+									bind:value={$processSettingsStore.input.path}
+									error={$processSettingsStore.input.path === '/'
 										? 'Provide an empty path to select the root folder.'
 										: ''}
 								/>
@@ -385,15 +436,16 @@
 						<div class="space-y-4">
 							<h3 class="h3">Settings</h3>
 							<div class="space-y-4">
-								{#if !equals(input.provider, IO.Text)}
+								{#if !equals($processSettingsStore.input.provider, IO.Text)}
 									<div class="grid grid-cols-2 gap-4 items-start">
 										<div>
 											<Number
 												label="Minimum size"
 												max={2147483647}
 												name="skipFiles"
-												help="All files with a size smaller than {skipFiles} bytes will not be processed."
-												bind:value={skipFiles}
+												help="All files with a size smaller than {$processSettingsStore.settings
+													.minimum_size} bytes will not be processed."
+												bind:value={$processSettingsStore.settings.minimum_size}
 											/>
 											<span class="text-xs pl-2">Bytes</span>
 										</div>
@@ -403,26 +455,26 @@
 											max={100}
 											help="The number of threads used for processing. The actual number of threads is limited by the system."
 											name="workerCount"
-											bind:value={workerCount}
+											bind:value={$processSettingsStore.settings.worker_count}
 										/>
 									</div>
 								{/if}
-								{#if !equals(input.provider, IO.Text) && !equals(input.provider, IO.File)}
+								{#if !equals($processSettingsStore.input.provider, IO.Text) && !equals($processSettingsStore.input.provider, IO.File)}
 									<Checkbox
-										bind:checked={recursive}
+										bind:checked={$processSettingsStore.settings.recursive}
 										name="recursive"
 										label="Find files recursively starting in the path directory"
 									/>
 								{/if}
-								{#if !equals(input.provider, IO.Text)}
+								{#if !equals($processSettingsStore.input.provider, IO.Text)}
 									<Checkbox
-										bind:checked={sortBySize}
+										bind:checked={$processSettingsStore.settings.sort_by_size}
 										name="sortBySize"
 										label="Sort files by size in ascending order"
 									/>
 								{/if}
 								<Checkbox
-									bind:checked={ignoreErrors}
+									bind:checked={$processSettingsStore.settings.ignore_errors}
 									name="ignoreErrors"
 									label="Ignore errors encountered by documents and skip to the next available one."
 								/>
@@ -432,61 +484,90 @@
 
 					<div
 						class="section-wrapper p-4 space-y-4 flex flex-col justify-start relative
-				 {isValidOutput(output) ? '!border-success-500 ' : '!border-error-500'}"
+				 		{isValidOutput($processSettingsStore.output, $userSession)
+							? '!border-success-500 '
+							: '!border-error-500'}"
 					>
+						{#if $processSettingsStore.output.provider === IO.Minio && !$userSession?.connections.minio.endpoint}
+							<div class="text-center w-full variant-soft-error p-4 rounded-md">
+								<p class="mx-auto">
+									To use Minio you must first connect your <a
+										class="anchor"
+										target="_blank"
+										href="/account#minio">Account</a
+									>
+								</p>
+							</div>
+						{/if}
+
+						{#if $processSettingsStore.output.provider === IO.Dropbox && !$userSession?.connections.dropbox.refresh_token}
+							<div class="text-center w-full variant-soft-error p-4 rounded-md">
+								<p class="mx-auto">
+									To use Dropbox you must first connect your <a
+										class="anchor"
+										href="/account#dropbox"
+										target="_blank">Account</a
+									>
+								</p>
+							</div>
+						{/if}
 						<div class="flex-center-4 justify-between">
 							<h2 class="h2">Output</h2>
-							{#if isValidOutput(output)}
+							{#if isValidOutput($processSettingsStore.output, $userSession)}
 								<Fa icon={faCheck} class="text-success-500" size="2x" />
 							{/if}
 						</div>
 						<div class="space-y-4">
 							<div class="flex-center-4">
 								<div class="flex-1">
-									<Dropdown label="Target" options={IO_OUTPUT} bind:value={output.provider} />
+									<Dropdown
+										label="Target"
+										options={IO_OUTPUT}
+										bind:value={$processSettingsStore.output.provider}
+									/>
 								</div>
-								{#if equals(output.provider, IO.Dropbox) || equals(output.provider, IO.Minio)}
+								{#if equals($processSettingsStore.output.provider, IO.Dropbox) || equals($processSettingsStore.output.provider, IO.Minio)}
 									<Dropdown
 										label="File extension"
 										name="output-extension"
 										options={OUTPUT_EXTENSIONS}
-										bind:value={output.file_extension}
+										bind:value={$processSettingsStore.output.file_extension}
 									/>
 								{/if}
 							</div>
-							{#if equals(output.provider, IO.Minio)}
+							{#if equals($processSettingsStore.output.provider, IO.Minio)}
 								<TextInput
 									label="Path (bucket/path/to/file)"
 									error={outputBucketIsValid}
 									name="output-folder"
-									bind:value={output.path}
+									bind:value={$processSettingsStore.output.path}
 								/>
-							{:else if equals(output.provider, IO.Dropbox)}
+							{:else if equals($processSettingsStore.output.provider, IO.Dropbox)}
 								<TextInput
 									label="Path"
 									name="output-folder"
-									error={['/', ''].includes(output.path)
+									error={['/', ''].includes($processSettingsStore.output.path)
 										? 'Writing to the root folder is not possible.'
 										: ''}
-									bind:value={output.path}
+									bind:value={$processSettingsStore.output.path}
 								/>
 							{/if}
-							{#if output.provider !== IO.None}
+							{#if $processSettingsStore.output.provider !== IO.None}
 								<hr class="hr !w-full" />
 								<div class="space-y-4">
 									<h3 class="h3">Settings</h3>
 									<div class="space-y-4">
-										{#if !equals(output.provider, IO.None)}
+										{#if !equals($processSettingsStore.output.provider, IO.None)}
 											<Checkbox
-												bind:checked={checkTarget}
+												bind:checked={$processSettingsStore.settings.check_target}
 												name="checkTarget"
 												label="Ignore files already present in the target location"
 											/>
 										{/if}
 
-										{#if equals(output.provider, IO.Dropbox)}
+										{#if equals($processSettingsStore.output.provider, IO.Dropbox)}
 											<Checkbox
-												bind:checked={overwrite}
+												bind:checked={$processSettingsStore.settings.overwrite}
 												name="overwrite"
 												label="Overwrite existing files on conflict"
 											/>
@@ -495,7 +576,7 @@
 								</div>
 							{/if}
 						</div>
-						{#if output.provider === IO.None}
+						{#if $processSettingsStore.output.provider === IO.None}
 							<div class="grow flex items-center justify-center flex-col gap-4 p-4">
 								<div class="relative opacity-50">
 									<Fa icon={faCloudUpload} size="8x" class="text-primary-500" />

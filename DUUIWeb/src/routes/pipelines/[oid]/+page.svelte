@@ -14,11 +14,7 @@
 		faRotate,
 		faTrash
 	} from '@fortawesome/free-solid-svg-icons'
-	import {
-		getDrawerStore,
-		getModalStore,
-		type ModalSettings
-	} from '@skeletonlabs/skeleton'
+	import { getDrawerStore, getModalStore, type ModalSettings } from '@skeletonlabs/skeleton'
 
 	import { dndzone, type DndEvent } from 'svelte-dnd-action'
 	import Fa from 'svelte-fa'
@@ -394,7 +390,10 @@
 	</a>
 
 	{#if $currentPipelineStore.user_id !== null}
-		<a class="button-mobile" href={`/processes?pipeline_id=${$currentPipelineStore.oid}`}>
+		<a
+			class="button-mobile"
+			href={`/processes?pipeline_id=${$currentPipelineStore.oid}&reset=true`}
+		>
 			<Fa icon={faRocket} />
 			<span>Process</span>
 		</a>
@@ -469,7 +468,7 @@
 			{#if $currentPipelineStore.user_id !== null}
 				<a
 					class="anchor-menu font-bold border-r border-color"
-					href={`/processes?pipeline_id=${$currentPipelineStore.oid}`}
+					href={`/processes?pipeline_id=${$currentPipelineStore.oid}&reset=true`}
 				>
 					<Fa icon={faRocket} />
 					<span>Process</span>

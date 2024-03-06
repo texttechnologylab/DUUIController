@@ -68,12 +68,12 @@
 			in:fly={{ x: -600, opacity: 100, duration: 800 }}
 			class="relative space-y-8 md:p-16 md:px-8 md:col-start-2"
 		>
+			<h2 class="h2 mb-16">Register</h2>
 			{#if message}
-				<p in:fly={{ y: -100 }} class="font-bold variant-filled-error p-4 rounded-md max-w-[40ch]">
+				<p in:fly={{ y: -100 }} class="font-bold variant-soft-error p-4 rounded-md max-w-[40ch]">
 					{message}
 				</p>
 			{/if}
-			<h2 class="h2 mb-16">Register</h2>
 			<div class="flex flex-col gap-8">
 				<div class="space-y-4">
 					<Text bind:value={email} label="Email" name="email" required />

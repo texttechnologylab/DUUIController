@@ -1,5 +1,22 @@
 import { equals } from '$lib/duui/utils/text'
-import { IO, type DUUIDocumentProvider } from './io'
+import { IO, type DUUIDocumentProvider, type FileExtension } from './io'
+
+export interface ProcessSettings {
+	pipeline_id: string
+	input: DUUIDocumentProvider
+	output: DUUIDocumentProvider
+	settings: {
+		notify: boolean
+		check_target: boolean
+		recursive: boolean
+		overwrite: boolean
+		sort_by_size: boolean
+		minimum_size: number
+		worker_count: number
+		ignore_errors: boolean
+		language: string
+	}
+}
 
 export interface DUUIProcess {
 	oid: string
@@ -9,9 +26,9 @@ export interface DUUIProcess {
 	progress: number
 	started_at: number
 	finished_at: number
+	size: number
 	input: DUUIDocumentProvider
 	output: DUUIDocumentProvider
-	size: number
 	settings: {
 		notify: boolean
 		check_target: boolean
@@ -31,6 +48,35 @@ export interface DUUIProcess {
 	pipeline_status: Map<string, string>
 	initial: number
 	skipped: number
+}
+
+export const blankSettings = () => {
+	return {
+		pipeline_id: '',
+		input: {
+			provider: IO.Text,
+			path: '',
+			content: 'Sample Text.',
+			file_extension: '.txt' as FileExtension
+		},
+		output: {
+			provider: IO.None,
+			path: '',
+			content: '',
+			file_extension: '.txt' as FileExtension
+		},
+		settings: {
+			language: 'Unspecified',
+			notify: false,
+			check_target: false,
+			recursive: true,
+			overwrite: false,
+			sort_by_size: false,
+			ignore_errors: true,
+			minimum_size: 0,
+			worker_count: 1
+		}
+	}
 }
 
 /**

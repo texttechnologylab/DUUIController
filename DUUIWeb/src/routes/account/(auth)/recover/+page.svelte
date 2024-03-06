@@ -1,10 +1,7 @@
 <script lang="ts">
 	import { scrollIntoView } from '$lib/duui/utils/ui'
 	import Text from '$lib/svelte/components/Input/TextInput.svelte'
-	import {
-		faEnvelope,
-		faEnvelopeCircleCheck
-	} from '@fortawesome/free-solid-svg-icons'
+	import { faEnvelope, faEnvelopeCircleCheck } from '@fortawesome/free-solid-svg-icons'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
 	import { fly } from 'svelte/transition'
@@ -43,40 +40,44 @@
 	<title>Recover</title>
 </svelte:head>
 
-<div>
-	{#if email}
-		<div class="section-wrapper p-8 space-y-2 max-w-[60ch]">
-			<p>
-				An email has been sent to <span class="font-bold">{email}</span>.
-			</p>
-			<p>Check your inbox to reset your password.</p>
-			<Fa icon={faEnvelopeCircleCheck} size="lg" />
-		</div>
-	{:else}
-		<div class="section-wrapper p-8 space-y-16 scroll-mt-4" id="top">
-			<div class="space-y-8">
-				<h2 class="h2">Recover Password</h2>
-				<p class="max-w-[60ch]">
-					Enter the E-Mail of your account below and we will send you a link to update your
-					password.
+<div class="container max-w-4xl mx-auto h-full flex items-center">
+	<div>
+		{#if email}
+			<div class="section-wrapper p-8 space-y-2 max-w-[60ch]">
+				<p>
+					An email has been sent to <span class="font-bold">{email}</span>.
 				</p>
+				<p>Check your inbox to reset your password.</p>
+				<Fa icon={faEnvelopeCircleCheck} size="lg" />
 			</div>
-			<div class="space-y-4 relative">
-				{#if message}
-					<p in:fly={{ y: 10 }} class=" font-bold variant-filled-error p-4 rounded-md max-w-[40ch]">
-						{message}
+		{:else}
+			<div class="section-wrapper p-8 space-y-16 scroll-mt-4" id="top">
+				<div class="space-y-8">
+					<h2 class="h2">Recover Password</h2>
+					<p class="max-w-[60ch]">
+						Enter the E-Mail of your account below and we will send you a link to update your
+						password.
 					</p>
-				{/if}
-				<Text label="Email" name="email" bind:value={recoverAddress} />
-				<button
-				class="button-primary button-modal self-center dark:!variant-filled-primary"
-					on:click={recover}
-				>
-					<Fa icon={faEnvelope} size="lg" />
-					<span>Reset Password</span>
-				</button>
-			
+				</div>
+				<div class="space-y-4 relative">
+					{#if message}
+						<p
+							in:fly={{ y: 10 }}
+							class=" font-bold variant-soft-error p-4 rounded-md max-w-[40ch]"
+						>
+							{message}
+						</p>
+					{/if}
+					<Text label="Email" name="email" bind:value={recoverAddress} />
+					<button
+						class="button-primary button-modal self-center dark:!variant-filled-primary"
+						on:click={recover}
+					>
+						<Fa icon={faEnvelope} size="lg" />
+						<span>Reset Password</span>
+					</button>
+				</div>
 			</div>
-		</div>
-	{/if}
+		{/if}
+	</div>
 </div>

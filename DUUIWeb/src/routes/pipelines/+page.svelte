@@ -25,7 +25,6 @@
 	import { popup, type PopupSettings } from '@skeletonlabs/skeleton'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
-	import Popup from '$lib/svelte/components/Popup.svelte'
 
 	export let data
 

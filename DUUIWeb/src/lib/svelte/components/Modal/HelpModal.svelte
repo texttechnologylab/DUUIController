@@ -94,8 +94,8 @@
 			<div class="space-y-4">
 				<p class="font-bold h2">About Docker Unified UIMA Interface (DUUI)</p>
 				<p>
-					DUUI automates big data analysis using
-					<a class="anchor" href="/documentation#pipeline">Pipelines</a> are containers for
+					DUUI automates big data analysis using containers called
+					<a class="anchor" href="/documentation#pipeline">Pipelines</a> for
 					<a href="/documentation#component" class="anchor">Components</a> that make up an
 					executable workflow. Each Component must follow the implementation as defined by DUUI and
 					is therefore a <a href="https://uima.apache.org/" class="anchor">UIMA</a> conform annotator.

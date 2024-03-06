@@ -58,14 +58,16 @@ export const isCloudProvider = (provider: string) => {
  * @param input The input settings
  * @param output The output settings
  * @param files The list of files that have been selected for processing.
+ * @param user The current user's properties.
  * @returns
  */
 export const isValidIO = (
 	input: DUUIDocumentProvider,
 	output: DUUIDocumentProvider,
-	files: FileList
+	files: FileList,
+	user: User
 ): boolean => {
-	return isValidInput(input, files) && isValidOutput(output)
+	return isValidInput(input, files, user) && isValidOutput(output, user)
 }
 
 /**
@@ -73,9 +75,10 @@ export const isValidIO = (
  *
  * @param input The input settings for the process.
  * @param files The list of files that have to be uploaded as the data source.
+ * @param user The current user's properties.
  * @returns whether the input settings are valid.
  */
-export const isValidInput = (input: DUUIDocumentProvider, files: FileList): boolean => {
+export const isValidInput = (input: DUUIDocumentProvider, files: FileList, user: User): boolean => {
 	if (equals(input.provider, IO.Text)) {
 		return !!input.content && input.content.length > 0
 	}
@@ -85,10 +88,15 @@ export const isValidInput = (input: DUUIDocumentProvider, files: FileList): bool
 	}
 
 	if (equals(input.provider, IO.Minio)) {
+		if (!user?.connections.minio.endpoint) return false
 		return isValidS3BucketName(input.path || '').length === 0
 	}
 
-	if (equals(input.provider, IO.Dropbox) && input.path === '/') return false
+	if (
+		equals(input.provider, IO.Dropbox) &&
+		(input.path === '/' || !user?.connections.dropbox.refresh_token)
+	)
+		return false
 
 	return true
 }
@@ -108,13 +116,18 @@ export const isValidFileUpload = (storage: { provider: IO; path: string }) => {
  * Check if the output settings are valid.
  *
  * @param output The output settings for the process.
+ * @param user The current user's properties.
  * @returns whether the output settings are valid.
  */
-export const isValidOutput = (output: DUUIDocumentProvider): boolean => {
+export const isValidOutput = (output: DUUIDocumentProvider, user: User): boolean => {
 	if (equals(output.provider, IO.Minio)) {
+		if (!user?.connections.minio.endpoint) return false
 		return isValidS3BucketName(output.path || '').length === 0
 	}
-	if (equals(output.provider, IO.Dropbox) && ['/', ''].includes(output.path)) return false
+
+	if (equals(output.provider, IO.Dropbox)) {
+		return !(['/', ''].includes(output.path) || user?.connections.dropbox.refresh_token === null)
+	}
 
 	return true
 }

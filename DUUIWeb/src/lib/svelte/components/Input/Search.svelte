@@ -14,7 +14,7 @@
 			<Fa {icon} class="absolute right-4 top-1/2 -translate-y-1/2 text-surface-400 " />
 		{/if}
 		<input
-			class="bg-transparent border-0 grow {style} duration-300 transition-all focus-within:pr-32"
+			class="bg-transparent border-0 grow duration-300 transition-all focus-within:pr-32 {style} "
 			type="text"
 			bind:value={query}
 			on:keydown

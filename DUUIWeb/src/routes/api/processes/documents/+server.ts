@@ -2,9 +2,8 @@ import { API_URL } from '$env/static/private'
 import type { DUUIDocument } from '$lib/duui/io'
 import { error, json, type RequestHandler } from '@sveltejs/kit'
 
-export const GET: RequestHandler = async (event) => {
-	const { cookies } = event
-	const searchParams = event.url.searchParams
+export const GET: RequestHandler = async ({ cookies, fetch, url }) => {
+	const searchParams = url.searchParams
 
 	const processId: string = searchParams.get('process_id') || ''
 
@@ -39,15 +38,23 @@ export const GET: RequestHandler = async (event) => {
 			&status=${statusFilters}`,
 			{
 				method: 'GET',
-				
+
 				headers: {
 					Authorization: cookies.get('session') || ''
 				}
 			}
 		)
 
-		const json = await response.json()
-		return json
+		if (response.ok) {
+			const json = await response.json()
+			return json
+		}
+
+		return {
+			documents: [],
+			count: 0,
+			pipelineProgress: {}
+		}
 	}
 
 	return json({

@@ -143,7 +143,6 @@ export const POST: RequestHandler = async (event) => {
 				return json('Success')
 			default:
 				error(404, 'Unknown endpoint')
-				break
 		}
 	} catch (exception) {
 		error(503, 'Could not communicate with database.')
