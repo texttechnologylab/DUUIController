@@ -73,18 +73,18 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
         boolean ignoreErrors = settings.getBoolean("ignore_errors", true);
 
         composer = new DUUIComposer()
-            .withSkipVerification(true)
-            .withDebugLevel(DUUIComposer.DebugLevel.DEBUG)
-            .withIgnoreErrors(ignoreErrors)
+                .withSkipVerification(true)
+                .withDebugLevel(DUUIComposer.DebugLevel.DEBUG)
+                .withIgnoreErrors(ignoreErrors)
 //            TODO versions of DUUI and API are incompatible
 //            .withStorageBackend(
 //                new DUUIMongoDBStorageBackend(
 //                    DUUIMongoDBStorage.getConnectionURI()))
-            .withLuaContext(new DUUILuaContext().withJsonLibrary());
+                .withLuaContext(new DUUILuaContext().withJsonLibrary());
 
         updater = Executors
-            .newScheduledThreadPool(1)
-            .scheduleAtFixedRate(this::update, 0, 2, TimeUnit.SECONDS);
+                .newScheduledThreadPool(1)
+                .scheduleAtFixedRate(this::update, 0, 2, TimeUnit.SECONDS);
 
         shutdownOnExit = true;
         start();
@@ -102,18 +102,18 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
      * @throws IOException        Thrown when the Lua Json Library can not be loaded.
      */
     public DUUISimpleProcessHandler(
-        Document pipeline,
-        Document process,
-        Document settings,
-        Vector<DUUIComposer.PipelinePart> instantiatedPipeline) throws URISyntaxException, IOException {
+            Document pipeline,
+            Document process,
+            Document settings,
+            Vector<DUUIComposer.PipelinePart> instantiatedPipeline) throws URISyntaxException, IOException {
         this.pipeline = pipeline;
 
         composer = new DUUIComposer()
-            .withInstantiatedPipeline(instantiatedPipeline)
-            .withSkipVerification(true)
-            .withDebugLevel(DUUIComposer.DebugLevel.DEBUG)
-            .asService(true)
-            .withLuaContext(new DUUILuaContext().withJsonLibrary());
+                .withInstantiatedPipeline(instantiatedPipeline)
+                .withSkipVerification(true)
+                .withDebugLevel(DUUIComposer.DebugLevel.DEBUG)
+                .asService(true)
+                .withLuaContext(new DUUILuaContext().withJsonLibrary());
 
         this.process = process;
         this.settings = settings;
@@ -122,8 +122,8 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
         output = new DUUIDocumentProvider(process.get("output", Document.class));
 
         updater = Executors
-            .newScheduledThreadPool(1)
-            .scheduleAtFixedRate(this::update, 0, 2, TimeUnit.SECONDS);
+                .newScheduledThreadPool(1)
+                .scheduleAtFixedRate(this::update, 0, 2, TimeUnit.SECONDS);
 
         shutdownOnExit = false;
         start();
@@ -140,21 +140,21 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
 
         try {
             inputHandler = DUUIProcessController.getHandler(input.getProvider(), getUserID());
-            if (inputHandler != null && input.getProvider().equals(Provider.DROPBOX)) {
-                DUUIDropboxDocumentHandler dropboxDataReader = (DUUIDropboxDocumentHandler) inputHandler;
-                dropboxDataReader
-                    .setWriteMode(
-                        settings.getBoolean("overwrite", false)
-                            ? WriteMode.OVERWRITE : WriteMode.ADD);
-            }
         } catch (IllegalArgumentException | DbxException exception) {
             onException(exception);
         }
 
         try {
             outputHandler = input.equals(output)
-                ? inputHandler
-                : DUUIProcessController.getHandler(output.getProvider(), getUserID());
+                    ? inputHandler
+                    : DUUIProcessController.getHandler(output.getProvider(), getUserID());
+            if (outputHandler != null && output.getProvider().equals(Provider.DROPBOX)) {
+                DUUIDropboxDocumentHandler dropboxDataReader = (DUUIDropboxDocumentHandler) outputHandler;
+                dropboxDataReader
+                        .setWriteMode(
+                                settings.getBoolean("overwrite", false)
+                                        ? WriteMode.OVERWRITE : WriteMode.ADD);
+            }
         } catch (Exception exception) {
             onException(exception);
         }
@@ -163,14 +163,14 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
         if (input.isText()) {
             DUUIProcessController.setDocumentPaths(getProcessID(), Set.of("Text"));
             DUUIDocumentController.updateMany(getProcessID(), Set.of(
-                    new DUUIDocument(
-                        "Text",
-                        "Text",
-                        input
-                            .getContent()
-                            .getBytes(StandardCharsets.UTF_8)
+                            new DUUIDocument(
+                                    "Text",
+                                    "Text",
+                                    input
+                                            .getContent()
+                                            .getBytes(StandardCharsets.UTF_8)
+                            )
                     )
-                )
             );
 
             return;
@@ -178,20 +178,20 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
 
         try {
             collectionReader = new DUUIDocumentReader
-                .Builder(composer)
-                .withInputPath(input.getPath())
-                .withInputFileExtension(input.getFileExtension())
-                .withInputHandler(inputHandler)
-                .withOutputPath(output.getPath())
-                .withOutputFileExtension(output.getFileExtension())
-                .withOutputHandler(outputHandler)
-                .withAddMetadata(true)
-                .withLanguage(DUUIProcessController.getLanguageCode(settings.getString("language")))
-                .withMinimumDocumentSize(Math.max(0, Math.min(Integer.MAX_VALUE, settings.getInteger("minimum_size"))))
-                .withSortBySize(settings.getBoolean("sort_by_size", false))
-                .withCheckTarget(settings.getBoolean("check_target", false))
-                .withRecursive(settings.getBoolean("recursive", false))
-                .build();
+                    .Builder(composer)
+                    .withInputPath(input.getPath())
+                    .withInputFileExtension(input.getFileExtension())
+                    .withInputHandler(inputHandler)
+                    .withOutputPath(output.getPath())
+                    .withOutputFileExtension(output.getFileExtension())
+                    .withOutputHandler(outputHandler)
+                    .withAddMetadata(true)
+                    .withLanguage(DUUIProcessController.getLanguageCode(settings.getString("language")))
+                    .withMinimumDocumentSize(Math.max(0, Math.min(Integer.MAX_VALUE, settings.getInteger("minimum_size"))))
+                    .withSortBySize(settings.getBoolean("sort_by_size", false))
+                    .withCheckTarget(settings.getBoolean("check_target", false))
+                    .withRecursive(settings.getBoolean("recursive", false))
+                    .build();
 
             DUUIProcessController.setDocumentPaths(getProcessID(), composer.getDocumentPaths());
 
@@ -201,7 +201,6 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
             } else {
                 DUUIProcessController.updateOne(getProcessID(), "initial", collectionReader.getInitial());
                 DUUIProcessController.updateOne(getProcessID(), "skipped", collectionReader.getSkipped());
-
             }
 
             maximumWorkerCount = composer.getDocuments().size();
@@ -217,9 +216,9 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
             JCas cas = JCasFactory.createText(input.getContent());
 
             String processIdentifier = String.format(
-                "%s_%s",
-                pipeline.getString("name"),
-                process.getLong("started_at")
+                    "%s_%s",
+                    pipeline.getString("name"),
+                    process.getLong("started_at")
             );
 
             if (JCasUtil.select(cas, DocumentMetaData.class).isEmpty()) {
@@ -248,9 +247,9 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
     @Override
     public void process() {
         String processIdentifier = String.format(
-            "%s_%s",
-            pipeline.getString("name"),
-            process.getLong("started_at")
+                "%s_%s",
+                pipeline.getString("name"),
+                process.getLong("started_at")
         );
         try {
             composer.run(collectionReader, processIdentifier);
@@ -277,19 +276,19 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
     public void onException(Exception exception) {
         DUUIProcessController.setStatus(getProcessID(), DUUIStatus.FAILED);
         DUUIProcessController.setError(
-            getProcessID(),
-            String.format("%s - %s", exception.getClass().getCanonicalName(), exception.getMessage()));
+                getProcessID(),
+                String.format("%s - %s", exception.getClass().getCanonicalName(), exception.getMessage()));
 
         DUUIProcessController.setFinishedAt(getProcessID());
         DUUIProcessController.setFinished(getProcessID(), true);
 
 
         composer.getDocuments().stream().filter(document ->
-            !document.isFinished() || DUUIDocumentController.isActive(document)).forEach(document -> {
-                document.setStatus(DUUIStatus.FAILED);
-                document.setFinished(true);
-                document.setFinishedAt();
-            }
+                !document.isFinished() || DUUIDocumentController.isActive(document)).forEach(document -> {
+                    document.setStatus(DUUIStatus.FAILED);
+                    document.setFinished(true);
+                    document.setFinishedAt();
+                }
         );
 
         DUUIProcessMetrics.incrementErrorCount(1);
@@ -309,10 +308,10 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
         DUUIProcessController.setFinishedAt(getProcessID());
 
         composer
-            .getDocuments()
-            .stream()
-            .filter(document -> !DUUIStatus.oneOf(document.getStatus(), DUUIStatus.FAILED, DUUIStatus.CANCELLED))
-            .forEach(document -> document.setStatus(DUUIStatus.COMPLETED));
+                .getDocuments()
+                .stream()
+                .filter(document -> !DUUIStatus.oneOf(document.getStatus(), DUUIStatus.FAILED, DUUIStatus.CANCELLED))
+                .forEach(document -> document.setStatus(DUUIStatus.COMPLETED));
 
     }
 
@@ -330,11 +329,11 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
 
         composer.setFinished(true);
         composer.getDocuments().stream().filter(document ->
-            !document.isFinished() || DUUIDocumentController.isActive(document)).forEach(document -> {
-                document.setStatus(DUUIStatus.CANCELLED);
-                document.setFinished(true);
-                document.setFinishedAt();
-            }
+                !document.isFinished() || DUUIDocumentController.isActive(document)).forEach(document -> {
+                    document.setStatus(DUUIStatus.CANCELLED);
+                    document.setFinished(true);
+                    document.setFinishedAt();
+                }
         );
 
         exit();
@@ -352,7 +351,7 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
         if (input.getProvider().equals(Provider.FILE)) {
             try {
                 if (DUUIProcessController.deleteTempOutputDirectory(
-                    new File(Paths.get(input.getPath()).toString())
+                        new File(Paths.get(input.getPath()).toString())
                 )) {
                     composer.addEvent(DUUIEvent.Sender.SYSTEM, "Clean up complete");
                 }
@@ -430,12 +429,12 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
 
         int requestedWorkers = settings.getInteger("worker_count");
         int availableWorkers = DUUIUserController
-            .getUserById(getUserID(), List.of("worker_count"))
-            .getInteger("worker_count");
+                .getUserById(getUserID(), List.of("worker_count"))
+                .getInteger("worker_count");
 
         if (availableWorkers == 0) {
             onException(new IllegalStateException(
-                "This Account is out of workers for now. Wait until your other processes have finished."));
+                    "This Account is out of workers for now. Wait until your other processes have finished."));
         }
 
         threadCount = Math.max(1, Math.min(input.isText() ? 1 : requestedWorkers, availableWorkers));
