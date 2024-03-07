@@ -38,7 +38,6 @@ export const GET: RequestHandler = async ({ cookies, fetch, url }) => {
 			&status=${statusFilters}`,
 			{
 				method: 'GET',
-
 				headers: {
 					Authorization: cookies.get('session') || ''
 				}

@@ -89,14 +89,16 @@
 				method: 'GET'
 			})
 
-			if (!isActive(process.status)) {
-				clearInterval(interval)
+			if (response.ok) {
+				try {
+					process = await response.json()
+					progressPercent = progresAsPercent(process.progress, process.document_names.length)
+				} catch (err) {}
+				updateTable()
 			}
 
-			if (response.ok) {
-				process = await response.json()
-				progressPercent = progresAsPercent(process.progress, process.document_names.length)
-				updateTable()
+			if (!isActive(process.status)) {
+				clearInterval(interval)
 			}
 
 			if (progressPercent > 100) progressPercent = 100
@@ -104,15 +106,6 @@
 				clearInterval(interval)
 			}
 		}
-
-		async function loadApexCharts() {
-			const module = await import('apexcharts')
-			ApexCharts = module.default
-			window.ApexCharts = ApexCharts
-			loaded = true
-		}
-
-		loadApexCharts()
 
 		if (!process.is_finished) {
 			interval = setInterval(update, UPDATE_INTERVAL)
@@ -222,31 +215,6 @@
 		sort.index = index
 		updateTable()
 	}
-
-	let ApexCharts
-	let loaded: boolean = false
-
-	const chart = (node: HTMLDivElement, options: any) => {
-		if (!loaded) return
-
-		let _chart = new ApexCharts(node, options)
-		_chart.render()
-
-		return {
-			update(options: any) {
-				_chart.updateOptions(options)
-			},
-			destroy() {
-				_chart.destroy()
-			}
-		}
-	}
-
-	// let progressChartOptions
-
-	// $: {
-	// 	progressChartOptions = getProgressChartOptions($isDarkModeStore)
-	// }
 </script>
 
 <div class="menu-mobile">

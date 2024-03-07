@@ -1,15 +1,24 @@
 import { API_URL } from '$env/static/private'
+import { json } from '@sveltejs/kit'
 
 export async function GET({ cookies, url, fetch }) {
 	const processId = url.searchParams.get('process_id') || ''
 
 	const response = await fetch(`${API_URL}/processes/${processId}`, {
 		method: 'GET',
-
 		headers: {
 			Authorization: cookies.get('session') || ''
 		}
 	})
+
+	if (response.ok) {
+		return json(await response.json(), {
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			status: 200
+		})
+	}
 
 	return response
 }

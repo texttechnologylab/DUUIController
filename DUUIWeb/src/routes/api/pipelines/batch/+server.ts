@@ -21,7 +21,6 @@ export const GET: RequestHandler = async ({ fetch, locals, url, cookies }) => {
 		&order=${order}`,
 			{
 				method: 'GET',
-				
 				headers: {
 					Authorization: cookies.get('session') || ''
 				}
