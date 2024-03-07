@@ -137,7 +137,7 @@
 		const fileUpload = await fetch(
 			`/api/files/upload?store=${fileStorage.storeFiles}&provider=${fileStorage.provider}&path=${fileStorage.path}`,
 			{
-				method: 'Post',
+				method: 'POST',
 				body: formData
 			}
 		)

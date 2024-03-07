@@ -7,7 +7,7 @@
 	const { success } = data
 
 	onMount(() => {
-		goto('/account?success=' + success)
+		goto('/account?tab=1&success=' + success)
 	})
 </script>
 

@@ -14,7 +14,7 @@
 	export let options: string[]
 
 	export let rows: number = 5
-	export let offset: number = 8
+	export let offset: number = 4
 
 	export let closeQuery: string = 'button'
 	export let style: string = 'input-wrapper'

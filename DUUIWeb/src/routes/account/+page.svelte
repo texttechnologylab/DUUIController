@@ -514,22 +514,24 @@
 							<p class="hidden lg:block p-4">Workers</p>
 						</div>
 
-						{#each users as user}
+						{#each users as _user}
 							<div
-								class="grid grid-cols-[1fr_1fr_128px] lg:grid-cols-[1fr_1fr_1fr_128px] items-center border-t border-color"
+								class="grid grid-cols-[1fr_1fr_128px] lg:grid-cols-[1fr_1fr_1fr_128px] items-stretch border-t border-color"
 							>
-								<p class="px-4 py-2">{user.email}</p>
+								<p class="px-4 py-2 self-center">{_user.email}</p>
 								<Dropdown
-									on:change={() => updateRole(user)}
-									bind:value={user.role}
-									style="button-menu px-4 py-2"
+									name={_user.email}
+									offset={0}
+									on:change={() => updateRole(_user)}
+									bind:value={_user.role}
+									style="button-menu px-4 py-2 !self-stretch h-full"
 									border="border-y-0 !border-x border-color"
 									options={['User', 'Admin', 'Trial']}
 								/>
-								<p class="hidden lg:block px-4 py-2">{user.worker_count}</p>
+								<p class="hidden lg:block px-4 py-2 self-center">{_user.worker_count}</p>
 								<button
 									class="px-4 py-2 button-menu !justify-center hover:!variant-soft-error transition-300 border-color border-l"
-									on:click={() => deleteUser(user)}
+									on:click={() => deleteUser(_user)}
 								>
 									<Fa icon={faTrash} />
 									<span class="hidden md:inline">Delete</span>

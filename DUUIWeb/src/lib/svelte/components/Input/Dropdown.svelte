@@ -18,7 +18,7 @@
 	export let icon: IconDefinition = faChevronDown
 	export let placement: Placement = 'bottom-end'
 
-	export let offset: number = 8
+	export let offset: number = 4
 
 	export let style: string = 'input-wrapper'
 	export let rounded: string = 'rounded-md'

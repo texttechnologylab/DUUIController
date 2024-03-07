@@ -90,7 +90,7 @@ export const blankComponent = (pipelineId: string, index: number) =>
 		driver: DUUIDockerDriver,
 		target: '',
 		options: {
-			use_GPU: true,
+			use_GPU: false,
 			docker_image_fetching: true,
 			scale: 1,
 			keep_alive: false,
@@ -111,7 +111,7 @@ export const blankComponent = (pipelineId: string, index: number) =>
 
 /**
  * Convert a DUUIComponent to a JSON object with some properties omitted.
- * 
+ *
  * @param component the component to convert
  * @returns An object with relevant component properties.
  */
