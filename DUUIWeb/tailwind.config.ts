@@ -1,11 +1,11 @@
-import { join } from 'path'
-import type { Config } from 'tailwindcss'
 import { skeleton } from '@skeletonlabs/tw-plugin'
 import forms from '@tailwindcss/forms'
-import { ThemeBlue } from './src/theme-blue'
-import { ThemeRed } from './src/theme-red'
-import { ThemePurple } from './src/theme-purple'
-import { ThemeGreen } from './src/theme-green'
+import { join } from 'path'
+import type { Config } from 'tailwindcss'
+import { ThemeBlue } from './static/themes/theme-blue'
+import { ThemeGreen } from './static/themes/theme-green'
+import { ThemePurple } from './static/themes/theme-purple'
+import { ThemeRed } from './static/themes/theme-red'
 
 export default {
 	darkMode: 'class',
