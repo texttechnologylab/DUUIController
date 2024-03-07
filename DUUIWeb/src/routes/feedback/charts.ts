@@ -21,7 +21,10 @@ export const getPlotOptions = (
 		],
 		chart: {
 			height: 450,
-			type: 'radar'
+			type: 'radar',
+			toolbar: {
+				show: false
+			}
 		},
 		plotOptions: {
 			bar: {
@@ -122,7 +125,10 @@ export const getUsersPlotOptions = (
 		],
 		chart: {
 			height: 450,
-			type: 'bar'
+			type: 'bar',
+			toolbar: {
+				show: false
+			}
 		},
 		plotOptions: {
 			bar: {

@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { goto } from '$app/navigation'
+	import { goto, onNavigate } from '$app/navigation'
 	import { page } from '$app/stores'
+	import { scrollIntoView } from '$lib/duui/utils/ui'
 	import { feedbackStore, isDarkModeStore, userSession } from '$lib/store'
 	import Dropdown from '$lib/svelte/components/Input/Dropdown.svelte'
 	import Rating from '$lib/svelte/components/Input/Rating.svelte'
@@ -179,6 +180,10 @@
 		if (response.ok) success = true
 	}
 
+	onNavigate(() => {
+		scrollIntoView('top')
+	})
+
 	let isStepComplete: boolean = false
 
 	$: {
@@ -205,7 +210,7 @@
 		)
 	}
 
-	const reset = () => {
+	const reset = (navigate: boolean = false) => {
 		$feedbackStore = {
 			name: '',
 			message: '',
@@ -224,16 +229,16 @@
 			ease: -1
 		}
 
-		goto('/account')
+		if (navigate) goto('/account')
 	}
 </script>
 
 <div class="bg-surface-100-800-token pattern h-full p-4 pt-0 space-y-4">
 	{#if success}
 		<div class="flex items-center justify-center p-4">
-			<div class="section-wrapper p-8 gap-8 grid justify-center">
+			<div class="section-wrapper p-4 py-8 md:p-16 gap-8 grid justify-center">
 				<p class="text-lg">Thank you for your feedback!</p>
-				<button class="cta box-shadow button-primary !justify-center" on:click={reset}>
+				<button class="cta box-shadow button-primary !justify-center" on:click={() => reset(true)}>
 					<Fa icon={faUser} />
 					<span>Account</span>
 				</button>
@@ -341,14 +346,14 @@
 											bind:checked={$feedbackStore.duui}
 											on:change={() => ($feedbackStore.duuiRating = -1)}
 										/>
-										<Rating
-											wrapper="space-y-8 w-full pt-8 text-center text-lg"
-											name="duui_rating"
-											reason={false}
-											bind:score={$feedbackStore.duuiRating}
-											question={content.experience.duuiRating[language]}
-										/>
 									</div>
+
+									<Rating
+										name="duui_rating"
+										reason={false}
+										bind:score={$feedbackStore.duuiRating}
+										question={content.experience.duuiRating[language]}
+									/>
 
 									<Rating
 										name="java"
@@ -392,7 +397,7 @@
 								</div>
 							</div>
 						{:else if $feedbackStore.step === 3}
-							<div class="p-4 space-y-4 max-w-screen-md mx-auto section-wrapper">
+							<div class="p-4 py-8 md:p-16 space-y-4 max-w-screen-md mx-auto section-wrapper">
 								<!-- <TextInput name="name" label="Name" bind:value={$feedbackStore.name} /> -->
 								<TextArea
 									placeholder="Optional"

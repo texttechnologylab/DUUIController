@@ -134,3 +134,14 @@ export const errorToast = (message: string, duration: number = 4000): ToastSetti
 		hideDismiss: true
 	}
 }
+
+/**
+ * Scroll the element with the specified id into view.
+ * @param id The id tag of the HTMLElement
+ */
+export const scrollIntoView = (id: string) => {
+	const el = document.querySelector(`#${id}`)
+	if (!el) return
+
+	el.scrollIntoView()
+}
