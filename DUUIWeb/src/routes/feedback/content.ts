@@ -44,7 +44,7 @@ export const content = {
 			german: 'Ich habe Erfahrung mit der Nutzung von DUUI'
 		},
 		duuiRating: {
-			english: 'Using DUUI has been pleasent with a graphical user interface',
+			english: 'Using DUUI has been pleasant with a graphical user interface',
 			german: 'Die Verwendung von DUUI mit einer grafischen Benutzeroberfläche war angenehm'
 		},
 		java: {

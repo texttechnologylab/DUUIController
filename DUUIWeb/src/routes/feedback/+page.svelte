@@ -328,15 +328,13 @@
 											bind:checked={$feedbackStore.duui}
 											on:change={() => ($feedbackStore.duuiRating = -1)}
 										/>
-										{#if $feedbackStore.duui}
-											<Rating
-												wrapper="space-y-8 w-full pt-8 text-center text-lg"
-												name="duui_rating"
-												reason={false}
-												bind:score={$feedbackStore.duuiRating}
-												question={content.experience.duuiRating[language]}
-											/>
-										{/if}
+										<Rating
+											wrapper="space-y-8 w-full pt-8 text-center text-lg"
+											name="duui_rating"
+											reason={false}
+											bind:score={$feedbackStore.duuiRating}
+											question={content.experience.duuiRating[language]}
+										/>
 									</div>
 
 									<Rating
