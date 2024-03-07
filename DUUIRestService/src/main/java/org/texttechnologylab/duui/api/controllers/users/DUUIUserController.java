@@ -1,6 +1,7 @@
 package org.texttechnologylab.duui.api.controllers.users;
 
 import org.texttechnologylab.duui.api.Main;
+import org.texttechnologylab.duui.api.controllers.pipelines.DUUIPipelineController;
 import org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage;
 import com.dropbox.core.*;
 import com.mongodb.client.model.Filters;
@@ -19,6 +20,11 @@ import java.util.*;
 import static org.texttechnologylab.duui.api.routes.DUUIRequestHelper.*;
 
 
+/**
+ * A Controller for database operations related to the users collection.
+ *
+ * @author Cedric Borkowski
+ */
 public class DUUIUserController {
 
     private static final Set<String> ALLOWED_UPDATES = Set.of(
@@ -26,7 +32,6 @@ public class DUUIUserController {
         "session",
         "name",
         "preferences.tutorial",
-        "preferences.step",
         "preferences.language",
         "preferences.notifications",
         "worker_count",
@@ -40,6 +45,12 @@ public class DUUIUserController {
     );
 
 
+    /**
+     * Retrieve the stored user credentials for dropbox (access and refresh token).
+     *
+     * @param user The user to retrieve the credentials for.
+     * @return a {@link Document} containing the credentials.
+     */
     public static Document getDropboxCredentials(Document user) {
         Document projection = DUUIMongoDBStorage
             .Users()
@@ -54,6 +65,12 @@ public class DUUIUserController {
         return projection.get("connections", Document.class).get("dropbox", Document.class);
     }
 
+    /**
+     * Retrieve the stored user credentials for minio (endpoint access and secret key).
+     *
+     * @param user The user to retrieve the credentials for.
+     * @return a {@link Document} containing the credentials.
+     */
     public static Document getMinioCredentials(Document user) {
         Document projection = DUUIMongoDBStorage
             .Users()
@@ -68,10 +85,23 @@ public class DUUIUserController {
         return projection.get("connections", Document.class).get("minio", Document.class);
     }
 
+    /**
+     * Get a user by id.
+     *
+     * @param id the user id (as an {@link ObjectId}).
+     * @return a {@link Document} containing the user information.
+     */
     public static Document getUserById(ObjectId id) {
         return getUserById(id, new ArrayList<>());
     }
 
+    /**
+     * Get a user by id. Fields to be included can be specified.
+     *
+     * @param id            the user id (as an {@link ObjectId}).
+     * @param includeFields the database fields to include.
+     * @return a {@link Document} containing the user information.
+     */
     public static Document getUserById(ObjectId id, List<String> includeFields) {
         List<String> defaultFields = Arrays.asList("email", "role", "session");
 
@@ -89,14 +119,33 @@ public class DUUIUserController {
             .first();
     }
 
+    /**
+     * Get a user by id.
+     *
+     * @param id the user id.
+     * @return a {@link Document} containing the user information.
+     */
     public static Document getUserById(String id) {
         return getUserById(new ObjectId(id));
     }
 
+    /**
+     * Get a user by id. Fields to be included can be specified.
+     *
+     * @param id            the user id.
+     * @param includeFields the database fields to include.
+     * @return a {@link Document} containing the user information.
+     */
     public static Document getUserById(String id, List<String> includeFields) {
         return getUserById(new ObjectId(id), includeFields);
     }
 
+    /**
+     * Check if a user with the given API key exists.
+     *
+     * @param authorization the API key.
+     * @return the user if it exists.
+     */
     public static Document matchApiKey(String authorization) {
         return DUUIMongoDBStorage
             .Users()
@@ -105,6 +154,12 @@ public class DUUIUserController {
             .first();
     }
 
+    /**
+     * Check if a user with the given session id exists.
+     *
+     * @param session the session id from the web interface.
+     * @return the user if it exists.
+     */
     public static Document matchSession(String session) {
         return DUUIMongoDBStorage
             .Users()
@@ -113,6 +168,12 @@ public class DUUIUserController {
             .first();
     }
 
+    /**
+     * Check if a user with the given password reset toekn exists.
+     *
+     * @param token the password reset token set from resetting the password in the web interface.
+     * @return the user if it exists.
+     */
     public static Document getUserByResetToken(String token) {
         return DUUIMongoDBStorage
             .Users()
@@ -121,6 +182,12 @@ public class DUUIUserController {
             .first();
     }
 
+    /**
+     * Create and insert a user into the database.
+     * TODO: Move request part to {@link org.texttechnologylab.duui.api.routes.users.DUUIUsersRequestHandler}.
+     *
+     * @return the created user.
+     */
     public static String insertOne(Request request, Response response) {
         if (invalidRequestOrigin(request.ip())) {
             response.status(401);
@@ -145,7 +212,6 @@ public class DUUIUserController {
             .append("role", role)
             .append("worker_count", 200)
             .append("preferences", new Document("tutorial", true)
-                .append("step", 0)
                 .append("language", "english")
                 .append("notifications", false))
             .append("session", body.getOrDefault("session", null))
@@ -166,20 +232,35 @@ public class DUUIUserController {
         return new Document("user", newUser).toJson();
     }
 
+    /**
+     * Delete a user from the database.
+     * TODO: Move request part to {@link org.texttechnologylab.duui.api.routes.users.DUUIUsersRequestHandler}.
+     *
+     * @return a confirmation message.
+     */
     public static String deleteOne(Request request, Response response) {
         if (invalidRequestOrigin(request.ip())) {
             response.status(401);
             return "Unauthorized";
         }
 
+        String id = request.params(":id");
+
         DUUIMongoDBStorage
             .Users()
-            .deleteOne(Filters.eq(new ObjectId(request.params(":id"))));
+            .deleteOne(Filters.eq(new ObjectId(id)));
+
+        DUUIPipelineController.cascade(id);
 
         response.status(201);
         return new Document("message", "Successfully deleted").toJson();
     }
 
+    /**
+     * Check if an email to reset the user password can be sent.
+     *
+     * @return a confirmation message.
+     */
     public static String recoverPassword(Request request, Response response) {
         Document body = Document.parse(request.body());
 
@@ -202,12 +283,23 @@ public class DUUIUserController {
         return new Document("message", "Email has been sent.").toJson();
     }
 
+    /**
+     * Send an email to reset a user password.
+     * TODO: Implement this method and connect to TTLab email service.
+     *
+     * @param email              the user's email address
+     * @param passwordResetToken the password reset token send with the email.
+     */
     private static void sendPasswordResetEmail(String email, String passwordResetToken) {
-        // TODO: Implement this method
         System.out.printf("Sending email to %s with token %s%n", email, passwordResetToken);
         throw new UnsupportedOperationException("Not implemented yet");
     }
 
+    /**
+     * Reset the password of the user and store the new one.
+     *
+     * @return a confirmation message and the user email.
+     */
     public static String resetPassword(Request request, Response response) {
         Document body = Document.parse(request.body());
 
@@ -241,6 +333,11 @@ public class DUUIUserController {
             .append("email", user.getString("email")).toJson();
     }
 
+    /**
+     * Fetch the login credentials for a user by email.
+     *
+     * @return the email and password of the user for logging into the web interface.
+     */
     public static String fetchLoginCredentials(Request request, Response response) {
         if (invalidRequestOrigin(request.ip())) {
             response.status(401);
@@ -265,6 +362,12 @@ public class DUUIUserController {
         return new Document("credentials", credentials).toJson();
     }
 
+    /**
+     * Check if the request origin is valid.
+     *
+     * @param origin the ip address of the requester.
+     * @return if the request origin is a valid ip address.
+     */
     private static boolean invalidRequestOrigin(String origin) {
         return false;
 //        Set<String> ALLOWED_ORIGINS = Arrays
@@ -275,6 +378,11 @@ public class DUUIUserController {
 //        return !ALLOWED_ORIGINS.contains(origin);
     }
 
+    /**
+     * Update a user given an id and a JSON object with updates.
+     *
+     * @return the updated user only including the updated and defaults fields.
+     */
     public static String updateOne(Request request, Response response) {
         if (invalidRequestOrigin(request.ip())) {
             response.status(401);
@@ -314,6 +422,11 @@ public class DUUIUserController {
         return new Document("user", user).toJson();
     }
 
+    /**
+     * Check if the user is authorized.
+     *
+     * @return the authorized user.
+     */
     public static String authorizeUser(Request request, Response response) {
         if (invalidRequestOrigin(request.ip())) {
             response.status(401);
@@ -332,6 +445,11 @@ public class DUUIUserController {
         return new Document("user", user).toJson();
     }
 
+    /**
+     * Retrieve a user from the database given an id.
+     *
+     * @return a user from the database.
+     */
     public static String fetchUser(Request request, Response response) {
         if (invalidRequestOrigin(request.ip())) {
             response.status(401);
@@ -349,6 +467,12 @@ public class DUUIUserController {
         return new Document("user", user).toJson();
     }
 
+    /**
+     * Retrieve multiple users from the database. This is only possible for admins and is used
+     * to manage roles in the web interface.
+     *
+     * @return a list of users.
+     */
     public static String fetchUsers(Request request, Response response) {
         if (invalidRequestOrigin(request.ip())) {
             response.status(401);
@@ -377,6 +501,12 @@ public class DUUIUserController {
         return new Document("users", users).toJson();
     }
 
+    /**
+     * Retrieve defaults properties of a user needed for the web interface.
+     *
+     * @param id the user id.
+     * @return a {@link Document} containing the properties.
+     */
     private static Document getUserProperties(String id) {
 
         if (isNullOrEmpty(id)) return new Document();
@@ -389,6 +519,12 @@ public class DUUIUserController {
             .first();
     }
 
+    /**
+     * Increment or decrement (negative count) to the worker count. Acts as a rate limit for threads.
+     *
+     * @param id    the user id.
+     * @param count the amount of workers to add or subtract.
+     */
     public static void addToWorkerCount(String id, int count) {
         DUUIMongoDBStorage
             .Users()
@@ -398,6 +534,11 @@ public class DUUIUserController {
             );
     }
 
+    /**
+     * Finish the Dropbox OAuth 2.0 process given a code returned after accepting the connection with DUUI.
+     *
+     * @return the user with updated dropbox credentials. See {@link DUUIUserController#getDropboxCredentials(Document)}.
+     */
     public static String finishDropboxOAuthFromCode(Request request, Response response) {
         String code = request.queryParamOrDefault("code", null);
         if (isNullOrEmpty(code)) return badRequest(response, "Missing code query parameter");
@@ -452,6 +593,11 @@ public class DUUIUserController {
         return "Thank you for your feedback!";
     }
 
+    /**
+     * Retrieve all feedback from the databse. Only required during the evaluation.
+     *
+     * @return a json object containing a list of feedback.
+     */
     public static String getFeedback(Request request, Response response) {
         return new Document("feedback", DUUIMongoDBStorage
             .Feedback()

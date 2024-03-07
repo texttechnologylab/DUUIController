@@ -32,7 +32,7 @@ import java.util.UUID;
 
 import static spark.Spark.*;
 
-/**
+/*
  * To build follow these steps for now:
  * - Run 'maven clean package -DskipTests'
  * - Go to the generated jar and open it using any zip tool
@@ -44,6 +44,13 @@ import static spark.Spark.*;
  * - Set the correct working directory (where to jar is located)
  * - run 'java -jar DUUIRestService.jar PATH/TO/config.properties
  */
+
+/**
+ * The entry point to the DUUIRestService application. Running the application requires the path to
+ * a config file to be specified in the command line arguments.
+ *
+ * @author Cedric Borkowski
+ */
 public class Main {
     public static Config config;
 
@@ -52,15 +59,21 @@ public class Main {
             String configFilePath = args[0];
             config = new Config(configFilePath);
         } catch (ArrayIndexOutOfBoundsException | IOException exception) {
-            System.err.println("Create a config file and pass the path to this file as the first application argument.");
-            System.err.println("The config file should contain: ");
-            System.err.println("\t> DBX_APP_KEY - Found in the App Console at https://www.dropbox.com/developers/apps");
-            System.err.println("\t> DBX_APP_SECRET - Also found in the App Console at https://www.dropbox.com/developers/apps");
-            System.err.println("\t> DBX_REDIRECT_URL - This url has to be configured in the App Console.");
-            System.err.println("\t> MONGO_DB_CONNECTION_STRING - The connection string for the MongoDB deployment.");
-            System.err.println("\t> PORT - API Port, default is 2605.");
-            System.err.println("\t> HOST - API Host, default is localhost.");
-            System.err.println("\t> FILE_UPLOAD_DIRECTORY - The directory that is used as the temporary upload destination.");
+            System.err.println("Create a config (ini, properties, ...) file and pass the path to this file as the first application argument.");
+            System.err.println("The config file should contain the following variables: ");
+            System.err.println("\t> DBX_APP_KEY");
+            System.err.println("\t> DBX_APP_SECRET");
+            System.err.println("\t> DBX_REDIRECT_URL");
+            System.err.println("\t> PORT");
+            System.err.println("\t> HOST");
+            System.err.println("\t> FILE_UPLOAD_DIRECTORY");
+            System.err.println("\t> MONGO_HOST");
+            System.err.println("\t> MONGO_PORT");
+            System.err.println("\t> MONGO_DB");
+            System.err.println("\t> MONGO_USER");
+            System.err.println("\t> MONGO_PASSWORD");
+            System.err.println("\t> MONGO_DB_CONNECTION_STRING");
+            System.err.println("Dropbox related variables are found in the App Console at https://www.dropbox.com/developers/apps");
             System.exit(0);
         }
 
@@ -103,6 +116,12 @@ public class Main {
     }
 
 
+    /**
+     * Upload one or multiple files to the specified UPLOAD_DIRECTORY path in the config file. Files are stored
+     * under UPLOAD_DIRECTORY/uuid
+     *
+     * @return a JSON Document containing the path to parent folder (uuid).
+     */
     public static String uploadFile(Request request, Response response) throws ServletException, IOException, DbxException {
         String authorization = request.headers("Authorization");
         DUUIRequestHelper.authenticate(authorization);
@@ -151,6 +170,11 @@ public class Main {
         return new Document("path", root.toString()).toJson();
     }
 
+    /**
+     * Download a file given a cloud provider and a path.
+     *
+     * @return a response containing the file content as bytes.
+     */
     public static String downloadFile(Request request, Response response) {
         String userId = DUUIRequestHelper.getUserId(request);
         String provider = request.queryParamOrDefault("provider", null);

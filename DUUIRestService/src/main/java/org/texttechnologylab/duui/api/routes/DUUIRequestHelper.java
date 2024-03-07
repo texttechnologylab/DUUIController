@@ -12,6 +12,11 @@ import java.util.Set;
 
 import static com.mongodb.client.model.Filters.eq;
 
+/**
+ * A utility class to handle common operations on {@link Request} and {@link Response} objects.
+ *
+ * @author Cedric Borkowski
+ */
 public class DUUIRequestHelper {
 
     /**
@@ -221,7 +226,12 @@ public class DUUIRequestHelper {
         return String.format("Missing field %s", field);
     }
 
-
+    /**
+     * Check if the provided authorization is valid and corresponds to a user.
+     *
+     * @param authorization a session id or API key.
+     * @return The potential user corresponding to the authorization String.
+     */
     public static Document authenticate(String authorization) {
         if (isNullOrEmpty(authorization)) return null;
 

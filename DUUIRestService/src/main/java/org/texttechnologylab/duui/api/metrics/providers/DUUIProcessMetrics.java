@@ -3,6 +3,11 @@ package org.texttechnologylab.duui.api.metrics.providers;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
 
+/**
+ * A class containing process related metrics and means to update them.
+ *
+ * @author Cedric Borkowski.
+ */
 public class DUUIProcessMetrics {
 
     private static final Gauge activeProcesses = Gauge.build()

@@ -19,6 +19,11 @@ import java.util.Set;
 
 import static org.texttechnologylab.duui.api.routes.DUUIRequestHelper.*;
 
+/**
+ * A Controller for database operations related to the documents collection.
+ *
+ * @author Cedric Borkowski
+ */
 public class DUUIDocumentController {
 
     /**
@@ -168,6 +173,12 @@ public class DUUIDocumentController {
     }
 
 
+    /**
+     * Update the status of documents in the database.
+     *
+     * @param processId the id of the process associated with the documents.
+     * @param documents a list of {@link DUUIDocument}s to update.
+     */
     public static void updateMany(String processId, Set<DUUIDocument> documents) {
         for (DUUIDocument document : documents) {
             DUUIMongoDBStorage

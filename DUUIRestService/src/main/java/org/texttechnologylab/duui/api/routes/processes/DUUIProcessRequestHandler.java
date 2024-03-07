@@ -24,8 +24,19 @@ import java.util.stream.Stream;
 
 import static org.texttechnologylab.duui.api.controllers.processes.DUUIProcessController.findOneById;
 
+/**
+ * A class that is responsible for handling incoming requests to the /processes path group.
+ *
+ * @author Cedric Borkowksi
+ */
 public class DUUIProcessRequestHandler {
 
+    /**
+     * Retrieve a process given its id.
+     * See {@link DUUIProcessController#findOneById(String)}
+     *
+     * @return A response containing the process or a default not found (404).
+     */
     public static String findOne(Request request, Response response) {
         String id = request.params(":id");
 
@@ -37,6 +48,12 @@ public class DUUIProcessRequestHandler {
         return process.toJson();
     }
 
+    /**
+     * Retrieve a process given its id.
+     * See {@link DUUIProcessController#findMany(MongoDBFilters)}
+     *
+     * @return A response containing the processes or a default not found (404).
+     */
     public static String findMany(Request request, Response response) {
         String pipelineId = request.queryParamOrDefault("pipeline_id", null);
 
@@ -78,6 +95,12 @@ public class DUUIProcessRequestHandler {
         return result.toJson();
     }
 
+    /**
+     * Delete a process given its id.
+     * See {@link DUUIProcessController#deleteOne(String)}
+     *
+     * @return A response containing the success status.
+     */
     public static String deleteOne(Request request, Response response) {
         String id = request.params(":id");
 
@@ -89,6 +112,12 @@ public class DUUIProcessRequestHandler {
         return "Not deleted";
     }
 
+    /**
+     * Create and start a new process.
+     * See {@link DUUIProcessController#start(Document, Document, DUUIDocumentProvider, DUUIDocumentProvider)}.
+     *
+     * @return The created process or an error response.
+     */
     public static String start(Request request, Response response) {
         Document body = Document.parse(request.body());
 
@@ -127,6 +156,12 @@ public class DUUIProcessRequestHandler {
         }
     }
 
+    /**
+     * Cancel a process that is currently running.
+     * See {@link DUUIProcessController#stop(String)}
+     *
+     * @return The result of the cancellation (success or fail).
+     */
     public static String stop(Request request, Response response) {
         String id = request.params(":id");
 
@@ -136,7 +171,13 @@ public class DUUIProcessRequestHandler {
         return result;
     }
 
-
+    /**
+     * Retrieve a limited number of documents from the database.
+     * See {@link DUUIDocumentController#findMany(MongoDBFilters)}.
+     *
+     * @return A JSON Document containing {@link org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.DUUIDocument}s
+     * and the total count.
+     */
     public static String findDocuments(Request request, Response response) {
         String processId = request.params(":id");
         String userID = DUUIRequestHelper.getUserId(request);
@@ -173,6 +214,12 @@ public class DUUIProcessRequestHandler {
         return DUUIDocumentController.findMany(filters).toJson();
     }
 
+    /**
+     * Retrieve events associated with the process.
+     * See {@link DUUIEventController#findManyByProcess(String)}
+     *
+     * @return a timeline ({@link List}) of events.
+     */
     public static String findEvents(Request request, Response response) {
         String authorization = request.headers("Authorization");
         DUUIRequestHelper.authenticate(authorization);

@@ -33,7 +33,11 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
+/**
+ * A Controller for database operations related to the processes collection.
+ *
+ * @author Cedric Borkowski
+ */
 public class DUUIProcessController {
 
     private static final Map<String, IDUUIProcessHandler> activeProcesses = new HashMap<>();
@@ -444,6 +448,10 @@ public class DUUIProcessController {
         effected.forEach(
             document -> DUUIDocumentController.deleteMany(
                 Filters.eq(document.getObjectId("_id").toString())));
+
+        effected.forEach(
+            document -> DUUIEventController.deleteMany(
+                Filters.eq("event.process_id", document.getObjectId("_id").toString())));
     }
 
 
@@ -552,24 +560,16 @@ public class DUUIProcessController {
     }
 
 
+    /**
+     * Download a file from a cloud storage given the handler and path to the file.
+     *
+     * @param handler an instance of an {@link IDUUIDocumentHandler}
+     * @param path    the absolute path to the file in the cloud storage.
+     * @return an {@link InputStream} with the file contents.
+     * @throws IOException when the file is not found or an error occurs while reading.
+     */
     public static InputStream downloadFile(IDUUIDocumentHandler handler, String path) throws IOException {
         DUUIDocument document = handler.readDocument(path);
         return document.toInputStream();
-    }
-
-    public static Document getAverageRunDurationByProvider(String pipelineId) {
-        List<Document> pipeline = DUUIMongoDBStorage
-            .Processses()
-            .aggregate(
-                List.of(
-                    Aggregates.match(Filters.eq("pipeline_id", pipelineId)),
-                    Aggregates.addFields(new Field<>("duration",
-                        new Document("$subtract", List.of("$finished_at", "$started_at")))),
-                    Aggregates.group("$input.provider", Accumulators.avg("$duration", 1))
-                )
-            ).into(new ArrayList<>());
-
-        if (DUUIRequestHelper.isNullOrEmpty(pipeline)) return new Document();
-        return pipeline.get(0);
     }
 }

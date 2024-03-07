@@ -17,6 +17,11 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+/**
+ * A Controller for database operations related to the events collection.
+ *
+ * @author Cedric Borkowski
+ */
 public class DUUIEventController {
 
     /**

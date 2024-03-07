@@ -8,6 +8,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * A class containing system metrics and means to update them.
+ *
+ * @author Cedric Borkowski.
+ */
 public class DUUISystemMetrics {
 
     private static final Gauge cpuLoad = Gauge.build()

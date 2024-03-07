@@ -16,9 +16,13 @@ import java.util.regex.Pattern;
 
 import static org.texttechnologylab.duui.api.routes.DUUIRequestHelper.isNullOrEmpty;
 
+/**
+ * A Controller for database operations related to the components collection.
+ *
+ * @author Cedric Borkowski
+ */
 public class DUUIComponentController {
 
-    // The set of updates that can be made to a component.
     private static final Set<String> ALLOWED_UPDATES = Set.of(
         "name",
         "description",
@@ -31,7 +35,11 @@ public class DUUIComponentController {
         "index"
     );
 
-
+    /**
+     * Create and retrieve a default component.
+     *
+     * @return a {@link Document} with the default properties for a component set.
+     */
     public static Document getDefaultComponent() {
         return new Document()
             .append("name", "New Component")
@@ -48,6 +56,11 @@ public class DUUIComponentController {
             .append("index", null);
     }
 
+    /**
+     * Create and retrieve default options for a component.
+     *
+     * @return a {@link Document} with the default properties for options of a component set.
+     */
     public static Document getDefaultOptions() {
         return new Document()
             .append("scale", 1)
@@ -172,6 +185,12 @@ public class DUUIComponentController {
         return components;
     }
 
+    /**
+     * Attempt to create and insert a new component into the database.
+     *
+     * @param component the component to create
+     * @return the inserted component.
+     */
     public static Document insertOne(Document component) {
         Document defaultComponent = getDefaultComponent();
         for (Map.Entry<String, Object> entry : defaultComponent.entrySet()) {
@@ -190,6 +209,13 @@ public class DUUIComponentController {
         return component;
     }
 
+    /**
+     * Attempt to update a component given its id and a JSON object with updates.
+     *
+     * @param id      the id of the component
+     * @param updates the JSON object with updates to the component
+     * @return the updated component
+     */
     public static Document updateOne(String id, Document updates) {
         ObjectId oid = new ObjectId(id);
 
@@ -209,7 +235,12 @@ public class DUUIComponentController {
         return DUUIComponentController.findOneById(id);
     }
 
-
+    /**
+     * Attempt to delete a component given its id.
+     *
+     * @param id the id of the component
+     * @return a confirmation flag.
+     */
     public static boolean deleteOne(String id) {
         return DUUIMongoDBStorage
             .Components()

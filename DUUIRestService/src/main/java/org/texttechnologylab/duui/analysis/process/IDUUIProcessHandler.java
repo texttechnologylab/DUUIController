@@ -1,6 +1,11 @@
 package org.texttechnologylab.duui.analysis.process;
 
 
+/**
+ * An interface for running processes with DUUI.
+ *
+ * @author Cedric Borkowski
+ */
 public interface IDUUIProcessHandler extends Runnable {
 
     /**

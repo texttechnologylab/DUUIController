@@ -3,6 +3,12 @@ package org.texttechnologylab.duui.api.metrics.providers;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
 
+
+/**
+ * A class containing metrics for requests and means to update them.
+ *
+ * @author Cedric Borkowski.
+ */
 public class DUUIHTTPMetrics {
     private static final Counter requestsTotal = Counter.build()
         .name("duui_requests_total")

@@ -11,9 +11,18 @@ import org.texttechnologylab.duui.api.routes.processes.DUUIProcessRequestHandler
 
 import static spark.Spark.*;
 
+/**
+ * A class to set up the Java Spark path groups. This class is only used to increase readability and reduce
+ * the amount of code in the main method.
+ *
+ * @author Cedric Borkowski
+ */
 public class Methods {
 
-    public static void init(){
+    /**
+     * Initializes all endpoints including filters and options.
+     */
+    public static void init() {
         options(
             "/*",
             (request, response) -> {

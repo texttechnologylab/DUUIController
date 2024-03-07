@@ -2,6 +2,11 @@ package org.texttechnologylab.duui.api.metrics.providers;
 
 import io.prometheus.client.Counter;
 
+/**
+ * A class containing database related metrics and means to update them.
+ *
+ * @author Cedric Borkowski.
+ */
 public class DUUIStorageMetrics {
 
     private static final Counter collectionPipelines = makeCollectionCounter("pipelines");

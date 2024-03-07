@@ -7,6 +7,11 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Properties;
 
+/**
+ * A class holding configuration data for the application and allowing for easy access to the configuration.
+ *
+ * @author Cedric Borkowski
+ */
 public class Config {
 
     private final Properties properties;
@@ -22,19 +27,23 @@ public class Config {
         return properties.getProperty("MONGO_DB_CONNECTION_STRING", null);
     }
 
-    public String getMongoHost(){
+    public String getMongoHost() {
         return properties.getProperty("MONGO_HOST", null);
     }
-    public int getMongoPort(){
+
+    public int getMongoPort() {
         return Integer.parseInt(properties.getProperty("MONGO_PORT", "27017"));
     }
-    public String getMongoUser(){
+
+    public String getMongoUser() {
         return properties.getProperty("MONGO_USER", null);
     }
-    public String getMongoDatabase(){
+
+    public String getMongoDatabase() {
         return properties.getProperty("MONGO_DB", null);
     }
-    public String getMongoPassword(){
+
+    public String getMongoPassword() {
         return properties.getProperty("MONGO_PASSWORD", null);
     }
 

@@ -30,6 +30,11 @@ import java.util.regex.Pattern;
 
 import static org.texttechnologylab.duui.api.routes.DUUIRequestHelper.isNullOrEmpty;
 
+/**
+ * A Controller for database operations related to the pipelines collection.
+ *
+ * @author Cedric Borkowski
+ */
 public class DUUIPipelineController {
     private static final Map<String, DUUIComposer> reusablePipelines = new HashMap<>();
 
@@ -293,15 +298,24 @@ public class DUUIPipelineController {
     }
 
     /**
-     * Delete one pipeline and return if the deletion succeeded.
+     * Delete one pipeline and return if the deletion succeeded. Also delete all components and processes
+     * referencing the pipeline.
      *
      * @param id The id of the pipeline to delete
      * @return if the number of deleted pipelines is greater than 0.
      */
     public static boolean deleteOne(String id) {
-        return DUUIMongoDBStorage.Pipelines()
+        boolean deleted = DUUIMongoDBStorage.Pipelines()
             .deleteOne(Filters.eq(new ObjectId(id)))
             .getDeletedCount() > 0;
+
+        if (deleted) {
+            DUUIComponentController.deleteMany(Filters.eq("pipeline_id", id));
+            DUUIProcessController.deleteMany(Filters.eq("pipeline_id", id));
+        }
+
+        return deleted;
+
     }
 
     /**
@@ -526,5 +540,23 @@ public class DUUIPipelineController {
         }
 
         return pipelineComponent.withName(name);
+    }
+
+    /**
+     * Delete all pipelines associated with a user when that user account is deleted.
+     *
+     * @param userId the id of the user that has been deleted.
+     */
+    public static void cascade(String userId) {
+        List<Document> pipelines = DUUIMongoDBStorage
+            .Pipelines()
+            .find(Filters.eq("user_id", userId))
+            .projection(Projections.include("_id"))
+            .into(new ArrayList<>());
+
+        pipelines.forEach(pipeline -> {
+            DUUIPipelineController.deleteOne(pipeline.getObjectId("_id").toString());
+        });
+
     }
 }

@@ -18,11 +18,17 @@ import java.util.List;
 import java.util.Set;
 
 
+/**
+ * A class that is responsible for handling incoming requests to the /pipelines path group.
+ *
+ * @author Cedric Borkowksi
+ */
 public class DUUIPipelineRequestHandler {
 
 
     /**
      * Retrieve one pipeline by its id.
+     * See {@link DUUIPipelineController#findOneById(String, boolean)}.
      *
      * @return A Json String containing the matched pipeline.
      */
@@ -51,6 +57,7 @@ public class DUUIPipelineRequestHandler {
 
     /**
      * Retrieve one or more pipelines for a user. The results can be sorted and filtered.
+     * See {@link DUUIPipelineController#findMany(MongoDBFilters, boolean)}.
      *
      * @return A Json String containing the matched pipelines.
      */
@@ -107,6 +114,12 @@ public class DUUIPipelineRequestHandler {
         return result.toJson();
     }
 
+    /**
+     * Create and insert a new pipeline.
+     * TODO: Add insert method to {@link DUUIPipelineController}
+     *
+     * @return the created pipeline or the error encountered.
+     */
     public static String insertOne(Request request, Response response) {
         String userID = DUUIRequestHelper.getUserId(request);
 
@@ -184,6 +197,12 @@ public class DUUIPipelineRequestHandler {
         return insert.toJson();
     }
 
+    /**
+     * Update a pipeline given its id and a json object containing updates for fields.
+     * See {@link DUUIPipelineController#updateOne(String, Document)}.
+     *
+     * @return A Json String containing the matched pipeline.
+     */
     public static String updateOne(Request request, Response response) {
         String userID = DUUIRequestHelper.getUserId(request);
 
@@ -211,6 +230,12 @@ public class DUUIPipelineRequestHandler {
         return insert.toJson();
     }
 
+    /**
+     * Delete one pipeline given its id.
+     * See {@link DUUIPipelineController#deleteOne(String)}.
+     *
+     * @return A Json String containing the matched pipeline.
+     */
     public static String deleteOne(Request request, Response response) {
         String userID = DUUIRequestHelper.getUserId(request);
 
@@ -241,13 +266,16 @@ public class DUUIPipelineRequestHandler {
             return "Deletion failed";
         }
 
-        DUUIComponentController.deleteMany(Filters.eq("pipeline_id", pipelineId));
-        DUUIProcessController.deleteMany(Filters.eq("pipeline_id", pipelineId));
-
         response.status(200);
         return "Deleted";
     }
 
+    /**
+     * Instantiate a pipeline for future use.
+     * See {@link DUUIPipelineController#instantiate(String)}
+     *
+     * @return the status of the pipeline.
+     */
     public static String start(Request request, Response response) {
         String pipeline_id = request.params(":id");
 
@@ -261,6 +289,12 @@ public class DUUIPipelineRequestHandler {
         return new Document("status", DUUIStatus.IDLE).toJson();
     }
 
+    /**
+     * Shutdown a pipeline.
+     * See {@link DUUIPipelineController#shutdown(String)}.
+     *
+     * @return the status of the pipeline.
+     */
     public static String stop(Request request, Response response) {
         String pipeline_id = request.params(":id");
 

@@ -9,7 +9,8 @@ import java.util.Objects;
  * This class is a utility to have easier access to input and output settings of an
  * {@link IDUUIProcessHandler}. Providers include Dropbox, Minio and Text but is
  * designed to support any future cloud or database providers.
- * <p>
+ *
+ * @author Cedric Borkowski
  */
 public class DUUIDocumentProvider {
 

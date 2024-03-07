@@ -18,13 +18,20 @@ import java.util.stream.Stream;
 
 import static org.texttechnologylab.duui.api.routes.DUUIRequestHelper.isNullOrEmpty;
 
+/**
+ * A utility class for setting up and retrieving information about the database including its collections. Also
+ * contains utility methods for database operations.
+ *
+ * @author Cedric Borkowski
+ */
 public class DUUIMongoDBStorage {
 
     private static MongoClient mongoClient;
     private static Config config;
 
     /**
-     * Replaces the ObjectID object by a plain text representation of the id called oid.
+     * Replaces the ObjectID object by a plain text representation of the id called
+     * oid.
      *
      * @param document The document to convert.
      */
@@ -105,6 +112,11 @@ public class DUUIMongoDBStorage {
         return mongoClient;
     }
 
+    /**
+     * Inject the {@link Config} for the application and initialize a {@link com.mongodb.MongoClient}.
+     *
+     * @param config the configuration for the application.
+     */
     public static void init(Config config) {
         DUUIMongoDBStorage.config = config;
         getClient();
@@ -113,7 +125,7 @@ public class DUUIMongoDBStorage {
     /**
      * Utility functions for fast access to collections in the database.
      *
-     * @return One of the 6 collections used in the database.
+     * @return A MongoCollection object.
      */
     public static MongoCollection<Document> Pipelines() {
         DUUIStorageMetrics.incrementPipelinesCounter();
@@ -149,15 +161,17 @@ public class DUUIMongoDBStorage {
         return getClient().getDatabase(config.getMongoDatabase()).getCollection("feedback");
     }
 
-
     /**
-     * Combine a Document containing key value pairs representing an update action into a merged BSON object.
+     * Combine a Document containing key value pairs representing an update action
+     * into a merged BSON object.
      *
      * @param collection     The collection on which to perform the update
-     * @param filter         A set of filters so that only matching documents are updated.
+     * @param filter         A set of filters so that only matching documents are
+     *                       updated.
      * @param updates        The Document containing the updates.
      * @param allowedUpdates A Set of field names that are allowed to be updated.
-     * @param skipInvalid    Wether to skip invalid keys or return when encountered. Default true.
+     * @param skipInvalid    Wether to skip invalid keys or return when encountered.
+     *                       Default true.
      */
     public static void updateDocument(MongoCollection<Document> collection,
                                       Bson filter,
@@ -168,8 +182,10 @@ public class DUUIMongoDBStorage {
         List<Bson> __updates = new ArrayList<>();
         for (Map.Entry<String, Object> entry : updates.entrySet()) {
             if (!allowedUpdates.contains(entry.getKey())) {
-                if (skipInvalid) continue;
-                else return;
+                if (skipInvalid)
+                    continue;
+                else
+                    return;
             }
 
             __updates.add(Updates.set(entry.getKey(), entry.getValue()));
@@ -194,7 +210,8 @@ public class DUUIMongoDBStorage {
     }
 
     /**
-     * For a given filter queryParameter extract the string from the request query parameters (queryParameter=A;B;C;D...) and
+     * For a given filter queryParameter extract the string from the request query
+     * parameters (queryParameter=A;B;C;D...) and
      * return a {@link List} of filter names
      *
      * @param request        the request object.
@@ -203,12 +220,12 @@ public class DUUIMongoDBStorage {
      */
     public static List<String> getFilterOrDefault(Request request, String queryParameter) {
         String filter = request.queryParamOrDefault(queryParameter, "Any");
-        if (isNullOrEmpty(filter)) return List.of("Any");
+        if (isNullOrEmpty(filter))
+            return List.of("Any");
 
         return Stream.of(filter.split(";"))
             .map(DUUIRequestHelper::toTitleCase)
             .toList();
     }
-
 
 }

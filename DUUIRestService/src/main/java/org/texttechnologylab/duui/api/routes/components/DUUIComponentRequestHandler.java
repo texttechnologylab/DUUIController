@@ -14,6 +14,11 @@ import java.util.List;
 import java.util.Set;
 
 
+/**
+ * A class that is responsible for handling incoming requests to the /components path group.
+ *
+ * @author Cedric Borkowksi
+ */
 public class DUUIComponentRequestHandler {
 
     public static final Set<String> DRIVERS = Set.of(
@@ -28,7 +33,7 @@ public class DUUIComponentRequestHandler {
     /**
      * Inserts a new Component into the Database. If no user_id or no pipeline_id is specified, the component is
      * inserted as a template.
-     * <p>
+     * See {@link DUUIComponentController#insertOne(Document)}
      *
      * @param request  Request object
      * @param response Response object
@@ -80,6 +85,7 @@ public class DUUIComponentRequestHandler {
 
     /**
      * Finds one component by its id extracted from the request url.
+     * See {@link DUUIComponentController#findOneById(String)}
      *
      * @return A Json String containing the component or a not found message.
      */
@@ -98,6 +104,7 @@ public class DUUIComponentRequestHandler {
     /**
      * Finds many components by its userID extracted from the request and components that are marked as
      * templates by not having a user_id field set.
+     * See {@link DUUIComponentController#findMany(MongoDBFilters)}
      *
      * @return A Json String containing the components or a not found message.
      */
@@ -143,6 +150,7 @@ public class DUUIComponentRequestHandler {
     /**
      * Updates one component by its id extracted from the url. The updates to be performed are provided
      * in the request body in the Json format.
+     * See {@link DUUIComponentController#updateOne(String, Document)}
      *
      * @return A Json String containing the updated component or a not found message.
      */
@@ -158,6 +166,7 @@ public class DUUIComponentRequestHandler {
 
     /**
      * Attemps to delete a component given its id.
+     * See {@link DUUIComponentController#deleteOne(String)}
      *
      * @return Confirmation of deletion or a not found message.
      */
