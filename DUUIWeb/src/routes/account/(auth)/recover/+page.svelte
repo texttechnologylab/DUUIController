@@ -1,8 +1,6 @@
 <script lang="ts">
-	import { scrollIntoView } from '$lib/duui/utils/ui'
 	import Text from '$lib/svelte/components/Input/TextInput.svelte'
 	import { faEnvelope, faEnvelopeCircleCheck } from '@fortawesome/free-solid-svg-icons'
-	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
 	import { fly } from 'svelte/transition'
 
@@ -30,10 +28,6 @@
 			message = result
 		}
 	}
-
-	onMount(() => {
-		scrollIntoView('top')
-	})
 </script>
 
 <svelte:head>

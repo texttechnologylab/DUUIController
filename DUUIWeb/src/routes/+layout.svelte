@@ -27,7 +27,7 @@
 	} from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
 
-	import { beforeNavigate, goto, onNavigate } from '$app/navigation'
+	import { afterNavigate, beforeNavigate, goto, onNavigate } from '$app/navigation'
 	import { initializeStores, storePopup } from '@skeletonlabs/skeleton'
 
 	import { isDarkModeStore, userSession } from '$lib/store'
@@ -58,6 +58,7 @@
 	import 'highlight.js/styles/github-dark.css'
 	import { onMount } from 'svelte'
 	import ProcessDrawer from './processes/[oid]/ProcessDrawer.svelte'
+	import type { AfterNavigate } from '@sveltejs/kit'
 
 	export let data
 	let { user, theme } = data
@@ -97,6 +98,14 @@
 
 		if (expirationDate && expirationDate < new Date()) {
 			$userSession = null
+		}
+	})
+
+	afterNavigate((params: AfterNavigate) => {
+		const isNewPage = params.from?.url.pathname !== params.to?.url.pathname
+		const elemPage = document.querySelector('#page')
+		if (isNewPage && elemPage !== null) {
+			elemPage.scrollTop = 0
 		}
 	})
 

@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { goto, onNavigate } from '$app/navigation'
+	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
-	import { scrollIntoView } from '$lib/duui/utils/ui'
 	import { feedbackStore, isDarkModeStore, userSession } from '$lib/store'
 	import Dropdown from '$lib/svelte/components/Input/Dropdown.svelte'
 	import Rating from '$lib/svelte/components/Input/Rating.svelte'
@@ -143,9 +142,6 @@
 		}
 	}
 
-	onNavigate(() => {
-		scrollIntoView('top')
-	})
 
 	const next = () => {
 		$feedbackStore.step += 1

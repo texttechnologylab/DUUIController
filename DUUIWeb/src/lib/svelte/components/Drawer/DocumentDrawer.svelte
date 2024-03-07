@@ -8,7 +8,7 @@
 	import type { DUUIPipeline } from '$lib/duui/pipeline'
 	import type { DUUIProcess } from '$lib/duui/process'
 	import { formatFileSize, includes } from '$lib/duui/utils/text'
-	import { errorToast, getStatusIcon, scrollIntoView } from '$lib/duui/utils/ui'
+	import { errorToast, getStatusIcon } from '$lib/duui/utils/ui'
 	import { isDarkModeStore, userSession } from '$lib/store'
 	import { faChevronDown, faClose, faDownload, faRefresh } from '@fortawesome/free-solid-svg-icons'
 	import { getDrawerStore, getToastStore } from '@skeletonlabs/skeleton'
@@ -120,7 +120,6 @@
 	}
 
 	onMount(() => {
-		scrollIntoView('scroll-top')
 		async function loadApexCharts() {
 			const module = await import('apexcharts')
 			ApexCharts = module.default

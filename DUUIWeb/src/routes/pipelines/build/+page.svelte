@@ -10,7 +10,7 @@
 	} from '$lib/duui/pipeline'
 
 	import { includes } from '$lib/duui/utils/text'
-	import { scrollIntoView, successToast } from '$lib/duui/utils/ui'
+	import { successToast } from '$lib/duui/utils/ui'
 	import { currentPipelineStore } from '$lib/store'
 	import ComponentPopup from '$lib/svelte/components/ComponentPopup.svelte'
 	import DriverIcon from '$lib/svelte/components/DriverIcon.svelte'
@@ -87,7 +87,7 @@
 		}
 
 		if (loaded) {
-			step, scrollIntoView('top')
+			step
 		}
 	}
 
@@ -138,8 +138,6 @@
 		copyTemplate.id = uuidv4()
 		copyTemplate.index = $currentPipelineStore.components.length
 		$currentPipelineStore.components = [...$currentPipelineStore.components, copyTemplate]
-
-		scrollIntoView('top')
 	}
 
 	const selectPipelineTemplate = (template: DUUIPipeline | null = null) => {
@@ -185,8 +183,6 @@
 			} else {
 				step -= 1
 				goto(`/pipelines/build?step=${step}`)
-
-				scrollIntoView('top')
 			}
 		}}
 	>
@@ -207,7 +203,6 @@
 			} else {
 				step += 1
 				goto(`/pipelines/build?step=${step}`)
-				scrollIntoView('top')
 			}
 		}}
 		disabled={(step === 1 && !$currentPipelineStore.name) ||
@@ -230,8 +225,6 @@
 						} else {
 							step -= 1
 							goto(`/pipelines/build?step=${step}`)
-
-							scrollIntoView('top')
 						}
 					}}
 				>
@@ -255,8 +248,6 @@
 						} else {
 							step += 1
 							goto(`/pipelines/build?step=${step}`)
-
-							scrollIntoView('top')
 						}
 					}}
 					disabled={(step === 1 && !$currentPipelineStore.name) ||

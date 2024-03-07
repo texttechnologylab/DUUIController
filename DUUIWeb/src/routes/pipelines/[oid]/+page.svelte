@@ -28,7 +28,7 @@
 	import type { DUUIProcess } from '$lib/duui/process'
 	import { datetimeToString, equals } from '$lib/duui/utils/text'
 	import { getDuration } from '$lib/duui/utils/time'
-	import { errorToast, getStatusIcon, infoToast, scrollIntoView } from '$lib/duui/utils/ui'
+	import { errorToast, getStatusIcon, infoToast } from '$lib/duui/utils/ui'
 	import { currentPipelineStore, isDarkModeStore } from '$lib/store'
 	import ComponentPopup from '$lib/svelte/components/ComponentPopup.svelte'
 	import Chips from '$lib/svelte/components/Input/Chips.svelte'
@@ -345,7 +345,6 @@
 	}
 
 	onMount(() => {
-		scrollIntoView('scroll-top')
 		async function loadApexCharts() {
 			const module = await import('apexcharts')
 			ApexCharts = module.default

@@ -1,13 +1,14 @@
 <script lang="ts">
+	import { page } from '$app/stores'
 	import { COLORS } from '$lib/config.js'
-	import { scrollIntoView, successToast } from '$lib/duui/utils/ui.js'
+	import { successToast } from '$lib/duui/utils/ui.js'
 	import { userSession } from '$lib/store.js'
 	import Dropdown from '$lib/svelte/components/Input/Dropdown.svelte'
 	import Secret from '$lib/svelte/components/Input/Secret.svelte'
 	import Text from '$lib/svelte/components/Input/TextInput.svelte'
 	import { showConfirmationModal } from '$lib/svelte/utils/modal.js'
-	import { page } from '$app/stores'
 
+	import { goto } from '$app/navigation'
 	import {
 		faAdd,
 		faCheck,
@@ -29,7 +30,6 @@
 	} from '@skeletonlabs/skeleton'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
-	import { goto } from '$app/navigation'
 
 	const toastStore = getToastStore()
 	const modalStore = getModalStore()
@@ -251,7 +251,6 @@
 	const setTab = (newTab: number) => {
 		tab = newTab
 		goto('account?tab=' + tab)
-		scrollIntoView('top')
 	}
 </script>
 

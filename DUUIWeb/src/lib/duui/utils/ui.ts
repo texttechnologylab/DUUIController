@@ -1,9 +1,12 @@
+import type { DUUIDocument } from '$lib/duui/io'
+import { Status } from '$lib/duui/monitor'
 import {
 	faArrowTrendDown,
 	faArrowTrendUp,
 	faCancel,
 	faCheck,
 	faCheckDouble,
+	faClose,
 	faFileArchive,
 	faFileCode,
 	faFileDownload,
@@ -11,14 +14,11 @@ import {
 	faHourglass,
 	faQuestion,
 	faRefresh,
-	faClose,
-	faWarning,
-	faSlash
+	faSlash,
+	faWarning
 } from '@fortawesome/free-solid-svg-icons'
-import { equals } from './text'
-import { Status } from '$lib/duui/monitor'
-import type { DUUIDocument } from '$lib/duui/io'
 import type { ToastSettings } from '@skeletonlabs/skeleton'
+import { equals } from './text'
 
 export const documentStatusNames = [
 	Status.Any,
@@ -133,17 +133,4 @@ export const errorToast = (message: string, duration: number = 4000): ToastSetti
 		classes: 'toast-error',
 		hideDismiss: true
 	}
-}
-
-/**
- * Scroll the element with the specified id into view.
- * @param id The id tag of the HTMLElement
- */
-export const scrollIntoView = (id: string) => {
-	const el = document.querySelector(`#${id}`)
-	if (!el) return
-
-	el.scrollIntoView({
-		behavior: 'smooth'
-	})
 }
