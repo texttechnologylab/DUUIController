@@ -1,4 +1,5 @@
 import { API_URL } from '$env/static/private'
+import { json } from '@sveltejs/kit'
 
 /**
  * Try to upload a file by sending a request to the backend providing one or more files as formData.
@@ -19,6 +20,15 @@ export async function POST({ request, cookies, url, fetch }) {
 			}
 		}
 	)
+
+	if (response.ok) {
+		return json(await response.json(), {
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			status: 200
+		})
+	}
 
 	return response
 }

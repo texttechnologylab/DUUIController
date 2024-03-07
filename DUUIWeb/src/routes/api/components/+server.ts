@@ -1,4 +1,5 @@
 import { API_URL } from '$env/static/private'
+import { json } from '@sveltejs/kit'
 
 /**
  * Attempts to insert a component.
@@ -15,6 +16,15 @@ export const POST = async ({ request, cookies, url, fetch }) => {
 		}
 	})
 
+	if (response.ok) {
+		return json(await response.json(), {
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			status: 200
+		})
+	}
+
 	return response
 }
 
@@ -29,6 +39,15 @@ export const GET = async ({ cookies, fetch }) => {
 			Authorization: cookies.get('session') || ''
 		}
 	})
+
+	if (response.ok) {
+		return json(await response.json(), {
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			status: 200
+		})
+	}
 
 	return response
 }

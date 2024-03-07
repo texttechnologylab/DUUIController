@@ -41,14 +41,14 @@
 
 	const themes = Object.keys(COLORS)
 
-	let minioAccessKey: string = $userSession?.connections.minio.access_key || ''
-	let minioEndpoint: string = $userSession?.connections.minio.endpoint || ''
-	let minioSecretKey: string = $userSession?.connections.minio.secret_key || ''
-
 	if (user && $userSession) {
 		$userSession.preferences = user.preferences
 		$userSession.connections = user.connections
 	}
+
+	let minioAccessKey: string = $userSession?.connections.minio.access_key || ''
+	let minioEndpoint: string = $userSession?.connections.minio.endpoint || ''
+	let minioSecretKey: string = $userSession?.connections.minio.secret_key || ''
 
 	$: isDropboxConnected =
 		!!$userSession?.connections.dropbox.access_token &&

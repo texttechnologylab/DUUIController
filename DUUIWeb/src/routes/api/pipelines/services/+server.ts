@@ -1,5 +1,6 @@
 import { API_URL } from '$env/static/private'
 import type { DUUIPipeline } from '$lib/duui/pipeline'
+import { json } from '@sveltejs/kit'
 
 /**
  * Sends a post request to the backend to instantiate a pipeline.
@@ -14,6 +15,15 @@ export async function POST({ request, cookies, fetch }) {
 			Authorization: cookies.get('session') || ''
 		}
 	})
+
+	if (response.ok) {
+		return json(await response.json(), {
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			status: 200
+		})
+	}
 
 	return response
 }
@@ -31,6 +41,15 @@ export async function PUT({ request, cookies, fetch }) {
 			Authorization: cookies.get('session') || ''
 		}
 	})
+
+	if (response.ok) {
+		return json(await response.json(), {
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			status: 200
+		})
+	}
 
 	return response
 }

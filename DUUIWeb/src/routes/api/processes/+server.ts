@@ -40,6 +40,15 @@ export async function POST({ request, cookies, fetch }) {
 		}
 	})
 
+	if (response.ok) {
+		return json(await response.json(), {
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			status: 200
+		})
+	}
+
 	return response
 }
 
