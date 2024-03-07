@@ -66,7 +66,6 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 
 	return {
 		dropbBoxURL: dropbBoxURL,
-		registered: (cookies.get('just_registered') || 'false') === 'true',
 		user: (await fetchProfile()).user,
 		theme: +(cookies.get('theme') || '0'),
 		users: (await fetchUsers()).users

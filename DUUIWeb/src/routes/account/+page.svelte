@@ -28,7 +28,7 @@
 	import Fa from 'svelte-fa'
 
 	export let data
-	let { user, registered, dropbBoxURL, theme, users } = data
+	let { user, dropbBoxURL, theme, users } = data
 	const toastStore = getToastStore()
 
 	if (user && $userSession) {
@@ -203,7 +203,7 @@
 	}
 
 	onMount(() => {
-		if (!registered) {
+		if ($userSession?.preferences.tutorial) {
 			modalStore.trigger({
 				type: 'component',
 				component: 'welcomeModal'
@@ -276,18 +276,6 @@
 					>
 				</RadioGroup>
 			</div>
-
-			<!-- <button
-			class="button-neutral"
-			disabled={!name}
-			on:click={() =>
-				updateUser({
-					name: name
-				})}
-		>
-			<Fa icon={faCheck} />
-			<span>Save</span>
-		</button> -->
 		</div>
 		{#if users}
 			<div class="section-wrapper p-8 space-y-4">

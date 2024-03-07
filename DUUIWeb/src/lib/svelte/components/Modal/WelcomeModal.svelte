@@ -15,11 +15,6 @@
 	let step: number = 0
 
 	const startTour = async () => {
-		// modalStore.close()
-		// modalStore.trigger({
-		// 	type: 'component',
-		// 	component: 'helpModal'
-		// })
 		step = 1
 	}
 
@@ -34,8 +29,11 @@
 	}
 
 	const finish = async () => {
+		await fetch('/api/users', {
+			method: 'PUT',
+			body: JSON.stringify({ 'preferences.tutorial': false })
+		})
 		modalStore.close()
-		await fetch('/account', { method: 'PUT' })
 	}
 </script>
 
