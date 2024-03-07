@@ -489,7 +489,7 @@ public class DUUIUserController {
         List<Document> users = DUUIMongoDBStorage
             .Users()
             .find(Filters.ne("_id", new ObjectId(userId)))
-            .projection(Projections.include("_id", "email", "role"))
+            .projection(Projections.include("_id", "email", "role", "worker_count"))
             .into(new ArrayList<>());
 
         if (isNullOrEmpty(users))
