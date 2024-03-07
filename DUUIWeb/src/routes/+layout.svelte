@@ -154,7 +154,7 @@
 
 <!-- App Shell  -->
 <AppShell>
-	<svelte:fragment slot="header">
+	<svelte:fragment slot="pageHeader">
 		<!-- App Bar -->
 		<AppBar class="border-b border-color z-[100]" background="bg-surface-50-900-token">
 			<svelte:fragment slot="lead">

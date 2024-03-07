@@ -112,4 +112,5 @@ type FeedbackResult = {
 	frustration: number
 	ease: number
 	correction: number
+	timestamp: number
 }

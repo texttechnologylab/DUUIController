@@ -602,7 +602,7 @@ public class DUUIUserController {
         return new Document("feedback", DUUIMongoDBStorage
             .Feedback()
             .find()
-            .projection(Projections.exclude("_id", "name", "message", "timestamp"))
+            .projection(Projections.exclude("_id", "name", "message"))
             .into(new ArrayList<>()))
             .toJson();
     }

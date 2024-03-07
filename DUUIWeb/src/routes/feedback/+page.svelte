@@ -45,7 +45,8 @@
 	type Experience = 'Experienced' | 'Inexperienced' | 'All'
 	let duuiFilter: Experience = 'All'
 	let programmingFilter: Experience = 'All'
-	let nlpFilter: boolean = false
+
+	let dateFilter: string = '2024-03-01'
 
 	const keys: string[] = [
 		'programming',
@@ -60,6 +61,11 @@
 	]
 
 	let filteredFeedback: FeedbackResult[] = feedback
+
+	let countUsingNLP: number
+	let countUsedDUUI: number
+	let countProgramming: number
+	let countNLPNoProgramming: number
 
 	const getAverages = () => {
 		const averages: number[] = []
@@ -79,6 +85,10 @@
 
 	$: {
 		filteredFeedback = feedback.filter((item) => {
+			return item.timestamp >= new Date(dateFilter).getTime()
+		})
+
+		filteredFeedback = filteredFeedback.filter((item) => {
 			if (duuiFilter === 'All') return item
 			if (duuiFilter === 'Experienced') return item.duui
 			if (duuiFilter === 'Inexperienced') return !item.duui
@@ -88,11 +98,6 @@
 			if (programmingFilter === 'All') return item
 			if (programmingFilter === 'Experienced') return item.programming > 4
 			if (programmingFilter === 'Inexperienced') return item.programming <= 4
-		})
-
-		filteredFeedback = filteredFeedback.filter((item) => {
-			if (nlpFilter) return item.nlpNeeded
-			else return item
 		})
 
 		averages = getAverages()
@@ -110,7 +115,13 @@
 				0
 			) / feedback.length
 
-		plotOptions = getPlotOptions(keys, averages, 'Averages ' + duuiFilter, $isDarkModeStore)
+		plotOptions = getPlotOptions(
+			keys,
+			averages,
+			'Average score ' + duuiFilter.toLowerCase() + ' DUUI users',
+			$isDarkModeStore
+		)
+
 		plotOptionsUsers = getUsersPlotOptions(
 			{
 				duui: {
@@ -119,11 +130,18 @@
 				},
 				programming: {
 					experienced: feedback.filter((item) => item.programming > 4).length,
-					inexperienced: feedback.filter((item) => item.programming >= 4).length
+					inexperienced: feedback.filter((item) => item.programming <= 4).length
 				}
 			},
 			$isDarkModeStore
 		)
+
+		countProgramming = filteredFeedback.filter((item) => item.programming > 4).length
+		countUsingNLP = filteredFeedback.filter((item) => item.nlpNeeded).length
+		countUsedDUUI = filteredFeedback.filter((item) => item.duui).length
+		countNLPNoProgramming = filteredFeedback.filter(
+			(item) => item.nlpNeeded && item.programming <= 4
+		).length
 	}
 
 	const chart = (node: HTMLDivElement, options: any) => {
@@ -141,7 +159,6 @@
 			}
 		}
 	}
-
 
 	const next = () => {
 		$feedbackStore.step += 1
@@ -211,7 +228,7 @@
 	}
 </script>
 
-<div class="bg-surface-100-800-token pattern h-full">
+<div class="bg-surface-100-800-token pattern h-full p-4 pt-0 space-y-4">
 	{#if success}
 		<div class="flex items-center justify-center p-4">
 			<div class="section-wrapper p-8 gap-8 grid justify-center">
@@ -418,8 +435,8 @@
 		</div>
 	{/if}
 	{#if loaded && feedback.length > 0 && $userSession}
-		<div class="p-4 md:p-8 space-y-8 max-w-screen-xl mx-auto section-wrapper m-4">
-			<div class="flex flex-col md:flex-row gap-4 items-center justify-center mx-auto">
+		<div class="md:p-8 space-y-4 max-w-screen-xl mx-auto">
+			<div class="grid gap-8 section-wrapper p-4 md:justify-center">
 				<Dropdown
 					bind:value={duuiFilter}
 					options={['All', 'Experienced', 'Inexperienced']}
@@ -430,30 +447,43 @@
 					options={['All', 'Experienced', 'Inexperienced']}
 					label="Programming"
 				/>
-			</div>
-			<div class="flex justify-center">
-				<SlideToggle
-					background="bg-surface-100-800-token"
-					active="variant-filled-primary"
-					rounded="rounded-full"
-					border="bordered-soft"
-					name="nlpNeeded"
-					bind:value={nlpFilter}
-				>
-					Working with NLP in the future
-				</SlideToggle>
+				<div class="col-span-2">
+					<label class="label">
+						<span class="form-label">Ignore older than</span>
+						<input
+							class="input-wrapper w-full"
+							bind:value={dateFilter}
+							title="Input (date)"
+							type="date"
+						/>
+					</label>
+				</div>
 			</div>
 
-			<hr class="hr" />
 			{#if filteredFeedback.length > 0}
-				<div class="grid gap-8 max-w-screen-md mx-auto">
+				<div class="grid md:grid-cols-2 gap-8">
 					<div class="space-y-4">
+						<div class="section-wrapper space-y-4 p-8">
+							<h3 class="h3 text-center">Background</h3>
+							<p class="text-lg text-center">{feedback.length}</p>
+							<hr class="hr" />
+							<div class="space-y-2 text-center">
+								<h4 class="h4">Filtered number of Probands</h4>
+								<p>{filteredFeedback.length}</p>
+							</div>
+							<div class="grid md:grid-cols-2 gap-4">
+								<KeyValue key="Used DUUI" value={countUsedDUUI} />
+								<KeyValue key="Using NLP" value={countUsingNLP} />
+								<KeyValue key="Can program" value={countProgramming} />
+								<KeyValue key="Can't program using NLP" value={countNLPNoProgramming} />
+							</div>
+						</div>
+					</div>
+
+					<div class="section-wrapper space-y-4 p-8">
 						<h3 class="h3 text-center">UMUX</h3>
 						<p class="text-lg text-center">{umuxResult.toFixed(2)}</p>
-						<div class="space-y-1">
-							<hr class="hr" />
-							<hr class="hr" />
-						</div>
+						<hr class="hr" />
 						<div class="space-y-2 text-center">
 							<h4 class="h4">Total Results</h4>
 							<p>{filteredFeedback.length}</p>
@@ -466,22 +496,21 @@
 							{/each}
 						</div>
 					</div>
-
-					<div class="space-y-4">
-						<div use:chart={plotOptions} />
+				</div>
+			{:else}
+				<div class="max-w-screen-md mx-auto section-wrapper p-4">
+					<p class="text-center h3">No Data</p>
+				</div>
+			{/if}
+			{#if filteredFeedback.length > 0}
+				<div class="grid section-wrapper md:grid-cols-2 p-4 gap-8">
+					<div class="!max-w-full">
+						<div class="!max-w-full" use:chart={plotOptions} />
 					</div>
-					<div class="space-y-4">
-						<div use:chart={plotOptionsUsers} />
+					<div class="!max-w-full">
+						<div class="!max-w-full" use:chart={plotOptionsUsers} />
 					</div>
 				</div>
-				<!-- <hr class="hr" />
-				<p>
-					Lorem ipsum dolor sit amet, consectetur adipisicing elit. Rerum labore ipsa, inventore
-					repudiandae ea in ullam nisi molestiae quae facilis adipisci? Maxime corporis illo
-					provident delectus obcaecati tempore eveniet vitae!
-				</p> -->
-			{:else}
-				<p class="text-center h3">No Data</p>
 			{/if}
 		</div>
 	{/if}
