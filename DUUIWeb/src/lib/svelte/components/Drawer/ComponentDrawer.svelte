@@ -267,7 +267,7 @@
 
 <div class="bg-surface-50-900-token h-screen relative">
 	<div
-		class="p-4 flex-center-4 justify-between sticky top-0 z-10 bg-surface-100-800-token border-b border-color"
+		class="p-4 space-y-4 justify-between sticky top-0 z-10 bg-surface-100-800-token border-b border-color"
 	>
 		<div class="flex-center-4">
 			<div class="flex-center-4">
