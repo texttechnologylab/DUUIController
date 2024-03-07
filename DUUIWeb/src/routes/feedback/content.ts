@@ -69,7 +69,7 @@ export const content = {
 		},
 		requirements: {
 			english:
-				"The website's capabilities (creating, using and minotoring pipelines) met my requirements",
+				"The website's capabilities (creating, using and monitoring pipelines) met my requirements",
 			german:
 				'Die Funktionen der Website (erstellen, benutzen und überwachen von Pipelines) entsprachen meinen Anforderungen'
 		},

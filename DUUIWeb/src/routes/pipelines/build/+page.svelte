@@ -4,7 +4,7 @@
 	import { DUUIDrivers, blankComponent, type DUUIComponent } from '$lib/duui/component'
 	import {
 		blankPipeline,
-		getPipelineCategories,
+		getPipelineTagsAsString,
 		usedDrivers,
 		type DUUIPipeline
 	} from '$lib/duui/pipeline'
@@ -76,7 +76,7 @@
 		filteredTemplatePipelines = templatePipelines.filter(
 			(pipeline: DUUIPipeline) =>
 				includes(
-					`${pipeline.name} ${pipeline.description} ${getPipelineCategories(pipeline)} ${Array.from(
+					`${pipeline.name} ${pipeline.description} ${getPipelineTagsAsString(pipeline)} ${Array.from(
 						usedDrivers(pipeline)
 					).join(' ')}`,
 					searchText
