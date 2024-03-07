@@ -1,3 +1,4 @@
+<!-- @component This component is used as a sidebar to navigate in the documentation -->
 <script lang="ts">
 	import { page } from '$app/stores'
 	import { faAngleRight } from '@fortawesome/free-solid-svg-icons'

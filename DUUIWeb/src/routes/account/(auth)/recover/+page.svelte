@@ -61,10 +61,7 @@
 				</div>
 				<div class="space-y-4 relative">
 					{#if message}
-						<p
-							in:fly={{ y: 10 }}
-							class=" font-bold variant-soft-error p-4 rounded-md max-w-[40ch]"
-						>
+						<p in:fly={{ y: 10 }} class=" font-bold variant-soft-error p-4 rounded-md max-w-[40ch]">
 							{message}
 						</p>
 					{/if}

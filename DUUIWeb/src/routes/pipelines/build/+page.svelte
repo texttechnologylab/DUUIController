@@ -13,6 +13,7 @@
 	import { includes } from '$lib/duui/utils/text'
 	import { scrollIntoView, successToast } from '$lib/duui/utils/ui'
 	import { currentPipelineStore } from '$lib/store'
+	import ComponentPopup from '$lib/svelte/components/ComponentPopup.svelte'
 	import DriverIcon from '$lib/svelte/components/DriverIcon.svelte'
 	import Chips from '$lib/svelte/components/Input/Chips.svelte'
 	import JsonInput from '$lib/svelte/components/Input/JsonInput.svelte'
@@ -38,7 +39,6 @@
 	import { flip } from 'svelte/animate'
 	import { v4 as uuidv4 } from 'uuid'
 	import ComponentTemplates from '../../../lib/svelte/components/ComponentTemplates.svelte'
-	import ComponentPopup from '$lib/svelte/components/ComponentPopup.svelte'
 	const { cloneDeep } = pkg
 
 	export let data

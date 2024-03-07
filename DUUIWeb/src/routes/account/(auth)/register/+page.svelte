@@ -1,15 +1,15 @@
 <script lang="ts">
-	import Password from '$lib/svelte/components/Input/Password.svelte'
-	import { faGlobe } from '@fortawesome/free-solid-svg-icons'
-	import { fly } from 'svelte/transition'
-	import Text from '$lib/svelte/components/Input/TextInput.svelte'
-	import Fa from 'svelte-fa'
-	import { page } from '$app/stores'
-	import { userSession } from '$lib/store'
 	import { goto } from '$app/navigation'
-	import { faGithub, faXTwitter } from '@fortawesome/free-brands-svg-icons'
+	import { page } from '$app/stores'
 	import { scrollIntoView } from '$lib/duui/utils/ui'
+	import { userSession } from '$lib/store'
+	import Password from '$lib/svelte/components/Input/Password.svelte'
+	import Text from '$lib/svelte/components/Input/TextInput.svelte'
+	import { faGithub, faXTwitter } from '@fortawesome/free-brands-svg-icons'
+	import { faGlobe } from '@fortawesome/free-solid-svg-icons'
 	import { onMount } from 'svelte'
+	import Fa from 'svelte-fa'
+	import { fly } from 'svelte/transition'
 
 	let email: string
 	let password1: string

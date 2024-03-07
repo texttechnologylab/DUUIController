@@ -1,5 +1,8 @@
 import { API_URL } from '$env/static/private'
 
+/**
+ * Try to upload a file by sending a request to the backend providing one or more files as formData.
+ */
 export async function POST({ request, cookies, url, fetch }) {
 	const formData = await request.formData()
 	const store: boolean = (url.searchParams.get('store') || 'false') === 'true'
@@ -10,7 +13,6 @@ export async function POST({ request, cookies, url, fetch }) {
 		`${API_URL}/files?store=${store}&provider=${provider}&path=${path}`,
 		{
 			method: 'POST',
-
 			body: formData,
 			headers: {
 				Authorization: cookies.get('session') || ''

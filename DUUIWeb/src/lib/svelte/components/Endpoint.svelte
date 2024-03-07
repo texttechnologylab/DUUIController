@@ -1,3 +1,4 @@
+<!-- @component A component that represents an API endpoint. -->
 <script lang="ts">
 	import { faChevronDown } from '@fortawesome/free-solid-svg-icons'
 	import { CodeBlock } from '@skeletonlabs/skeleton'

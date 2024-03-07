@@ -1,3 +1,10 @@
+<!--
+	@component
+	A component representing a tooltip or menu that is visible when hovering the trigger.
+	
+	Uses Svelte slots for both the trigger and popup parts.
+-->
+
 <script lang="ts">
 	export let arrow: boolean = true
 	export let position: 'top' | 'bottom' | 'left' | 'right' = 'bottom'

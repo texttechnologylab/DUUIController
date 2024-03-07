@@ -1,3 +1,7 @@
+<!--	
+	@component
+	A component to edit DUUIComponents that appears on the right side on the screen (Sidebar Drawer).
+-->
 <script lang="ts">
 	import { DUUIDrivers, type DUUIComponent, componentToJson } from '$lib/duui/component'
 	import { errorToast, successToast } from '$lib/duui/utils/ui'

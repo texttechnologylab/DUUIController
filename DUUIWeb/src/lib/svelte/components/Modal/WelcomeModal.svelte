@@ -1,3 +1,7 @@
+<!--
+	@component
+	A modal component that displays a welcome tour.
+-->
 <script lang="ts">
 	import {
 		faCheck,

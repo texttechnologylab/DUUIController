@@ -1,9 +1,9 @@
-import { type ModalStore, type ModalSettings, getModalStore } from '@skeletonlabs/skeleton'
+import { type ModalSettings, type ModalStore } from '@skeletonlabs/skeleton'
 
 /**
+ * Show a confirmation modals with the given settings.
  *
- * @param title The modal title
- * @param message The main message in the modal
+ * @param settings The settings for the modal.
  * @param modalStore The Svelte Writable store returned from getModalStore()
  * @returns
  */

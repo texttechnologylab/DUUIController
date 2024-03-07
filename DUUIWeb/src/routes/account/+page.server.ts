@@ -1,6 +1,6 @@
 import { API_URL } from '$env/static/private'
 import { handleLoginRedirect } from '$lib/utils'
-import { fail, redirect, type Actions } from '@sveltejs/kit'
+import { fail, redirect } from '@sveltejs/kit'
 import { DropboxAuth } from 'dropbox'
 import type { PageServerLoad } from './$types'
 
@@ -9,6 +9,8 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 		redirect(302, handleLoginRedirect(url))
 	}
 
+	// Retrieve the Dropbox OAuth 2.0 credentials from the backend.
+	// These correspond to the properties set in the config file.
 	const response = await fetch(`${API_URL}/users/auth/dropbox`, {
 		method: 'GET'
 	})
@@ -38,6 +40,11 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 		)
 	} catch (error) {}
 
+	/**
+	 * Fetch a user from the backend.
+	 *
+	 * @returns the json object returned from the API call.
+	 */
 	const fetchProfile = async () => {
 		const response = await fetch(`${API_URL}/users/${locals.user?.oid}`, {
 			method: 'GET'
@@ -49,6 +56,10 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 		return await response.json()
 	}
 
+	/**
+	 * Fetch users from the database (only for Admins.)
+	 * @returns the json object returned from the API call.
+	 */
 	const fetchUsers = async () => {
 		const response = await fetch(`${API_URL}/users`, {
 			method: 'GET',

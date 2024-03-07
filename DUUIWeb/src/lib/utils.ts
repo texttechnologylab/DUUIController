@@ -2,7 +2,7 @@ import type { Cookies } from '@sveltejs/kit'
 import { equals } from './duui/utils/text'
 
 /**
- * Displays a notification
+ * Displays a notification message set by the message parameter.
  *
  * @param url The url to redirect to after logging in.
  * @param message The message do display as the notification.

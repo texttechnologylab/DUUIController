@@ -1,3 +1,7 @@
+<!--
+	@component
+	A modal component that displays component templates.
+-->
 <script lang="ts">
 	import type { DUUIComponent } from '$lib/duui/component'
 	import { getDrawerStore, getModalStore, type DrawerSettings } from '@skeletonlabs/skeleton'

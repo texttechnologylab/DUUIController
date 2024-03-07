@@ -1,3 +1,7 @@
+<!--
+	@component
+	A component that can be used to hide sensitive information like API keys and passwords.
+-->
 <script lang="ts">
 	import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
 	import Fa from 'svelte-fa'

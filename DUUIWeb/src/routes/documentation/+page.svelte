@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { blankComponent } from '$lib/duui/component'
-	import type { DUUIPipeline } from '$lib/duui/pipeline.js'
-	import { currentPipelineStore, exampleComponent, examplePipelineStore } from '$lib/store.js'
+	import { exampleComponent, examplePipelineStore } from '$lib/store.js'
 	import Chips from '$lib/svelte/components/Input/Chips.svelte'
 	import TextInput from '$lib/svelte/components/Input/TextInput.svelte'
 	import PipelineCard from '$lib/svelte/components/PipelineCard.svelte'

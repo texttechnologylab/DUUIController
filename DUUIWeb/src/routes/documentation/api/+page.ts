@@ -1,5 +1,7 @@
 import type { PageLoad } from './$types'
 
+
+// This is the full list of endpoints visualized on the page.
 const endpoints: { [key: string]: APIEndpoint[] } = {
 	pipelines: [
 		{
@@ -11,7 +13,7 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 				{ code: 404, message: 'Not found' }
 			],
 			parameters: [
-				{ name: 'id', description: 'The pipeline\'s id.', type: 'Query' },
+				{ name: 'id', description: "The pipeline's id.", type: 'Query' },
 				{
 					name: 'statistics',
 					description: 'Wether to include statistic for the pipeline. Default is false.',
@@ -92,7 +94,7 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 				{
 					name: 'components',
 					description:
-						'An array of components that must follow the structure as described in the section \'components\'',
+						"An array of components that must follow the structure as described in the section 'components'",
 					type: 'Body'
 				}
 			],
@@ -123,7 +125,7 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 				{ code: 200, message: 'Instantiated' },
 				{ code: 500, message: 'Not instantiated' }
 			],
-			parameters: [{ name: 'id', description: 'The pipeline\'s id.', type: 'Query' }],
+			parameters: [{ name: 'id', description: "The pipeline's id.", type: 'Query' }],
 			exampleRequest: `const response = await fetch('/pipelines/65b3db5c8c997c4ce3c4efb3/start', {
 	method: 'POST',
 	headers: {
@@ -140,7 +142,7 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 				{ code: 404, message: 'Not found' },
 				{ code: 500, message: 'Not shut down' }
 			],
-			parameters: [{ name: 'id', description: 'The pipeline\'s id.', type: 'Query' }],
+			parameters: [{ name: 'id', description: "The pipeline's id.", type: 'Query' }],
 			exampleRequest: `const response = await fetch('/pipelines/65b3db5c8c997c4ce3c4efb3/stop', {
 	method: 'PUT',
 	headers: {
@@ -158,7 +160,7 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 				{ code: 400, message: 'Invalid field' },
 				{ code: 404, message: 'Not found' }
 			],
-			parameters: [{ name: 'id', description: 'The pipeline\'s id.', type: 'Query' }],
+			parameters: [{ name: 'id', description: "The pipeline's id.", type: 'Query' }],
 			exampleRequest: `const response = await fetch('/pipelines/65b3db5c8c997c4ce3c4efb3', {
 	method: 'PUT',
 	body: JSON.strinfigy({
@@ -178,7 +180,7 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 				{ code: 404, message: 'Not found' },
 				{ code: 500, message: 'Not deleted' }
 			],
-			parameters: [{ name: 'id', description: 'The pipeline\'s id.', type: 'Query' }],
+			parameters: [{ name: 'id', description: "The pipeline's id.", type: 'Query' }],
 			exampleRequest: `const response = await fetch('/pipelines/65b3db5c8c997c4ce3c4efb3', {
 	method: 'DELETE',
 	headers: {
@@ -196,7 +198,7 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 				{ code: 200, message: 'Component' },
 				{ code: 404, message: 'Not found' }
 			],
-			parameters: [{ name: 'id', description: 'The pipeline\'s id.', type: 'Query' }],
+			parameters: [{ name: 'id', description: "The pipeline's id.", type: 'Query' }],
 			exampleRequest: `const response = await fetch('/components/65b3db5c8c997c4ce3c4efb3', {
 	method: 'GET',
 	headers: {
@@ -324,7 +326,7 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 				{ code: 400, message: 'Invalid field' },
 				{ code: 404, message: 'Not found' }
 			],
-			parameters: [{ name: 'id', description: 'The component\'s id.', type: 'Query' }],
+			parameters: [{ name: 'id', description: "The component's id.", type: 'Query' }],
 			exampleRequest: `const response = await fetch('/components/65b3db5c8c997c4ce3c4efb3', {
 	method: 'PUT',
 	body: JSON.strinfigy({
@@ -344,7 +346,7 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 				{ code: 404, message: 'Not found' },
 				{ code: 500, message: 'Not deleted' }
 			],
-			parameters: [{ name: 'id', description: 'The component\'s id.', type: 'Query' }],
+			parameters: [{ name: 'id', description: "The component's id.", type: 'Query' }],
 			exampleRequest: `const response = await fetch('/components/65b3db5c8c997c4ce3c4efb3', {
 	method: 'DELETE',
 	headers: {
@@ -362,7 +364,7 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 				{ code: 200, message: 'Process' },
 				{ code: 404, message: 'Not found' }
 			],
-			parameters: [{ name: 'id', description: 'The process\' id.', type: 'Query' }],
+			parameters: [{ name: 'id', description: "The process' id.", type: 'Query' }],
 			exampleRequest: `const response = await fetch('/processes/65b3dba48c997c4ce3c4f09e', {
 	method: 'GET',
 	headers: {
@@ -399,19 +401,19 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 				},
 				{
 					name: 'status',
-					description: 'A set of status names separated by \';\' to filter by.',
+					description: "A set of status names separated by ';' to filter by.",
 					type: 'Query'
 				},
 				{
 					name: 'input',
 					description:
-						'A set of input providers separated by \';\' to filter by. Accepts (Dropbox, Minio, Text, File, None).',
+						"A set of input providers separated by ';' to filter by. Accepts (Dropbox, Minio, Text, File, None).",
 					type: 'Query'
 				},
 				{
 					name: 'output',
 					description:
-						'A set of output providers separated by \';\' to filter by. Accepts (Dropbox, Minio, None).',
+						"A set of output providers separated by ';' to filter by. Accepts (Dropbox, Minio, None).",
 					type: 'Query'
 				}
 			],
@@ -450,7 +452,7 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 				},
 				{
 					name: 'status',
-					description: 'A set of status names separated by \';\' to filter by.',
+					description: "A set of status names separated by ';' to filter by.",
 					type: 'Query'
 				},
 				{
@@ -475,7 +477,7 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 				{ code: 200, message: 'Events' },
 				{ code: 404, message: 'Not found' }
 			],
-			parameters: [{ name: 'id', description: 'The processes\' id.', type: 'Query' }],
+			parameters: [{ name: 'id', description: "The processes' id.", type: 'Query' }],
 			exampleRequest: `const response = await fetch('/pipelines/65b3dba48c997c4ce3c4f09e', {
 	method: 'GET',
 	headers: {
@@ -556,7 +558,7 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 				{ code: 404, message: 'Not found' },
 				{ code: 500, message: 'Not shut down' }
 			],
-			parameters: [{ name: 'id', description: 'The process\' id.', type: 'Query' }],
+			parameters: [{ name: 'id', description: "The process' id.", type: 'Query' }],
 			exampleRequest: `const response = await fetch('/processes/65b3dba48c997c4ce3c4f09e', {
 	method: 'PUT',
 	headers: {
@@ -573,7 +575,7 @@ const endpoints: { [key: string]: APIEndpoint[] } = {
 				{ code: 404, message: 'Not found' },
 				{ code: 500, message: 'Not deleted' }
 			],
-			parameters: [{ name: 'id', description: 'The processes\' id.', type: 'Query' }],
+			parameters: [{ name: 'id', description: "The processes' id.", type: 'Query' }],
 			exampleRequest: `const response = await fetch('/pipelines/65b3dba48c997c4ce3c4f09e', {
 	method: 'DELETE',
 	headers: {

@@ -1,3 +1,7 @@
+<!--
+	@component
+	A modal component that can be used to make the user confirm an action like deleting something.
+-->
 <script lang="ts">
 	import { faClose } from '@fortawesome/free-solid-svg-icons'
 	import { getModalStore } from '@skeletonlabs/skeleton'

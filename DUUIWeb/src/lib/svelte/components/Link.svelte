@@ -1,3 +1,5 @@
+<!-- @component A component that represents an anchor in the mobile navigation. -->
+
 <script lang="ts">
 	import { getDrawerStore } from '@skeletonlabs/skeleton'
 
@@ -6,8 +8,6 @@
 	export let underline: boolean = false
 	const drawerStore = getDrawerStore()
 </script>
-
-<!-- TODO: CLOSING ON EVERY LINK CLICK IS NOT OPTIMAL -->
 
 <a
 	on:click={() => drawerStore.close()}

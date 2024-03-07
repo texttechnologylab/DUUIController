@@ -1,6 +1,9 @@
 import { API_URL } from '$env/static/private'
 import { error } from '@sveltejs/kit'
 
+/**
+ * Sends a put request to the backend to update a user.
+ */
 export const PUT = async ({ request, locals, fetch }) => {
 	const user = locals.user
 
@@ -16,6 +19,9 @@ export const PUT = async ({ request, locals, fetch }) => {
 	return response
 }
 
+/**
+ * Sends a get request to the backend to delete a user.
+ */
 export const DELETE = async ({ cookies, locals }) => {
 	const user = locals.user
 	if (!user) {

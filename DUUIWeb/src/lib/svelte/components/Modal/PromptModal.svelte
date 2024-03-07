@@ -1,7 +1,9 @@
+<!--
+	@component
+	A modal component that displays a text input and asks for a value to be entered.
+-->
 <script lang="ts">
-	import {
-		faClose
-	} from '@fortawesome/free-solid-svg-icons'
+	import { faClose } from '@fortawesome/free-solid-svg-icons'
 	import { getModalStore } from '@skeletonlabs/skeleton'
 	import Fa from 'svelte-fa'
 	import TextInput from '../Input/TextInput.svelte'

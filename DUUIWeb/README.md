@@ -11,3 +11,7 @@ The lib folder contains functions, types and interface definitions used througho
 The folder structure in routes represents the web available web pages. The api folder acts a sort of proxy api between the client and Java Backend. Requests are sent from the `+page.svelte` files to corresponding `+server.ts` files in the api folder. These server files communicate with the Backend and return the data to the page.
 
 Most `+page.svelte` files are complemented by a `+page.server.ts` file that initially loads data for the page to display.
+
+## Style and Theme
+
+The basis for styles and themes used in the web interface is [Skeleton](https://www.skeleton.dev) and [tailwindcss](https://tailwindcss.com/). Skeleton is used to define themes and apply basic styling to html elements. tailwindcss is a layer on top of the base styles to further customize the visual representation of elements.

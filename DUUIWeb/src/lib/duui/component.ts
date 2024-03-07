@@ -1,3 +1,7 @@
+/**
+ * This file contains constants, types, interfaces and functions related to DUUI components.
+ */
+
 import { v4 as uuidv4 } from 'uuid'
 
 export const DUUIRemoteDriver = 'DUUIRemoteDriver'
@@ -71,9 +75,10 @@ export interface DUUIComponent {
 
 /**
  * Create a blank component given a pipeline Id and an index in that pipeline.
- * @param pipelineId
- * @param index
- * @returns
+ *
+ * @param pipelineId The id of the pipeline the component is added to.
+ * @param index The position in the pipeline.
+ * @returns A default component.
  */
 export const blankComponent = (pipelineId: string, index: number) =>
 	<DUUIComponent>{
@@ -105,7 +110,8 @@ export const blankComponent = (pipelineId: string, index: number) =>
 	}
 
 /**
- *
+ * Convert a DUUIComponent to a JSON object with some properties omitted.
+ * 
  * @param component the component to convert
  * @returns An object with relevant component properties.
  */

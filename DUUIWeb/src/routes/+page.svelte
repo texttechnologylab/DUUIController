@@ -24,6 +24,9 @@
 	import { faAmazon, faDropbox, faGithub, faXTwitter } from '@fortawesome/free-brands-svg-icons'
 	import Fa from 'svelte-fa'
 
+	/**
+	 * Logout the user and redirect to the login page.
+	 */
 	const logout = async () => {
 		const response = await fetch('/account/logout', { method: 'PUT' })
 		if (response.ok) {
@@ -34,10 +37,6 @@
 			console.error(response.status, response.statusText)
 		}
 	}
-
-	// onMount(() => {
-	// 	scrollIntoView('top')
-	// })
 </script>
 
 <svelte:head>

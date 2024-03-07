@@ -1,6 +1,9 @@
 import { API_URL } from '$env/static/private'
 import { json } from '@sveltejs/kit'
 
+/**
+ * Sends a get request to the backend to retrioeve a process.
+ */
 export async function GET({ cookies, url, fetch }) {
 	const processId = url.searchParams.get('process_id') || ''
 
@@ -23,6 +26,9 @@ export async function GET({ cookies, url, fetch }) {
 	return response
 }
 
+/**
+ * Sends a post request to the backend to insert a process.
+ */
 export async function POST({ request, cookies, fetch }) {
 	const data = await request.json()
 
@@ -37,6 +43,9 @@ export async function POST({ request, cookies, fetch }) {
 	return response
 }
 
+/**
+ * Sends a put request to the backend to update a process.
+ */
 export async function PUT({ request, cookies, fetch }) {
 	const data = await request.json()
 
@@ -52,6 +61,9 @@ export async function PUT({ request, cookies, fetch }) {
 	return response
 }
 
+/**
+ * Sends a delete request to the backend to delete a process.
+ */
 export async function DELETE({ request, cookies, fetch }) {
 	const data = await request.json()
 

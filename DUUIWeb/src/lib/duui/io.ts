@@ -1,3 +1,7 @@
+/**
+ * This file contains constants, types, interfaces and functions related to DUUI documents.
+ */
+
 import { equals } from '$lib/duui/utils/text'
 import type { DUUIEvent } from './monitor'
 
@@ -101,6 +105,12 @@ export const isValidInput = (input: DUUIDocumentProvider, files: FileList, user:
 	return true
 }
 
+/**
+ * Check if the settings for uploading files to a cloud storage are valid.
+ * 
+ * @param storage an object containg the name of the provider and the path to upload files to.
+ * @returns if the storage object is valid.
+ */
 export const isValidFileUpload = (storage: { provider: IO; path: string }) => {
 	if (equals(storage.provider, IO.Minio)) {
 		return isValidS3BucketName(storage.path || '').length === 0

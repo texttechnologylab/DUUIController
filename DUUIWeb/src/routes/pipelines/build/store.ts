@@ -1,4 +1,4 @@
-import { type DUUIComponent, blankComponent } from '$lib/duui/component'
+import { blankComponent, type DUUIComponent } from '$lib/duui/component'
 import { writable } from 'svelte/store'
 
 export const componentStore = writable<DUUIComponent>(blankComponent('', -1))

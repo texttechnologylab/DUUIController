@@ -7,6 +7,7 @@ declare namespace App {
 	}
 }
 
+// Types related to a User
 type User = UserProperties | null | undefined
 
 interface UserProperties {
@@ -42,11 +43,7 @@ interface UserProperties {
 	}
 }
 
-interface UserConnections {
-	dropbox: boolean
-	minio: boolean
-}
-
+// Types related to the pagination of tables
 type PaginationSettings = {
 	page: number = 0
 	limit: number = 20
@@ -64,27 +61,7 @@ type Sort = {
 	order: Order
 }
 
-interface Language {
-	name: string
-	code: string
-	data: {}
-}
-
-type Variable = {
-	visibility?: string
-	name: string
-	type: string
-}
-
-type Method = {
-	visibility?: string
-	name: string
-	description: string
-	args: Variable[]
-	throws: string[]
-	returns?: string
-}
-
+// Types related to the documentation of the api at /documentation/api
 type AggregationStep = { _id: string; count: number[] }
 type AggreationResult = AggreationStep[]
 
@@ -100,6 +77,8 @@ type APIEndpoint = {
 	description: string
 	exampleRequest: string = ''
 }
+
+// Types related to Feedback
 
 type Score = 1 | 2 | 3 | 4 | 5 | 6 | 7
 

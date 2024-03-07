@@ -1,8 +1,8 @@
 import {
-	DUUIRemoteDriver,
-	DUUIUIMADriver,
 	DUUIDockerDriver,
-	DUUISwarmDriver
+	DUUIRemoteDriver,
+	DUUISwarmDriver,
+	DUUIUIMADriver
 } from '$lib/duui/component'
 import type { ToastStore } from '@skeletonlabs/skeleton'
 

@@ -3,7 +3,6 @@
 	import { successToast } from '$lib/duui/utils/ui.js'
 	import { userSession } from '$lib/store.js'
 	import Dropdown from '$lib/svelte/components/Input/Dropdown.svelte'
-	import Password from '$lib/svelte/components/Input/Password.svelte'
 	import Secret from '$lib/svelte/components/Input/Secret.svelte'
 	import Text from '$lib/svelte/components/Input/TextInput.svelte'
 	import { showConfirmationModal } from '$lib/svelte/utils/modal.js'
@@ -27,18 +26,24 @@
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
 
+	const toastStore = getToastStore()
+	const modalStore = getModalStore()
+
 	export let data
 	let { user, dropbBoxURL, theme, users } = data
-	const toastStore = getToastStore()
+
+	let email: string = $userSession?.email || ''
+
+	const themes = Object.keys(COLORS)
+
+	let minioAccessKey: string = $userSession?.connections.minio.access_key || ''
+	let minioEndpoint: string = $userSession?.connections.minio.endpoint || ''
+	let minioSecretKey: string = $userSession?.connections.minio.secret_key || ''
 
 	if (user && $userSession) {
 		$userSession.preferences = user.preferences
 		$userSession.connections = user.connections
 	}
-
-	let minioAccessKey: string = $userSession?.connections.minio.access_key || ''
-	let minioEndpoint: string = $userSession?.connections.minio.endpoint || ''
-	let minioSecretKey: string = $userSession?.connections.minio.secret_key || ''
 
 	$: isDropboxConnected =
 		!!$userSession?.connections.dropbox.access_token &&
@@ -51,7 +56,21 @@
 
 	$: hasApiKey = !!$userSession?.connections.key
 
-	let email: string = $userSession?.email || ''
+	$: {
+		try {
+			const body = document.body
+			body.dataset.theme = 'theme-' + themes[theme]
+		} catch (err) {}
+	}
+
+	onMount(() => {
+		if ($userSession?.preferences.tutorial) {
+			modalStore.trigger({
+				type: 'component',
+				component: 'welcomeModal'
+			})
+		}
+	})
 
 	const updateTheme = async (color: string) => {
 		const response = await fetch(`/api/theme?color=${color}`, {
@@ -62,14 +81,6 @@
 			const result = await response.json()
 			theme = +result.theme
 		}
-	}
-
-	const themes = Object.keys(COLORS)
-	$: {
-		try {
-			const body = document.body
-			body.dataset.theme = 'theme-' + themes[theme]
-		} catch (err) {}
 	}
 
 	const updateUser = async (data: object) => {
@@ -141,11 +152,9 @@
 		}
 	}
 
-	const startDropboxOauth = async () => {
-		window.location.href = (await dropbBoxURL).toString()
+	const startDropboxOauth = () => {
+		window.location.href = dropbBoxURL.toString()
 	}
-
-	const modalStore = getModalStore()
 
 	const deleteDropboxAccess = async () => {
 		const confirm = await showConfirmationModal(
@@ -201,15 +210,6 @@
 			}
 		}
 	}
-
-	onMount(() => {
-		if ($userSession?.preferences.tutorial) {
-			modalStore.trigger({
-				type: 'component',
-				component: 'welcomeModal'
-			})
-		}
-	})
 
 	const deleteUser = async (user: { oid: string; email: string; role: string }) => {
 		const confirm = await showConfirmationModal(

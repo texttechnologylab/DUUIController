@@ -1,5 +1,11 @@
 <script lang="ts">
-	import { INPUT_EXTENSIONS, IO, IO_INPUT, type DUUIDocumentProvider, isValidS3BucketName } from '$lib/duui/io'
+	import {
+		INPUT_EXTENSIONS,
+		IO,
+		IO_INPUT,
+		isValidS3BucketName,
+		type DUUIDocumentProvider
+	} from '$lib/duui/io'
 	import { Languages } from '$lib/duui/process'
 	import { equals } from '$lib/duui/utils/text'
 	import Dropdown from '$lib/svelte/components/Input/Dropdown.svelte'
@@ -9,10 +15,9 @@
 
 	export let input: DUUIDocumentProvider
 	export let language: string = 'Unspecified'
-    export let files: FileList
+	export let files: FileList
 
-    $: inputBucketIsValid = isValidS3BucketName(input.path)
-    
+	$: inputBucketIsValid = isValidS3BucketName(input.path)
 </script>
 
 <div class="grid gap-4">

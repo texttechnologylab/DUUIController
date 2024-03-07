@@ -1,4 +1,6 @@
-<!-- This is a wrapper for the display of pipeline's in a compact format.render
+<!--
+	@component
+	This is a wrapper for the display of pipeline's in a compact format.render
 	Outside of the Builder page a badge is displayed in the top right corner to indicate
 	whether the pipeline is a template or user owned.
  -->

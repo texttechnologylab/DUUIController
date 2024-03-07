@@ -4,6 +4,10 @@ import { error, fail, json, type RequestEvent } from '@sveltejs/kit'
 import bcrypt from 'bcrypt'
 import type { RequestHandler, RouteParams } from './$types'
 
+/**
+ * Attempt to login the user by veryfing the entered credentaisl at /auth/login.
+ * @returns
+ */
 const login = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 	const data = await event.request.json()
 
@@ -53,6 +57,9 @@ const login = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 	return json({ user: user })
 }
 
+/**
+ * Attempt to register a user by sending a request to the backend and checking if the email address is available.
+ */
 const register = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 	const data = await event.request.json()
 
@@ -107,6 +114,9 @@ const register = async (event: RequestEvent<RouteParams, '/auth/[slug]'>) => {
 	})
 }
 
+/**
+ * Handle different form requests from the /auth paths.
+ */
 export const POST: RequestHandler = async (event) => {
 	const { cookies } = event
 	const { slug } = event.params

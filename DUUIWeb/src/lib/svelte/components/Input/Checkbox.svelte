@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { faCheck, faClose, type IconDefinition } from '@fortawesome/free-solid-svg-icons'
+	import { faCheck, type IconDefinition } from '@fortawesome/free-solid-svg-icons'
 	import Fa from 'svelte-fa'
 
 	export let label: string

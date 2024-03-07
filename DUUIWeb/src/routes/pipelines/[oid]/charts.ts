@@ -10,8 +10,6 @@ let gridSettings = {
 	}
 }
 
-
-
 export const getStatusPlotOptions = (pipeline: DUUIPipeline, darkmode: boolean) => {
 	if (!pipeline.statistics) return {}
 	gridSettings = {

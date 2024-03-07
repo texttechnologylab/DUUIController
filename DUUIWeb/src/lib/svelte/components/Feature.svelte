@@ -1,3 +1,4 @@
+<!-- @component A component that represents a feature on the front page. -->
 <script lang="ts">
 	import type { IconDefinition } from '@fortawesome/free-solid-svg-icons'
 	import Fa from 'svelte-fa'
@@ -11,7 +12,7 @@
 <div
 	class="
 	p-4 md:pt-24 pb-4 space-y-4 relative bg-fancy first-of-type:pt-24
-	text-center  {classes}
+	text-center {classes}
 	flex flex-col justify-center items-center self-stretch
 	"
 >

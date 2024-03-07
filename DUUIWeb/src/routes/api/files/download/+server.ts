@@ -1,5 +1,8 @@
 import { API_URL } from '$env/static/private'
 
+/**
+ * Try to download a file by sending a request to the backend.
+ */
 export async function GET({ url, cookies, fetch }) {
 	const provider = url.searchParams.get('provider')
 	const path = url.searchParams.get('path')

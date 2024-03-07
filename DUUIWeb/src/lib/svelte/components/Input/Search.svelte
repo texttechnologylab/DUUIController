@@ -1,3 +1,7 @@
+<!--
+	@component
+	A component representing a search field.
+-->
 <script lang="ts">
 	import { faSearch, type IconDefinition } from '@fortawesome/free-solid-svg-icons'
 	import Fa from 'svelte-fa'

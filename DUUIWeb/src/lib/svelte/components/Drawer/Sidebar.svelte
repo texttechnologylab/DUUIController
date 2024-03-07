@@ -1,3 +1,7 @@
+<!--	
+	@component
+	The mobile navigation menu.
+-->
 <script lang="ts">
 	import { goto, onNavigate } from '$app/navigation'
 	import { isDarkModeStore, userSession } from '$lib/store'
@@ -12,10 +16,8 @@
 		faHome,
 		faLayerGroup,
 		faMapSigns,
-		faQuestion,
 		faTools,
 		faUser,
-		faUserMinus,
 		faUserPlus
 	} from '@fortawesome/free-solid-svg-icons'
 	import { LightSwitch, getDrawerStore, getModalStore } from '@skeletonlabs/skeleton'

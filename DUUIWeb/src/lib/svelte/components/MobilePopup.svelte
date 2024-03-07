@@ -1,3 +1,7 @@
+<!-- 
+	@component
+	A component that shows a button (trigger) and when triggered a popup containing additional actions.
+ -->
 <script lang="ts">
 	import { faEllipsis } from '@fortawesome/free-solid-svg-icons'
 	import { popup, type PopupSettings } from '@skeletonlabs/skeleton'

@@ -1,3 +1,7 @@
+<!--
+	@component
+	A modal component that displays helpful information about the web interface.
+-->
 <script lang="ts">
 	import { DUUIDrivers, type DUUIComponent } from '$lib/duui/component'
 	import { faClone, faClose, faEdit, faRocket } from '@fortawesome/free-solid-svg-icons'

@@ -1,3 +1,4 @@
+<!-- @component A component that represents a Driver by displaying an icon. -->
 <script lang="ts">
 	import {
 		DUUIDockerDriver,

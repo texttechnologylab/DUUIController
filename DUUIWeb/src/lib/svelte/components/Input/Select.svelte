@@ -1,3 +1,7 @@
+<!--
+	@component
+	A Dropdown component where one or more options can be selected.
+-->
 <script lang="ts">
 	import { faCheck, faChevronDown, type IconDefinition } from '@fortawesome/free-solid-svg-icons'
 	import { ListBox, ListBoxItem, popup, type PopupSettings } from '@skeletonlabs/skeleton'

@@ -1,7 +1,5 @@
 <script lang="ts">
 	import Endpoint from '$lib/svelte/components/Endpoint.svelte'
-	import { faArrowUp } from '@fortawesome/free-solid-svg-icons'
-	import Fa from 'svelte-fa'
 	import { CodeBlock } from '@skeletonlabs/skeleton'
 
 	export let data

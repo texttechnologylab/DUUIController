@@ -1,3 +1,7 @@
+<!--	
+	@component
+	A component used to edit the options for a DUUIComponent.
+-->
 <script lang="ts">
 	import { DUUIDockerDriver, DUUIRemoteDriver, type DUUIComponent } from '$lib/duui/component'
 	import { equals } from '$lib/duui/utils/text'

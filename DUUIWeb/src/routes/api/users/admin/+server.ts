@@ -1,6 +1,10 @@
 import { API_URL } from '$env/static/private'
 import { error } from '@sveltejs/kit'
 
+/**
+ * Sends a put request to the backend to update the role of a user.
+ * The requesting user must be an admin.
+ */
 export const PUT = async ({ request, locals, fetch }) => {
 	const data = await request.json()
 	const user = locals.user
@@ -17,6 +21,10 @@ export const PUT = async ({ request, locals, fetch }) => {
 	return response
 }
 
+/**
+ * Sends a delete request to the backend to delete a user.
+ * The requesting user must be an admin.
+ */
 export const DELETE = async ({ cookies, locals, request }) => {
 	const data = await request.json()
 	const user = locals.user

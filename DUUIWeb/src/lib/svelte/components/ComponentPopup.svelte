@@ -1,3 +1,11 @@
+<!--
+ @component 
+ This component is used in different places as a way to add DUUIComponents to a pipeline.
+ It consists of a button (trigger for the popup) and a container for multiple actions (buttons)
+ that appears when hovering the trigger.
+
+ The popup position can be set top or bottom.
+-->
 <script lang="ts">
 	import { componentDrawerSettings } from '$lib/config'
 	import { blankComponent, type DUUIComponent } from '$lib/duui/component'

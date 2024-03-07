@@ -1,4 +1,3 @@
-
 export interface DUUIEvent {
 	timestamp: number
 	event: {
@@ -65,6 +64,12 @@ export enum Status {
 
 export const ACTIVE_STATUS_LIST: string[] = ['Setup', 'Input', 'Active', 'Shutdown', 'Output']
 
+/**
+ * Check if the status parameters is part of the ACTIVE_STATUS_LIST.
+ * 
+ * @param status The status of the process or document.
+ * @returns if the status represents an active state.
+ */
 export const isActive = (status: string) => {
 	return ACTIVE_STATUS_LIST.includes(status)
 }

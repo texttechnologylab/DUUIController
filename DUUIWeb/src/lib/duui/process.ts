@@ -50,6 +50,11 @@ export interface DUUIProcess {
 	skipped: number
 }
 
+/**
+ * Create and return an object with default settings for a process.
+ *
+ * @returns an object with default settings for a process.
+ */
 export const blankSettings = () => {
 	return {
 		pipeline_id: '',
@@ -80,6 +85,7 @@ export const blankSettings = () => {
 }
 
 /**
+ * Convert a process into a string with URL search parameters.
  *
  * @param process The process to convert to a string of search params.
  * @returns a string with settings for the process as serach parameters.
@@ -105,5 +111,6 @@ export const processToSeachParams = (process: DUUIProcess) => {
 		`
 }
 
+// Available Languages for processing
 export type Language = 'Unspecified' | 'German' | 'English' | 'French'
 export const Languages = ['Unspecified', 'German', 'English', 'French']

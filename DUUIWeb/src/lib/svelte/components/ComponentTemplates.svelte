@@ -1,3 +1,4 @@
+<!-- @component This component is used to display templates for DUUIComponents. -->
 <script lang="ts">
 	import { componentDrawerSettings } from '$lib/config'
 	import { DUUIDriverFilters, type DUUIComponent, type DUUIDriverFilter } from '$lib/duui/component'
@@ -7,11 +8,11 @@
 	import Dropdown from '$lib/svelte/components/Input/Dropdown.svelte'
 	import Search from '$lib/svelte/components/Input/Search.svelte'
 	import { faEdit, faEllipsisH, faSearch } from '@fortawesome/free-solid-svg-icons'
-	import { getDrawerStore, popup, type DrawerSettings } from '@skeletonlabs/skeleton'
+	import { getDrawerStore, type DrawerSettings } from '@skeletonlabs/skeleton'
 	import { createEventDispatcher } from 'svelte'
 	import Fa from 'svelte-fa'
-	import Popup from './Popup.svelte'
 	import ComponentPopup from './ComponentPopup.svelte'
+	import Popup from './Popup.svelte'
 
 	const dispatcher = createEventDispatcher()
 	export let components: DUUIComponent[]
@@ -27,8 +28,6 @@
 
 		drawerStore.open(drawer)
 	}
-
-	const onUpload = () => {}
 
 	const onSelect = (component: DUUIComponent) => {
 		dispatcher('select', {

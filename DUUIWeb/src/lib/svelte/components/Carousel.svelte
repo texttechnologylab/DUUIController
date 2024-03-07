@@ -1,3 +1,4 @@
+<!-- @component Unused Component. Use this as a horizontal scroll container.-->
 <script lang="ts">
 	import { faArrowLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons'
 	import Fa from 'svelte-fa'

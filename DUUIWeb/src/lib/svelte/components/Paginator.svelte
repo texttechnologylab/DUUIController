@@ -1,3 +1,7 @@
+<!--
+	 @component 
+	A component used for pagination in tables. Uses the PaginationSettings type.
+ -->
 <script lang="ts">
 	import {
 		faAngleLeft,

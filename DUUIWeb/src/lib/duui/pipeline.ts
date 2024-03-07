@@ -24,6 +24,11 @@ export interface DUUIPipeline {
 	}
 }
 
+/**
+ * Create and return a default pipeline.
+ *
+ * @returns A default pipeline with no components.
+ */
 export const blankPipeline = () =>
 	<DUUIPipeline>{
 		oid: uuidv4(),
@@ -48,7 +53,12 @@ export const blankPipeline = () =>
 		}
 	}
 
-	
+/**
+ * Convert a DUUIPipeline to a JSON object with some properties omitted.
+ *
+ * @param pipeline the pipeline to convert
+ * @returns An object with relevant pipeline properties.
+ */
 export const pipelineToJson = (pipeline: DUUIPipeline) => {
 	return {
 		name: pipeline.name,
@@ -58,10 +68,21 @@ export const pipelineToJson = (pipeline: DUUIPipeline) => {
 	}
 }
 
+/**
+ * Retrieve a set of drivers that are used by components in the pipeline.
+ *
+ * @param pipeline The pipeline to get the drivers for
+ * @returns A set of DUUIDrivers
+ */
 export const usedDrivers = (pipeline: DUUIPipeline) =>
 	new Set(pipeline.components.map((c) => c.driver))
 
-export const getPipelineCategories = (pipeline: DUUIPipeline) => {
-	const categories = pipeline.components.map((c) => c.tags.join(' ')).join(' ')
-	return categories
+/**
+ * Retrieve all pipeline tags as a string.
+ *
+ * @param pipeline The pipeline to get the tags for.
+ * @returns A string containing all tags in the pipeline separated by spaces.
+ */
+export const getPipelineTagsAsString = (pipeline: DUUIPipeline) => {
+	return pipeline.components.map((c) => c.tags.join(' ')).join(' ')
 }

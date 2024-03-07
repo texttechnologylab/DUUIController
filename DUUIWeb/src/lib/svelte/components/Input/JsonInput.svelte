@@ -1,3 +1,7 @@
+<!--
+	@component
+	A component for managing json like key value pairs.
+-->
 <script lang="ts">
 	import { showConfirmationModal } from '$lib/svelte/utils/modal'
 	import { faCheck, faClose, faPen, faPlus } from '@fortawesome/free-solid-svg-icons'

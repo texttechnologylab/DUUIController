@@ -1,3 +1,7 @@
+<!--
+	@component
+	A component representing a Likert Scale.
+-->
 <script lang="ts">
 	import { feedbackStore } from '$lib/store'
 	import { RadioGroup, RadioItem } from '@skeletonlabs/skeleton'

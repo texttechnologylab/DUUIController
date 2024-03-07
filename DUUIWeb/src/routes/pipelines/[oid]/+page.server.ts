@@ -8,7 +8,7 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 	const loadPipeline = async (): Promise<DUUIPipeline> => {
 		const response = await fetch(`${API_URL}/pipelines/${params.oid}?statistics=true`, {
 			method: 'GET',
-			
+
 			headers: {
 				Authorization: cookies.get('session') || ''
 			}
@@ -20,7 +20,7 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 	const fetchComponentTemplates = async (): Promise<{ components: DUUIComponent[] }> => {
 		const response = await fetch(`${API_URL}/components`, {
 			method: 'GET',
-			
+
 			headers: {
 				Authorization: cookies.get('session') || ''
 			}
@@ -49,7 +49,7 @@ export const load: PageServerLoad = async ({ params, cookies, url }) => {
 				&output=${outputFilter.join(';')}`,
 			{
 				method: 'GET',
-				
+
 				headers: {
 					Authorization: cookies.get('session') || ''
 				}

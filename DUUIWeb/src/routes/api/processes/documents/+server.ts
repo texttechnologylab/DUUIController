@@ -2,6 +2,9 @@ import { API_URL } from '$env/static/private'
 import type { DUUIDocument } from '$lib/duui/io'
 import { error, json, type RequestHandler } from '@sveltejs/kit'
 
+/**
+ * Sends a get request to the backend to retrieve one or multiple documents.
+ */
 export const GET: RequestHandler = async ({ cookies, fetch, url }) => {
 	const searchParams = url.searchParams
 

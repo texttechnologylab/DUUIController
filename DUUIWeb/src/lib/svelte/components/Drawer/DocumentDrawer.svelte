@@ -1,3 +1,7 @@
+<!--	
+	@component
+	A component that displays metrics and other information about a DUUIDocument
+-->
 <script lang="ts">
 	import { IO, type DUUIDocument, type DUUIDocumentProvider } from '$lib/duui/io'
 	import { Status } from '$lib/duui/monitor'

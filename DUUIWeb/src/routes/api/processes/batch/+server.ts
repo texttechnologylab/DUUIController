@@ -1,6 +1,9 @@
 import { API_URL } from '$env/static/private'
 import { json, type RequestHandler } from '@sveltejs/kit'
 
+/**
+ * Sends a get request to the backend to retrieve one or multiple processes.
+ */
 export const GET: RequestHandler = async ({ cookies, fetch, url }) => {
 	const searchParams = url.searchParams
 

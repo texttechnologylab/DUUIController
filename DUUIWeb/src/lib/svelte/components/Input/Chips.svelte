@@ -1,3 +1,7 @@
+<!--	
+	@component
+	A component that allows for the management of chips / tags.
+-->
 <script lang="ts">
 	import { includesText, toTitleCase } from '$lib/duui/utils/text'
 	import { faClose } from '@fortawesome/free-solid-svg-icons'

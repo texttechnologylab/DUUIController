@@ -1,7 +1,7 @@
 import { API_URL } from '$env/static/private'
-import { json, redirect } from '@sveltejs/kit'
-import type { PageServerLoad } from './$types'
 import { handleLoginRedirect } from '$lib/utils'
+import { redirect } from '@sveltejs/kit'
+import type { PageServerLoad } from './$types'
 
 export const load: PageServerLoad = async ({ fetch, locals, cookies, url }) => {
 	if (!locals.user) {
