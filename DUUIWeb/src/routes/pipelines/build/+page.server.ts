@@ -2,7 +2,7 @@ import { API_URL } from '$env/static/private'
 import type { DUUIComponent } from '$lib/duui/component'
 import type { PageServerLoad } from './$types'
 
-export const load: PageServerLoad = async ({ cookies, locals }) => {
+export const load: PageServerLoad = async ({ cookies, fetch }) => {
 	const fetchComponentTemplates = async (): Promise<{ components: DUUIComponent[] }> => {
 		const response = await fetch(`${API_URL}/components`, {
 			method: 'GET',

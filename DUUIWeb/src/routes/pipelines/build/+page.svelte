@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
-	import { DUUIDrivers, blankComponent, type DUUIComponent } from '$lib/duui/component'
+	import { DUUIDrivers, type DUUIComponent } from '$lib/duui/component'
 	import {
 		blankPipeline,
 		getPipelineTagsAsString,
@@ -9,7 +9,6 @@
 		type DUUIPipeline
 	} from '$lib/duui/pipeline'
 
-	import { componentDrawerSettings } from '$lib/config'
 	import { includes } from '$lib/duui/utils/text'
 	import { scrollIntoView, successToast } from '$lib/duui/utils/ui'
 	import { currentPipelineStore } from '$lib/store'
@@ -31,7 +30,7 @@
 		faSearch,
 		faUpload
 	} from '@fortawesome/free-solid-svg-icons'
-	import { getDrawerStore, getToastStore, type DrawerSettings } from '@skeletonlabs/skeleton'
+	import { getToastStore } from '@skeletonlabs/skeleton'
 	import pkg from 'lodash'
 	import { onMount } from 'svelte'
 	import { dndzone, type DndEvent } from 'svelte-dnd-action'
@@ -76,9 +75,9 @@
 		filteredTemplatePipelines = templatePipelines.filter(
 			(pipeline: DUUIPipeline) =>
 				includes(
-					`${pipeline.name} ${pipeline.description} ${getPipelineTagsAsString(pipeline)} ${Array.from(
-						usedDrivers(pipeline)
-					).join(' ')}`,
+					`${pipeline.name} ${pipeline.description} ${getPipelineTagsAsString(
+						pipeline
+					)} ${Array.from(usedDrivers(pipeline)).join(' ')}`,
 					searchText
 				) || !searchText
 		)
@@ -159,17 +158,6 @@
 
 		step = 1
 		goto(`/pipelines/build?step=${step}`)
-	}
-
-	const drawerStore = getDrawerStore()
-	const drawer: DrawerSettings = {
-		id: 'component',
-		...componentDrawerSettings,
-		meta: {
-			component: blankComponent($currentPipelineStore.oid, $currentPipelineStore.components.length),
-			inEditor: true,
-			creating: true
-		}
 	}
 
 	const uploadPipeline = async () => {
