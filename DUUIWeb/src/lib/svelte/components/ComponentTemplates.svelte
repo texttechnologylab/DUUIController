@@ -90,31 +90,8 @@
 						</span>
 					{/each}
 				</div>
-				{#if $userSession && $userSession.role === 'Admin'}
-					<Popup>
-						<svelte:fragment slot="trigger">
-							<div class="flex items-center justify-center">
-								<Fa icon={faEllipsisH} />
-							</div>
-						</svelte:fragment>
-						<svelte:fragment slot="popup">
-							<div class="popup-solid p-4">
-								<button
-									class="pointer-events-auto button-neutral border-none"
-									on:click={() => onEdit(component)}
-								>
-									<Fa icon={faEdit} size="lg" />
-									<p>Edit</p>
-								</button>
-							</div>
-						</svelte:fragment>
-					</Popup>
-				{/if}
 			</button>
 		{/each}
-	</div>
-	<div class="flex justify-center p-4">
-		<ComponentPopup />
 	</div>
 	<div>
 		{#if filteredComponents.length === 0}
