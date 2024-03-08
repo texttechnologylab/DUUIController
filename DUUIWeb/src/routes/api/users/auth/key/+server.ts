@@ -1,5 +1,5 @@
 import { API_URL } from '$env/static/private'
-import { error } from '@sveltejs/kit'
+import { error, json } from '@sveltejs/kit'
 import { randomBytes } from 'crypto'
 
 /**
@@ -25,9 +25,17 @@ export const PUT = async ({ locals, fetch }) => {
 
 	const response = await fetch(`${API_URL}/users/${user.oid}`, {
 		method: 'PUT',
-
 		body: JSON.stringify({ 'connections.key': generatKey() })
 	})
+
+	if (response.ok) {
+		return json(await response.json(), {
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			status: 200
+		})
+	}
 
 	return response
 }
@@ -44,9 +52,17 @@ export const DELETE = async ({ locals }) => {
 
 	const response = await fetch(`${API_URL}/users/${user.oid}`, {
 		method: 'PUT',
-
 		body: JSON.stringify({ 'connections.key': null })
 	})
+
+	if (response.ok) {
+		return json(await response.json(), {
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			status: 200
+		})
+	}
 
 	return response
 }

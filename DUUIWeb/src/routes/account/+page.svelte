@@ -74,7 +74,7 @@
 		if ($userSession?.preferences.tutorial) {
 			modalStore.trigger({
 				type: 'component',
-				component: 'welcomeModal'
+				component: 'helpModal'
 			})
 		}
 	})

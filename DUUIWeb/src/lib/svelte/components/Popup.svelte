@@ -21,7 +21,6 @@
 		>
 			<div class="py-4 relative">
 				<slot name="popup" />
-
 				{#if arrow}
 					<div
 						class="absolute rotate-45 top-2 w-2 h-2

@@ -38,7 +38,6 @@
 	import ConfirmModal from '$lib/svelte/components/Modal/ConfirmModal.svelte'
 	import HelpModal from '$lib/svelte/components/Modal/HelpModal.svelte'
 	import PromptModal from '$lib/svelte/components/Modal/PromptModal.svelte'
-	import WelcomeModal from '$lib/svelte/components/Modal/WelcomeModal.svelte'
 	import { arrow, autoUpdate, computePosition, flip, offset, shift } from '@floating-ui/dom'
 	import { Modal } from '@skeletonlabs/skeleton'
 
@@ -55,10 +54,10 @@
 	import TemplateModal from '$lib/svelte/components/Modal/TemplateModal.svelte'
 	import Popup from '$lib/svelte/components/Popup.svelte'
 	import { faReadme } from '@fortawesome/free-brands-svg-icons'
+	import type { AfterNavigate } from '@sveltejs/kit'
 	import 'highlight.js/styles/github-dark.css'
 	import { onMount } from 'svelte'
 	import ProcessDrawer from './processes/[oid]/ProcessDrawer.svelte'
-	import type { AfterNavigate } from '@sveltejs/kit'
 
 	export let data
 	let { user, theme } = data
@@ -131,7 +130,6 @@
 		documentModal: { ref: DocumentModal },
 		promptModal: { ref: PromptModal },
 		confirmModal: { ref: ConfirmModal },
-		welcomeModal: { ref: WelcomeModal },
 		helpModal: { ref: HelpModal },
 		templateModal: { ref: TemplateModal }
 	}
@@ -175,10 +173,8 @@
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
 				<div class="hidden lg:flex items-center gap-8 font-heading-token">
-					{#if $userSession?.role === 'Admin' || $userSession?.role === 'Trial'}
-						<Link href="/feedback">Feedback</Link>
-					{/if}
 					{#if $userSession}
+						<Link href="/feedback">Feedback</Link>
 						<Popup>
 							<svelte:fragment slot="trigger">
 								<button

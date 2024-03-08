@@ -192,6 +192,11 @@
 			$processSettingsStore.input.content = ''
 		}
 
+		if ($processSettingsStore.output.provider === IO.None) {
+			$processSettingsStore.output.path = ''
+			$processSettingsStore.output.content = ''
+		}
+
 		const response = await fetch('/api/processes', {
 			method: 'POST',
 			body: JSON.stringify($processSettingsStore)

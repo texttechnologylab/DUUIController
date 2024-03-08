@@ -98,10 +98,12 @@
 					<p>
 						A pipeline is a collection of components or Analysis Engines that can be executed.
 						During an analysis process, the components in the pipeline are executed one after
-						another annotating documents.
+						another.
 					</p>
 					<p class="text-center p-4 bordered-soft rounded-md variant-soft-primary">
-						You can create pipelines in the <a href="/pipelines/builder" class="anchor">Builder</a>
+						You can create pipelines in the <a href="/pipelines/builder" class="anchor">Builder</a> and
+						manage them from the Dashboard. Once created a pipeline can be used as a template in the
+						builder.
 					</p>
 				</div>
 			{:else if step === 2}
@@ -112,6 +114,11 @@
 						most settings. When creating a pipeline you can choose from a set of predefined
 						components or create your own. Once added to the pipeline, a component can be edited by
 						clicking the <Fa icon={faEdit} class="inline" /> icon.
+					</p>
+
+					<p class="text-center p-4 bordered-soft rounded-md variant-soft-primary">
+						You can create pipelines in the <a href="/pipelines/builder" class="anchor">Builder</a> and
+						manage them from the Dashboard.
 					</p>
 				</div>
 			{:else if step === 3}
