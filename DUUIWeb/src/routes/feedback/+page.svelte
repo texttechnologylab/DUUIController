@@ -7,7 +7,13 @@
 	import Rating from '$lib/svelte/components/Input/Rating.svelte'
 	import TextArea from '$lib/svelte/components/Input/TextArea.svelte'
 	import KeyValue from '$lib/svelte/components/KeyValue.svelte'
-	import { faCheck, faChevronLeft, faChevronRight, faUser } from '@fortawesome/free-solid-svg-icons'
+	import {
+		faCheck,
+		faChevronLeft,
+		faChevronRight,
+		faFileDownload,
+		faUser
+	} from '@fortawesome/free-solid-svg-icons'
 	import { ProgressBar, RadioGroup, RadioItem, SlideToggle } from '@skeletonlabs/skeleton'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
@@ -111,10 +117,11 @@
 						1 +
 						(7 - item.frustration) +
 						(item.ease - 1) +
-						(7 - item.correction)) /
-						24,
+						(7 - item.correction)),
 				0
-			) / feedback.length
+			) /
+			filteredFeedback.length /
+			24
 
 		plotOptions = getPlotOptions(
 			keys,
@@ -159,6 +166,20 @@
 				_chart.destroy()
 			}
 		}
+	}
+
+	const downloadFeedback = () => {
+		const blob = new Blob([JSON.stringify(feedback)], {
+			type: 'application/json'
+		})
+		const url = URL.createObjectURL(blob)
+		const anchor = document.createElement('a')
+		anchor.href = url
+		anchor.download = `feedback.json`
+		document.body.appendChild(anchor)
+		anchor.click()
+		document.body.removeChild(anchor)
+		URL.revokeObjectURL(url)
 	}
 
 	const next = () => {
@@ -441,7 +462,9 @@
 	{/if}
 	{#if loaded && feedback.length > 0 && $userSession}
 		<div class="md:p-8 space-y-4 max-w-screen-xl mx-auto">
-			<div class="grid gap-8 section-wrapper p-4 md:justify-center">
+			<div
+				class="max-w-screen-sm mx-auto grid grid-cols-2 gap-8 section-wrapper p-4 md:justify-center items-end"
+			>
 				<Dropdown
 					bind:value={duuiFilter}
 					options={['All', 'Experienced', 'Inexperienced']}
@@ -452,17 +475,19 @@
 					options={['All', 'Experienced', 'Inexperienced']}
 					label="Programming"
 				/>
-				<div class="col-span-2">
-					<label class="label">
-						<span class="form-label">Ignore older than</span>
-						<input
-							class="input-wrapper w-full"
-							bind:value={dateFilter}
-							title="Input (date)"
-							type="date"
-						/>
-					</label>
-				</div>
+				<label class="label">
+					<span class="form-label">Ignore older than</span>
+					<input
+						class="input-wrapper w-full"
+						bind:value={dateFilter}
+						title="Input (date)"
+						type="date"
+					/>
+				</label>
+				<button class="button-neutral !justify-center" on:click={downloadFeedback}>
+					<Fa icon={faFileDownload} />
+					<span>Download JSON</span>
+				</button>
 			</div>
 
 			{#if filteredFeedback.length > 0}
