@@ -3,21 +3,19 @@
 	import { componentDrawerSettings } from '$lib/config'
 	import { DUUIDriverFilters, type DUUIComponent, type DUUIDriverFilter } from '$lib/duui/component'
 	import { equals, includes } from '$lib/duui/utils/text'
-	import { userSession } from '$lib/store'
+	import { successToast } from '$lib/duui/utils/ui'
 	import DriverIcon from '$lib/svelte/components/DriverIcon.svelte'
 	import Dropdown from '$lib/svelte/components/Input/Dropdown.svelte'
 	import Search from '$lib/svelte/components/Input/Search.svelte'
-	import { faEdit, faEllipsisH, faSearch } from '@fortawesome/free-solid-svg-icons'
-	import { getDrawerStore, type DrawerSettings } from '@skeletonlabs/skeleton'
+	import { faSearch } from '@fortawesome/free-solid-svg-icons'
+	import { getDrawerStore, getToastStore, type DrawerSettings } from '@skeletonlabs/skeleton'
 	import { createEventDispatcher } from 'svelte'
-	import Fa from 'svelte-fa'
-	import ComponentPopup from './ComponentPopup.svelte'
-	import Popup from './Popup.svelte'
 
 	const dispatcher = createEventDispatcher()
 	export let components: DUUIComponent[]
 
 	const drawerStore = getDrawerStore()
+	const toastStore = getToastStore()
 
 	const onEdit = (component: DUUIComponent) => {
 		const drawer: DrawerSettings = {
@@ -33,6 +31,8 @@
 		dispatcher('select', {
 			component: component
 		})
+
+		toastStore.trigger(successToast(`Template ${component.name} added`))
 	}
 
 	let searchText: string = ''

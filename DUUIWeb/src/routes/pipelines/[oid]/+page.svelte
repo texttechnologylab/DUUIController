@@ -52,6 +52,8 @@
 		getStatusPlotOptions,
 		getUsagePlotOptions
 	} from './charts'
+	import Popup from '$lib/svelte/components/Popup.svelte'
+	import Tip from '$lib/svelte/components/Tip.svelte'
 
 	const modalStore = getModalStore()
 	const toastStore = getToastStore()
@@ -446,24 +448,39 @@
 				<Fa icon={faFileClipboard} />
 				<span class="text-xs md:text-base">Copy</span>
 			</button>
-			<button
-				class="button-menu border-r border-color {$currentPipelineStore.status === Status.Setup ||
-				$currentPipelineStore.status === Status.Shutdown
-					? 'aspect-square !px-4'
-					: ''}"
-				on:click={manageService}
-				disabled={$currentPipelineStore.status === Status.Setup ||
-					$currentPipelineStore.status === Status.Shutdown}
-			>
-				{#if $currentPipelineStore.status === Status.Setup || $currentPipelineStore.status === Status.Shutdown}
-					<Fa icon={faRotate} spin />
-				{:else}
-					<Fa icon={$currentPipelineStore.status === Status.Idle ? faPause : faPlay} />
-					<span class="text-xs md:text-base"
-						>{$currentPipelineStore.status === Status.Inactive ? 'Instantiate' : 'Shutdown'}</span
+			<Popup>
+				<svelte:fragment slot="trigger">
+					<button
+						class="button-menu border-r border-color {$currentPipelineStore.status ===
+							Status.Setup || $currentPipelineStore.status === Status.Shutdown
+							? 'aspect-square !px-4'
+							: ''}"
+						on:click={manageService}
+						disabled={$currentPipelineStore.status === Status.Setup ||
+							$currentPipelineStore.status === Status.Shutdown}
 					>
-				{/if}
-			</button>
+						{#if $currentPipelineStore.status === Status.Setup || $currentPipelineStore.status === Status.Shutdown}
+							<Fa icon={faRotate} spin />
+						{:else}
+							<Fa icon={$currentPipelineStore.status === Status.Idle ? faPause : faPlay} />
+							<span class="text-xs md:text-base"
+								>{$currentPipelineStore.status === Status.Inactive
+									? 'Instantiate'
+									: 'Shutdown'}</span
+							>
+						{/if}
+					</button>
+				</svelte:fragment>
+				<svelte:fragment slot="popup">
+					<div class="popup-solid px-4 min-w-[450px]">
+						<Tip>
+							Instantiating a pipeline saves the time taken up during setup. Pipelines can be reused
+							faster.
+						</Tip>
+					</div>
+				</svelte:fragment>
+			</Popup>
+
 			{#if $currentPipelineStore.user_id !== null}
 				<a
 					class="anchor-menu font-bold border-r border-color"
@@ -552,11 +569,7 @@
 							bind:value={$currentPipelineStore.description}
 						/>
 
-						<Chips
-							label="Tags"
-							placeholder="Add a tag..."
-							bind:values={$currentPipelineStore.tags}
-						/>
+						<Chips label="Tags" bind:values={$currentPipelineStore.tags} />
 					</div>
 					<JsonInput bind:data={settings} label="Settings" />
 				</div>

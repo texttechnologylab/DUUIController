@@ -323,6 +323,7 @@
 			</div>
 
 			<div>
+				<h1 class="h2">Documents</h1>
 				<div class="md:text-base flex items-center">
 					<div
 						class="hidden ml-auto md:flex overflow-hidden justify-between section-wrapper !shadow-none !border-b-0 !rounded-b-none z-10"
@@ -464,7 +465,7 @@
 							<span>Json</span>
 						</button>
 					</div>
-					<div class="grid md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-2">
+					<div class="grid sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-2">
 						<KeyValue key="Input" value={process.input.provider} />
 						<KeyValue key="Output" value={process.output.provider} />
 						{#each Object.entries(process.settings) as [key, value]}

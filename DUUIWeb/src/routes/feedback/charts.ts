@@ -120,7 +120,7 @@ export const getUsersPlotOptions = (
 			{
 				name: 'Inexperienced',
 				data: [counters.duui.inexperienced, counters.programming.inexperienced],
-				color: getColor() + '77'
+				color: getColor(true)
 			}
 		],
 		chart: {

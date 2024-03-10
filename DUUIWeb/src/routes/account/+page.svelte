@@ -258,9 +258,43 @@
 	<title>Account</title>
 </svelte:head>
 
-<div class="flex lg:flex-row flex-col h-full lg:p-16 gap-4">
-	<div class="sticky top-4 lg:top-20 self-start section-wrapper p-8">
-		<div class="grid lg:grid-cols-1 grid-cols-2 gap-4">
+<div class="menu-mobile-lg !w-screen">
+	<button
+		on:click={() => {
+			setTab(0)
+		}}
+		class="button-mobile {tab === 0 ? '!variant-filled-primary' : ''}"
+	>
+		<Fa icon={faUser} />
+		<span>Profile</span>
+	</button>
+
+	<button
+		on:click={() => {
+			setTab(1)
+		}}
+		class="button-mobile {tab === 1 ? '!variant-filled-primary' : ''}"
+	>
+		<Fa icon={faLink} />
+		<span>Connections</span>
+	</button>
+
+	{#if $userSession?.role === 'Admin'}
+		<button
+			on:click={() => {
+				setTab(2)
+			}}
+			class="button-mobile {tab === 2 ? '!variant-filled-primary' : ''}"
+		>
+			<Fa icon={faUserTie} />
+			<span>Admin</span>
+		</button>
+	{/if}
+</div>
+
+<div class="flex lg:flex-row flex-col h-full pb-16 lg:p-16 gap-4">
+	<div class="sticky top-4 lg:top-20 self-start section-wrapper p-8 hidden lg:block">
+		<div class="grid gap-4">
 			<button
 				on:click={() => {
 					setTab(0)
@@ -394,7 +428,14 @@
 					<h2 class="h3 scroll-mt-16" id="dropbox">Dropbox</h2>
 					<div class="space-y-8">
 						{#if isDropboxConnected}
-							<p>Your Dropbox account has been connected successfully.</p>
+							<div>
+								<p>Your Dropbox account has been connected successfully.</p>
+								<p>
+									The folder <span class="badge px-2 mx-2 variant-soft-primary"
+										>Apps/Docker Unified UIMA Interface</span
+									> has been created.
+								</p>
+							</div>
 							<div>
 								<p class="flex-center-4">
 									<Fa icon={faCheck} size="lg" class="text-primary-500" />
@@ -543,3 +584,9 @@
 		{/if}
 	</div>
 </div>
+
+<style>
+	p {
+		max-width: 65ch;
+	}
+</style>

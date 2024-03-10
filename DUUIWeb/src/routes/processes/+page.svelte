@@ -25,6 +25,7 @@
 	import Number from '$lib/svelte/components/Input/Number.svelte'
 	import TextArea from '$lib/svelte/components/Input/TextArea.svelte'
 	import TextInput from '$lib/svelte/components/Input/TextInput.svelte'
+	import Tip from '$lib/svelte/components/Tip.svelte'
 	import {
 		faArrowLeft,
 		faCheck,
@@ -402,7 +403,7 @@
 									</div>
 									{#if equals(fileStorage.provider, IO.Minio)}
 										<TextInput
-											label="Path (bucket/path/to/file)"
+											label="Path (bucket/path/to/folder)"
 											name="fileStoragePath"
 											bind:value={fileStorage.path}
 											error={uploadBucketIsValid}
@@ -420,20 +421,23 @@
 								{/if}
 							{:else if equals($processSettingsStore.input.provider, IO.Minio)}
 								<TextInput
-									label="Path (bucket/path/to/file)"
+									label="Path (bucket/path/to/folder)"
 									error={inputBucketIsValid}
 									name="inputPath"
 									bind:value={$processSettingsStore.input.path}
 								/>
 							{:else}
-								<TextInput
-									label="Path"
-									name="inputPath"
-									bind:value={$processSettingsStore.input.path}
-									error={$processSettingsStore.input.path === '/'
-										? 'Provide an empty path to select the root folder.'
-										: ''}
-								/>
+								<div>
+									<TextInput
+										label="Relative path"
+										name="inputPath"
+										bind:value={$processSettingsStore.input.path}
+										error={$processSettingsStore.input.path === '/'
+											? 'Provide an empty path to select the root folder.'
+											: ''}
+									/>
+									<Tip>Do not include Apps/Docker Unified UIMA Interface in your path!</Tip>
+								</div>
 							{/if}
 						</div>
 
@@ -542,20 +546,23 @@
 							</div>
 							{#if equals($processSettingsStore.output.provider, IO.Minio)}
 								<TextInput
-									label="Path (bucket/path/to/file)"
+									label="Path (bucket/path/to/folder)"
 									error={outputBucketIsValid}
 									name="output-folder"
 									bind:value={$processSettingsStore.output.path}
 								/>
 							{:else if equals($processSettingsStore.output.provider, IO.Dropbox)}
-								<TextInput
-									label="Path"
-									name="output-folder"
-									error={['/', ''].includes($processSettingsStore.output.path)
-										? 'Writing to the root folder is not possible.'
-										: ''}
-									bind:value={$processSettingsStore.output.path}
-								/>
+								<div>
+									<TextInput
+										label="Path"
+										name="output-folder"
+										error={['/', ''].includes($processSettingsStore.output.path)
+											? 'Writing to the root folder is not possible.'
+											: ''}
+										bind:value={$processSettingsStore.output.path}
+									/>
+									<Tip>Do not include Apps/Docker Unified UIMA Interface in your path!</Tip>
+								</div>
 							{/if}
 							{#if $processSettingsStore.output.provider !== IO.None}
 								<hr class="hr !w-full" />

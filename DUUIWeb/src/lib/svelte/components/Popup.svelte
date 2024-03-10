@@ -15,7 +15,7 @@
 	<slot name="trigger" />
 	{#if position === 'bottom'}
 		<div
-			class="invisible group-hover:visible translate-y-8 transition-all origin-top opacity-0
+			class="invisible group-hover:visible translate-y-4 transition-all origin-top opacity-0
                 absolute left-1/2 -translate-x-1/2 top-full z-[9999]
                 group-hover:translate-y-0 duration-300 group-hover:opacity-100"
 		>
@@ -32,7 +32,7 @@
 		</div>
 	{:else if position === 'top'}
 		<div
-			class="invisible group-hover:visible -translate-y-8 transition-all origin-bottom opacity-0
+			class="invisible group-hover:visible -translate-y-4 transition-all origin-bottom opacity-0
                 absolute left-1/2 -translate-x-1/2 bottom-full z-[100]
                 group-hover:translate-y-0 duration-300 group-hover:opacity-100"
 		>

@@ -332,7 +332,6 @@
 						/>
 						<Chips
 							label="Tags"
-							placeholder="Add a tag..."
 							bind:values={$currentPipelineStore.tags}
 						/>
 					</div>

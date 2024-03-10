@@ -137,7 +137,7 @@
 </script>
 
 <Modal components={modalRegistry} />
-<Toast position="br" />
+<Toast position="b" />
 <Drawer rounded="rounded-md">
 	{#if $drawerStore.id === 'sidebar'}
 		<Sidebar />

@@ -113,7 +113,6 @@
 								<TextInput label="Description" bind:value={$examplePipelineStore.description} />
 								<Chips
 									label="Tags"
-									placeholder="Add a tag..."
 									bind:values={$examplePipelineStore.tags}
 								/>
 							</div>

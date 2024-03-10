@@ -22,9 +22,26 @@ export const getColor = (alternate: boolean = false) => {
 		let THEME = document.body.dataset.theme || 'blue'
 		color = COLORS[THEME.replace('theme-', '')]
 		if (alternate) {
-			return color + '77'
+			return getComplementaryColor(color)
 		}
 	} catch (err) {}
 
 	return color
+}
+
+/**
+ * Get the complementary color for a given input color in the hex format.	
+ *
+ * @param color the color to convert in hex format
+ * @returns the complementary color to the input color.
+ */
+export const getComplementaryColor = (color: string) => {
+	var c = color.slice(1),
+		i = parseInt(c, 16),
+		v = ((1 << (4 * c.length)) - 1 - i).toString(16)
+
+	while (v.length < c.length) {
+		v = '0' + v
+	}
+	return '#' + v
 }

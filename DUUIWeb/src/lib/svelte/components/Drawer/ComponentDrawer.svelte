@@ -35,6 +35,7 @@
 	import TextArea from '../Input/TextArea.svelte'
 	import TextInput from '../Input/TextInput.svelte'
 	import Popup from '../Popup.svelte'
+	import Tip from '../Tip.svelte'
 	const { cloneDeep } = pkg
 
 	const drawerStore = getDrawerStore()
@@ -340,28 +341,23 @@
 
 			<TextInput label="Name" name="name" bind:value={component.name} />
 
-			<Popup>
-				<svelte:fragment slot="trigger">
-					<TextInput
-						style="md:col-span-2"
-						label="Target"
-						name="target"
-						bind:value={component.target}
-						error={component.target === '' ? "Target can't be empty" : ''}
-					/>
-				</svelte:fragment>
-				<svelte:fragment slot="popup">
-					<div class="popup-solid flex items-center">
-						<div class="p-4 px-8 flex items-center justify-center">
-							<Fa icon={faInfo} size="2x" />
-						</div>
-						<p class="border-l border-color p-4">
-							The target can be a Docker image name (Docker, Swarm and Kubernetes Driver), a URL
-							(Remote Driver) or a Java class path (UIMADriver).
-						</p>
-					</div>
-				</svelte:fragment>
-			</Popup>
+			<div class="space-y-4 group">
+				<TextInput
+					style="md:col-span-2"
+					label="Target"
+					name="target"
+					bind:value={component.target}
+					error={component.target === '' ? "Target can't be empty" : ''}
+				/>
+
+				<div class="hidden group-focus-within:block">
+					<Tip>
+						The target can be a Docker image name (Docker, Swarm and Kubernetes Driver), a URL
+						(Remote Driver) or a Java class path (UIMADriver).
+					</Tip>
+				</div>
+			</div>
+
 			<Dropdown label="Driver" name="driver" options={DUUIDrivers} bind:value={component.driver} />
 
 			<Chips style="md:col-span-2" label="Tags" bind:values={component.tags} />
