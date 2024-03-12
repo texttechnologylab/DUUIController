@@ -1,3 +1,7 @@
+![SvelteKit]({https://img.shields.io/badge/SvelteKit-FF3E00?style=for-the-badge&logo=Svelte&logoColor=white})
+
+![Svelte]({https://img.shields.io/badge/Svelte-4A4A55?style=for-the-badge&logo=svelte&logoColor=FF3E00})
+
 # DUUIController
 
 The DUUIController complements the NLP framework DUUI by providing a Web API and a graphical web-based user interface.
@@ -23,17 +27,7 @@ The path to the config file should be passed as a command line argument.
 ### To build follow these steps for now:
 
 - Run `maven clean package -DskipTests`
-- Go to the generated jar and open it using any zip tool
-- Locate `META-INF/org.apache.uima.fit/types.txt`
-- Open `types.txt` and modify the content to:
-
-```
-classpath*:desc/type/*.xml
-classpath*:org/texttechnologylab/types/*.xml
-```
-
-- Save and close
-- Set the correct working directory (where to jar is located)
+- Set the correct working directory (where the jar is located)
 - run `java -jar DUUIRestService.jar PATH/TO/config.properties`
 
 ### 1. Metrics
