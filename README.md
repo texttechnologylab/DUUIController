@@ -1,23 +1,44 @@
 # DUUIController
 
+The DUUIController complements the NLP framework DUUI by providing a Web API and a graphical web-based user interface.
+
 For running, create a config.properties file that contains values for the following variables:
 
-```
-MONGO_DB_CONNECTION_STRING=
-DBX_APP_KEY               =
-DBX_APP_SECRET            =
-DBX_REDIRECT_URL          =
-PORT                      =
-HOST                      =
-FILE_UPLOAD_DIRECTORY     =
-```
+- DBX_APP_KEY =
+- DBX_APP_SECRET =
+- DBX_REDIRECT_URL =
+- PORT =
+- HOST =
+- FILE_UPLOAD_DIRECTORY =
+- MONGO_HOST =
+- MONGO_PORT =
+- MONGO_DB =
+- MONGO_USER =
+- MONGO_PASSWORD =
+
+> Variables with the DBX prefix can be omitted.
 
 The path to the config file should be passed as a command line argument.
 
+### To build follow these steps for now:
+
+- Run `maven clean package -DskipTests`
+- Go to the generated jar and open it using any zip tool
+- Locate `META-INF/org.apache.uima.fit/types.txt`
+- Open `types.txt` and modify the content to:
+
+```
+classpath*:desc/type/*.xml
+classpath*:org/texttechnologylab/types/*.xml
+```
+
+- Save and close
+- Set the correct working directory (where to jar is located)
+- run `java -jar DUUIRestService.jar PATH/TO/config.properties`
+
 ### 1. Metrics
 
-DUUI collects metrics at document level and stores these in DUUIDocument objects for later storage in a
-database. Metrics include:
+DUUI collects metrics at document level and stores these in `DUUIDocument` objects for later storage in a database. Metrics include:
 
 - Status
 - Wait Duration
@@ -31,69 +52,29 @@ database. Metrics include:
 
 These are presented in the Frontend or, if DebugLevel is set to Debug, in the console for a detailed overview.
 
-### 2. Monitoring and Management
+### 2. Monitoring
 
-Since DUUI does not have a Graphical User Interface (GUI) by default, a web-based interface has been created
-to monitor and maintain NLP tools in the browser. This offers an alternative to Java based NLP, that is not
-accessible for inexperienced users.
-In the web-interface first and foremost pipelines can be created by setting a name, a description (optional)
-and settings that influence the pipeline's behavior at run time. Because a pipeline itself doesn't provide any
-actual annotations, Analysis Engines (or components for DUUI) can also be created and maintained for each
-created pipeline.
-
-As components are the actual processors in a pipeline, more fine-grained settings are provided. These settings
-are called options, a set of predefined enhancements like the option to use the GPU or replicate components
-scaling. The other kind of settings are called parameters and offer a way for the user to set additional flags
-or settings relevant to a specific Analysis Engine implementation, that are not known to DUUI in advance.
-Parameters are simply a set of key value pairs that are passed to the AE.
-
-Both components and pipelines can be created from templates, that are either provided by DUUI itself or are
-created by the user and reused. This enhances reusibility because all the relevant settings are copied when a
-tool is copied. Once a pipeline has been created, it can be used to start a so-called process or workflow that
-analysis documents from a given input source and possibly writes the output to a target cloud provider.
+Docker Unified UIMA Interface used simple logging to the console as a way to provide a way of monitoring the state on progress of a pipeline. To allow for more sophisticated logging of important stages and tracking the exact timestamp at which these events occur, an event system has been added. Events can be added at any desired stage of a pipeline by calling the composer’s addEvent method. The method then creates a DUUIEvent object that holds a timestamp, sender, and message. In the addEvent method, the event can be processed further, stored in a database, or simply logged to the console by setting the composer’s DebugLevel which acts as a filter. In the process of adding events in various places, the possibility to cancel a process has been added as well by providing the composer’s shutdown flag in multiple processing steps. Cancelling a process is then done by simply calling the shutdown method on the composer which signals drivers and components to stop as soon as possible. Through the addition of a `DUUIDocument` class, a per file monitoring is achieved. A `DUUIDocument` object not only contains file metadata and content but also tracks many metrics including progress, status, file size, durations for the different steps in the pipeline, and errors.
 
 ### 3. Backend
 
-To reflect database CRUD operations, those methods have beend mapped to routes or endpoints that can be
-reached by users. To manipulate resources in the database the user is asked to provide an authorization method
-like an API key, that has to be generated in the web-interface. All endpoints communicate via REST and
-transfer data in the json format for consistency and ease of conversion for the use with MongoDB. There are
-three path groups that are accesible to users, namely /pipelines, /components, and /processes. For monitoring
-purposes a /metrics endpoint is also available for the use of PrometheusIO.
-These are only the base URLs but may be followed by more specific path elements to call different methods.
-The full list of avaiable endpoints including a description and their possible response codes can be seen in
-the Table X.
+To reflect database CRUD operations, those methods have beend mapped to routes or endpoints that can be reached by users. To manipulate resources in the database the user is asked to provide an authorization method like an API key, that has to be generated in the web-interface. All endpoints communicate via REST and transfer data in the json format for consistency and ease of conversion for the use with MongoDB.
 
-| Method | Endpoint                 | Response Codes | Accept |
-|:-------|--------------------------|----------------|:------:|
-| GET    | /pipelines/:id           | 404, 200       |        |
-| GET    | /pipelines/              | 404, 200       |        |
-| POST   | /pipelines               | 400, 200       |  json  |
-| POST   | /pipelines/start/:id     |                |        |
-| PUT    | /pipeline/stop/:id       |                |        |
-| PUT    | /pipelines/:id           |                |  json  |
-| DELETE | /pipelines/:id           |                |        |
-| GET    | /components/:id          |                |        |
-| GET    | /components              |                |        |
-| POST   | /components              |                |        |
-| PUT    | /components/:id          |                |        |
-| DELETE | /components/:id          |                |        |
-| GET    | /processes/:id           |                |        |
-| GET    | /processes               |                |        |
-| GET    | /processes/:id/events    |                |        |
-| GET    | /processes/:id/documents |                |        |
-| POST   | /processes               |                |  json  |
-| PUT    | /processes/:id           |                |        |
-| DELETE | /processes/:id           |                |        |
-| GET    | /metrics                 |                |        |
+All available endpoints are located in the `Methods.java` file.
 
 ### 4. Data
 
-Processing only text through Java and especially through the web interface quickly becomes unproductive and
-does not make use of DUUI's full potential. The question becomes, where does the (big) data for processing
-come from and where while it go once finished. To provide a solution for fast and simple data flow the
-IDUUIDocumentHandler interface has been implemented. It consists of 6 simple methods for interaction with
-data:
+The addition of the `IDUUIDocumentHandler` interface to DUUI provides easy integration with
+a user’s cloud storage of choice. An implementation of the interface for a specific provider
+includes five basic methods that are used to interact with the API of the service. These five
+methods offer a way to read, write, and list files at a specific location with the option to do so recursively. The read and list methods return DUUIDocuments that are the container for
+the files to be processed while also storing metrics during processing. There is also an im-
+plementation called `DUUILocalDocumentHandler` for reading from and writing to disk. The
+simple interface design allows for the implementation of practically any third party cloud
+storage as a provider as long as an API to interact with the data exists. As a starting point, two cloud storage services namely, Dropbox and MinIO, have been implemented for DUUI.
+Using these implementations requires the user to provide credentials for authorization.
+
+### IDUUIDocumentHandler interface
 
 ```java
 
@@ -116,37 +97,62 @@ public interface IDUUIDocumentHandler {
 }
 ```
 
-where a document is an instance of the DUUIDocument class holding content and metadata of the file to process.
-DUUI provides implementations for read and write operations to and from Dropbox, Min.io (an Amazon s3
-compatible object-storage) and a variant for working locally in the file system. To use these cloud solutions
-the user must authorize DUUI to make requests in their name. For Dropbox this means the user has to go through
-an OAuth2.0 authorization flow on the Dropbox website and grant DUUI access to create a folder in their
-account that is used to perform IO operations. When the user accepts the proposed connection, Dropbox returns
-a one time code, that is used to generate an access token. The token can be sent to Dropbox in requests as
-means of authorization. While this works, it is not practical in the sense that access tokens are only usable
-for a limited amount of time until they have to be generated again. To prevent the user from constantly
-needing to go through the same authorization flow, another strategy is used. The code returned from the flow
-can, in addition to the creation of the access token, also be used to generate a refresh token. A refresh
-token is similar to an access token, but can be used by DUUI to generate a new access token as required. This
-eliminates the need for a repeated authorization while at the same time leaving the possibility to revoke
-access at any point in time. Because DUUI only gets access to a specific folder in the user's Dropbox account
-and authorization can be managed by said user, the usage of Dropbox as a data source and dump is a quick and
-easy way to get started.
+### Example for using a DocumentHandler with DUUI
 
-Minio also requires the user to provide DUUI with an access and secret key for authorized requests. In this
-case the user must create an account for DUUI in their s3 solution and allow DUUI to store both a username
-(access key) and a password (secret key) for a specified endpoint. These credentials can be managed by the
-user and define the scopes and buckets DUUI has access to. There is no need for repeated authorization flows
-as the username and password are sufficient for making authorized requests on the user's behalf.
+```java
 
-Due to the simple design of the DocumentHandler interface other cloud or database providers can easily be
-integrated to extend the supported technologies and target audience. To name a few, OneDrive and Google Drive
-make excellent cloud storage providers that are widely used and secure. The issue with the implementation of
-DocumentHandlers using a database backend is that files are usually not stored in databases directly. Getting
-relevant data from a database requires knowledge about the structure of the database. Identifying data in a
-cloud storage is simply done through the absolute path of the file, but in a database data could be split into
-multiple columns or fields. Querying is challenging when all information is passed in a single string. For
-MongoDB this could be realized by defining the format of the provided path in a way to uniquely identify the
-data to be queried and how to aggregate it.
+DUUIComposer composer = new DUUIComposer()
+.withLuaContext(new DUUILuaContext().withJsonLibrary())
+.withSkipVerification(true)
+// Prints all events with a DebugLevel >= DEBUG
+.withDebugLevel(DUUIComposer.DebugLevel.DEBUG)
+.withWorkers(5)
+.withIgnoreErrors(true);
+
+// Create a DUUIMinioDocumentHandler with an endpoint, username and password
+DUUIMinioDocumentHandler minio = new DUUIMinioDocumentHandler(
+    endpoint,
+    username,
+    password
+);
+
+DUUIDocumentReader reader = ``DUUIDocumentReader
+    .builder(composer)
+    .withInputHandler(minio)
+    .withInputPath("input/sample_txt")
+    .withInputFileExtension(".txt")
+    .withOutputHandler(minio)
+    .withOutputPath("output/xmi")
+    .withOutputFileExtension(".xmi")
+    .withRecursive(true) // Look for documents recursively
+    .withSortBySize(true) // Sort files in ascending order
+    .withCheckTarget(true) // Filter already processed documents
+    .withAddMetadata(true)
+    .withMinimumDocumentSize(1024 * 3) // Files must be at least 3 kB in size
+    .build();
+
+composer.addDriver(new DUUIUIMADriver());
+composer.addDriver(new DUUIDockerDriver());
+
+composer
+    .add(new DUUIUIMADriver.Component(createEngineDescription(BreakIteratorSegmenter.class))
+    .withName("Tokenizer"));
+composer
+    .add(new DUUIDockerDriver.Component("docker.texttechnologylab.org/gervader_duui:latest")
+    .withName("GerVADER"));
+
+composer.run(reader, "example-minio");
+composer.shutdown();
+```
+
+When used in a process with DUUI, a handler is always used by a `DUUIDocumentReader`, a class that is responsible for the pre-processing of documents and managing both read and write operations for the installed handlers. When the composer’s run method for using a `DUUIDocumentReader` is called, file metadata is retrieved by calling the listDocuments method. This initial listing of documents in the source location is followed by multiple filters that may reduce the number of files to be processed, depending on the settings that were passed to the reader. The remaining documents are then stored and processed by one or multiple threads or workers.
+
+The actual file content is stored as raw bytes in a `DUUIDocument` object during processing
+and cleared when the document has been uploaded to the output location or is otherwise fin-
+ished. Clearing the bytes after processing the document is done to reduce peaks in memory
+usage that would occur if all files were stored in memory at once. The final part of writing
+files is planned to be extracted into a separate class (`DUUIDocumentWriter`) in the future but has been implemented here for simplicity.
 
 ### 5. Evaluation
+
+The web interface's perceived usability has been evaluated through a testing process in which different users completed a task and filled out a feedback survey.

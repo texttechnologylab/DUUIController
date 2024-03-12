@@ -1,6 +1,6 @@
 # Structure
 
-A SvelteKit App is split into the two parts lib and routes.
+A SvelteKit App is split into the two parts lib and routes. The website can be found at [https://duui.texttechnologylab.org](https://duui.texttechnologylab.org).
 
 ## Lib
 
@@ -15,3 +15,12 @@ Most `+page.svelte` files are complemented by a `+page.server.ts` file that init
 ## Style and Theme
 
 The basis for styles and themes used in the web interface is [Skeleton](https://www.skeleton.dev) and [tailwindcss](https://tailwindcss.com/). Skeleton is used to define themes and apply basic styling to html elements. tailwindcss is a layer on top of the base styles to further customize the visual representation of elements.
+
+## Running
+
+Before the app can be run make sure to follow these steps:
+
+- Open the console with the current working directory set to .../DUUIWeb
+- Run `npm install`
+- Run `npm run dev -- --open --host`
+- Follow the instructions by Vite in the console
