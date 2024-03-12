@@ -516,12 +516,19 @@
 						<button
 							class="button-neutral"
 							disabled={!minioEndpoint || !minioAccessKey || !minioSecretKey}
-							on:click={() =>
+							on:click={() => {
 								updateUser({
 									'connections.minio.endpoint': minioEndpoint,
 									'connections.minio.access_key': minioAccessKey,
 									'connections.minio.secret_key': minioSecretKey
-								})}
+								})
+
+								if ($userSession && $userSession.connections) {
+									$userSession.connections.minio.endpoint = minioEndpoint
+									$userSession.connections.minio.access_key = minioAccessKey
+									$userSession.connections.minio.secret_key = minioSecretKey
+								}
+							}}
 						>
 							<Fa icon={isMinioConnected ? faRefresh : faLink} />
 							<span>{isMinioConnected ? 'Update' : 'Connect'}</span>
