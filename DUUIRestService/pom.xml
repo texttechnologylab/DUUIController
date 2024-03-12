@@ -8,6 +8,33 @@
     <artifactId>DUUIRestService</artifactId>
     <version>1.0</version>
 
+    <licenses>
+        <license>
+            <name>AGPL-3.0-or-later</name>
+            <url>https://www.gnu.org/licenses/agpl.txt</url>
+            <distribution>repo</distribution>
+            <comments>GNU Affero General Public License v3.0 or later</comments>
+        </license>
+    </licenses>
+
+    <organization>
+        <name>Texttechnology Lab</name>
+        <url>https://www.texttechnologylab.org</url>
+    </organization>
+
+    <developers>
+        <developer>
+            <id>borkowski</id>
+            <name>Cedric Borkowski</name>
+            <email>s2936155@stud.uni-frankfurt.de</email>
+            <!-- <roles>
+                <role>head of department</role>
+            </roles> -->
+        </developer>
+    </developers>
+
+
+
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>

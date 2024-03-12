@@ -42,3 +42,4 @@ Monitoring/*
 temp/*
 DUUIRestService/config.properties
 DUUIRestService/config.ini
+DUUIRestService/configuration.ini
