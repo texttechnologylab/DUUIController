@@ -1,5 +1,6 @@
 package org.texttechnologylab.duui.api.controllers.users;
 
+import com.mongodb.client.result.DeleteResult;
 import org.texttechnologylab.duui.api.Main;
 import org.texttechnologylab.duui.api.controllers.pipelines.DUUIPipelineController;
 import org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage;
@@ -594,7 +595,7 @@ public class DUUIUserController {
     }
 
     /**
-     * Retrieve all feedback from the databse. Only required during the evaluation.
+     * Retrieve all feedback from the database. Only required during the evaluation.
      *
      * @return a json object containing a list of feedback.
      */
@@ -602,8 +603,22 @@ public class DUUIUserController {
         return new Document("feedback", DUUIMongoDBStorage
             .Feedback()
             .find()
-            .projection(Projections.exclude("_id", "name", "message"))
+            .projection(Projections.exclude("_id", "name"))
             .into(new ArrayList<>()))
+            .toJson();
+    }
+
+    /**
+     * Deletes all feedback from the database. Only required during the evaluation.
+     *
+     * @return a json object containing a message with the number of deleted documents.
+     */
+    public static String deleteFeedback(Request request, Response response) {
+        DeleteResult result = DUUIMongoDBStorage
+            .Feedback()
+            .deleteMany(Filters.exists("_id"));
+
+        return new Document("message", String.format("Deleted %d documents.", result.getDeletedCount()))
             .toJson();
     }
 }
