@@ -38,6 +38,7 @@
 	import { flip } from 'svelte/animate'
 	import { v4 as uuidv4 } from 'uuid'
 	import ComponentTemplates from '../../../lib/svelte/components/ComponentTemplates.svelte'
+	import Tip from '$lib/svelte/components/Tip.svelte'
 	const { cloneDeep } = pkg
 
 	export let data
@@ -256,6 +257,15 @@
 					<span>{step <= 1 ? 'Next' : 'Finish'}</span>
 					<Fa icon={step === 2 ? faCheck : faArrowRight} />
 				</button>
+				{#if !((step === 1 && !$currentPipelineStore.name) || (step === 2 && $currentPipelineStore.components.length === 0))}
+					<div
+						class="absolute right-0 -translate-x-full bottom-0 translate-y-[200%] -rotate-45"
+					>
+						<div
+							class="aspect-square animation-alert variant-filled-primary p-4 rounded-b-full rounded-tl-full flex items-center justify-center"
+						/>
+					</div>
+				{/if}
 			</div>
 		</div>
 	{/if}
@@ -330,10 +340,7 @@
 							label="Description"
 							name="pipeline-description"
 						/>
-						<Chips
-							label="Tags"
-							bind:values={$currentPipelineStore.tags}
-						/>
+						<Chips label="Tags" bind:values={$currentPipelineStore.tags} />
 					</div>
 					<div class="section-wrapper">
 						<div class="flex gap-8 items-center p-4 bg-surface-50-900-token border-b border-color">
@@ -436,5 +443,23 @@
 
 	.turn {
 		transform: rotate(180deg);
+	}
+
+	.animation-alert {
+		animation-name: alert;
+		animation-duration: 2s;
+		animation-direction: alternate;
+		animation-iteration-count: infinite;
+	}
+
+	@keyframes alert {
+		0%,
+		100% {
+			transform: scale(1.2);
+		}
+
+		50% {
+			transform: scale(1.5);
+		}
 	}
 </style>

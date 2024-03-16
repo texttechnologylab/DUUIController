@@ -276,6 +276,13 @@
 				<Fa icon={faCheck} />
 				<span>Submit</span>
 			</button>
+			{#if !(starting || !isValidFileStorage || !isValidIO($processSettingsStore.input, $processSettingsStore.output, files, $userSession) || settingsAreValid.length !== 0)}
+				<div class="absolute right-0 -translate-x-full bottom-0 translate-y-[200%] -rotate-45">
+					<div
+						class="aspect-square animation-alert variant-filled-primary p-4 rounded-b-full rounded-tl-full"
+					/>
+				</div>
+			{/if}
 		</div>
 	</div>
 	<div class="p-4 md:p-16 space-y-8 pb-16">
@@ -607,3 +614,23 @@
 		{/if}
 	</div>
 </div>
+
+<style>
+	.animation-alert {
+		animation-name: alert;
+		animation-duration: 2s;
+		animation-direction: alternate;
+		animation-iteration-count: infinite;
+	}
+
+	@keyframes alert {
+		0%,
+		100% {
+			transform: scale(1.2);
+		}
+
+		50% {
+			transform: scale(1.5);
+		}
+	}
+</style>
