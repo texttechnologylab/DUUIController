@@ -2,6 +2,7 @@
 	@component
 	A Dropdown component where one option can be selected.
 -->
+
 <script lang="ts">
 	import { equals, toTitleCase } from '$lib/duui/utils/text'
 	import type { Placement } from '@floating-ui/dom'

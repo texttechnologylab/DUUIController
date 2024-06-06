@@ -33,9 +33,11 @@
 		faCloudUpload,
 		faFileArrowUp
 	} from '@fortawesome/free-solid-svg-icons'
-	import { FileDropzone, ProgressBar, getToastStore } from '@skeletonlabs/skeleton'
+	import {FileDropzone, ProgressBar, getToastStore, TreeViewItem, TreeView} from '@skeletonlabs/skeleton'
 	import { onMount } from 'svelte'
+	import Node from '$lib/svelte/components/Node.svelte'
 	import Fa from 'svelte-fa'
+	import FolderStructure from "$lib/svelte/components/Input/FolderStructure.svelte";
 
 	export let data
 	const { user } = data
@@ -229,6 +231,28 @@
 		isValidFileUpload(fileStorage)
 	$: uploadBucketIsValid = isValidS3BucketName(fileStorage.path)
 	$: $userSession
+
+	let folder = {
+		label: 'root',
+		checked: true,
+		expanded: true,
+		children: [
+			{
+				label: 'node A',
+				expanded: true,
+				children: [{ label: 'node Aa' }, { label: 'node Ab' }]
+			},
+			{ label: 'node B' },
+			{ label: 'node C' },
+			{ label: 'node D' }
+		]
+	};
+
+	let selectedItem: string = ""
+
+	function toggleSelectable(e, item) {
+		selectedItem = item;
+	}
 </script>
 
 <svelte:head>
@@ -364,6 +388,48 @@
 								options={Languages}
 								bind:value={$processSettingsStore.settings.language}
 							/>
+
+							<div>
+								<TreeView>
+<!--									<TreeViewItem-->
+<!--											selectable-->
+<!--											selected={selectedItem === 'images'}-->
+<!--											label="images"-->
+<!--											iconF7="folder_fill"-->
+<!--											onClick={(e) => toggleSelectable(e, 'images')}-->
+<!--									>-->
+<!--										<TreeViewItem-->
+<!--												selectable-->
+<!--												selected={selectedItem === 'avatar.png'}-->
+<!--												label="avatar.png"-->
+<!--												iconF7="photo_fill"-->
+<!--												onClick={(e) => toggleSelectable(e, 'avatar.png')}-->
+<!--										/>-->
+<!--										<TreeViewItem-->
+<!--												selectable-->
+<!--												selected={selectedItem === 'background.jpg'}-->
+<!--												label="background.jpg"-->
+<!--												iconF7="photo_fill"-->
+<!--												onClick={(e) => toggleSelectable(e, 'background.jpg')}-->
+<!--										/>-->
+<!--									</TreeViewItem>-->
+									<TreeViewItem
+											selectable
+											selected={selectedItem === '.gitignore'}
+											label=".gitignore"
+											iconF7="logo_github"
+											onClick={(e) => toggleSelectable(e, '.gitignore')}
+									/>
+									<TreeViewItem
+											selectable
+											selected={selectedItem === 'index.html'}
+											label="index.html"
+											iconF7="doc_text_fill"
+											onClick={(e) => toggleSelectable(e, 'index.html')}
+									/>
+								</TreeView>
+							</div>
+
 
 							{#if equals($processSettingsStore.input.provider, IO.Text)}
 								<TextArea
