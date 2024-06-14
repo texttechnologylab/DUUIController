@@ -31,7 +31,8 @@
 		faCheck,
 		faCloud,
 		faCloudUpload,
-		faFileArrowUp
+		faFileArrowUp,
+		faFolder
 	} from '@fortawesome/free-solid-svg-icons'
 	import {FileDropzone, ProgressBar, getToastStore, TreeViewItem, TreeView} from '@skeletonlabs/skeleton'
 	import { onMount } from 'svelte'
@@ -390,44 +391,31 @@
 							/>
 
 							<div>
-								<TreeView>
-<!--									<TreeViewItem-->
-<!--											selectable-->
-<!--											selected={selectedItem === 'images'}-->
-<!--											label="images"-->
-<!--											iconF7="folder_fill"-->
-<!--											onClick={(e) => toggleSelectable(e, 'images')}-->
-<!--									>-->
-<!--										<TreeViewItem-->
-<!--												selectable-->
-<!--												selected={selectedItem === 'avatar.png'}-->
-<!--												label="avatar.png"-->
-<!--												iconF7="photo_fill"-->
-<!--												onClick={(e) => toggleSelectable(e, 'avatar.png')}-->
-<!--										/>-->
-<!--										<TreeViewItem-->
-<!--												selectable-->
-<!--												selected={selectedItem === 'background.jpg'}-->
-<!--												label="background.jpg"-->
-<!--												iconF7="photo_fill"-->
-<!--												onClick={(e) => toggleSelectable(e, 'background.jpg')}-->
-<!--										/>-->
+
+								<FolderStructure />
+
+<!--								<TreeView selection >-->
+<!--									<TreeViewItem>-->
+<!--										<svelte:fragment slot="lead"><Fa icon={faFolder}  /></svelte:fragment>-->
+<!--										(item 1)-->
+<!--										<svelte:fragment slot="children">-->
+<!--											<TreeViewItem>-->
+<!--												(Child 1)-->
+<!--												<svelte:fragment slot="children">-->
+<!--													<TreeViewItem>-->
+<!--														(Child of Child 1)-->
+<!--													</TreeViewItem>-->
+<!--													<TreeViewItem>-->
+<!--														(Child of Child 2)-->
+<!--													</TreeViewItem>-->
+<!--												</svelte:fragment>-->
+<!--											</TreeViewItem>-->
+<!--											<TreeViewItem>-->
+<!--												(Child 2)-->
+<!--											</TreeViewItem>-->
+<!--										</svelte:fragment>-->
 <!--									</TreeViewItem>-->
-									<TreeViewItem
-											selectable
-											selected={selectedItem === '.gitignore'}
-											label=".gitignore"
-											iconF7="logo_github"
-											onClick={(e) => toggleSelectable(e, '.gitignore')}
-									/>
-									<TreeViewItem
-											selectable
-											selected={selectedItem === 'index.html'}
-											label="index.html"
-											iconF7="doc_text_fill"
-											onClick={(e) => toggleSelectable(e, 'index.html')}
-									/>
-								</TreeView>
+<!--								</TreeView>-->
 							</div>
 
 
