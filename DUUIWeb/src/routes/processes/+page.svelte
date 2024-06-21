@@ -22,6 +22,7 @@
 	import { processSettingsStore, userSession } from '$lib/store.js'
 	import Checkbox from '$lib/svelte/components/Input/Checkbox.svelte'
 	import Dropdown from '$lib/svelte/components/Input/Dropdown.svelte'
+	import FolderStructure from "$lib/svelte/components/Input/FolderStructure.svelte";
 	import Number from '$lib/svelte/components/Input/Number.svelte'
 	import TextArea from '$lib/svelte/components/Input/TextArea.svelte'
 	import TextInput from '$lib/svelte/components/Input/TextInput.svelte'
@@ -31,14 +32,12 @@
 		faCheck,
 		faCloud,
 		faCloudUpload,
-		faFileArrowUp,
-		faFolder
+		faFileArrowUp
 	} from '@fortawesome/free-solid-svg-icons'
-	import {FileDropzone, ProgressBar, getToastStore, TreeViewItem, TreeView} from '@skeletonlabs/skeleton'
-	import { onMount } from 'svelte'
-	import Node from '$lib/svelte/components/Node.svelte'
 	import Fa from 'svelte-fa'
-	import FolderStructure from "$lib/svelte/components/Input/FolderStructure.svelte";
+	import {FileDropzone, ProgressBar, getToastStore} from '@skeletonlabs/skeleton'
+	import { onMount } from 'svelte'
+
 
 	export let data
 	const { user } = data
@@ -232,28 +231,6 @@
 		isValidFileUpload(fileStorage)
 	$: uploadBucketIsValid = isValidS3BucketName(fileStorage.path)
 	$: $userSession
-
-	let folder = {
-		label: 'root',
-		checked: true,
-		expanded: true,
-		children: [
-			{
-				label: 'node A',
-				expanded: true,
-				children: [{ label: 'node Aa' }, { label: 'node Ab' }]
-			},
-			{ label: 'node B' },
-			{ label: 'node C' },
-			{ label: 'node D' }
-		]
-	};
-
-	let selectedItem: string = ""
-
-	function toggleSelectable(e, item) {
-		selectedItem = item;
-	}
 </script>
 
 <svelte:head>
@@ -391,31 +368,7 @@
 							/>
 
 							<div>
-
 								<FolderStructure />
-
-<!--								<TreeView selection >-->
-<!--									<TreeViewItem>-->
-<!--										<svelte:fragment slot="lead"><Fa icon={faFolder}  /></svelte:fragment>-->
-<!--										(item 1)-->
-<!--										<svelte:fragment slot="children">-->
-<!--											<TreeViewItem>-->
-<!--												(Child 1)-->
-<!--												<svelte:fragment slot="children">-->
-<!--													<TreeViewItem>-->
-<!--														(Child of Child 1)-->
-<!--													</TreeViewItem>-->
-<!--													<TreeViewItem>-->
-<!--														(Child of Child 2)-->
-<!--													</TreeViewItem>-->
-<!--												</svelte:fragment>-->
-<!--											</TreeViewItem>-->
-<!--											<TreeViewItem>-->
-<!--												(Child 2)-->
-<!--											</TreeViewItem>-->
-<!--										</svelte:fragment>-->
-<!--									</TreeViewItem>-->
-<!--								</TreeView>-->
 							</div>
 
 

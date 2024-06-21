@@ -16,6 +16,7 @@
 
     export let label: string = ''
     export let name: string = label
+    export let isMultiple = false
 
     export let options: string[] | number[] = []
     export let value: string | number = ""
@@ -100,7 +101,7 @@
     }
 
     let displayCheckedNodes = (nodes: string[]) => {
-        let filtered = checkedNodes.filter(x => !getNode(myTreeViewNodes, x)?.children)
+        let filtered = checkedNodes.filter(x => !getNode(myTreeViewNodes, x)?.children || !isMultiple)
         return filtered.map((x) => " " + getNode(myTreeViewNodes, x).content)
     }
 
@@ -122,9 +123,8 @@
 <div data-popup={name}>
     <div class="popup-solid p-1 md:min-w-[768px]">
         <RecursiveTreeView
-            selection
-            multiple
-            relational
+            multiple={isMultiple}
+            relational={true}
             bind:checkedNodes={checkedNodes}
             bind:indeterminateNodes={indeterminateNodes}
             nodes={myTreeViewNodes}
