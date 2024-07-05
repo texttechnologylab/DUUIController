@@ -86,6 +86,20 @@ public class DUUIUserController {
         return projection.get("connections", Document.class).get("minio", Document.class);
     }
 
+    public static Document getNextCloudCredentials(Document user) {
+        Document projection = DUUIMongoDBStorage
+                .Users()
+                .find(Filters.eq(user.getObjectId("_id")))
+                .projection(Projections.include("connections.nextcloud"))
+                .first();
+
+        if (isNullOrEmpty(projection)) {
+            return new Document();
+        }
+
+        return projection.get("connections", Document.class).get("nextcloud", Document.class);
+    }
+
     /**
      * Get a user by id.
      *
@@ -196,7 +210,7 @@ public class DUUIUserController {
         }
 
         Document body = Document.parse(request.body());
-
+        System.out.println(body.toJson());
         String email = body.getString("email");
         if (email.isEmpty())
             return missingField(response, "email");
@@ -222,6 +236,7 @@ public class DUUIUserController {
                 .append("worker_count", role.equalsIgnoreCase(Role.ADMIN) ? 10000 : 500)
                 .append("dropbox", new Document("access_token", null).append("refresh_token", null))
                 .append("minio", new Document("endpoint", null).append("access_key", null).append("secret_key", null))
+                .append("nextcloud", new Document("uri", null).append("username", null).append("password", null))
             );
 
         DUUIMongoDBStorage
@@ -391,6 +406,8 @@ public class DUUIUserController {
         }
 
         Document body = Document.parse(request.body());
+        System.out.println(body.toJson());
+
         String id = request.params(":id");
 
         List<Bson> __updates = new ArrayList<>();
@@ -398,7 +415,7 @@ public class DUUIUserController {
 
 
         for (Map.Entry<String, Object> entry : body.entrySet()) {
-            if (!ALLOWED_UPDATES.contains(entry.getKey())) {
+            if (!ALLOWED_UPDATES.contains(entry.getKey()) && !entry.getKey().contains("nextcloud")) {
                 response.status(400);
                 return new Document("error", "Bad Request")
                     .append("message",

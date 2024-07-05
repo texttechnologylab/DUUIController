@@ -53,6 +53,7 @@
     "lodash": "^4.17.21",
     "svelte-apexcharts": "^1.0.2",
     "svelte-fa": "^3.0.4",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "google-auth-library": "^8.8.0"
   }
 }

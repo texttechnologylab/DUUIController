@@ -534,6 +534,12 @@ public class DUUIProcessController {
 
         } else if (provider.equalsIgnoreCase(Provider.FILE)) {
             return new DUUILocalDocumentHandler();
+        } else if (provider.equalsIgnoreCase(Provider.NEXTCLOUD)) {
+            Document credentials = DUUIUserController.getNextCloudCredentials(user);
+            return  new DUUINextcloudDocumentHandler(
+                        credentials.getString("uri"),
+                        credentials.getString("username"),
+                        credentials.getString("password"));
         }
 
         return null;

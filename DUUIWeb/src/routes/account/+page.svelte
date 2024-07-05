@@ -1,4 +1,5 @@
 <script lang="ts">
+
 	import { page } from '$app/stores'
 	import { COLORS } from '$lib/config.js'
 	import { successToast } from '$lib/duui/utils/ui.js'
@@ -7,7 +8,6 @@
 	import Secret from '$lib/svelte/components/Input/Secret.svelte'
 	import Text from '$lib/svelte/components/Input/TextInput.svelte'
 	import { showConfirmationModal } from '$lib/svelte/utils/modal.js'
-
 	import { goto } from '$app/navigation'
 	import {
 		faAdd,
@@ -46,10 +46,6 @@
 		$userSession.connections = user.connections
 	}
 
-	let minioAccessKey: string = $userSession?.connections.minio.access_key || ''
-	let minioEndpoint: string = $userSession?.connections.minio.endpoint || ''
-	let minioSecretKey: string = $userSession?.connections.minio.secret_key || ''
-
 	$: isDropboxConnected =
 		!!$userSession?.connections.dropbox.access_token &&
 		!!$userSession.connections.dropbox.refresh_token
@@ -58,6 +54,27 @@
 		!!$userSession?.connections.minio.endpoint &&
 		!!$userSession?.connections.minio.access_key &&
 		!!$userSession?.connections.minio.secret_key
+
+	let minioAccessKey: string = $userSession?.connections.minio.access_key || ''
+	let minioEndpoint: string = $userSession?.connections.minio.endpoint || ''
+	let minioSecretKey: string = $userSession?.connections.minio.secret_key || ''
+
+	$: isNextCloudConnected =
+		!!$userSession?.connections.nextcloud &&
+		!!$userSession?.connections.nextcloud.uri &&
+		!!$userSession?.connections.nextcloud.username &&
+		!!$userSession?.connections.nextcloud.password
+
+	let nextcloudEndpoint: string = $userSession?.connections.nextcloud?.uri || ''
+	let nextcloudUsername: string = $userSession?.connections.nextcloud?.username || ''
+	let nextcloudPassword: string = $userSession?.connections.nextcloud?.password || ''
+
+	$: isGoogleDriveConnected =
+		!!$userSession?.connections.googleDrive &&
+		!!$userSession?.connections.googleDrive.access_token &&
+		!!$userSession?.connections.googleDrive.refresh_token &&
+		!!$userSession?.connections.googleDrive.id_token
+
 
 	$: hasApiKey = !!$userSession?.connections.key
 
@@ -91,7 +108,10 @@
 	}
 
 	const updateUser = async (data: object) => {
-		const response = await fetch('/api/users', { method: 'PUT', body: JSON.stringify(data) })
+		let req = { method: 'PUT', body: JSON.stringify(data) }
+		console.log(req)
+		const response = await fetch('/api/users', req)
+
 		if (response.ok) {
 			toastStore.trigger(successToast('Update successful'))
 		}
@@ -187,6 +207,40 @@
 		}
 	}
 
+	const startGoogleDriveAccess = async () => {
+		window.location.href = "http://localhost:5173/auth/googledrive/"
+	}
+
+	const deleteGoogleDriveAccess = async () => {
+		const confirm = await showConfirmationModal(
+			{
+				title: 'Delete Access for Google Drive',
+				message: `Are you sure you want to revoke access?
+					 You will have to go through the OAuth process again to reconnect.`,
+				textYes: 'Delete'
+			},
+			modalStore
+		)
+
+		if (!confirm) return
+
+		const response = await updateUser({
+			'connections.googleDrive.access_token': null,
+			'connections.googleDrive.refresh_token': null,
+			'connections.googleDrive.id_token': null,
+			'connections.googleDrive.scope': null,
+			'connections.googleDrive.expires_date': null
+		})
+
+		if (response.ok && $userSession && $userSession.connections.googleDrive) {
+			$userSession.connections.googleDrive.access_token = null
+			$userSession.connections.googleDrive.refresh_token = null
+			$userSession.connections.googleDrive.id_token = null
+			$userSession.connections.googleDrive.scope = null
+			$userSession.connections.googleDrive.expires_date = null
+		}
+	}
+
 	const revokeMinioAccess = async () => {
 		const confirm = await showConfirmationModal(
 			{
@@ -214,6 +268,36 @@
 				$userSession.connections.minio.endpoint = null
 				$userSession.connections.minio.access_key = null
 				$userSession.connections.minio.secret_key = null
+			}
+		}
+	}
+	const revokeNextcloudAccess = async () => {
+		const confirm = await showConfirmationModal(
+			{
+				title: 'Delete Access for NextCloud',
+				message: `Are you sure you want to delete access?`,
+				textYes: 'Delete'
+			},
+			modalStore
+		)
+
+		if (!confirm) return
+
+		const response = await updateUser({
+			'connections.nextcloud.uri': null,
+			'connections.nextcloud.username': null,
+			'connections.nextcloud.password': null
+		})
+
+		if (response.ok) {
+			nextcloudEndpoint = ''
+			nextcloudUsername = ''
+			nextcloudPassword = ''
+
+			if ($userSession && $userSession.connections.nextcloud) {
+				$userSession.connections.nextcloud.uri = null
+				$userSession.connections.nextcloud.username = null
+				$userSession.connections.nextcloud.password = null
 			}
 		}
 	}
@@ -545,6 +629,118 @@
 						<a href="https://min.io/" target="_blank" class="anchor">Minio</a>
 						for further reading.
 					</p>
+				</div>
+				<div class="section-wrapper p-8 grid grid-rows-[auto_1fr_auto] gap-8">
+					<h2 class="h3 scroll-mt-16" id="minio">NextCloud</h2>
+					<div class="space-y-4">
+						{#if isNextCloudConnected}
+							<p>Your account has been connected to NextCloud successfully.</p>
+						{:else}
+							<p>Enter your NextCloud credentials below to establish a connection.</p>
+						{/if}
+<!--							help="The correct endpoint is the s3 API endpoint. Do not use the Minio Console endpoint!"-->
+						<Text
+							label="Endpoint"
+							style="grow"
+							name="endpoint"
+							bind:value={nextcloudEndpoint}
+						/>
+						<Secret label="Username (Access Key)" name="accessKey" bind:value={nextcloudUsername} />
+						<Secret label="Password (Secret Key)" name="secretKey" bind:value={nextcloudPassword} />
+					</div>
+					<div class="grid md:flex justify-between gap-4">
+						<button
+							class="button-neutral"
+							disabled={!nextcloudEndpoint || !nextcloudUsername || !nextcloudPassword}
+							on:click={() => {
+								updateUser({
+									'connections.nextcloud.uri': nextcloudEndpoint,
+									'connections.nextcloud.username': nextcloudUsername,
+									'connections.nextcloud.password': nextcloudPassword
+								})
+
+								if ($userSession && $userSession.connections.nextcloud) {
+									$userSession.connections.nextcloud.uri = nextcloudEndpoint
+									$userSession.connections.nextcloud.username = nextcloudUsername
+									$userSession.connections.nextcloud.password = nextcloudPassword
+								}
+							}}
+						>
+							<Fa icon={isNextCloudConnected ? faRefresh : faLink} />
+							<span>{isNextCloudConnected ? 'Update' : 'Connect'}</span>
+						</button>
+						{#if isNextCloudConnected}
+							<button class="button-error" on:click={revokeNextcloudAccess}>
+								<Fa icon={faXmarkCircle} />
+								<span>Delete</span>
+							</button>
+						{/if}
+					</div>
+<!--					<p class="text-surface-500 dark:text-surface-200">-->
+<!--						Visit-->
+<!--						<a href="https://min.io/" target="_blank" class="anchor">NextCloud</a>-->
+<!--						for further reading.-->
+<!--					</p>-->
+				</div>
+				<div class="section-wrapper p-8 grid grid-rows-[auto_1fr_auto] gap-8">
+					<h2 class="h3 scroll-mt-16" id="dropbox">Google Drive</h2>
+					<div class="space-y-8">
+						{#if isGoogleDriveConnected}
+							<div>
+								<p>Your Google Drive account has been connected successfully.</p>
+								<p>
+									The folder <span class="badge px-2 mx-2 variant-soft-primary"
+								>Apps/Docker Unified UIMA Interface</span
+								> has been created.
+								</p>
+							</div>
+							<div>
+								<p class="flex-center-4">
+									<Fa icon={faCheck} size="lg" class="text-primary-500" />
+									<span
+									>Read files and folders contained in your <strong>Google Drive Account</strong>
+									</span>
+								</p>
+								<p class="flex-center-4 mb-4">
+									<Fa icon={faCheck} size="lg" class="text-primary-500" />
+									<span>Create files and folders in your <strong>Google Drive Account</strong> </span>
+								</p>
+							</div>
+							<div class="grid md:flex justify-between gap-4">
+								<form method="POST" action="/auth/googleDrive">
+									<button class="button-neutral" type="submit" >
+										<Fa icon={faLink} />
+										<span>Reconnect</span>
+									</button>
+								<form/>
+								<button class="button-error" on:click={deleteGoogleDriveAccess}>
+									<Fa icon={faXmarkCircle} />
+									<span>Delete</span>
+								</button>
+							</div>
+						{:else}
+							<p class="mb-8">
+								By connecting Google Drive and DUUI you can directly read and write data from and to your
+								Google Drive storage.
+							</p>
+							<div class="space-y-2">
+								<p class="flex items-center gap-[22px]">
+									<Fa icon={faFileText} size="lg" class="text-primary-500" />
+									<span
+									>Read files and folders contained in your <strong>Google Drive Storage</strong>
+									</span>
+								</p>
+								<p class="flex-center-4 mb-4">
+									<Fa icon={faFilePen} size="lg" class="text-primary-500" />
+									<span>Create files and folders in your <strong>Google Drive Storage</strong> </span>
+								</p>
+							</div>
+								<button class="button-neutral" on:click={startGoogleDriveAccess}>
+									<Fa icon={faLink} />
+									<span>Connect</span>
+								</button>
+						{/if}
+					</div>
 				</div>
 			</div>
 		{:else if tab === 2}

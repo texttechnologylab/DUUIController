@@ -1,10 +1,33 @@
-import { API_URL } from '$env/static/private'
+
+import { API_URL, SECRET_CLIENT_ID, SECRET_CLIENT_SECRET } from '$env/static/private'
 import { handleLoginRedirect } from '$lib/utils'
 import { fail, redirect } from '@sveltejs/kit'
 import { DropboxAuth } from 'dropbox'
 import type { PageServerLoad } from './$types'
+import { OAuth2Client } from 'google-auth-library'
+
+// export const actions = {
+// 	OAuth2: async ({}) => {
+// 		alert("sadfasdfasdf")
+// 		console.log("asdfsdfasdf")
+// 		const redirectURL = 'http://localhost:5173/account/auth/googledrive/';
+// 		const oAuth2Client = new  OAuth2Client(
+// 			SECRET_CLIENT_ID,
+// 			SECRET_CLIENT_SECRET,
+// 			redirectURL);
+//
+// 		const authorizeUrl = oAuth2Client.generateAuthUrl({
+// 			access_type: 'offline',
+// 			scope: 'https://www.googleapis.com/auth/userinfo.profile openid',
+// 			prompt: 'consent'
+// 		});
+//
+// 		throw redirect(302, authorizeUrl);
+// 	}
+// }
 
 export const load: PageServerLoad = async ({ locals, cookies, url }) => {
+	console.log('load', locals, cookies, url)
 	if (!locals.user) {
 		redirect(302, handleLoginRedirect(url))
 	}

@@ -40,6 +40,19 @@ interface UserProperties {
 			username: string | null
 			password: string | null
 		}
+		nextcloud?: {
+			uri: string | null
+			username: string | null
+			password: string | null
+		}
+		googleDrive?: {
+			access_token: string | null
+			refresh_token: string | null
+			scope: string | null
+			token_type: string | null
+			id_token: string | null
+			expires_date: number | null
+		}
 	}
 }
 
