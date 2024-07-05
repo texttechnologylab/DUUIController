@@ -130,6 +130,7 @@ public class Methods {
                     halt(401, "Unauthorized");
                 }
             });
+            get("/folderstructure/:id/:provider", DUUIProcessRequestHandler::getFolderStructure);
             get("/:id", DUUIProcessRequestHandler::findOne);
             get("", DUUIProcessRequestHandler::findMany);
             post("", DUUIProcessRequestHandler::start);

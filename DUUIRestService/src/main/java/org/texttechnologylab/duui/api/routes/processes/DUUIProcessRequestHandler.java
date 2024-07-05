@@ -1,7 +1,10 @@
 package org.texttechnologylab.duui.api.routes.processes;
 
+import com.dropbox.core.DbxException;
 import com.mongodb.client.model.Filters;
 import org.bson.Document;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.IDUUIDocumentHandler;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.IDUUIFolderPickerApi;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
 import org.texttechnologylab.duui.api.controllers.documents.DUUIDocumentController;
 import org.texttechnologylab.duui.api.controllers.events.DUUIEventController;
@@ -23,6 +26,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static org.texttechnologylab.duui.api.controllers.processes.DUUIProcessController.findOneById;
+import static org.texttechnologylab.duui.api.controllers.processes.DUUIProcessController.getHandler;
 
 /**
  * A class that is responsible for handling incoming requests to the /processes path group.
@@ -30,6 +34,22 @@ import static org.texttechnologylab.duui.api.controllers.processes.DUUIProcessCo
  * @author Cedric Borkowksi
  */
 public class DUUIProcessRequestHandler {
+
+    public static String getFolderStructure(Request request, Response response) throws DbxException {
+        String id = request.params(":id");
+        String provider = request.params(":provider");
+
+        IDUUIDocumentHandler handler = getHandler(provider, id);
+
+        if (handler instanceof IDUUIFolderPickerApi) {
+            Document document = new Document(((IDUUIFolderPickerApi) handler).getFolderStructure().toJson());
+
+            response.status(200);
+            return document.toJson();
+        }
+
+        return DUUIRequestHelper.notFound(response);
+    }
 
     /**
      * Retrieve a process given its id.

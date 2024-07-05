@@ -35,7 +35,7 @@
 		faFileArrowUp
 	} from '@fortawesome/free-solid-svg-icons'
 	import Fa from 'svelte-fa'
-	import {FileDropzone, ProgressBar, getToastStore} from '@skeletonlabs/skeleton'
+	import { FileDropzone, ProgressBar, getToastStore, type TreeViewNode } from '@skeletonlabs/skeleton'
 	import { onMount } from 'svelte'
 
 
@@ -118,8 +118,8 @@
 	let onCancelURL =
 		$page.url.searchParams.get('from') || `/pipelines/${$processSettingsStore.pipeline_id}`
 
-	let starting: boolean = false
-	let uploading: boolean = false
+	let starting = false
+	let uploading = false
 
 	let fileStorage = {
 		storeFiles: false,
@@ -231,6 +231,54 @@
 		isValidFileUpload(fileStorage)
 	$: uploadBucketIsValid = isValidS3BucketName(fileStorage.path)
 	$: $userSession
+
+
+	let tree: TreeViewNode | null = {
+		id: '1',
+		content: 'Folder 1',
+		children: [
+			{
+				id: '2',
+				content: 'Folder 2'
+			},
+			{
+				id: '3',
+				content: 'Folder 3'
+			},
+			{
+				id: '4',
+				content: 'Folder 4',
+				children: [
+					{
+						id: '6',
+						content: 'Folder 6'
+					},
+					{
+						id: '7',
+						content: 'Folder 7'
+					}
+				]
+			}
+		]
+	}
+
+
+	async function getFolderStructure(provider: IOProvider) {
+		const response = await fetch('/api/processes/folderstructure',
+			{
+				method: 'POST',
+				body: JSON.stringify({provider: provider, user: $userSession?.oid})
+			})
+
+		if (response.ok) {
+			tree = await response.json()
+			console.log(tree)
+		} else {
+			tree = null
+		}
+	}
+
+
 </script>
 
 <svelte:head>
@@ -349,6 +397,7 @@
 										label="Source"
 										options={IO_INPUT}
 										bind:value={$processSettingsStore.input.provider}
+										on:change={(e) => getFolderStructure($processSettingsStore.input.provider)}
 									/>
 								</div>
 								{#if !equals($processSettingsStore.input.provider, IO.Text)}
@@ -366,11 +415,6 @@
 								options={Languages}
 								bind:value={$processSettingsStore.settings.language}
 							/>
-
-							<div>
-								<FolderStructure />
-							</div>
-
 
 							{#if equals($processSettingsStore.input.provider, IO.Text)}
 								<TextArea
@@ -435,14 +479,24 @@
 								/>
 							{:else}
 								<div>
-									<TextInput
-										label="Relative path"
-										name="inputPath"
-										bind:value={$processSettingsStore.input.path}
-										error={$processSettingsStore.input.path === '/'
-											? 'Provide an empty path to select the root folder.'
-											: ''}
-									/>
+									{#if tree}
+										<TextInput
+											label="Relative path"
+											name="inputPath"
+											bind:value={$processSettingsStore.input.path}
+											error={$processSettingsStore.input.path === '/'
+												? 'Provide an empty path to select the root folder.'
+												: ''}
+										/>
+									{:else }
+										<FolderStructure
+											tree={tree}
+											label="Folder Picker"
+											name="inputPaths"
+											isMultiple={true}
+											bind:value={$processSettingsStore.input.path}
+										/>
+									{/if}
 									<Tip>Do not include Apps/Docker Unified UIMA Interface in your path!</Tip>
 								</div>
 							{/if}
@@ -558,16 +612,27 @@
 									name="output-folder"
 									bind:value={$processSettingsStore.output.path}
 								/>
-							{:else if equals($processSettingsStore.output.provider, IO.Dropbox)}
+							{:else if equals($processSettingsStore.output.provider, IO.Dropbox)
+									   || equals($processSettingsStore.output.provider, IO.NextCloud)}
 								<div>
-									<TextInput
-										label="Path"
-										name="output-folder"
-										error={['/', ''].includes($processSettingsStore.output.path)
-											? 'Writing to the root folder is not possible.'
-											: ''}
-										bind:value={$processSettingsStore.output.path}
-									/>
+									{#if !tree }
+										<TextInput
+											label="Relative path"
+											name="inputPath"
+											bind:value={$processSettingsStore.input.path}
+											error={$processSettingsStore.input.path === '/'
+												? 'Provide an empty path to select the root folder.'
+												: ''}
+										/>
+									{:else}
+										<FolderStructure
+											tree={tree}
+											label="Folder Picker"
+											name="inputPaths"
+											isMultiple={false}
+											bind:value={$processSettingsStore.output.path}
+										/>
+									{/if}
 									<Tip>Do not include Apps/Docker Unified UIMA Interface in your path!</Tip>
 								</div>
 							{/if}

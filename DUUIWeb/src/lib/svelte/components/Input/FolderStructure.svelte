@@ -4,11 +4,11 @@
 -->
 
 <script lang="ts">
-    import { equals, toTitleCase } from '$lib/duui/utils/text'
+    import { equals } from '$lib/duui/utils/text'
     import type { Placement } from '@floating-ui/dom'
     import {faCheck, faFolder, faChevronDown, type IconDefinition} from '@fortawesome/free-solid-svg-icons'
-    import { ListBox, ListBoxItem, popup, type PopupSettings } from '@skeletonlabs/skeleton'
-    import { TreeView, TreeViewItem, RecursiveTreeView, type TreeViewNode } from '@skeletonlabs/skeleton'
+    import { popup, type PopupSettings } from '@skeletonlabs/skeleton'
+    import { RecursiveTreeView, type TreeViewNode } from '@skeletonlabs/skeleton'
     import FolderIcon from "$lib/svelte/components/FolderIcon.svelte";
 
     import Fa from 'svelte-fa'
@@ -18,17 +18,18 @@
     export let name: string = label
     export let isMultiple = false
 
-    export let options: string[] | number[] = []
     export let value: string | number = ""
 
     export let placement: Placement = 'bottom-start'
 
     export let offset: number = 4
 
-    export let style: string = 'input-wrapper'
-    export let rounded: string = 'rounded-md'
-    export let border: string = 'border'
-    export let textAlign: string = 'text-start'
+    export let tree: TreeViewNode
+
+    // export let style: string = 'input-wrapper'
+    // export let rounded: string = 'rounded-md'
+    // export let border: string = 'border'
+    // export let textAlign: string = 'text-start'
 
     let icon: IconDefinition = faFolder
 
@@ -43,41 +44,22 @@
     }
 
     let checkedNodes : string[] = []
+    let prevNode: string = ""
     let indeterminateNodes: string[] = []
 
-    let myTreeViewNodes: TreeViewNode[] = [
-        {
-            id: '1',
-            content: 'Folder 1',
-            children: [
-                {
-                    id: '2',
-                    content: 'Folder 2'
-                },
-                {
-                    id: '3',
-                    content: 'Folder 3'
-                }
-            ]
-        },
-        {
-            id: '4',
-            content: 'Folder 5'
-        }
-    ]
-    // myTreeViewNodes[0]["unique-id"].children[0].lead = FolderIcon
-
-    let addFolderIcon = (node: TreeViewNode) => {
+    let myTreeViewNodes: TreeViewNode[] = [tree]
+    let addFolderIcon = (node: TreeViewNode, height: number) => {
         node.lead = FolderIcon
         if (node.children) {
             for (let child of node.children) {
-                addFolderIcon(child)
+                addFolderIcon(child, height + 1)
             }
         }
     }
 
     for (let node of myTreeViewNodes) {
-        addFolderIcon(node)
+        addFolderIcon(node, 1)
+
     }
 
     let getNode = (nodes: TreeViewNode[], id: string) => {
@@ -101,8 +83,26 @@
     }
 
     let displayCheckedNodes = (nodes: string[]) => {
-        let filtered = checkedNodes.filter(x => !getNode(myTreeViewNodes, x)?.children || !isMultiple)
-        return filtered.map((x) => " " + getNode(myTreeViewNodes, x).content)
+        if (isMultiple) {
+            for (let i = 0; i < indeterminateNodes.length; i++) {
+                let n = indeterminateNodes[i]
+                let k = checkedNodes.indexOf(n)
+                if (k > -1) {
+                    checkedNodes.splice(k, 1)
+                }
+            }
+
+            value = checkedNodes.map((x) => getNode(myTreeViewNodes, x).content).join(", ")
+        } else {
+            if (checkedNodes.length > 0) {
+                if (checkedNodes.length > 1 && equals(prevNode, checkedNodes[0])) checkedNodes.shift()
+                if (checkedNodes.length > 1 && equals(prevNode, checkedNodes[1])) checkedNodes.pop()
+                value = getNode(myTreeViewNodes, checkedNodes[0]).content
+                prevNode = checkedNodes[0]
+            }
+        }
+
+        return value;
     }
 
 </script>
@@ -123,10 +123,12 @@
 <div data-popup={name}>
     <div class="popup-solid p-1 md:min-w-[768px]">
         <RecursiveTreeView
+            selection
             multiple={isMultiple}
-            relational={true}
+            relational={false}
             bind:checkedNodes={checkedNodes}
             bind:indeterminateNodes={indeterminateNodes}
+
             nodes={myTreeViewNodes}
 
         />

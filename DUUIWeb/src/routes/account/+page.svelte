@@ -631,7 +631,7 @@
 					</p>
 				</div>
 				<div class="section-wrapper p-8 grid grid-rows-[auto_1fr_auto] gap-8">
-					<h2 class="h3 scroll-mt-16" id="minio">NextCloud</h2>
+					<h2 class="h3 scroll-mt-16" id="nextcloud">NextCloud</h2>
 					<div class="space-y-4">
 						{#if isNextCloudConnected}
 							<p>Your account has been connected to NextCloud successfully.</p>
@@ -683,7 +683,7 @@
 <!--					</p>-->
 				</div>
 				<div class="section-wrapper p-8 grid grid-rows-[auto_1fr_auto] gap-8">
-					<h2 class="h3 scroll-mt-16" id="dropbox">Google Drive</h2>
+					<h2 class="h3 scroll-mt-16" id="googledrive">Google Drive</h2>
 					<div class="space-y-8">
 						{#if isGoogleDriveConnected}
 							<div>
