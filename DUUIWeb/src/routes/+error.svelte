@@ -12,9 +12,8 @@
 			<p>{$page.error?.message}</p>
 		</div>
 		<p class="font-bold">
-			It seems there has been an error on the Server when trying to reach <span
-				>{$page.url.pathname}</span
-			>.
+			It seems there has been an error on the Server when trying to reach
+			<span>{$page.url.pathname}</span>.
 		</p>
 	</div>
 </div>
