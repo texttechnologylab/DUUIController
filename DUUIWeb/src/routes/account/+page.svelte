@@ -523,8 +523,8 @@
 							<div>
 								<p class="flex-center-4">
 									<Fa icon={faCheck} size="lg" class="text-primary-500" />
-									<span
-										>Read files and folders contained in your <strong>Dropbox Account</strong>
+									<span>
+										Read files and folders contained in your <strong>Dropbox Account</strong>
 									</span>
 								</p>
 								<p class="flex-center-4 mb-4">
