@@ -132,6 +132,11 @@ public class DUUIUserController {
             .find(Filters.eq(id))
             .projection(Projections.include(mergedFields))
             .first();
+
+    }
+
+    public static void main(String[] args) {
+        System.out.println(new ObjectId("66879a2e5c9a36692cab46c0"));
     }
 
     /**

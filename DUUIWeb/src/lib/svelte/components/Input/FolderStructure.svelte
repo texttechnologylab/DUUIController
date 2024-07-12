@@ -24,7 +24,7 @@
 
     export let offset: number = 4
 
-    export let tree: TreeViewNode
+    export let tree: TreeViewNode | null = null
 
     // export let style: string = 'input-wrapper'
     // export let rounded: string = 'rounded-md'
@@ -46,18 +46,21 @@
     let checkedNodes : string[] = []
     let prevNode: string = ""
     let indeterminateNodes: string[] = []
+    let parentNodes = {}
 
     let myTreeViewNodes: TreeViewNode[] = [tree]
     let addFolderIcon = (node: TreeViewNode, height: number) => {
         node.lead = FolderIcon
         if (node.children) {
             for (let child of node.children) {
+                parentNodes[child.id] = node.id
                 addFolderIcon(child, height + 1)
             }
         }
     }
 
     for (let node of myTreeViewNodes) {
+        parentNodes[node.id] = node.id
         addFolderIcon(node, 1)
 
     }
@@ -82,27 +85,29 @@
         return null;
     }
 
-    let displayCheckedNodes = (nodes: string[]) => {
-        if (isMultiple) {
-            for (let i = 0; i < indeterminateNodes.length; i++) {
-                let n = indeterminateNodes[i]
-                let k = checkedNodes.indexOf(n)
-                if (k > -1) {
-                    checkedNodes.splice(k, 1)
-                }
-            }
+    let displayCheckedNodes = (nodes: string[], inde: string[]) => {
+        let v
 
-            value = checkedNodes.map((x) => getNode(myTreeViewNodes, x).content).join(", ")
-        } else {
-            if (checkedNodes.length > 0) {
-                if (checkedNodes.length > 1 && equals(prevNode, checkedNodes[0])) checkedNodes.shift()
-                if (checkedNodes.length > 1 && equals(prevNode, checkedNodes[1])) checkedNodes.pop()
-                value = getNode(myTreeViewNodes, checkedNodes[0]).content
-                prevNode = checkedNodes[0]
+        if (isMultiple) {
+            let isInIndeterminates = (id) => {
+                return inde.includes(id)
             }
+            let filtered = nodes
+              .filter((x) => parentNodes[x] === x || isInIndeterminates(parentNodes[x]))
+            value = filtered.join(",")
+            v = filtered.map((x) => getNode(myTreeViewNodes, x).content).join(", ")
+
+        } else {
+            if (nodes.length > 0) {
+                if (nodes.length > 1 && equals(prevNode, nodes[0])) nodes.shift()
+                if (nodes.length > 1 && equals(prevNode, nodes[1])) nodes.pop()
+                prevNode = nodes[0]
+            }
+            value = nodes.join(",")
+            v = nodes.map((x) => getNode(myTreeViewNodes, x).content).join(", ")
         }
 
-        return value;
+        return v;
     }
 
 </script>
@@ -115,7 +120,7 @@
             class="flex items-center !justify-between gap-2 px-3 py-2 leading-6 border rounded-md input-wrapper"
             use:popup={dropdown}
     >
-        <span>{displayCheckedNodes(checkedNodes)}</span>
+        <span>{displayCheckedNodes(checkedNodes, indeterminateNodes)}</span>
 
         <Fa {icon} />
     </button>
@@ -125,13 +130,14 @@
         <RecursiveTreeView
             selection
             multiple={isMultiple}
-            relational={false}
+            relational={isMultiple}
             bind:checkedNodes={checkedNodes}
             bind:indeterminateNodes={indeterminateNodes}
 
             nodes={myTreeViewNodes}
 
         />
+
     </div>
 
 </div>

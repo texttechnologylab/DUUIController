@@ -233,7 +233,7 @@
 	$: $userSession
 
 
-	let tree: TreeViewNode | null = {
+	let tree: TreeViewNode = {
 		id: '1',
 		content: 'Folder 1',
 		children: [
@@ -264,6 +264,7 @@
 
 
 	async function getFolderStructure(provider: IOProvider) {
+		// console.log(provider)
 		const response = await fetch('/api/processes/folderstructure',
 			{
 				method: 'POST',
@@ -273,8 +274,6 @@
 		if (response.ok) {
 			tree = await response.json()
 			console.log(tree)
-		} else {
-			tree = null
 		}
 	}
 
@@ -390,6 +389,19 @@
 								</p>
 							</div>
 						{/if}
+
+						{#if $processSettingsStore.input.provider === IO.NextCloud && !$userSession?.connections.nextcloud}
+							<div class="text-center w-full variant-soft-error p-4 rounded-md">
+								<p class="mx-auto">
+									To use NextCloud you must first connect your <a
+									class="anchor"
+									href="/account#nextcloud"
+									target="_blank">Account</a
+								>
+								</p>
+							</div>
+						{/if}
+
 						<div class="grid gap-4">
 							<div class="flex-center-4">
 								<div class="flex-1">
@@ -397,7 +409,7 @@
 										label="Source"
 										options={IO_INPUT}
 										bind:value={$processSettingsStore.input.provider}
-										on:change={(e) => getFolderStructure($processSettingsStore.input.provider)}
+										on:change={() => getFolderStructure($processSettingsStore.input.provider)}
 									/>
 								</div>
 								{#if !equals($processSettingsStore.input.provider, IO.Text)}
@@ -479,7 +491,7 @@
 								/>
 							{:else}
 								<div>
-									{#if tree}
+									{#if !tree}
 										<TextInput
 											label="Relative path"
 											name="inputPath"
