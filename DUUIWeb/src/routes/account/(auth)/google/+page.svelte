@@ -3,11 +3,11 @@
 	import { faRefresh } from '@fortawesome/free-solid-svg-icons'
 	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
-	// export let data
-	// const { success } = data
+	export let data
+	const { success } = data
 
 	onMount(() => {
-		goto('/account?tab=1')
+		goto('/account?tab=1&success=' + success)
 	})
 </script>
 

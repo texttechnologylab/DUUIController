@@ -35,7 +35,7 @@
 	const modalStore = getModalStore()
 
 	export let data
-	let { user, dropbBoxURL, theme, users } = data
+	let { user, dropbBoxURL, googleDriveURL, theme, users } = data
 
 	let email: string = $userSession?.email || ''
 
@@ -208,7 +208,7 @@
 	}
 
 	const startGoogleDriveAccess = async () => {
-		window.location.href = "http://localhost:5173/auth/googledrive/"
+		window.location.href = googleDriveURL
 	}
 
 	const deleteGoogleDriveAccess = async () => {

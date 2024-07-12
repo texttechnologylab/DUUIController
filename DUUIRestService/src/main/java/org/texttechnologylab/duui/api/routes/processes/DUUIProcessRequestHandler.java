@@ -38,7 +38,6 @@ public class DUUIProcessRequestHandler {
     public static String getFolderStructure(Request request, Response response) throws DbxException {
         String id = request.params(":id");
         String provider = request.params(":provider");
-        System.out.println("IDDDDDDDDD: " + id);
         IDUUIDocumentHandler handler = getHandler(provider, id);
 
         if (handler instanceof IDUUIFolderPickerApi) {

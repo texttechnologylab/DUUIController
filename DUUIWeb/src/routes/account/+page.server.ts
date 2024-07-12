@@ -1,33 +1,11 @@
-
-import { API_URL, SECRET_CLIENT_ID, SECRET_CLIENT_SECRET } from '$env/static/private'
+import { API_URL, SECRET_CLIENT_ID, SECRET_CLIENT_SECRET, REDIRECT_URL } from '$env/static/private'
 import { handleLoginRedirect } from '$lib/utils'
 import { fail, redirect } from '@sveltejs/kit'
 import { DropboxAuth } from 'dropbox'
 import type { PageServerLoad } from './$types'
 import { OAuth2Client } from 'google-auth-library'
 
-// export const actions = {
-// 	OAuth2: async ({}) => {
-// 		alert("sadfasdfasdf")
-// 		console.log("asdfsdfasdf")
-// 		const redirectURL = 'http://localhost:5173/account/auth/googledrive/';
-// 		const oAuth2Client = new  OAuth2Client(
-// 			SECRET_CLIENT_ID,
-// 			SECRET_CLIENT_SECRET,
-// 			redirectURL);
-//
-// 		const authorizeUrl = oAuth2Client.generateAuthUrl({
-// 			access_type: 'offline',
-// 			scope: 'https://www.googleapis.com/auth/userinfo.profile openid',
-// 			prompt: 'consent'
-// 		});
-//
-// 		throw redirect(302, authorizeUrl);
-// 	}
-// }
-
 export const load: PageServerLoad = async ({ locals, cookies, url }) => {
-	console.log('load', locals, cookies, url)
 	if (!locals.user) {
 		redirect(302, handleLoginRedirect(url))
 	}
@@ -38,7 +16,8 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 		method: 'GET'
 	})
 
-	let dropbBoxURL: String = new String('')
+	let dropbBoxURL = new String('')
+	let googleDriveURL = ""
 
 	try {
 		const credentials: {
@@ -47,6 +26,7 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 			url: string
 		} = await response.json()
 
+		console.log(credentials)
 		const dbxAuth = new DropboxAuth({
 			clientId: credentials.key,
 			clientSecret: credentials.secret
@@ -61,8 +41,20 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 			undefined,
 			false
 		)
-	} catch (error) {}
+	} catch (error) { /* empty */ }
 
+	const googleAuth = new OAuth2Client(
+			SECRET_CLIENT_ID,
+			SECRET_CLIENT_SECRET,
+			REDIRECT_URL)
+
+	googleDriveURL = googleAuth.generateAuthUrl(
+		{
+						scope: "https://www.googleapis.com/auth/drive openid ",
+						access_type: "offline",
+						redirect_uri: "http://localhost:5173/account/google"
+		})
+	console.log('googleDriveURL', googleDriveURL)
 	/**
 	 * Fetch a user from the backend.
 	 *
@@ -100,6 +92,7 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 
 	return {
 		dropbBoxURL: dropbBoxURL,
+		googleDriveURL: googleDriveURL,
 		user: (await fetchProfile()).user,
 		theme: +(cookies.get('theme') || '0'),
 		users: (await fetchUsers()).users

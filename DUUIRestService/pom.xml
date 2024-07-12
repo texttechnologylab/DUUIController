@@ -186,7 +186,7 @@
         <dependency>
             <groupId>com.github.dterefe</groupId>
             <artifactId>DockerUnifiedUIMAInterface</artifactId>
-            <version>cba7de43001c0ce35f6effd1b0464aad8f9717be</version>
+            <version>f35591b7374f7afbeb6d1b3a73a0f67953c5d134</version>
         </dependency>
 
         <dependency>

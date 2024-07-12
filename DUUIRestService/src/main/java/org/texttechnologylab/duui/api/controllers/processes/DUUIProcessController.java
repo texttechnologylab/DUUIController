@@ -536,10 +536,19 @@ public class DUUIProcessController {
             return new DUUILocalDocumentHandler();
         } else if (provider.equalsIgnoreCase(Provider.NEXTCLOUD)) {
             Document credentials = DUUIUserController.getNextCloudCredentials(user);
-            return  new DUUINextcloudDocumentHandler(
+            System.out.println("URI: " + credentials.getString("uri"));
+            System.out.println("USERNAME: " + credentials.getString("username"));
+            System.out.println("PASSWORD: " + credentials.getString("password"));
+            DUUINextcloudDocumentHandler handler = new DUUINextcloudDocumentHandler(
                         credentials.getString("uri"),
                         credentials.getString("username"),
                         credentials.getString("password"));
+            try {
+                System.out.println(handler.getFolderStructure().toJson());
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+            return handler;
         }
 
         return null;
