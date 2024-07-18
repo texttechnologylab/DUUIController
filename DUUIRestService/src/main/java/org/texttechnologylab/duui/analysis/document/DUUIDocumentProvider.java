@@ -98,7 +98,7 @@ public class DUUIDocumentProvider {
             || provider.equalsIgnoreCase(Provider.MINIO)
             || provider.equalsIgnoreCase(Provider.ONEDRIVE)
             || provider.equalsIgnoreCase(Provider.NEXTCLOUD)
-            || provider.equalsIgnoreCase(Provider.GOOGLEDRIVE);
+            || provider.equalsIgnoreCase(Provider.GOOGLE);
     }
 
     public boolean isDatabaseProvider() {

@@ -80,6 +80,8 @@ public class Methods {
                 get("/", DUUIUserController::authorizeUser);
                 get("/dropbox", DUUIUserController::getDropboxAppSettings);
                 put("/dropbox", DUUIUserController::finishDropboxOAuthFromCode);
+                get("/google", DUUIUserController::getGoogleSettings);
+                put("/google", DUUIUserController::finishGoogleOAuthFromCode);
             });
         });
 

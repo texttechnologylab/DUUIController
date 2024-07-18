@@ -21,7 +21,11 @@ import spark.Response;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.security.GeneralSecurityException;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -35,16 +39,19 @@ import static org.texttechnologylab.duui.api.controllers.processes.DUUIProcessCo
  */
 public class DUUIProcessRequestHandler {
 
-    public static String getFolderStructure(Request request, Response response) throws DbxException {
+    public static String getFolderStructure(Request request, Response response) throws DbxException, ExecutionException, InterruptedException, GeneralSecurityException, IOException {
         String id = request.params(":id");
         String provider = request.params(":provider");
         IDUUIDocumentHandler handler = getHandler(provider, id);
 
         if (handler instanceof IDUUIFolderPickerApi) {
-            Document document = new Document(((IDUUIFolderPickerApi) handler).getFolderStructure().toJson());
+            CompletableFuture<IDUUIFolderPickerApi.DUUIFolder> folderStructure =
+                    CompletableFuture.supplyAsync(() -> ((IDUUIFolderPickerApi) handler).getFolderStructure());
+            Map<String, Object> tree = folderStructure.get().toJson();
+            Document document = new Document(tree);
 
             response.status(200);
-            System.out.println(document.toJson());
+//            System.out.println(document.toJson());
             return document.toJson();
         }
 

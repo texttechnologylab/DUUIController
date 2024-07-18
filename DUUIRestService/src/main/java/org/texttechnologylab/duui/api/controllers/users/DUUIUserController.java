@@ -1,6 +1,14 @@
 package org.texttechnologylab.duui.api.controllers.users;
 
+import com.google.api.client.auth.oauth2.TokenResponse;
+import com.google.api.client.googleapis.auth.oauth2.*;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.services.drive.DriveScopes;
 import com.mongodb.client.result.DeleteResult;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.DUUIGoogleDriveDocumentHandler;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.DUUINextcloudDocumentHandler;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.IDUUIFolderPickerApi;
 import org.texttechnologylab.duui.api.Main;
 import org.texttechnologylab.duui.api.controllers.pipelines.DUUIPipelineController;
 import org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage;
@@ -15,10 +23,13 @@ import org.bson.types.ObjectId;
 import spark.Request;
 import spark.Response;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.time.Instant;
 import java.util.*;
 
 import static org.texttechnologylab.duui.api.routes.DUUIRequestHelper.*;
+
 
 
 /**
@@ -100,6 +111,39 @@ public class DUUIUserController {
         return projection.get("connections", Document.class).get("nextcloud", Document.class);
     }
 
+    public static Document getGoogleCredentials(Document user) {
+        Document projection = DUUIMongoDBStorage
+                .Users()
+                .find(Filters.eq(user.getObjectId("_id")))
+                .projection(Projections.include("connections.google"))
+                .first();
+
+
+        if (isNullOrEmpty(projection)) {
+            return new Document();
+        }
+
+        Document credentials = projection.get("connections", Document.class).get("google", Document.class);
+
+        try {
+            String accessToken = refreshAccessToken(
+                    credentials.getString("refresh_token"),
+                    Main.config.getGoogleClientId(),
+                    Main.config.getGoogleClientSecret());
+            credentials.put("access_token", accessToken);
+            DUUIMongoDBStorage
+                .Users()
+                .updateOne(
+                    Filters.eq(user.getObjectId("_id")),
+                        Updates.set("connections.google.access_token", accessToken)
+                );
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return projection.get("connections", Document.class).get("google", Document.class);
+    }
+
     /**
      * Get a user by id.
      *
@@ -133,10 +177,6 @@ public class DUUIUserController {
             .projection(Projections.include(mergedFields))
             .first();
 
-    }
-
-    public static void main(String[] args) {
-        System.out.println(new ObjectId("66879a2e5c9a36692cab46c0"));
     }
 
     /**
@@ -242,6 +282,7 @@ public class DUUIUserController {
                 .append("dropbox", new Document("access_token", null).append("refresh_token", null))
                 .append("minio", new Document("endpoint", null).append("access_key", null).append("secret_key", null))
                 .append("nextcloud", new Document("uri", null).append("username", null).append("password", null))
+                .append("google", new Document("access_token", null).append("refresh_token", null))
             );
 
         DUUIMongoDBStorage
@@ -420,7 +461,7 @@ public class DUUIUserController {
 
 
         for (Map.Entry<String, Object> entry : body.entrySet()) {
-            if (!ALLOWED_UPDATES.contains(entry.getKey()) && !entry.getKey().contains("nextcloud")) {
+            if (!ALLOWED_UPDATES.contains(entry.getKey()) && !entry.getKey().contains("nextcloud") && !entry.getKey().contains("google")) {
                 response.status(400);
                 return new Document("error", "Bad Request")
                     .append("message",
@@ -593,6 +634,78 @@ public class DUUIUserController {
             response.status(500);
             return "Failed";
         }
+    }
+
+    public static String finishGoogleOAuthFromCode(Request request, Response response) {
+        String code = request.queryParamOrDefault("code", null);
+        if (isNullOrEmpty(code)) return badRequest(response, "Missing code query parameter");
+
+        try {
+
+            GoogleTokenResponse googleTokenResponse = new GoogleAuthorizationCodeTokenRequest(
+                new NetHttpTransport(),
+                new JacksonFactory(),
+                "https://www.googleapis.com/oauth2/v4/token",
+                    Main.config.getGoogleClientId(),
+                    Main.config.getGoogleClientSecret(),
+                    code,
+                    Main.config.getGoogleRedirectUri())
+                .execute();
+
+            String accessToken = googleTokenResponse.getAccessToken();
+            String refreshToken = googleTokenResponse.getRefreshToken();
+
+            UpdateResult result = DUUIMongoDBStorage
+                .Users()
+                .updateOne(
+                        Filters.eq(new ObjectId(getUserId(request))),
+                        Updates.combine(
+                            Updates.set("connections.google.access_token", accessToken),
+                            Updates.set("connections.google.refresh_token", refreshToken)
+                        )
+                );
+
+            if (result.getModifiedCount() == 1) {
+                return new Document()
+                        .append("access_token", accessToken)
+                        .append("refresh_token", refreshToken).toJson();
+            }
+
+            return notFound(response);
+        } catch (IOException e) {
+            response.status(500);
+            return "Failed";
+        }
+    }
+
+    public static void main(String[] args) throws IOException {
+        DUUINextcloudDocumentHandler nc = new DUUINextcloudDocumentHandler(
+                "https://nextcloud.texttechnologylab.org/",
+                "terefe",
+                "AqV-rtto5z"
+        );
+
+        nc.listDocuments("/", ".txt", true)
+                .forEach(d -> System.out.println(d.getPath()));
+    }
+
+    public static String refreshAccessToken(String refreshToken, String clientId, String clientSecret) throws IOException {
+        ArrayList<String> scopes = new ArrayList<>();
+
+        scopes.add(DriveScopes.DRIVE);
+
+        TokenResponse tokenResponse = new GoogleRefreshTokenRequest(new NetHttpTransport(), new JacksonFactory(),
+                refreshToken, clientId, clientSecret).setScopes(scopes).setGrantType("refresh_token").execute();
+
+        return tokenResponse.getAccessToken();
+    }
+
+    public static String getGoogleSettings(Request request, Response response) {
+        return new Document()
+                .append("key", Main.config.getGoogleClientId())
+                .append("secret", Main.config.getGoogleClientSecret())
+                .append("url", Main.config.getGoogleRedirectUri())
+                .toJson();
     }
 
     public static String getDropboxAppSettings(Request request, Response response) {
