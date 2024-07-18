@@ -70,10 +70,9 @@
 	let nextcloudPassword: string = $userSession?.connections.nextcloud?.password || ''
 
 	$: isGoogleDriveConnected =
-		!!$userSession?.connections.googleDrive &&
-		!!$userSession?.connections.googleDrive.access_token &&
-		!!$userSession?.connections.googleDrive.refresh_token &&
-		!!$userSession?.connections.googleDrive.id_token
+		!!$userSession?.connections.google &&
+		!!$userSession?.connections.google.access_token &&
+		!!$userSession?.connections.google.refresh_token
 
 
 	$: hasApiKey = !!$userSession?.connections.key
@@ -82,7 +81,7 @@
 		try {
 			const body = document.body
 			body.dataset.theme = 'theme-' + themes[theme]
-		} catch (err) {}
+		} catch (err) { /* empty */ }
 	}
 
 	let tab: number = +($page.url.searchParams.get('tab') || '0')
@@ -225,19 +224,13 @@
 		if (!confirm) return
 
 		const response = await updateUser({
-			'connections.googleDrive.access_token': null,
-			'connections.googleDrive.refresh_token': null,
-			'connections.googleDrive.id_token': null,
-			'connections.googleDrive.scope': null,
-			'connections.googleDrive.expires_date': null
+			'connections.google.access_token': null,
+			'connections.google.refresh_token': null
 		})
 
-		if (response.ok && $userSession && $userSession.connections.googleDrive) {
-			$userSession.connections.googleDrive.access_token = null
-			$userSession.connections.googleDrive.refresh_token = null
-			$userSession.connections.googleDrive.id_token = null
-			$userSession.connections.googleDrive.scope = null
-			$userSession.connections.googleDrive.expires_date = null
+		if (response.ok && $userSession && $userSession.connections.google) {
+			$userSession.connections.google.access_token = null
+			$userSession.connections.google.refresh_token = null
 		}
 	}
 
@@ -683,7 +676,7 @@
 <!--					</p>-->
 				</div>
 				<div class="section-wrapper p-8 grid grid-rows-[auto_1fr_auto] gap-8">
-					<h2 class="h3 scroll-mt-16" id="googledrive">Google Drive</h2>
+					<h2 class="h3 scroll-mt-16" id="google">Google Drive</h2>
 					<div class="space-y-8">
 						{#if isGoogleDriveConnected}
 							<div>
@@ -707,12 +700,10 @@
 								</p>
 							</div>
 							<div class="grid md:flex justify-between gap-4">
-								<form method="POST" action="/auth/googleDrive">
-									<button class="button-neutral" type="submit" >
-										<Fa icon={faLink} />
-										<span>Reconnect</span>
-									</button>
-								<form/>
+								<button class="button-neutral" on:click={startGoogleDriveAccess}>
+									<Fa icon={faLink} />
+									<span>Reconnect</span>
+								</button>
 								<button class="button-error" on:click={deleteGoogleDriveAccess}>
 									<Fa icon={faXmarkCircle} />
 									<span>Delete</span>

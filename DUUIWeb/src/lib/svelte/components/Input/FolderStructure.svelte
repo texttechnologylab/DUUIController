@@ -125,7 +125,7 @@
         <Fa {icon} />
     </button>
 </div>
-<div data-popup={name}>
+<div data-popup={name} class="fixed">
     <div class="popup-solid p-1 md:min-w-[768px]">
         <RecursiveTreeView
             selection

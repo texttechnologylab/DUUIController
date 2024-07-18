@@ -32,7 +32,7 @@
 		faCheck,
 		faCloud,
 		faCloudUpload,
-		faFileArrowUp
+		faFileArrowUp, faRefresh
 	} from '@fortawesome/free-solid-svg-icons'
 	import Fa from 'svelte-fa'
 	import { FileDropzone, ProgressBar, getToastStore, type TreeViewNode } from '@skeletonlabs/skeleton'
@@ -233,48 +233,28 @@
 	$: $userSession
 
 
-	let tree: TreeViewNode = {
-		id: '1',
-		content: 'Folder 1',
-		children: [
-			{
-				id: '2',
-				content: 'Folder 2'
-			},
-			{
-				id: '3',
-				content: 'Folder 3'
-			},
-			{
-				id: '4',
-				content: 'Folder 4',
-				children: [
-					{
-						id: '6',
-						content: 'Folder 6'
-					},
-					{
-						id: '7',
-						content: 'Folder 7'
-					}
-				]
-			}
-		]
-	}
+	let inputTree: TreeViewNode = null
+	let outputTree: TreeViewNode = null
+	let fetchingTree = false
 
-
-	async function getFolderStructure(provider: IOProvider) {
-		// console.log(provider)
+	async function getFolderStructure(provider: IOProvider, isInput = true) {
+		fetchingTree = true
 		const response = await fetch('/api/processes/folderstructure',
 			{
 				method: 'POST',
 				body: JSON.stringify({provider: provider, user: $userSession?.oid})
 			})
-
+		let tree = null
 		if (response.ok) {
 			tree = await response.json()
-			console.log(tree)
 		}
+
+		if (isInput) {
+			inputTree = tree
+		} else {
+			outputTree = tree
+		}
+		fetchingTree = false
 	}
 
 
@@ -350,6 +330,17 @@
 					</a>
 				</div>
 			</div>
+		{:else if fetchingTree}
+
+			<div class="h-full w-full flex items-center justify-center p-4">
+				<div class="space-y-8 section-wrapper p-8 flex flex-col items-center">
+					<h1 class="h2">Fetching Directory Structure...</h1>
+					<hr class="hr" />
+					<Fa icon={faRefresh} spin size="4x" />
+					<p class="text-lg">Do not refresh this page</p>
+				</div>
+			</div>
+
 		{:else}
 			<div class="container mx-auto max-w-4xl grid gap-4">
 				<div class="grid gap-4">
@@ -402,6 +393,18 @@
 							</div>
 						{/if}
 
+						{#if $processSettingsStore.input.provider === IO.Google && !$userSession?.connections.google?.refresh_token}
+							<div class="text-center w-full variant-soft-error p-4 rounded-md">
+								<p class="mx-auto">
+									To use Google you must first connect your <a
+									class="anchor"
+									href="/account#google"
+									target="_blank">Account</a
+								>
+								</p>
+							</div>
+						{/if}
+
 						<div class="grid gap-4">
 							<div class="flex-center-4">
 								<div class="flex-1">
@@ -409,7 +412,7 @@
 										label="Source"
 										options={IO_INPUT}
 										bind:value={$processSettingsStore.input.provider}
-										on:change={() => getFolderStructure($processSettingsStore.input.provider)}
+										on:change={() => getFolderStructure($processSettingsStore.input.provider, true)}
 									/>
 								</div>
 								{#if !equals($processSettingsStore.input.provider, IO.Text)}
@@ -451,7 +454,7 @@
 										{files?.length || 0} files selected
 									</p>
 								</div>
-
+								<!-- TODO: Add Other Providers-->
 								<Checkbox
 									label="Upload input files to cloud storage."
 									bind:checked={fileStorage.storeFiles}
@@ -491,7 +494,7 @@
 								/>
 							{:else}
 								<div>
-									{#if !tree}
+									{#if !inputTree}
 										<TextInput
 											label="Relative path"
 											name="inputPath"
@@ -502,7 +505,7 @@
 										/>
 									{:else }
 										<FolderStructure
-											tree={tree}
+											tree={inputTree}
 											label="Folder Picker"
 											name="inputPaths"
 											isMultiple={true}
@@ -593,6 +596,30 @@
 								</p>
 							</div>
 						{/if}
+
+						{#if $processSettingsStore.output.provider === IO.NextCloud && !$userSession?.connections.nextcloud}
+							<div class="text-center w-full variant-soft-error p-4 rounded-md">
+								<p class="mx-auto">
+									To use NextCloud you must first connect your <a
+										class="anchor"
+										href="/account#nextcloud"
+										target="_blank">Account</a
+									>
+								</p>
+							</div>
+						{/if}
+
+						{#if $processSettingsStore.output.provider === IO.Google && !$userSession?.connections.google?.refresh_token}
+							<div class="text-center w-full variant-soft-error p-4 rounded-md">
+								<p class="mx-auto">
+									To use Google you must first connect your <a
+										class="anchor"
+										href="/account#google"
+										target="_blank">Account</a
+									>
+								</p>
+							</div>
+						{/if}
 						<div class="flex-center-4 justify-between">
 							<h2 class="h2">Output</h2>
 							{#if isValidOutput($processSettingsStore.output, $userSession)}
@@ -606,9 +633,14 @@
 										label="Target"
 										options={IO_OUTPUT}
 										bind:value={$processSettingsStore.output.provider}
+										on:change={() => getFolderStructure($processSettingsStore.output.provider, false)}
 									/>
 								</div>
-								{#if equals($processSettingsStore.output.provider, IO.Dropbox) || equals($processSettingsStore.output.provider, IO.Minio)}
+								{#if equals($processSettingsStore.output.provider, IO.Dropbox)
+									|| equals($processSettingsStore.output.provider, IO.Minio)
+									|| equals($processSettingsStore.output.provider, IO.NextCloud)
+									|| equals($processSettingsStore.output.provider, IO.Google)
+								}
 									<Dropdown
 										label="File extension"
 										name="output-extension"
@@ -625,9 +657,11 @@
 									bind:value={$processSettingsStore.output.path}
 								/>
 							{:else if equals($processSettingsStore.output.provider, IO.Dropbox)
-									   || equals($processSettingsStore.output.provider, IO.NextCloud)}
+									   || equals($processSettingsStore.output.provider, IO.NextCloud)
+									   || equals($processSettingsStore.output.provider, IO.Google)
+							}
 								<div>
-									{#if !tree }
+									{#if !outputTree }
 										<TextInput
 											label="Relative path"
 											name="inputPath"
@@ -638,9 +672,9 @@
 										/>
 									{:else}
 										<FolderStructure
-											tree={tree}
+											tree={outputTree}
 											label="Folder Picker"
-											name="inputPaths"
+											name="outputPaths"
 											isMultiple={false}
 											bind:value={$processSettingsStore.output.path}
 										/>
