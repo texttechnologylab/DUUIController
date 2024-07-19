@@ -1,5 +1,9 @@
 package org.texttechnologylab.duui.api.controllers.pipelines;
 
+import org.apache.uima.cas.CASException;
+import org.apache.uima.fit.factory.JCasFactory;
+import org.apache.uima.jcas.JCas;
+import org.apache.uima.resource.ResourceInitializationException;
 import org.texttechnologylab.duui.api.controllers.components.DUUIComponentController;
 import org.texttechnologylab.duui.api.controllers.processes.DUUIProcessController;
 import org.texttechnologylab.duui.api.storage.DUUIMongoDBStorage;
@@ -461,7 +465,7 @@ public class DUUIPipelineController {
                 }
                 composer.addDriver(driver);
                 addedDrivers.add(name);
-            } catch (Exception e) {
+            } catch (Exception | LinkageError e) {
                 composer.addEvent(DUUIEvent.Sender.COMPOSER, e.getMessage(), DUUIComposer.DebugLevel.ERROR);
             }
         }

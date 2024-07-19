@@ -679,23 +679,11 @@ public class DUUIUserController {
     }
 
     public static void main(String[] args) throws IOException {
-        DUUINextcloudDocumentHandler nc = new DUUINextcloudDocumentHandler(
-                "https://nextcloud.texttechnologylab.org/",
-                "terefe",
-                "AqV-rtto5z"
-        );
-
-        nc.listDocuments("/", ".txt", true)
-                .forEach(d -> System.out.println(d.getPath()));
     }
 
     public static String refreshAccessToken(String refreshToken, String clientId, String clientSecret) throws IOException {
-        ArrayList<String> scopes = new ArrayList<>();
-
-        scopes.add(DriveScopes.DRIVE);
-
         TokenResponse tokenResponse = new GoogleRefreshTokenRequest(new NetHttpTransport(), new JacksonFactory(),
-                refreshToken, clientId, clientSecret).setScopes(scopes).setGrantType("refresh_token").execute();
+                refreshToken, clientId, clientSecret).setGrantType("refresh_token").execute();
 
         return tokenResponse.getAccessToken();
     }
