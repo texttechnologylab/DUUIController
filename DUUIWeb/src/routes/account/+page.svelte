@@ -71,9 +71,7 @@
 
 	$: isGoogleDriveConnected =
 		!!$userSession?.connections.google &&
-		!!$userSession?.connections.google.access_token &&
-		!!$userSession?.connections.google.refresh_token
-
+		!!$userSession?.connections.google.access_token
 
 	$: hasApiKey = !!$userSession?.connections.key
 

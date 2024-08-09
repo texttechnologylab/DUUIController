@@ -54,7 +54,6 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 		url: string
 	} = await googleResponse.json();
 
-
 	const googleAuth = new OAuth2Client(
 			googleCredentials.key,
 			googleCredentials.secret,
@@ -64,7 +63,8 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 		{
 						scope: "https://www.googleapis.com/auth/drive openid ",
 						access_type: "offline",
-						redirect_uri: googleCredentials.url
+						redirect_uri: googleCredentials.url,
+						prompt: "select_account"
 		})
 
 

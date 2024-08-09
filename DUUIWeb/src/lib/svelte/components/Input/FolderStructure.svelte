@@ -126,7 +126,7 @@
     </button>
 </div>
 <div data-popup={name} class="fixed">
-    <div class="popup-solid p-1 md:min-w-[768px]">
+    <div class="overflow-scroll max-h-96 popup-solid p-1 md:min-w-[768px]">
         <RecursiveTreeView
             selection
             multiple={isMultiple}

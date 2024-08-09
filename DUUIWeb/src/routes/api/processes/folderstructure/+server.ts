@@ -8,7 +8,7 @@ import { error, json, type RequestHandler } from '@sveltejs/kit'
 export const POST: RequestHandler = async ({ request, cookies, locals, fetch }) => {
 	const data = await request.json()
 	const user = locals.user
-	console.log(user?.oid)
+
 	const response = await fetch(`${API_URL}/processes/folderstructure/${user?.oid}/${data.provider}`, {
 		method: 'GET',
 		headers: {
