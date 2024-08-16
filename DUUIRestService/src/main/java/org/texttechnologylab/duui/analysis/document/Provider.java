@@ -14,4 +14,5 @@ public class Provider {
     public static final String MONGODB = "MongoDB";
     public static final String ONEDRIVE = "OneDrive";
     public static final String NEXTCLOUD = "NextCloud";
+    public static final String GOOGLE = "Google";
 }

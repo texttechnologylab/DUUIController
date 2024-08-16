@@ -1,8 +1,9 @@
-import { API_URL } from '$env/static/private'
+import { API_URL} from '$env/static/private'
 import { handleLoginRedirect } from '$lib/utils'
 import { fail, redirect } from '@sveltejs/kit'
 import { DropboxAuth } from 'dropbox'
 import type { PageServerLoad } from './$types'
+import { OAuth2Client } from 'google-auth-library'
 
 export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 	if (!locals.user) {
@@ -15,7 +16,7 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 		method: 'GET'
 	})
 
-	let dropbBoxURL: String = new String('')
+	let dropbBoxURL = new String('')
 
 	try {
 		const credentials: {
@@ -38,7 +39,32 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 			undefined,
 			false
 		)
-	} catch (error) {}
+	} catch (error) { /* empty */ }
+
+
+	let googleDriveURL = ""
+	const googleResponse = await fetch(`${API_URL}/users/auth/google`, {
+		method: 'GET'
+	})
+
+	const googleCredentials: {
+		key: string
+		secret: string
+		url: string
+	} = await googleResponse.json();
+
+	const googleAuth = new OAuth2Client(
+			googleCredentials.key,
+			googleCredentials.secret,
+			googleCredentials.url)
+
+	googleDriveURL = googleAuth.generateAuthUrl(
+		{
+						scope: "https://www.googleapis.com/auth/drive openid ",
+						access_type: "offline",
+						redirect_uri: googleCredentials.url,
+						prompt: "select_account"
+		})
 
 	/**
 	 * Fetch a user from the backend.
@@ -77,6 +103,7 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 
 	return {
 		dropbBoxURL: dropbBoxURL,
+		googleDriveURL: googleDriveURL,
 		user: (await fetchProfile()).user,
 		theme: +(cookies.get('theme') || '0'),
 		users: (await fetchUsers()).users

@@ -34,7 +34,7 @@ export type DUUIDocumentProvider = {
 	file_extension: FileExtension
 }
 
-export type IOProvider = 'Dropbox' | 'Minio' | 'File' | 'Text' | 'None'
+export type IOProvider = 'Dropbox' | 'Minio' | 'File' | 'Text' | 'NextCloud' | 'Google'| 'None'
 export type FileExtension = '.txt' | '.xmi' | '.gz'
 
 export enum IO {
@@ -42,13 +42,15 @@ export enum IO {
 	File = 'File',
 	Minio = 'Minio',
 	Text = 'Text',
+	NextCloud = 'NextCloud',
+	Google = 'Google',
 	None = 'None'
 }
 
-export const IO_INPUT: string[] = ['Dropbox', 'File', 'Minio', 'Text']
+export const IO_INPUT: string[] = ['Dropbox', 'File', 'Minio', 'Text', 'NextCloud', 'Google']
 export const INPUT_EXTENSIONS: string[] = ['.txt', '.xmi', '.gz']
 
-export const IO_OUTPUT: string[] = ['Dropbox', 'Minio', 'None']
+export const IO_OUTPUT: string[] = ['Dropbox', 'Minio', 'NextCloud', 'Google', 'None']
 export const OUTPUT_EXTENSIONS: string[] = ['.txt', '.xmi']
 
 export const isCloudProvider = (provider: string) => {

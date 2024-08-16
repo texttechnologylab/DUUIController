@@ -1,5 +1,6 @@
 package org.texttechnologylab.duui.api.controllers.processes;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import org.texttechnologylab.duui.api.Main;
 import org.texttechnologylab.duui.api.controllers.documents.DUUIDocumentController;
 import org.texttechnologylab.duui.api.controllers.events.DUUIEventController;
@@ -29,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.security.GeneralSecurityException;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -509,7 +511,7 @@ public class DUUIProcessController {
      * @return the created DocumentHandler.
      * @throws DbxException if incorrect credentials for Dropbox are provided.
      */
-    public static IDUUIDocumentHandler getHandler(String provider, String userId) throws DbxException {
+    public static IDUUIDocumentHandler getHandler(String provider, String userId) throws DbxException, GeneralSecurityException, IOException {
         Document user = DUUIUserController.getUserById(userId);
 
         if (provider.equalsIgnoreCase(Provider.DROPBOX)) {
@@ -534,6 +536,21 @@ public class DUUIProcessController {
 
         } else if (provider.equalsIgnoreCase(Provider.FILE)) {
             return new DUUILocalDocumentHandler();
+        } else if (provider.equalsIgnoreCase(Provider.NEXTCLOUD)) {
+            Document credentials = DUUIUserController.getNextCloudCredentials(user);
+            System.out.println("URI: " + credentials.getString("uri"));
+            System.out.println("USERNAME: " + credentials.getString("username"));
+            System.out.println("PASSWORD: " + credentials.getString("password"));
+            return new DUUINextcloudDocumentHandler(
+                        credentials.getString("uri"),
+                        credentials.getString("username"),
+                        credentials.getString("password"));
+        } else if (provider.equalsIgnoreCase(Provider.GOOGLE)) {
+            Document credentials = DUUIUserController.getGoogleCredentials(user);
+            GoogleCredential credential = new GoogleCredential()
+                    .setAccessToken(credentials.getString("access_token"));
+
+            return new DUUIGoogleDriveDocumentHandler(credential);
         }
 
         return null;

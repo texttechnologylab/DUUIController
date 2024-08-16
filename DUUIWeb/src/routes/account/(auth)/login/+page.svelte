@@ -22,7 +22,8 @@
 			message = 'Please enter a valid E-Mail address'
 			return
 		}
-		const response = await fetch('/auth/login', {
+
+		const request = {
 			method: 'POST',
 			body: JSON.stringify({
 				email: email,
@@ -31,7 +32,9 @@
 			headers: {
 				'Content-Type': 'application/json'
 			}
-		})
+		}
+
+		const response = await fetch('/auth/login', request)
 
 		const result = await response.json()
 

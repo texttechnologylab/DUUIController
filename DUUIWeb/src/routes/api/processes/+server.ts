@@ -2,7 +2,7 @@ import { API_URL } from '$env/static/private'
 import { json } from '@sveltejs/kit'
 
 /**
- * Sends a get request to the backend to retrioeve a process.
+ * Sends a get request to the backend to retrieve a process.
  */
 export async function GET({ cookies, url, fetch }) {
 	const processId = url.searchParams.get('process_id') || ''

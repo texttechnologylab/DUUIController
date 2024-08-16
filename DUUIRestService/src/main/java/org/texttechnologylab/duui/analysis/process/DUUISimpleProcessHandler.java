@@ -1,5 +1,6 @@
 package org.texttechnologylab.duui.analysis.process;
 
+import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.*;
 import org.texttechnologylab.duui.api.controllers.documents.DUUIDocumentController;
 import org.texttechnologylab.duui.api.controllers.events.DUUIEventController;
 import org.texttechnologylab.duui.api.controllers.pipelines.DUUIPipelineController;
@@ -16,9 +17,6 @@ import org.apache.uima.fit.util.JCasUtil;
 import org.apache.uima.jcas.JCas;
 import org.bson.Document;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.DUUIComposer;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.DUUIDocument;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.DUUIDropboxDocumentHandler;
-import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.IDUUIDocumentHandler;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.io.reader.DUUIDocumentReader;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.lua.DUUILuaContext;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIEvent;
@@ -30,6 +28,7 @@ import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Set;
 import java.util.Vector;
@@ -145,7 +144,7 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
 
         try {
             inputHandler = DUUIProcessController.getHandler(input.getProvider(), getUserID());
-        } catch (IllegalArgumentException | DbxException exception) {
+        } catch (IllegalArgumentException | DbxException | GeneralSecurityException | IOException  exception) {
             onException(exception);
         }
 
@@ -182,9 +181,16 @@ public class DUUISimpleProcessHandler extends Thread implements IDUUIProcessHand
         }
 
         try {
-            collectionReader = new DUUIDocumentReader
-                .Builder(composer)
-                .withInputPath(input.getPath())
+            DUUIDocumentReader.Builder builder = new DUUIDocumentReader
+                    .Builder(composer);
+
+            if (inputHandler instanceof  IDUUIFolderPickerApi) {
+                builder.withInputPaths(List.of(input.getPath().split(",")));
+            } else {
+                builder.withInputPath(input.getPath());
+            }
+
+            collectionReader = builder
                 .withInputFileExtension(input.getFileExtension())
                 .withInputHandler(inputHandler)
                 .withOutputPath(output.getPath())

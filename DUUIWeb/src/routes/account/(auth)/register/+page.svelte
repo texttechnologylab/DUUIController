@@ -29,7 +29,7 @@
 			return
 		}
 
-		const response = await fetch('/auth/register', {
+		const request = {
 			method: 'POST',
 			body: JSON.stringify({
 				email: email,
@@ -39,7 +39,9 @@
 			headers: {
 				'Content-Type': 'application/json'
 			}
-		})
+		}
+
+		const response = await fetch('/auth/register', request)
 
 		const result = await response.json()
 

@@ -28,7 +28,7 @@
 	 * Logout the user and redirect to the login page.
 	 */
 	const logout = async () => {
-		const response = await fetch('/account/logout', { method: 'PUT' })
+		const response = await fetch('account/logout', { method: 'PUT' })
 		if (response.ok) {
 			userSession.set(undefined)
 
@@ -60,7 +60,7 @@
 						</div>
 
 						<div class="grid md:grid-cols-2 gap-4">
-							{#if $userSession === undefined}
+							{#if $userSession }
 								<a
 									href="/account/register"
 									class="cta button-primary box-shadow !text-xl !justify-center button-modal shadow-md"

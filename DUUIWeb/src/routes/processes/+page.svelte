@@ -22,6 +22,7 @@
 	import { processSettingsStore, userSession } from '$lib/store.js'
 	import Checkbox from '$lib/svelte/components/Input/Checkbox.svelte'
 	import Dropdown from '$lib/svelte/components/Input/Dropdown.svelte'
+	import FolderStructure from "$lib/svelte/components/Input/FolderStructure.svelte";
 	import Number from '$lib/svelte/components/Input/Number.svelte'
 	import TextArea from '$lib/svelte/components/Input/TextArea.svelte'
 	import TextInput from '$lib/svelte/components/Input/TextInput.svelte'
@@ -31,11 +32,12 @@
 		faCheck,
 		faCloud,
 		faCloudUpload,
-		faFileArrowUp
+		faFileArrowUp, faRefresh
 	} from '@fortawesome/free-solid-svg-icons'
-	import { FileDropzone, ProgressBar, getToastStore } from '@skeletonlabs/skeleton'
-	import { onMount } from 'svelte'
 	import Fa from 'svelte-fa'
+	import { FileDropzone, ProgressBar, getToastStore, type TreeViewNode } from '@skeletonlabs/skeleton'
+	import { onMount } from 'svelte'
+
 
 	export let data
 	const { user } = data
@@ -116,8 +118,8 @@
 	let onCancelURL =
 		$page.url.searchParams.get('from') || `/pipelines/${$processSettingsStore.pipeline_id}`
 
-	let starting: boolean = false
-	let uploading: boolean = false
+	let starting = false
+	let uploading = false
 
 	let fileStorage = {
 		storeFiles: false,
@@ -215,6 +217,7 @@
 			toastStore.trigger(errorToast(JSON.stringify(response.body)))
 			starting = false
 		}
+
 	}
 
 	$: inputBucketIsValid = isValidS3BucketName($processSettingsStore.input.path)
@@ -229,6 +232,33 @@
 		isValidFileUpload(fileStorage)
 	$: uploadBucketIsValid = isValidS3BucketName(fileStorage.path)
 	$: $userSession
+
+
+	let inputTree: TreeViewNode = null
+	let outputTree: TreeViewNode = null
+	let fetchingTree = false
+
+	async function getFolderStructure(provider: IOProvider, isInput = true) {
+		fetchingTree = true
+		const response = await fetch('/api/processes/folderstructure',
+			{
+				method: 'POST',
+				body: JSON.stringify({provider: provider, user: $userSession?.oid})
+			})
+		let tree = null
+		if (response.ok) {
+			tree = await response.json()
+		}
+
+		if (isInput) {
+			inputTree = tree
+		} else {
+			outputTree = tree
+		}
+		fetchingTree = false
+	}
+
+
 </script>
 
 <svelte:head>
@@ -301,6 +331,17 @@
 					</a>
 				</div>
 			</div>
+		{:else if fetchingTree}
+
+			<div class="h-full w-full flex items-center justify-center p-4">
+				<div class="space-y-8 section-wrapper p-8 flex flex-col items-center">
+					<h1 class="h2">Fetching Directory Structure...</h1>
+					<hr class="hr" />
+					<Fa icon={faRefresh} spin size="4x" />
+					<p class="text-lg">Do not refresh this page</p>
+				</div>
+			</div>
+
 		{:else}
 			<div class="container mx-auto max-w-4xl grid gap-4">
 				<div class="grid gap-4">
@@ -340,6 +381,31 @@
 								</p>
 							</div>
 						{/if}
+
+						{#if $processSettingsStore.input.provider === IO.NextCloud && !$userSession?.connections.nextcloud}
+							<div class="text-center w-full variant-soft-error p-4 rounded-md">
+								<p class="mx-auto">
+									To use NextCloud you must first connect your <a
+									class="anchor"
+									href="/account#nextcloud"
+									target="_blank">Account</a
+								>
+								</p>
+							</div>
+						{/if}
+
+						{#if $processSettingsStore.input.provider === IO.Google && !$userSession?.connections.google?.refresh_token}
+							<div class="text-center w-full variant-soft-error p-4 rounded-md">
+								<p class="mx-auto">
+									To use Google you must first connect your <a
+									class="anchor"
+									href="/account#google"
+									target="_blank">Account</a
+								>
+								</p>
+							</div>
+						{/if}
+
 						<div class="grid gap-4">
 							<div class="flex-center-4">
 								<div class="flex-1">
@@ -347,6 +413,7 @@
 										label="Source"
 										options={IO_INPUT}
 										bind:value={$processSettingsStore.input.provider}
+										on:change={() => getFolderStructure($processSettingsStore.input.provider, true)}
 									/>
 								</div>
 								{#if !equals($processSettingsStore.input.provider, IO.Text)}
@@ -388,7 +455,7 @@
 										{files?.length || 0} files selected
 									</p>
 								</div>
-
+								<!-- TODO: Add Other Providers-->
 								<Checkbox
 									label="Upload input files to cloud storage."
 									bind:checked={fileStorage.storeFiles}
@@ -428,14 +495,24 @@
 								/>
 							{:else}
 								<div>
-									<TextInput
-										label="Relative path"
-										name="inputPath"
-										bind:value={$processSettingsStore.input.path}
-										error={$processSettingsStore.input.path === '/'
-											? 'Provide an empty path to select the root folder.'
-											: ''}
-									/>
+									{#if !inputTree}
+										<TextInput
+											label="Relative path"
+											name="inputPath"
+											bind:value={$processSettingsStore.input.path}
+											error={$processSettingsStore.input.path === '/'
+												? 'Provide an empty path to select the root folder.'
+												: ''}
+										/>
+									{:else }
+										<FolderStructure
+											tree={inputTree}
+											label="Folder Picker"
+											name="inputPaths"
+											isMultiple={true}
+											bind:value={$processSettingsStore.input.path}
+										/>
+									{/if}
 									<Tip>Do not include Apps/Docker Unified UIMA Interface in your path!</Tip>
 								</div>
 							{/if}
@@ -520,6 +597,30 @@
 								</p>
 							</div>
 						{/if}
+
+						{#if $processSettingsStore.output.provider === IO.NextCloud && !$userSession?.connections.nextcloud}
+							<div class="text-center w-full variant-soft-error p-4 rounded-md">
+								<p class="mx-auto">
+									To use NextCloud you must first connect your <a
+										class="anchor"
+										href="/account#nextcloud"
+										target="_blank">Account</a
+									>
+								</p>
+							</div>
+						{/if}
+
+						{#if $processSettingsStore.output.provider === IO.Google && !$userSession?.connections.google?.refresh_token}
+							<div class="text-center w-full variant-soft-error p-4 rounded-md">
+								<p class="mx-auto">
+									To use Google you must first connect your <a
+										class="anchor"
+										href="/account#google"
+										target="_blank">Account</a
+									>
+								</p>
+							</div>
+						{/if}
 						<div class="flex-center-4 justify-between">
 							<h2 class="h2">Output</h2>
 							{#if isValidOutput($processSettingsStore.output, $userSession)}
@@ -533,9 +634,14 @@
 										label="Target"
 										options={IO_OUTPUT}
 										bind:value={$processSettingsStore.output.provider}
+										on:change={() => getFolderStructure($processSettingsStore.output.provider, false)}
 									/>
 								</div>
-								{#if equals($processSettingsStore.output.provider, IO.Dropbox) || equals($processSettingsStore.output.provider, IO.Minio)}
+								{#if equals($processSettingsStore.output.provider, IO.Dropbox)
+									|| equals($processSettingsStore.output.provider, IO.Minio)
+									|| equals($processSettingsStore.output.provider, IO.NextCloud)
+									|| equals($processSettingsStore.output.provider, IO.Google)
+								}
 									<Dropdown
 										label="File extension"
 										name="output-extension"
@@ -551,16 +657,29 @@
 									name="output-folder"
 									bind:value={$processSettingsStore.output.path}
 								/>
-							{:else if equals($processSettingsStore.output.provider, IO.Dropbox)}
+							{:else if equals($processSettingsStore.output.provider, IO.Dropbox)
+									   || equals($processSettingsStore.output.provider, IO.NextCloud)
+									   || equals($processSettingsStore.output.provider, IO.Google)
+							}
 								<div>
-									<TextInput
-										label="Path"
-										name="output-folder"
-										error={['/', ''].includes($processSettingsStore.output.path)
-											? 'Writing to the root folder is not possible.'
-											: ''}
-										bind:value={$processSettingsStore.output.path}
-									/>
+									{#if !outputTree }
+										<TextInput
+											label="Relative path"
+											name="inputPath"
+											bind:value={$processSettingsStore.input.path}
+											error={$processSettingsStore.input.path === '/'
+												? 'Provide an empty path to select the root folder.'
+												: ''}
+										/>
+									{:else}
+										<FolderStructure
+											tree={outputTree}
+											label="Folder Picker"
+											name="outputPaths"
+											isMultiple={false}
+											bind:value={$processSettingsStore.output.path}
+										/>
+									{/if}
 									<Tip>Do not include Apps/Docker Unified UIMA Interface in your path!</Tip>
 								</div>
 							{/if}

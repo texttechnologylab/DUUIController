@@ -80,6 +80,8 @@ public class Methods {
                 get("/", DUUIUserController::authorizeUser);
                 get("/dropbox", DUUIUserController::getDropboxAppSettings);
                 put("/dropbox", DUUIUserController::finishDropboxOAuthFromCode);
+                get("/google", DUUIUserController::getGoogleSettings);
+                put("/google", DUUIUserController::finishGoogleOAuthFromCode);
             });
         });
 
@@ -130,6 +132,7 @@ public class Methods {
                     halt(401, "Unauthorized");
                 }
             });
+            get("/folderstructure/:id/:provider", DUUIProcessRequestHandler::getFolderStructure);
             get("/:id", DUUIProcessRequestHandler::findOne);
             get("", DUUIProcessRequestHandler::findMany);
             post("", DUUIProcessRequestHandler::start);

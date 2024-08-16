@@ -6,7 +6,6 @@ import { error } from '@sveltejs/kit'
  */
 export const PUT = async ({ request, locals, fetch }) => {
 	const user = locals.user
-
 	if (!user) {
 		return error(401, { message: 'Unauthorized' })
 	}
@@ -15,7 +14,7 @@ export const PUT = async ({ request, locals, fetch }) => {
 		method: 'PUT',
 		body: JSON.stringify(await request.json())
 	})
-
+	console.log(response)
 	return response
 }
 

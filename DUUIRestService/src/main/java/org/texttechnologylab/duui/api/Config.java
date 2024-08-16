@@ -59,6 +59,12 @@ public class Config {
         return properties.getProperty("DBX_REDIRECT_URL", null);
     }
 
+    public String getGoogleClientId() { return properties.getProperty("GOOGLE_CLIENT_ID", null); }
+
+    public String getGoogleClientSecret() { return properties.getProperty("GOOGLE_CLIENT_SECRET", null); }
+
+    public String getGoogleRedirectUri() { return properties.getProperty("GOOGLE_REDIRECT_URI", null); }
+
     public List<String> getAllowedOrigins() {
         return List.of(properties.getProperty("ALLOWED_ORIGINS", "").split(";"));
     }
