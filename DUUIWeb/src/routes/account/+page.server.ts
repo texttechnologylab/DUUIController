@@ -25,7 +25,6 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 			url: string
 		} = await response.json()
 
-		console.log(credentials)
 		const dbxAuth = new DropboxAuth({
 			clientId: credentials.key,
 			clientSecret: credentials.secret
@@ -66,7 +65,6 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 						redirect_uri: googleCredentials.url,
 						prompt: "select_account"
 		})
-
 
 	/**
 	 * Fetch a user from the backend.

@@ -44,6 +44,7 @@
 	if (user && $userSession) {
 		$userSession.preferences = user.preferences
 		$userSession.connections = user.connections
+
 	}
 
 	$: isDropboxConnected =

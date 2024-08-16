@@ -217,6 +217,7 @@
 			toastStore.trigger(errorToast(JSON.stringify(response.body)))
 			starting = false
 		}
+
 	}
 
 	$: inputBucketIsValid = isValidS3BucketName($processSettingsStore.input.path)
