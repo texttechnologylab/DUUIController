@@ -18,7 +18,7 @@
     export let name: string = label
     export let isMultiple = false
 
-    export let value: string | number = ""
+    export let value: string = ""
 
     export let placement: Placement = 'bottom-start'
 
@@ -47,6 +47,8 @@
     let prevNode: string = ""
     let indeterminateNodes: string[] = []
     let parentNodes = {}
+
+
 
     let myTreeViewNodes: TreeViewNode[] = [tree]
     let addFolderIcon = (node: TreeViewNode, height: number) => {
@@ -86,25 +88,43 @@
     }
 
     let displayCheckedNodes = (nodes: string[], inde: string[]) => {
-        let v
+        let v:string
+
 
         if (isMultiple) {
-            let isInIndeterminates = (id) => {
-                return inde.includes(id)
-            }
-            let filtered = nodes
-              .filter((x) => parentNodes[x] === x || isInIndeterminates(parentNodes[x]))
-            value = filtered.join(",")
-            v = filtered.map((x) => getNode(myTreeViewNodes, x).content).join(", ")
 
-        } else {
-            if (nodes.length > 0) {
-                if (nodes.length > 1 && equals(prevNode, nodes[0])) nodes.shift()
-                if (nodes.length > 1 && equals(prevNode, nodes[1])) nodes.pop()
-                prevNode = nodes[0]
+            if (nodes.length === 0 && value !== "") {
+                nodes = value.toString().split(",")
+                v = nodes.map((x) => getNode(myTreeViewNodes, x)).filter(x => x !== null).map(x => x.content).join(", ")
+            } else {
+                let isInIndeterminates = (id) => {
+                    return inde.includes(id)
+                }
+                let filtered = nodes
+                  .filter((x) => parentNodes[x] === x || isInIndeterminates(parentNodes[x]))
+                value = filtered.join(",")
+                v = filtered.map((x) => getNode(myTreeViewNodes, x).content).join(", ")
             }
-            value = nodes.join(",")
-            v = nodes.map((x) => getNode(myTreeViewNodes, x).content).join(", ")
+
+        }
+
+        else {
+
+            if (nodes.length === 0 && value !== "") {
+                nodes = value.toString().split(",")
+                const tmp = getNode(myTreeViewNodes, value)
+                v =  tmp ? tmp.content : ""
+            } else {
+
+                if (nodes.length > 0) {
+                    if (nodes.length > 1 && equals(prevNode, nodes[0])) nodes.shift()
+                    if (nodes.length > 1 && equals(prevNode, nodes[1])) nodes.pop()
+                    prevNode = nodes[0]
+                }
+                value = nodes.join(",")
+                v = nodes.map((x) => getNode(myTreeViewNodes, x).content).join(", ")
+
+            }
         }
 
         return v;
@@ -120,7 +140,7 @@
             class="flex items-center !justify-between gap-2 px-3 py-2 leading-6 border rounded-md input-wrapper"
             use:popup={dropdown}
     >
-        <span>{displayCheckedNodes(checkedNodes, indeterminateNodes)}</span>
+        <span>{ displayCheckedNodes(checkedNodes, indeterminateNodes) }</span>
 
         <Fa {icon} />
     </button>

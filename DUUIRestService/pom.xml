@@ -186,41 +186,41 @@
         <dependency>
             <groupId>com.github.dterefe</groupId>
             <artifactId>DockerUnifiedUIMAInterface</artifactId>
-            <version>b687c633e6066a34570369610331d5f17f66ea39</version>
+            <version>5c71f6e7af57fb0273a214f69e58a00ed3e9211d</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.apache.uima/uimaj-document-annotation -->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.uima</groupId>-->
-<!--            <artifactId>uimaj-document-annotation</artifactId>-->
-<!--            <version>3.5.0</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.apache.uima</groupId>-->
+        <!--            <artifactId>uimaj-document-annotation</artifactId>-->
+        <!--            <version>3.5.0</version>-->
+        <!--        </dependency>-->
 
 
-<!--        <dependency>-->
-<!--            <groupId>de.tudarmstadt.ukp.dkpro.core</groupId>-->
-<!--            <artifactId>de.tudarmstadt.ukp.dkpro.core.opennlp-asl</artifactId>-->
-<!--            <version>1.10.0</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>de.tudarmstadt.ukp.dkpro.core</groupId>-->
+        <!--            <artifactId>de.tudarmstadt.ukp.dkpro.core.opennlp-asl</artifactId>-->
+        <!--            <version>1.10.0</version>-->
+        <!--        </dependency>-->
 
-<!--        <dependency>-->
-<!--            <groupId>de.tudarmstadt.ukp.dkpro.core</groupId>-->
-<!--            <artifactId>de.tudarmstadt.ukp.dkpro.core.api.metadata-asl</artifactId>-->
-<!--            <version>1.10.0</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>de.tudarmstadt.ukp.dkpro.core</groupId>-->
+        <!--            <artifactId>de.tudarmstadt.ukp.dkpro.core.api.metadata-asl</artifactId>-->
+        <!--            <version>1.10.0</version>-->
+        <!--        </dependency>-->
 
-<!--         https://mvnrepository.com/artifact/de.tudarmstadt.ukp.dkpro.core/de.tudarmstadt.ukp.dkpro.core.io.text-asl -->
-<!--        <dependency>-->
-<!--            <groupId>de.tudarmstadt.ukp.dkpro.core</groupId>-->
-<!--            <artifactId>de.tudarmstadt.ukp.dkpro.core.io.text-asl</artifactId>-->
-<!--            <version>1.10.0</version>-->
-<!--        </dependency>-->
+        <!--         https://mvnrepository.com/artifact/de.tudarmstadt.ukp.dkpro.core/de.tudarmstadt.ukp.dkpro.core.io.text-asl -->
+        <!--        <dependency>-->
+        <!--            <groupId>de.tudarmstadt.ukp.dkpro.core</groupId>-->
+        <!--            <artifactId>de.tudarmstadt.ukp.dkpro.core.io.text-asl</artifactId>-->
+        <!--            <version>1.10.0</version>-->
+        <!--        </dependency>-->
         <!-- https://mvnrepository.com/artifact/de.tudarmstadt.ukp.dkpro.core/de.tudarmstadt.ukp.dkpro.core.tokit-asl -->
-<!--        <dependency>-->
-<!--            <groupId>de.tudarmstadt.ukp.dkpro.core</groupId>-->
-<!--            <artifactId>de.tudarmstadt.ukp.dkpro.core.tokit-asl</artifactId>-->
-<!--            <version>1.10.0</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>de.tudarmstadt.ukp.dkpro.core</groupId>-->
+        <!--            <artifactId>de.tudarmstadt.ukp.dkpro.core.tokit-asl</artifactId>-->
+        <!--            <version>1.10.0</version>-->
+        <!--        </dependency>-->
         <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
         <dependency>
             <groupId>org.apache.commons</groupId>
