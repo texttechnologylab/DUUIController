@@ -1,7 +1,10 @@
 package org.texttechnologylab.duui.api.routes.processes;
 
+import com.dropbox.core.DbxException;
 import com.mongodb.client.model.Filters;
 import org.bson.Document;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.IDUUIDocumentHandler;
+import org.texttechnologylab.DockerUnifiedUIMAInterface.document_handler.IDUUIFolderPickerApi;
 import org.texttechnologylab.DockerUnifiedUIMAInterface.monitoring.DUUIStatus;
 import org.texttechnologylab.duui.api.controllers.documents.DUUIDocumentController;
 import org.texttechnologylab.duui.api.controllers.events.DUUIEventController;
@@ -18,11 +21,16 @@ import spark.Response;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.security.GeneralSecurityException;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static org.texttechnologylab.duui.api.controllers.processes.DUUIProcessController.findOneById;
+import static org.texttechnologylab.duui.api.controllers.processes.DUUIProcessController.getHandler;
 
 /**
  * A class that is responsible for handling incoming requests to the /processes path group.
@@ -30,6 +38,25 @@ import static org.texttechnologylab.duui.api.controllers.processes.DUUIProcessCo
  * @author Cedric Borkowksi
  */
 public class DUUIProcessRequestHandler {
+
+    public static String getFolderStructure(Request request, Response response) throws DbxException, ExecutionException, InterruptedException, GeneralSecurityException, IOException {
+        String id = request.params(":id");
+        String provider = request.params(":provider");
+        IDUUIDocumentHandler handler = getHandler(provider, id);
+
+        if (handler instanceof IDUUIFolderPickerApi) {
+            CompletableFuture<IDUUIFolderPickerApi.DUUIFolder> folderStructure =
+                    CompletableFuture.supplyAsync(() -> ((IDUUIFolderPickerApi) handler).getFolderStructure());
+            Map<String, Object> tree = folderStructure.get().toJson();
+            Document document = new Document(tree);
+
+            response.status(200);
+//            System.out.println(document.toJson());
+            return document.toJson();
+        }
+
+        return DUUIRequestHelper.notFound(response);
+    }
 
     /**
      * Retrieve a process given its id.

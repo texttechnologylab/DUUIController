@@ -2,6 +2,7 @@
 	@component
 	A Dropdown component where one option can be selected.
 -->
+
 <script lang="ts">
 	import { equals, toTitleCase } from '$lib/duui/utils/text'
 	import type { Placement } from '@floating-ui/dom'
@@ -49,7 +50,7 @@
 	</button>
 </div>
 
-<div data-popup={name}>
+<div data-popup={name} class="fixed">
 	<div class="popup-solid p-2 md:min-w-[220px]">
 		<ListBox class="overflow-hidden" rounded="rounded-md" spacing="space-y-2">
 			{#each options as option}

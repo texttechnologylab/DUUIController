@@ -40,6 +40,15 @@ interface UserProperties {
 			username: string | null
 			password: string | null
 		}
+		nextcloud?: {
+			uri: string | null
+			username: string | null
+			password: string | null
+		}
+		google?: {
+			access_token: string | null
+			refresh_token: string | null
+		}
 	}
 }
 

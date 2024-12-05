@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.security.GeneralSecurityException;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -58,6 +59,9 @@ public class Main {
             System.err.println("\t> DBX_APP_KEY");
             System.err.println("\t> DBX_APP_SECRET");
             System.err.println("\t> DBX_REDIRECT_URL");
+            System.err.println("\t> GOOGLE_CLIENT_ID");
+            System.err.println("\t> GOOGLE_CLIENT_SECRET");
+            System.err.println("\t> GOOGLE_REDIRECT_URI");
             System.err.println("\t> PORT");
             System.err.println("\t> HOST");
             System.err.println("\t> FILE_UPLOAD_DIRECTORY");
@@ -116,7 +120,7 @@ public class Main {
      *
      * @return a JSON Document containing the path to parent folder (uuid).
      */
-    public static String uploadFile(Request request, Response response) throws ServletException, IOException, DbxException {
+    public static String uploadFile(Request request, Response response) throws ServletException, IOException, DbxException, GeneralSecurityException {
         String authorization = request.headers("Authorization");
         DUUIRequestHelper.authenticate(authorization);
 
@@ -188,7 +192,7 @@ public class Main {
             response.raw().getOutputStream().write(file.readAllBytes());
             response.raw().getOutputStream().close();
             return "Download.";
-        } catch (DbxException | IOException e) {
+        } catch (DbxException | IOException | GeneralSecurityException e) {
             response.status(500);
             return "The file could not be downloaded.";
         }

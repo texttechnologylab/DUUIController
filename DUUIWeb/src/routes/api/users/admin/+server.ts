@@ -12,7 +12,6 @@ export const PUT = async ({ request, locals, fetch }) => {
 	if (!user || user.role !== 'Admin') {
 		return error(401, { message: 'Unauthorized' })
 	}
-
 	const response = await fetch(`${API_URL}/users/${data.oid}`, {
 		method: 'PUT',
 		body: JSON.stringify({ role: data.role })

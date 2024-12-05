@@ -37,7 +37,7 @@ node_modules
 tmp/duui
 
 Monitoring/*
-.env
+DUUIWeb/.env
 
 temp/*
 DUUIRestService/config.properties

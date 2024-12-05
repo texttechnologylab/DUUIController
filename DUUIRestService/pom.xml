@@ -101,23 +101,23 @@
                 <!--generate types dynamically -->
                 <groupId>org.apache.uima</groupId>
                 <artifactId>jcasgen-maven-plugin</artifactId>
-                <version>2.9.0</version>
+                <version>3.5.0</version>
                 <configuration>
                     <limitToProject>true</limitToProject>
                     <typeSystemIncludes>
-                        <include>src/main/resources/org/texttechnologylab/types/reproducibleAnnotations.xml
-                        </include>
+                        <include>src/main/resources/org/texttechnologylab/types/*</include>
+                        <!--                        <include>src/main/resources/org/texttechnologylab/types/reproducibleAnnotations.xml</include>-->
                     </typeSystemIncludes>
                 </configuration>
-                <executions>
-                    <execution>
-                        <!--call it in the generate-source phase -->
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <!--                <executions>-->
+                <!--                    <execution>-->
+                <!--                        &lt;!&ndash;call it in the generate-source phase &ndash;&gt;-->
+                <!--                        <phase>generate-sources</phase>-->
+                <!--                        <goals>-->
+                <!--                            <goal>generate</goal>-->
+                <!--                        </goals>-->
+                <!--                    </execution>-->
+                <!--                </executions>-->
             </plugin>
             <!--            <plugin>-->
             <!--                <groupId>org.codehaus.mojo</groupId>-->
@@ -184,42 +184,52 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.texttechnologylab</groupId>
+            <groupId>com.github.dterefe</groupId>
             <artifactId>DockerUnifiedUIMAInterface</artifactId>
-            <version>${duui.version}</version>
+            <version>5c71f6e7af57fb0273a214f69e58a00ed3e9211d</version>
         </dependency>
 
-        <dependency>
-            <groupId>de.tudarmstadt.ukp.dkpro.core</groupId>
-            <artifactId>de.tudarmstadt.ukp.dkpro.core.opennlp-asl</artifactId>
-            <version>1.10.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>de.tudarmstadt.ukp.dkpro.core</groupId>
-            <artifactId>de.tudarmstadt.ukp.dkpro.core.api.metadata-asl</artifactId>
-            <version>1.10.0</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/de.tudarmstadt.ukp.dkpro.core/de.tudarmstadt.ukp.dkpro.core.io.text-asl -->
-        <dependency>
-            <groupId>de.tudarmstadt.ukp.dkpro.core</groupId>
-            <artifactId>de.tudarmstadt.ukp.dkpro.core.io.text-asl</artifactId>
-            <version>1.10.0</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/de.tudarmstadt.ukp.dkpro.core/de.tudarmstadt.ukp.dkpro.core.tokit-asl -->
-        <dependency>
-            <groupId>de.tudarmstadt.ukp.dkpro.core</groupId>
-            <artifactId>de.tudarmstadt.ukp.dkpro.core.tokit-asl</artifactId>
-            <version>1.10.0</version>
-        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.uima/uimaj-document-annotation -->
+        <!--        <dependency>-->
+        <!--            <groupId>org.apache.uima</groupId>-->
+        <!--            <artifactId>uimaj-document-annotation</artifactId>-->
+        <!--            <version>3.5.0</version>-->
+        <!--        </dependency>-->
 
 
         <!--        <dependency>-->
-        <!--            <groupId>org.texttechnologylab</groupId>-->
-        <!--            <artifactId>DockerUnifiedUIMAInterface</artifactId>-->
-        <!--            <version>1.0</version>-->
+        <!--            <groupId>de.tudarmstadt.ukp.dkpro.core</groupId>-->
+        <!--            <artifactId>de.tudarmstadt.ukp.dkpro.core.opennlp-asl</artifactId>-->
+        <!--            <version>1.10.0</version>-->
         <!--        </dependency>-->
+
+        <!--        <dependency>-->
+        <!--            <groupId>de.tudarmstadt.ukp.dkpro.core</groupId>-->
+        <!--            <artifactId>de.tudarmstadt.ukp.dkpro.core.api.metadata-asl</artifactId>-->
+        <!--            <version>1.10.0</version>-->
+        <!--        </dependency>-->
+
+        <!--         https://mvnrepository.com/artifact/de.tudarmstadt.ukp.dkpro.core/de.tudarmstadt.ukp.dkpro.core.io.text-asl -->
+        <!--        <dependency>-->
+        <!--            <groupId>de.tudarmstadt.ukp.dkpro.core</groupId>-->
+        <!--            <artifactId>de.tudarmstadt.ukp.dkpro.core.io.text-asl</artifactId>-->
+        <!--            <version>1.10.0</version>-->
+        <!--        </dependency>-->
+        <!-- https://mvnrepository.com/artifact/de.tudarmstadt.ukp.dkpro.core/de.tudarmstadt.ukp.dkpro.core.tokit-asl -->
+        <!--        <dependency>-->
+        <!--            <groupId>de.tudarmstadt.ukp.dkpro.core</groupId>-->
+        <!--            <artifactId>de.tudarmstadt.ukp.dkpro.core.tokit-asl</artifactId>-->
+        <!--            <version>1.10.0</version>-->
+        <!--        </dependency>-->
+        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.8</version>
+        </dependency>
+
+
+
 
         <dependency>
             <groupId>org.xerial</groupId>
@@ -257,18 +267,22 @@
         </dependency>
 
         <dependency>
-            <groupId>com.sparkjava</groupId>
-            <artifactId>spark-core</artifactId>
-            <version>2.9.4</version>
-        </dependency>
-
-
-        <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <version>4.0.1</version> <!-- Use the appropriate version -->
         </dependency>
-    </dependencies>
+        <!-- https://mvnrepository.com/artifact/org.mortbay.jetty/servlet-api -->
+        <dependency>
+            <groupId>org.mortbay.jetty</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>3.0.20100224</version>
+        </dependency>
 
+        <dependency>
+            <groupId>com.sparkjava</groupId>
+            <artifactId>spark-core</artifactId>
+            <version>2.9.4</version>
+        </dependency>
+    </dependencies>
 
 </project>
